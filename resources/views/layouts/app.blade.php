@@ -42,16 +42,7 @@
                                     <i class="fas fa-calendar-days"></i> Eventos
                                 </a>
                             </li>
-                            {{-- <li>
-                                <a href="{{ route('products.index') }}" class="{{ request()->routeIs('products*') ? 'active' : '' }}">
-                                    <i class="fas fa-box"></i> Productos
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('suppliers.index') }}" class="{{ request()->routeIs('suppliers*') ? 'active' : '' }}">
-                                    <i class="fas fa-truck"></i> Proveedores
-                                </a>
-                            </li> --}}
+
                             <li class="mt-3">
                                 <form method="POST" action="{{ route('logout') }}" class="d-inline">
                                     @csrf
@@ -64,16 +55,6 @@
                             <li>
                                 <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
                                     <i class="fas fa-home"></i> Dashboard
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('supplies.index') }}" class="{{ request()->routeIs('supplies*') ? 'active' : '' }}">
-                                    <i class="fas fa-boxes"></i> Insumos
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('suppliers.index') }}" class="{{ request()->routeIs('suppliers*') ? 'active' : '' }}">
-                                    <i class="fas fa-truck"></i> Proveedores
                                 </a>
                             </li>
                             <li>

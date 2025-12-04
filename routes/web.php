@@ -2,8 +2,6 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SupplyController;
-use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\UserController;
@@ -76,20 +74,6 @@ Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
 // RUTAS PARA ADMIN LOCAL (Gerentes)
 // ============================================================================
 Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
-    // Insumos (Supplies)
-    Route::prefix('insumos')->name('supplies.')->group(function () {
-        Route::get('/', [SupplyController::class, 'index'])->name('index');
-        Route::get('/create', [SupplyController::class, 'create'])->name('create');
-        Route::post('/', [SupplyController::class, 'store'])->name('store');
-        Route::get('/{id}', [SupplyController::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [SupplyController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [SupplyController::class, 'update'])->name('update');
-        Route::delete('/{id}', [SupplyController::class, 'destroy'])->name('destroy');
-        // Modales (AJAX)
-        Route::get('/{id}/show-modal', [SupplyController::class, 'showModal'])->name('show.modal');
-        Route::get('/{id}/edit-modal', [SupplyController::class, 'editModal'])->name('edit.modal');
-    });
-
     // Productos
     Route::prefix('productos')->name('products.')->group(function () {
         Route::get('/', [ProductController::class, 'index'])->name('index');
@@ -106,24 +90,6 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
         // Modales (AJAX)
         Route::get('/{id}/show-modal', [ProductController::class, 'showModal'])->name('show.modal');
         Route::get('/{id}/edit-modal', [ProductController::class, 'editModal'])->name('edit.modal');
-    });
-
-    // Proveedores
-    Route::prefix('proveedores')->name('suppliers.')->group(function () {
-        Route::get('/', [SupplierController::class, 'index'])->name('index');
-        Route::get('/create', [SupplierController::class, 'create'])->name('create');
-        Route::post('/', [SupplierController::class, 'store'])->name('store');
-        Route::get('/{id}', [SupplierController::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [SupplierController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [SupplierController::class, 'update'])->name('update');
-        Route::delete('/{id}', [SupplierController::class, 'destroy'])->name('destroy');
-        // Restaurar proveedor (URL firmada por 10s) con token de restauración
-        Route::get('/restore/{token}', [SupplierController::class, 'restore'])->name('restore')->middleware('signed');
-        // Verificar email duplicado
-        Route::post('/check-email', [SupplierController::class, 'checkEmail'])->name('check.email');
-        // Modales (AJAX)
-        Route::get('/{id}/show-modal', [SupplierController::class, 'showModal'])->name('show.modal');
-        Route::get('/{id}/edit-modal', [SupplierController::class, 'editModal'])->name('edit.modal');
     });
 });
 

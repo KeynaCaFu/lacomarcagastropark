@@ -82,26 +82,6 @@
                 </div>
                 <div class="card-body">
                     <div class="quick-actions-grid">
-                        <a href="{{ route('supplies.index') }}" class="action-btn action-btn-primary">
-                            <div class="action-icon">
-                                <i class="fas fa-plus"></i>
-                            </div>
-                            <div class="action-text">
-                                <span class="action-title">Nuevo Insumo</span>
-                                <span class="action-subtitle">Agregar producto al inventario</span>
-                            </div>
-                        </a>
-                        
-                        <a href="{{ route('suppliers.index') }}" class="action-btn action-btn-success">
-                            <div class="action-icon">
-                                <i class="fas fa-user-plus"></i>
-                            </div>
-                            <div class="action-text">
-                                <span class="action-title">Nuevo Proveedor</span>
-                                <span class="action-subtitle">Registrar nuevo proveedor</span>
-                            </div>
-                        </a>
-                        
                         <a href="#" class="action-btn action-btn-info" onclick="showComingSoon()">
                             <div class="action-icon">
                                 <i class="fas fa-chart-bar"></i>
@@ -676,7 +656,7 @@ function checkLowStock() {
     // Simular verificación de stock bajo
     showNotification('Verificando productos con stock bajo...', 'warning');
     setTimeout(() => {
-        window.location.href = "{{ route('supplies.index') }}";
+        window.location.href = "{{ route('dashboard') }}";
     }, 1000);
 }
 
