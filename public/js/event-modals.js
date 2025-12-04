@@ -1,0 +1,139 @@
+// Modales AJAX para Eventos (ligero, carga partials via fetch)
+class EventoModals {
+    constructor(){
+        this.cache = new Map();
+        this.preloadTimeout = null;
+        this.initGlobalListeners();
+    }
+
+    initGlobalListeners(){
+        // cerrar al click fuera
+        window.addEventListener('click', (ev) => {
+            
+            ['showModal','modalCreate','createModal','editModal'].forEach(id => {
+                const modal = document.getElementById(id);
+                if(modal && ev.target === modal) this.closeModal(id);
+            });
+        });
+    document.addEventListener('keydown', (ev) => { if(ev.key === 'Escape'){ ['showModal','modalCreate','createModal','editModal'].forEach(id=>{ const m=document.getElementById(id); if(m && (m.style.display==='flex' || m.classList.contains && m.classList.contains('open'))) this.closeModal(id); }); } });
+    }
+
+    preloadModal(type, id){
+        if(this.preloadTimeout) clearTimeout(this.preloadTimeout);
+        this.preloadTimeout = setTimeout(()=>{ const key = `${type}-${id}`; if(!this.cache.has(key)) this.fetchModalContent(type,id); }, 200);
+    }
+
+    async fetchModalContent(type, id){
+        const key = `${type}-${id}`;
+        if(this.cache.has(key)) return this.cache.get(key);
+        try{
+            const url = `/eventos/${id}/${type}-modal`;
+            const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if(!res.ok) throw new Error('HTTP ' + res.status);
+            const html = await res.text();
+            this.cache.set(key, html);
+            return html;
+        }catch(err){ console.error('Error fetching event modal:', err); throw err; }
+    }
+
+    async openShowModal(id){
+        const modal = document.getElementById('showModal');
+        const content = document.getElementById('showModalContent');
+        if(!modal || !content) return;
+    modal.style.display = 'flex'; document.body.style.overflow='hidden';
+        const key = `show-${id}`;
+        if(this.cache.has(key)){ content.innerHTML = this.cache.get(key); return; }
+        content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
+        try{ const html = await this.fetchModalContent('show', id); content.innerHTML = html; } catch(e){ content.innerHTML = '<div class="p-3 text-center text-danger">Error al cargar</div>'; }
+    }
+
+    async openEditModal(id){
+        const modal = document.getElementById('editModal');
+        const content = document.getElementById('editModalContent');
+        if(!modal || !content) return;
+    modal.style.display = 'flex'; document.body.style.overflow='hidden';
+        const key = `edit-${id}`;
+        if(this.cache.has(key)){
+            content.innerHTML = this.cache.get(key);
+            this.initEditForm(content);
+            return;
+        }
+        content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
+        try{
+            const html = await this.fetchModalContent('edit', id);
+            content.innerHTML = html;
+            this.initEditForm(content);
+        } catch(e){ content.innerHTML = '<div class="p-3 text-center text-danger">Error al cargar</div>'; }
+    }
+
+    // Inicializa handlers específicos del partial de edición que no ejecutan scripts inline al inyectar innerHTML
+    initEditForm(container){
+        if(!container) container = document.getElementById('editModalContent');
+        if(!container) return;
+        const form = container.querySelector('#editForm');
+        if(!form) return;
+        // evitar duplicar listeners
+        if(form.dataset._editConfirmBound === 'true') return;
+        form.dataset._editConfirmBound = 'true';
+
+        form.addEventListener('submit', async function(e){
+            e.preventDefault();
+            let ok = false;
+            try{
+                // Reutilizar las confirmaciones ya implementadas para Insumos si están disponibles
+                if (window.insumoModals && typeof window.insumoModals.showConfirmDialog === 'function'){
+                    ok = await window.insumoModals.showConfirmDialog(
+                        '¿Estás seguro de actualizar el Evento?',
+                        'Los cambios realizados se guardarán permanentemente.',
+                        'Sí, actualizar',
+                        'Cancelar'
+                    );
+                } else if (typeof Swal !== 'undefined'){
+                    const res = await Swal.fire({
+                        title: '',
+                        html: `<div class="swal-title-like">¿Estás seguro de actualizar el Evento?</div>`,
+                        backdrop: true,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        customClass: {
+                            popup: 'sw-rounded',
+                            confirmButton: 'sw-btn sw-btn-confirm',
+                            cancelButton: 'sw-btn sw-btn-cancel'
+                        },
+                        buttonsStyling: false,
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, actualizar',
+                        cancelButtonText: 'Cancelar'
+                    });
+                    ok = res.isConfirmed === true;
+                } else {
+                    ok = confirm('¿Estás seguro de actualizar el evento?');
+                }
+            } catch(err){ ok = confirm('¿Estás seguro de actualizar el evento?'); }
+
+            if(ok === true) form.submit();
+        });
+    }
+
+    closeModal(id){ const modal = document.getElementById(id); if(!modal) return; modal.style.display='none'; document.body.style.overflow='auto'; }
+
+    
+    openCreateModal(){
+        const modal = document.getElementById('createModal');
+        if(!modal) return;
+    modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// Exponer funciones globales para compatibilidad con views
+document.addEventListener('DOMContentLoaded', function(){
+    window.eventoModals = new EventoModals();
+});
+
+function openShowModal(id){ if(window.eventoModals) window.eventoModals.openShowModal(id); }
+function openEditModal(id){ if(window.eventoModals) window.eventoModals.openEditModal(id); }
+function preloadShowModal(id){ if(window.eventoModals) window.eventoModals.preloadModal('show', id); }
+function preloadEditModal(id){ if(window.eventoModals) window.eventoModals.preloadModal('edit', id); }
+function closeModal(id){ if(window.eventoModals) window.eventoModals.closeModal(id); }
+function openCreateModal(){ if(window.eventoModals) window.eventoModals.openCreateModal(); }

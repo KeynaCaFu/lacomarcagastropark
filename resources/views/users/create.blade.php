@@ -1,0 +1,287 @@
+@extends('layouts.app')
+
+@section('title', 'Crear Nuevo Usuario')
+
+@section('content')
+<style>
+    .form-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 32px;
+        margin-top: 20px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .form-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 24px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .form-input, .form-select {
+        width: 100%;
+        padding: 12px 14px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        font-family: inherit;
+        box-sizing: border-box;
+    }
+
+    .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: #16a34a;
+        box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+
+    .error-message {
+        color: #dc2626;
+        font-size: 13px;
+        margin-top: 4px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 32px;
+    }
+
+    .btn-submit {
+        flex: 1;
+        padding: 12px 20px;
+        background: linear-gradient(135deg, #485a1a, #0d5e2a);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 163, 74, 0.25);
+    }
+
+    .btn-cancel {
+        flex: 1;
+        padding: 12px 20px;
+        background: #e5e7eb;
+        color: #374151;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-cancel:hover {
+        background: #d1d5db;
+    }
+
+    .required {
+        color: #dc2626;
+    }
+
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 20px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn-submit, .btn-cancel {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="form-container">
+    <h1 class="form-title">Crear Nuevo Usuario</h1>
+
+    <form method="POST" action="{{ route('users.store') }}" novalidate>
+        @csrf
+
+        <!-- Nombre Completo -->
+        <div class="form-group">
+            <label class="form-label" for="full_name">
+                Nombre Completo <span class="required">*</span>
+            </label>
+            <input 
+                type="text" 
+                id="full_name" 
+                name="full_name"
+                class="form-input {{ $errors->has('full_name') ? 'is-invalid' : '' }}"
+                value="{{ old('full_name') }}"
+                placeholder="Ej: Juan Pérez"
+                required
+            />
+            @error('full_name')
+                <div class="error-message">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+            <label class="form-label" for="email">
+                Correo Electrónico <span class="required">*</span>
+            </label>
+            <input 
+                type="email" 
+                id="email" 
+                name="email"
+                class="form-input {{ $errors->has('email') ? 'is-invalid' : '' }}"
+                value="{{ old('email') }}"
+                placeholder="correo@ejemplo.com"
+                required
+            />
+            @error('email')
+                <div class="error-message">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <!-- Teléfono + Rol -->
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="phone">Teléfono</label>
+                <input 
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    class="form-input {{ $errors->has('phone') ? 'is-invalid' : '' }}"
+                    value="{{ old('phone') }}"
+                    placeholder="Ej: 6000-0000"
+                />
+                @error('phone')
+                    <div class="error-message">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="role_id">
+                    Rol <span class="required">*</span>
+                </label>
+                <select 
+                    id="role_id" 
+                    name="role_id"
+                    class="form-select {{ $errors->has('role_id') ? 'is-invalid' : '' }}"
+                    required
+                >
+                    <option value="">Selecciona un rol</option>
+                    @foreach ($roles as $role)
+                        <option 
+                            value="{{ $role->role_id }}"
+                            {{ old('role_id') == $role->role_id ? 'selected' : '' }}
+                        >
+                            {{ $role->role_name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('role_id')
+                    <div class="error-message">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
+
+        <!-- Contraseña -->
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="password">
+                    Contraseña <span class="required">*</span>
+                </label>
+                <input 
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="form-input {{ $errors->has('password') ? 'is-invalid' : '' }}"
+                    placeholder="Mínimo 8 caracteres"
+                    required
+                />
+                @error('password')
+                    <div class="error-message">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password_confirmation">
+                    Confirmar Contraseña <span class="required">*</span>
+                </label>
+                <input 
+                    type="password"
+                    id="password_confirmation"
+                    name="password_confirmation"
+                    class="form-input"
+                    placeholder="Repite la contraseña"
+                    required
+                />
+            </div>
+        </div>
+
+        <!-- Estado -->
+        <div class="form-group">
+            <label class="form-label" for="status">
+                Estado <span class="required">*</span>
+            </label>
+            <select 
+                id="status"
+                name="status"
+                class="form-select {{ $errors->has('status') ? 'is-invalid' : '' }}"
+                required
+            >
+                <option value="">Selecciona un estado</option>
+                <option value="Active" {{ old('status', 'Active') == 'Active' ? 'selected' : '' }}>Activo</option>
+                <option value="Inactive" {{ old('status') == 'Inactive' ? 'selected' : '' }}>Inactivo</option>
+            </select>
+            @error('status')
+                <div class="error-message">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <!-- Botones -->
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save"></i> Crear Usuario
+            </button>
+
+            <a href="{{ route('users.index') }}" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+@endsection

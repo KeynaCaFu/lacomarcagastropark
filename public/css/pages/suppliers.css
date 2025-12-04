@@ -1,0 +1,559 @@
+/* ========================================
+   ESTILOS ESPECÍFICOS - PROVEEDORES
+   LA COMARCA
+   ======================================== */
+
+/* Tarjeta de proveedor */
+.proveedor-card {
+    border-left: 4px solid #485a1a;
+    transition: transform 0.2s ease-in-out;
+    background-color: #ffffff78;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.24);
+}
+
+.proveedor-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Estados de proveedores */
+.proveedor-activo {
+    border-left-color: #27ae60;
+}
+
+.proveedor-inactivo {
+    border-left-color: #6c757d;
+}
+
+
+/* Panel de filtros */
+.card-header .btn {
+    border: none;
+    background: none;
+    color: inherit;
+}
+
+.card-header .btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.card-header .btn:focus {
+.card-header {
+    background: #485a1a;
+    color: black;
+    border-radius: 8px 8px 0 0;
+    padding: 15px 20px;
+    margin: -20px -20px 15px -20px;
+    border-bottom: none;
+}
+
+/* Línea verde solo cuando el filtro está abierto */
+.card-header.filtros-abiertos {
+    border-bottom: 3px solid #ff9900;
+}
+}
+
+/* Animación para filtros */
+.proveedor-row,
+.proveedor-card-item {
+    transition: all 0.3s ease;
+}
+
+.proveedor-row[style*="display: none"],
+.proveedor-card-item[style*="display: none"] {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+/* Contador de resultados */
+#resultadosFiltro {
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+/* Mensaje de no encontrados */
+#mensajeProveedoresVacio {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive para filtros */
+@media (max-width: 768px) {
+    .card-body .row.g-3 {
+        gap: 1rem;
+    }
+    
+    .d-flex.gap-2.flex-wrap {
+        justify-content: center;
+    }
+    
+    #resultadosFiltro {
+        text-align: center;
+        margin-top: 0.5rem;
+    }
+}
+
+/* Lista de insumos en proveedor */
+.insumos-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.insumo-item {
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    border-left: 3px solid #485a1a;
+}
+
+/* Formulario de proveedores */
+.form-proveedor .form-control:focus {
+    border-color: #485a1a;
+    box-shadow: 0 0 0 0.2rem rgba(72, 90, 26, 0.25);
+}
+
+.checkbox-insumos {
+    background-color: #ffffff78;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.checkbox-insumos .form-check {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e9ecef;
+    transition: background-color 0.3s;
+}
+
+.checkbox-insumos .form-check:last-child {
+    border-bottom: none;
+}
+
+.checkbox-insumos .form-check:hover {
+    background-color: rgba(72, 90, 26, 0.1);
+}
+
+.checkbox-insumos .form-check-input:checked {
+    background-color: #485a1a;
+    border-color: #485a1a;
+}
+
+.checkbox-insumos .form-check-label {
+    font-weight: 500;
+    color: #333;
+}
+
+/* Iconos de contacto */
+.contacto-info i {
+    color: #485a1a;
+    margin-right: 0.5rem;
+}
+
+/* Totales y estadísticas */
+.stat-card {
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    border: 1px solid #e3e6f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #485a1a;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Botones específicos de proveedores */
+.btn-proveedor {
+    background-color: #485a1a;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.btn-proveedor:hover {
+    background-color: #3a4915;
+    color: white;
+}
+
+/* Tablas específicas de proveedores */
+.proveedores-table {
+    background-color: #ffffff78;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.proveedores-table th {
+    background-color: #485a1a;
+    color: white;
+    padding: 15px 12px;
+    font-weight: 600;
+}
+
+.proveedores-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.proveedores-table tr:hover {
+    background-color: rgba(72, 90, 26, 0.05);
+}
+
+/* Estados específicos */
+.estado-activo-badge {
+    background-color: #27ae60;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.estado-inactivo-badge {
+    background-color: #6c757d;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+/* Formularios específicos */
+.form-proveedores {
+    background-color: #ffffff78;
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-proveedores .form-label {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.form-proveedores .form-control,
+.form-proveedores .form-select,
+.form-proveedores textarea {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-proveedores .form-control:focus,
+.form-proveedores .form-select:focus,
+.form-proveedores textarea:focus {
+    border-color: #485a1a;
+    box-shadow: 0 0 0 0.25rem rgba(72, 90, 26, 0.25);
+    outline: none;
+}
+
+/* Input group para precios */
+.input-group-text {
+    background-color: #485a1a;
+    color: white;
+    border-color: #485a1a;
+}
+
+/* Breadcrumbs personalizados */
+.breadcrumb-proveedores {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 20px;
+}
+
+.breadcrumb-proveedores .breadcrumb-item a {
+    color: #485a1a;
+    text-decoration: none;
+}
+
+.breadcrumb-proveedores .breadcrumb-item.active {
+    color: #6c757d;
+}
+
+/* Alertas personalizadas para proveedores */
+.alert-proveedores {
+    border: none;
+    border-radius: 8px;
+    padding: 15px 20px;
+}
+
+.alert-proveedores.alert-success {
+    background-color: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+    border-left: 4px solid #27ae60;
+}
+
+.alert-proveedores.alert-danger {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border-left: 4px solid #e74c3c;
+}
+
+/* Paginación personalizada */
+.pagination-proveedores .page-link {
+    color: #485a1a;
+    border-color: #dee2e6;
+}
+
+.pagination-proveedores .page-item.active .page-link {
+    background-color: #485a1a;
+    border-color: #485a1a;
+}
+
+.pagination-proveedores .page-link:hover {
+    color: #3a4915;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+/* Responsive específico para proveedores */
+@media (max-width: 768px) {
+    .proveedores-table {
+        font-size: 0.875rem;
+    }
+    
+    .proveedores-table th,
+    .proveedores-table td {
+        padding: 8px 6px;
+    }
+    
+    .form-proveedores {
+        padding: 15px;
+        margin: 0 10px;
+    }
+    
+    .checkbox-insumos {
+        max-height: 200px;
+    }
+    
+    .btn-group .btn {
+        padding: 6px 8px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    .form-proveedores .row .col-md-6 {
+        margin-bottom: 15px;
+    }
+}
+
+
+/* Card responsive para proveedores */
+.proveedor-card-responsive {
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.proveedor-card-responsive:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.proveedor-card-responsive .card-header {
+    background: linear-gradient(135deg, #485a1a, #5d6e29);
+    color: white;
+    border-bottom: none;
+    padding: 12px 16px;
+}
+
+.proveedor-card-responsive .card-body {
+    padding: 16px;
+    background-color: #fafafa;
+}
+
+.proveedor-card-responsive .card-footer {
+    background-color: white;
+    border-top: 1px solid #e0e0e0;
+    padding: 12px 16px;
+}
+
+/* Estadísticas mini para cards */
+.stat-mini {
+    text-align: center;
+}
+
+.stat-mini .text-muted {
+    font-size: 0.75rem;
+    margin-bottom: 2px;
+}
+
+/* Botón responsive */
+.btn-responsive {
+    min-width: 120px;
+}
+
+@media (max-width: 576px) {
+    .btn-responsive {
+        width: 100%;
+        min-width: auto;
+        font-size: 0.875rem;
+    }
+    
+    .proveedor-card-responsive .card-body {
+        padding: 12px;
+    }
+    
+    .proveedor-card-responsive .card-footer {
+        padding: 8px 12px;
+    }
+    
+    .proveedor-card-responsive .card-footer .btn {
+        font-size: 0.75rem;
+        padding: 6px 8px;
+    }
+}
+
+/* Mejoras para contacto info responsive */
+@media (max-width: 768px) {
+    .contacto-info {
+        font-size: 0.875rem;
+    }
+    
+    .contacto-info i {
+        color: #485a1a;
+        margin-right: 4px;
+        width: 12px;
+    }
+}
+
+/* Estados responsive */
+.estado-activo-badge,
+.estado-inactivo-badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.estado-activo-badge {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.estado-inactivo-badge {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Header responsive */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .h3 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .h3 {
+        font-size: 1.25rem;
+    }
+    
+    .gap-3 {
+        gap: 1rem !important;
+    }
+}
+
+/* Modales responsive */
+@media (max-width: 768px) {
+    .custom-modal .modal-content {
+        margin: 10px;
+        width: calc(100% - 20px);
+        max-height: calc(100vh - 20px);
+        overflow-y: auto;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .modal-header {
+        padding: 15px;
+    }
+    
+    .modal-header h3 {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .custom-modal .modal-content {
+        margin: 5px;
+        width: calc(100% - 10px);
+        border-radius: 8px;
+    }
+    
+    .modal-body {
+        padding: 12px;
+    }
+    
+    .modal-header {
+        padding: 12px;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .modal-header .close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .modal-actions .btn {
+        width: 100%;
+    }
+}

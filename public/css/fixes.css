@@ -1,0 +1,89 @@
+
+/* Asegurar que el container principal use todo el espacio */
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+
+.container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+/* Mejorar el sidebar para tablets y móviles */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 70px;
+        min-width: 70px;
+    }
+    
+    /* Mostrar solo el logo en pantallas pequeñas */
+    .sidebar-header .brand-text {
+        display: none;
+    }
+    .sidebar-logo {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .sidebar-menu a span {
+        display: none;
+    }
+    
+    .sidebar-menu a {
+        text-align: center;
+        padding: 15px 10px;
+    }
+    
+    .main-content {
+        padding: 10px;
+    }
+}
+
+/* Mejorar las tablas en móviles */
+@media (max-width: 768px) {
+    .table-responsive {
+        border: none;
+    }
+    
+    .table-responsive table {
+        min-width: 600px;
+    }
+}
+
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* Mejorar header responsive */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+@media (max-width: 576px) {
+    .header h1 {
+        font-size: 1.2rem;
+    }
+    
+    .user-info {
+        padding: 10px;
+    }
+}
+
+/* Corregir z-index problems */
+.sidebar {
+    z-index: 1000;
+}
+
+.main-content {
+    z-index: 1;
+    position: relative;
+}

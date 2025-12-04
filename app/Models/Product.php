@@ -1,0 +1,106 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Product extends Model
+{
+    use HasFactory;
+
+    protected $table = 'tbproduct';
+    protected $primaryKey = 'product_id';
+    public $timestamps = true;
+
+    const CREATED_AT = 'created_at';
+    const UPDATED_AT = 'updated_at';
+
+    protected $fillable = [
+        'name',
+        'description',
+        'category',
+        'tag',
+        'product_type',
+        'price',
+        'photo',
+        'status'
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+    ];
+
+    /**
+     * Relación: Galería de imágenes del producto
+     */
+    public function gallery()
+    {
+        return $this->hasMany(ProductGallery::class, 'product_id', 'product_id');
+    }
+
+    /**
+     * Accessor: Obtener estado en español para las vistas
+     * Uso en Blade: {{ $product->status_in_spanish }}
+     */
+    public function getStatusInSpanishAttribute()
+    {
+        $statusMap = [
+            'Available' => 'Disponible',
+            'Unavailable' => 'No disponible'
+        ];
+
+        return $statusMap[$this->status] ?? $this->status;
+    }
+
+    /**
+     * Scope: Filtrar por nombre
+     */
+    public function scopeSearch($query, $term)
+    {
+        if (!empty($term)) {
+            return $query->where('name', 'like', "%{$term}%")
+                ->orWhere('description', 'like', "%{$term}%")
+                ->orWhere('category', 'like', "%{$term}%");
+        }
+        return $query;
+    }
+
+    /**
+     * Scope: Filtrar por estado
+     */
+    public function scopeByStatus($query, $status)
+    {
+        if (!empty($status)) {
+            return $query->where('status', $status);
+        }
+        return $query;
+    }
+
+    /**
+     * Scope: Solo productos disponibles
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'Available');
+    }
+
+    /**
+     * Scope: Solo productos no disponibles
+     */
+    public function scopeInactive($query)
+    {
+        return $query->where('status', 'Unavailable');
+    }
+
+    /**
+     * Scope: Filtrar por categoría
+     */
+    public function scopeByCategory($query, $category)
+    {
+        if (!empty($category)) {
+            return $query->where('category', $category);
+        }
+        return $query;
+    }
+}

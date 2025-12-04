@@ -1,0 +1,678 @@
+
+
+/* Contenedor de lista de insumos */
+.insumos-list-container {
+    background-color: white;
+    border-radius: 10px;
+    max-height: 220px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Mejorar el display de información de contacto en el modal de detalles */
+.detail-table th i {
+    color: #485a1a;
+    margin-right: 8px;
+    width: 16px;
+    text-align: center;
+}
+
+/* Estilos para el checkbox de insumos en modales */
+.modal-body .form-check {
+    margin-bottom: 8px;
+    padding: 10px;
+    background-color: white;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.modal-body .form-check:hover {
+    background-color: #f8f9fa;
+    border-color: #485a1a;
+    transform: translateX(3px);
+}
+
+.modal-body .form-check-input:checked {
+    background-color: #485a1a;
+    border-color: #485a1a;
+}
+
+.modal-body .form-check-input:checked + .form-check-label {
+    font-weight: 600;
+    color: #485a1a;
+}
+
+.modal-body .form-check-label {
+    cursor: pointer;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+
+
+/* Overlay de loading global */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.loading-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Loading en botones */
+.btn.loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+}
+
+.btn.loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    color: #fff;
+}
+
+/* Indicador de estado de operación */
+.operation-status {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s ease;
+    max-width: 350px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.operation-status.processing {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.operation-status.success {
+    background-color: #198754;
+    color: white;
+}
+
+.operation-status.error {
+    background-color: #dc3545;
+    color: white;
+}
+
+.operation-status.warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+/* Mini spinner para operación en curso */
+.mini-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+/* Estados mejorados con iconos */
+.estado-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.estado-badge i {
+    font-size: 0.9rem;
+}
+
+.estado-activo-badge {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.estado-activo-badge::before {
+    content: "✓";
+    font-weight: bold;
+    margin-right: 4px;
+}
+
+.estado-inactivo-badge {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.estado-inactivo-badge::before {
+    content: "✕";
+    font-weight: bold;
+    margin-right: 4px;
+}
+
+/* Indicador de cambios no guardados */
+.unsaved-changes-indicator {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #ffc107;
+    color: #000;
+    padding: 10px 20px;
+    border-radius: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 9998;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.unsaved-changes-indicator.visible {
+    display: flex;
+    animation: bounceIn 0.5s ease;
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: translateX(-50%) translateY(100px);
+        opacity: 0;
+    }
+    60% {
+        transform: translateX(-50%) translateY(-10px);
+    }
+    100% {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Timestamp de última actualización mejorado */
+.last-updated {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #6c757d;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.last-updated i {
+    color: #485a1a;
+}
+
+/* Tooltip mejorado */
+.custom-tooltip {
+    position: relative;
+    cursor: help;
+    border-bottom: 1px dotted #6c757d;
+}
+
+.custom-tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 9999;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.85rem;
+}
+
+.custom-tooltip .tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+.custom-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Estilos para la información comercial */
+.comercial-info {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: 1px solid #e9ecef;
+}
+
+/* Textarea personalizado para dirección */
+.modal-body textarea.form-control {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* Input group personalizado para precios */
+.modal-body .input-group .input-group-text {
+    background: linear-gradient(135deg, #485a1a, #5a6d20);
+    border-color: #485a1a;
+    color: white;
+    font-weight: 600;
+}
+
+.modal-body .input-group .form-control {
+    border-left-color: #485a1a;
+}
+
+.modal-body .input-group .form-control:focus {
+    border-color: #485a1a;
+    box-shadow: 0 0 0 0.25rem rgba(72, 90, 26, 0.15);
+}
+
+/* Tabla de insumos en el modal de detalles */
+.modal-body .detail-table {
+    background-color: #ffffff;
+}
+
+.modal-body .detail-table thead tr {
+    background: linear-gradient(135deg, #485a1a, #5a6d20);
+    color: white;
+}
+
+.modal-body .detail-table thead th {
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    padding: 12px 8px;
+}
+
+.modal-body .detail-table tbody td {
+    text-align: center;
+    vertical-align: middle;
+    background-color: #ffffff;
+}
+
+.modal-body .detail-table tbody tr {
+    background-color: #ffffff;
+}
+
+.modal-body .detail-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Estados específicos para proveedores */
+.status-activo {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-inactivo {
+    background-color: #e2e3e5;
+    color: #383d41;
+    border: 1px solid #d6d8db;
+}
+
+/* Mejoras en el responsive para modales de proveedores */
+@media (max-width: 768px) {
+    .modal-body .comercial-info {
+        padding: 12px;
+    }
+    
+    .modal-body .detail-table {
+        font-size: 0.85rem;
+    }
+    
+    .modal-body .detail-table th,
+    .modal-body .detail-table td {
+        padding: 8px 6px;
+    }
+    
+    .modal-body .form-check {
+        padding: 10px;
+        margin-bottom: 8px;
+    }
+    
+    .modal-body .form-check-label {
+        font-size: 0.9rem;
+    }
+}
+
+/* Animaciones específicas para proveedores */
+.proveedor-card-animation {
+    animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading específico para proveedores */
+.modal-body .loading {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    border: 1px solid #e9ecef;
+}
+
+.modal-body .loading::before {
+    content: '📦';
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* Error específico para proveedores */
+.modal-body .error {
+    background: #fff5f5;
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    color: #c53030;
+    border: 1px solid #fed7d7;
+}
+
+/* Fondo limpio para el área de detalles */
+.detail-section {
+    background-color: #ffffff;
+    padding: 0;
+}
+
+.detail-section .row {
+    background-color: #ffffff;
+}
+
+.detail-section h5 {
+    color: #485a1a;
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+/* Mejoras en la accesibilidad */
+.modal-body .form-control:focus,
+.modal-body .form-select:focus {
+    outline: 3px solid rgba(72, 90, 26, 0.1);
+    outline-offset: 2px;
+}
+
+/* Estilo para campos requeridos */
+.modal-body .form-label::after {
+    content: ' *';
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.modal-body .form-label:not([class*="required"])::after {
+    display: none;
+}
+
+/* Separadores visuales */
+.modal-body .section-divider {
+    border-top: 2px solid #e9ecef;
+    margin: 15px 0;
+    position: relative;
+}
+
+.modal-body .section-divider::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 2px;
+    background: linear-gradient(90deg, #485a1a, #ff9900);
+}
+
+/* Aplicar los mismos separadores a los modales de insumos */
+.section-divider {
+    border-top: 2px solid #e9ecef;
+    margin: 15px 0;
+    position: relative;
+}
+
+.section-divider::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 2px;
+    background: linear-gradient(90deg, #485a1a, #ff9900);
+}
+
+/* Tooltips para información adicional */
+.info-tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: help;
+    color: #6c757d;
+    margin-left: 5px;
+}
+
+.info-tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 1;
+}
+
+.info-tooltip:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 115%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+}
+
+
+/* Responsive para tablets */
+@media (max-width: 768px) {
+    .insumos-list-container {
+        max-height: 250px;
+    }
+    
+    .modal-body .form-check {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .modal-body .form-check-label {
+        font-size: 0.9rem;
+    }
+    
+    .comercial-info {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .modal-body .detail-table {
+        font-size: 0.875rem;
+    }
+    
+    .modal-body .detail-table thead th {
+        padding: 10px 6px;
+    }
+    
+    .modal-body .detail-table tbody td {
+        padding: 8px 4px;
+    }
+    
+    .modal-body textarea.form-control {
+        min-height: 70px;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .modal-actions .btn {
+        width: 100%;
+        margin: 0;
+    }
+}
+
+/* Responsive para móviles */
+@media (max-width: 576px) {
+    .insumos-list-container {
+        max-height: 200px;
+    }
+    
+    .modal-body .form-check {
+        padding: 8px;
+        margin-bottom: 8px;
+        border-radius: 6px;
+    }
+    
+    .modal-body .form-check-label {
+        font-size: 0.85rem;
+        line-height: 1.3;
+    }
+    
+    .modal-body .form-check:hover {
+        transform: none;
+    }
+    
+    .comercial-info {
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+    }
+    
+    .modal-body .detail-table {
+        font-size: 0.8rem;
+    }
+    
+    .modal-body .detail-table thead th {
+        padding: 8px 4px;
+        font-size: 0.75rem;
+    }
+    
+    .modal-body .detail-table tbody td {
+        padding: 6px 2px;
+        font-size: 0.8rem;
+    }
+    
+    .modal-body textarea.form-control {
+        min-height: 60px;
+        font-size: 0.9rem;
+    }
+    
+    .modal-body .input-group .input-group-text {
+        font-size: 0.85rem;
+        padding: 8px 10px;
+    }
+    
+    .modal-body .input-group .form-control {
+        font-size: 0.9rem;
+    }
+    
+    .info-tooltip {
+        font-size: 0.9rem;
+    }
+    
+    .info-tooltip:hover::after {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        white-space: normal;
+        max-width: 200px;
+        word-wrap: break-word;
+    }
+    
+    .section-divider {
+        margin: 20px 0;
+    }
+    
+    .section-divider::before {
+        width: 40px;
+    }
+}
