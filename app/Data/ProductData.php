@@ -31,6 +31,11 @@ class ProductData
             $query->byCategory($filters['category']);
         }
 
+        // Filtro por local (para gerentes)
+        if (!empty($filters['local_id'])) {
+            $query->byLocal($filters['local_id']);
+        }
+
         // Paginación de 6 por página
         return $query->orderBy('product_id', 'desc')->paginate(6)->withQueryString();
     }
@@ -109,11 +114,35 @@ class ProductData
     }
 
     /**
+     * Obtener estadísticas de productos por local
+     */
+    public function countTotalsByLocal($localId)
+    {
+        return [
+            'total' => Product::byLocal($localId)->count(),
+            'available' => Product::byLocal($localId)->active()->count(),
+            'unavailable' => Product::byLocal($localId)->inactive()->count(),
+        ];
+    }
+
+    /**
      * Obtener todas las categorías únicas
      */
     public function getAllCategories()
     {
         return Product::whereNotNull('category')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
+    }
+
+    /**
+     * Obtener todas las categorías únicas de un local
+     */
+    public function getCategoriesByLocal($localId)
+    {
+        return Product::byLocal($localId)
+            ->whereNotNull('category')
             ->distinct()
             ->orderBy('category')
             ->pluck('category');

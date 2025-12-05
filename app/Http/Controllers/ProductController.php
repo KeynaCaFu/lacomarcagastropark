@@ -32,9 +32,28 @@ class ProductController extends Controller
             'category' => $request->input('categoria')
         ];
 
-        $products = $this->productData->all($filters);
-        $totals = $this->productData->countTotals();
-        $categories = $this->productData->getAllCategories();
+        // Si el usuario es gerente, filtrar por su local
+        $user = auth()->user();
+        if ($user->isAdminLocal()) {
+            // Obtener el primer local del gerente
+            $local = $user->locals()->first();
+            if ($local) {
+                $filters['local_id'] = $local->local_id;
+                $products = $this->productData->all($filters);
+                $totals = $this->productData->countTotalsByLocal($local->local_id);
+                $categories = $this->productData->getCategoriesByLocal($local->local_id);
+            } else {
+                // Si el gerente no tiene local asignado, retornar vacío
+                $products = [];
+                $totals = ['total' => 0, 'available' => 0, 'unavailable' => 0];
+                $categories = [];
+            }
+        } else {
+            // Admin global ve todos los productos
+            $products = $this->productData->all($filters);
+            $totals = $this->productData->countTotals();
+            $categories = $this->productData->getAllCategories();
+        }
 
         return view('products.index', compact('products', 'totals', 'categories'));
     }
@@ -52,6 +71,11 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
+        if (!$this->canAccessProduct($id)) {
+            return redirect()->route('products.index')
+                ->with('error', 'No tienes permiso para editar este producto.');
+        }
+
         $product = $this->productData->find($id);
 
         if (!$product) {
@@ -67,6 +91,11 @@ class ProductController extends Controller
      */
     public function show($id)
     {
+        if (!$this->canAccessProduct($id)) {
+            return redirect()->route('products.index')
+                ->with('error', 'No tienes permiso para ver este producto.');
+        }
+
         $product = $this->productData->find($id);
 
         if (!$product) {
@@ -82,6 +111,11 @@ class ProductController extends Controller
      */
     public function gallery($id)
     {
+        if (!$this->canAccessProduct($id)) {
+            return redirect()->route('products.index')
+                ->with('error', 'No tienes permiso para ver la galería de este producto.');
+        }
+
         $product = $this->productData->find($id);
 
         if (!$product) {
@@ -141,6 +175,23 @@ class ProductController extends Controller
 
         $product = $this->productData->create($data);
 
+        // Si es gerente, crear automáticamente la relación con su local
+        $user = auth()->user();
+        if ($user->isAdminLocal()) {
+            $local = $user->locals()->first();
+            if ($local) {
+                // Crear relación en tblocal_product
+                \DB::table('tblocal_product')->insert([
+                    'local_id' => $local->local_id,
+                    'product_id' => $product->product_id,
+                    'price' => $validated['precio'],
+                    'is_available' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
+        }
+
         // Agregar imágenes a la galería si se envían
         $gallery = $request->input('gallery', []);
         if (!empty($gallery)) {
@@ -168,6 +219,13 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!$this->canAccessProduct($id)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'No tienes permiso para actualizar este producto'], 403);
+            }
+            return redirect()->route('products.index')->with('error', 'No tienes permiso para actualizar este producto.');
+        }
+
         $product = $this->productData->find($id);
 
         if (!$product) {
@@ -224,6 +282,21 @@ class ProductController extends Controller
 
         $updatedProduct = $this->productData->update($id, $data);
 
+        // Si es gerente, actualizar también el precio en tblocal_product
+        $user = auth()->user();
+        if ($user->isAdminLocal()) {
+            $local = $user->locals()->first();
+            if ($local) {
+                \DB::table('tblocal_product')
+                    ->where('local_id', $local->local_id)
+                    ->where('product_id', $id)
+                    ->update([
+                        'price' => $validated['precio'],
+                        'updated_at' => now()
+                    ]);
+            }
+        }
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
@@ -241,6 +314,13 @@ class ProductController extends Controller
      */
     public function destroy(Request $request, $id)
     {
+        if (!$this->canAccessProduct($id)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'No tienes permiso para eliminar este producto'], 403);
+            }
+            return redirect()->route('products.index')->with('error', 'No tienes permiso para eliminar este producto.');
+        }
+
         $product = $this->productData->find($id);
 
         if (!$product) {
@@ -272,6 +352,11 @@ class ProductController extends Controller
      */
     public function addGalleryImage(Request $request, $id)
     {
+        if (!$this->canAccessProduct($id)) {
+            return redirect()->route('products.index')
+                ->with('error', 'No tienes permiso para agregar imágenes a este producto.');
+        }
+
         $product = $this->productData->find($id);
 
         if (!$product) {
@@ -341,5 +426,34 @@ class ProductController extends Controller
         ];
 
         return $map[$status] ?? $status;
+    }
+
+    /**
+     * Verificar si el usuario tiene acceso al producto
+     * Un gerente solo puede acceder a productos de su local
+     */
+    private function canAccessProduct($productId)
+    {
+        $user = auth()->user();
+
+        // Los administradores globales pueden acceder a todos
+        if ($user->isAdminGlobal()) {
+            return true;
+        }
+
+        // Los gerentes solo pueden acceder a productos de su local
+        if ($user->isAdminLocal()) {
+            $local = $user->locals()->first();
+            if (!$local) {
+                return false;
+            }
+
+            // Verificar si el producto está en el local del gerente
+            return \App\Models\Product::byLocal($local->local_id)
+                ->where('product_id', $productId)
+                ->exists();
+        }
+
+        return false;
     }
 }

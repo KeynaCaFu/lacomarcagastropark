@@ -40,6 +40,16 @@ class Product extends Model
     }
 
     /**
+     * Relación: Locales que tienen este producto
+     */
+    public function locals()
+    {
+        return $this->belongsToMany(Local::class, 'tblocal_product', 'product_id', 'local_id')
+            ->withPivot('price', 'is_available')
+            ->withTimestamps();
+    }
+
+    /**
      * Accessor: Obtener estado en español para las vistas
      * Uso en Blade: {{ $product->status_in_spanish }}
      */
@@ -100,6 +110,19 @@ class Product extends Model
     {
         if (!empty($category)) {
             return $query->where('category', $category);
+        }
+        return $query;
+    }
+
+    /**
+     * Scope: Filtrar productos de un local específico
+     */
+    public function scopeByLocal($query, $localId)
+    {
+        if (!empty($localId)) {
+            return $query->whereHas('locals', function ($q) use ($localId) {
+                $q->where('tblocal_product.local_id', $localId);
+            });
         }
         return $query;
     }
