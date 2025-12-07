@@ -1,10 +1,10 @@
 <div class="modal-header">
-  <h3 class="modal-title">Editar Evento</h3>
+  <h3 class="modal-title"><i class="fas fa-edit"></i> Editar Evento</h3>
   <button type="button" class="close" aria-label="Cerrar" onclick="closeModal('editModal')">&times;</button>
 </div>
 
 <div class="modal-body">
-  <form id="editForm" action="{{ route('eventos.actualizar', ['evento' => $event->event_id]) }}" method="POST" enctype="multipart/form-data">
+  <form id="editForm" action="{{ route('eventos.actualizar', ['id' => $event->event_id]) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
 

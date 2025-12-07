@@ -17,7 +17,7 @@
 }
 
 body {
-    background-color: #f5f5f5;
+    background-color: #c4d0cc;
     color: #333;
 }
 
@@ -198,7 +198,7 @@ body {
 }
 
 .card {
-    background-color: #ffffff78;
+    /* background-color: #ffffff78; */
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.24);
     padding: 20px;
@@ -250,11 +250,11 @@ body {
 }
 
 table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: #ffffff78;
+    width: 101%;
+    background-color: #f4f4f4;;
     border-radius: 8px;
     overflow: hidden;
+    margin-top: 23px;
 }
 
 th, td {
@@ -295,6 +295,7 @@ tr:hover {
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: bold;
+    background-color: #b79494;
 }
 
 .badge-success, .bg-success {

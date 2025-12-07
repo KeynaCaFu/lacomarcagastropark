@@ -125,13 +125,13 @@ class EventController extends Controller
     public function showModal($event_id)
     {
         $event = Event::findOrFail($event_id);
-        return view('events.partials.show-modal', ['event' => $event]);
+        return response()->view('events.partials.show-modal', ['event' => $event], 200, ['Content-Type' => 'text/html']);
     }
 
     // Cargar partial con formulario de edición (AJAX)
     public function editModal($event_id)
     {
         $event = Event::findOrFail($event_id);
-        return view('events.partials.edit-modal', ['event' => $event]);
+        return response()->view('events.partials.edit-modal', ['event' => $event], 200, ['Content-Type' => 'text/html']);
     }
 }

@@ -47,81 +47,123 @@
         </div>
     </div>
 
-    <!-- Panel de Filtros -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light" id="filtrosCardHeader">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros de Búsqueda</h6>
-                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosCollapse" aria-expanded="false" aria-controls="filtrosCollapse">
-                            <i class="fas fa-chevron-down" id="filtrosIcon"></i>
-                        </button>
-                    </div>
-                    <div class="text-muted">
-                        <i class="fas fa-box-open"></i> <strong>{{ $products->count() }}</strong> de <strong>{{ $totals['total'] ?? 0 }}</strong> productos
-                    </div>
+  <!-- Panel de Filtros -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+
+            <!-- ENCABEZADO -->
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+                    </h6>
+
+                    <!-- Botón del Collapse -->
+                        <button class="btn btn-sm btn-outline-secondary" 
+                            type="button" 
+                            id="filtrosToggleBtn" 
+                            aria-expanded="false" 
+                            aria-controls="filtrosSection">
+                        <i class="fas fa-chevron-down" id="filtrosIcon"></i>
+                    </button>
                 </div>
-                <div class="collapse" id="filtrosCollapse">
-                    <div class="card-body">
-                        <form method="GET" action="{{ route('products.index') }}" id="filtrosForm">
-                            <div class="row g-3">
-                                <div class="col-12 col-md-6 col-lg-4">
-                                    <label for="buscar" class="form-label">Búsqueda</label>
-                                    <input type="text" class="form-control" id="buscar" name="buscar" 
-                                           placeholder="Buscar por nombre..." 
-                                           value="{{ request('buscar') }}">
-                                </div>
-                                <div class="col-12 col-md-6 col-lg-4">
-                                    <label for="categoria" class="form-label">Categoría</label>
-                                    <select class="form-select" id="categoria" name="categoria">
-                                        <option value="">Todas las categorías</option>
-                                        @foreach($categories as $category)
-                                            <option value="{{ $category }}" {{ request('categoria') == $category ? 'selected' : '' }}>
-                                                {{ $category }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-12 col-md-6 col-lg-4">
-                                    <label for="estado" class="form-label">Estado</label>
-                                    <select class="form-select" id="estado" name="estado">
-                                        <option value="">Todos los estados</option>
-                                        <option value="Disponible" {{ request('estado') == 'Disponible' ? 'selected' : '' }}>
-                                            Disponible
-                                        </option>
-                                        <option value="No disponible" {{ request('estado') == 'No disponible' ? 'selected' : '' }}>
-                                            No disponible
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="row mt-3">
-                                <div class="col-12">
-                                    <div class="d-flex gap-2 flex-wrap">
-                                        <button type="submit" class="btn btn-primary btn-sm">
-                                            <i class="fas fa-search me-1"></i>Aplicar Filtros
-                                        </button>
-                                        <a href="{{ route('products.index') }}" class="btn btn-outline-secondary btn-sm">
-                                            <i class="fas fa-times me-1"></i>Limpiar
-                                        </a>
-                                        <span class="text-muted small align-self-center ms-2">
-                                            Mostrando {{ $products->count() }} de {{ $totals['total'] }} productos
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+
+                <div class="text-muted">
+                    <i class="fas fa-box-open"></i> 
+                    <strong>{{ $products->count() }}</strong> 
+                    de 
+                    <strong>{{ $totals['total'] ?? 0 }}</strong> productos
                 </div>
             </div>
+
+            <!-- FILTROS  -->
+            <div id="filtrosSection" class="filtros-section closed">
+                <div class="card-body">
+
+                    <form method="GET" action="{{ route('products.index') }}" id="filtrosForm">
+                        <div class="row g-3">
+
+                            <!-- Búsqueda -->
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="buscar" class="form-label">Búsqueda</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="buscar" 
+                                       name="buscar" 
+                                       placeholder="Buscar por nombre..." 
+                                       value="{{ request('buscar') }}">
+                            </div>
+
+                            <!-- Categoría -->
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="categoria" class="form-label">Categoría</label>
+                                <select class="form-select" id="categoria" name="categoria">
+                                    <option value="">Todas las categorías</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category }}" 
+                                            {{ request('categoria') == $category ? 'selected' : '' }}>
+                                            {{ $category }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Estado -->
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="estado" class="form-label">Estado</label>
+                                <select class="form-select" id="estado" name="estado">
+                                    <option value="">Todos los estados</option>
+                                    <option value="Disponible" 
+                                        {{ request('estado') == 'Disponible' ? 'selected' : '' }}>
+                                        Disponible
+                                    </option>
+                                    <option value="No disponible" 
+                                        {{ request('estado') == 'No disponible' ? 'selected' : '' }}>
+                                        No disponible
+                                    </option>
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <!-- ACCIONES -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="d-flex gap-2 flex-wrap">
+
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-search me-1"></i>Aplicar Filtros
+                                    </button>
+
+                                    <button type="button"
+                                            id="clearFiltersBtn"
+                                            class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-times me-1"></i>Limpiar
+                                    </button>
+
+                                    <span class="text-muted small align-self-center ms-2">
+                                        Mostrando {{ $products->count() }} de {{ $totals['total'] }} productos
+                                    </span>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
         </div>
     </div>
+</div>
 
-    <!-- Tabla de productos -->
-    <div class="card">
+
+    <!-- Tabla de productos (AJAX actualizable) -->
+    <div id="productsTableContainer">
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-striped mb-0">
                 <thead class="bg-light">
                     <tr>
                         <th>Foto</th>
@@ -138,8 +180,8 @@
                         <tr>
                             <td>
                                 @if($product->photo)
-                                    <img src="{{ $product->photo }}" alt="{{ $product->name }}" 
-                                         class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                     <img src="{{ $product->photo }}" alt="{{ $product->name }}" 
+                                         class="product-thumb" style="width: 50px; height: 50px; object-fit: cover;">
                                 @else
                                     <span class="badge badge-secondary">Sin foto</span>
                                 @endif
@@ -210,7 +252,7 @@
     @if(method_exists($products, 'links'))
     <div class="row mt-4">
         <div class="col-md-12 d-flex justify-content-center">
-            <div class="pagination-container">
+            <div class="pagination-container" id="productsPagination">
                 {{ $products->onEachSide(1)->links() }}
             </div>
         </div>
@@ -222,36 +264,140 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const filtrosIcon = document.getElementById('filtrosIcon');
-        const filtrosCollapse = document.getElementById('filtrosCollapse');
+        const filtrosSection = document.getElementById('filtrosSection');
+        const filtrosBtn = document.getElementById('filtrosToggleBtn');
         
-        if (!filtrosIcon || !filtrosCollapse) {
+        if (!filtrosIcon || !filtrosSection || !filtrosBtn) {
             console.warn('Elementos de filtro no encontrados');
             return;
         }
 
-        // Evento para rotar el icono cuando se abre/cierra
-        filtrosCollapse.addEventListener('show.bs.collapse', function() {
-            filtrosIcon.style.transform = 'rotate(180deg)';
-            filtrosIcon.style.transition = 'transform 0.3s ease';
+        // Estado inicial del icono según visibilidad
+        const setExpanded = (expanded) => {
+            filtrosBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            filtrosIcon.classList.toggle('rotated', expanded);
+            filtrosSection.classList.toggle('closed', !expanded);
+        };
+        // Ocultar por defecto; solo aparece al hacer clic
+        setExpanded(false);
+
+        // Toggle manual sin Bootstrap Collapse
+        filtrosBtn.addEventListener('click', () => {
+            const isOpen = filtrosBtn.getAttribute('aria-expanded') === 'true';
+            setExpanded(!isOpen);
         });
 
-        filtrosCollapse.addEventListener('hide.bs.collapse', function() {
-            filtrosIcon.style.transform = 'rotate(0deg)';
-            filtrosIcon.style.transition = 'transform 0.3s ease';
-        });
-
-        // Si hay filtros activos, abrir el acordeón
+        // Si hay filtros activos, abrir el acordeón automáticamente
         const buscar = '{{ request('buscar') }}';
         const categoria = '{{ request('categoria') }}';
         const estado = '{{ request('estado') }}';
         
-        if (buscar || categoria || estado) {
-            // Usar la API de Bootstrap 5 para abrir el collapse
-            const bsCollapse = new bootstrap.Collapse(filtrosCollapse, { toggle: true });
-            filtrosIcon.style.transform = 'rotate(180deg)';
+        // No auto-abrir: solo abrir al hacer clic
+        // AJAX: Actualizar solo la tabla y paginación
+        const tableContainer = document.getElementById('productsTableContainer');
+        const filtrosForm = document.getElementById('filtrosForm');
+        const clearBtn = document.getElementById('clearFiltersBtn');
+
+        const fetchAndReplaceTable = async (url) => {
+            try {
+                // Mostrar estado de carga simple
+                const placeholder = document.createElement('div');
+                placeholder.className = 'p-3 text-center text-muted';
+                placeholder.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Cargando productos...';
+                tableContainer.parentNode.insertBefore(placeholder, tableContainer);
+                tableContainer.style.opacity = '0.5';
+
+                const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const html = await resp.text();
+
+                // Crear documento temporal para extraer la sección
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTable = doc.getElementById('productsTableContainer');
+
+                if (newTable) {
+                    tableContainer.innerHTML = newTable.innerHTML;
+                } else {
+                    console.warn('No se encontró el contenedor de tabla en la respuesta');
+                }
+
+                // También actualizar la paginación si está dentro
+                const newPagination = doc.getElementById('productsPagination');
+                const oldPagination = document.getElementById('productsPagination');
+                if (newPagination && oldPagination) {
+                    oldPagination.innerHTML = newPagination.innerHTML;
+                }
+            } catch (err) {
+                console.error('Error cargando tabla:', err);
+            } finally {
+                tableContainer.style.opacity = '1';
+                const ph = tableContainer.previousElementSibling;
+                if (ph && ph.classList.contains('text-center')) ph.remove();
+            }
+        };
+
+        // Interceptar envío del formulario de filtros
+        if (filtrosForm) {
+            filtrosForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(filtrosForm);
+                const params = new URLSearchParams(formData);
+                const url = `${filtrosForm.action}?${params.toString()}`;
+                fetchAndReplaceTable(url);
+                // Actualizar URL sin recargar
+                window.history.replaceState({}, '', url);
+            });
         }
+
+        // Limpiar filtros sin recargar toda la página
+        if (clearBtn && filtrosForm) {
+            clearBtn.addEventListener('click', () => {
+                // Resetear formulario
+                filtrosForm.reset();
+                // Construir URL base sin parámetros
+                const baseUrl = filtrosForm.action;
+                // Refrescar solo la tabla
+                fetchAndReplaceTable(baseUrl);
+                // Actualizar URL sin recargar
+                window.history.replaceState({}, '', baseUrl);
+            });
+        }
+
+        // Delegación de eventos para paginación (AJAX)
+        document.addEventListener('click', (e) => {
+            const a = e.target.closest('#productsPagination a.page-link, #productsPagination a');
+            if (a && a.href) {
+                e.preventDefault();
+                fetchAndReplaceTable(a.href);
+                window.history.replaceState({}, '', a.href);
+            }
+        });
     });
 </script>
+<style>
+    #filtrosIcon {
+        transition: transform 0.3s ease;
+    }
+    #filtrosIcon.rotated {
+        transform: rotate(180deg);
+    }
+    .filtros-section.closed {
+        display: none;
+    }
+    /* Eliminar fondo/blanco de las miniaturas y ajustar spacing */
+    .product-thumb {
+        display: block;
+        border-radius: 6px;
+        border: none;
+        padding: 0;
+        background: transparent;
+    }
+    /* Asegurar que no quede espacio extra bajo la tabla */
+    #productsTableContainer .table-responsive { margin-bottom: 0; }
+    #productsTableContainer table { margin-bottom: 0; }
+    /* En algunos temas, .img-thumbnail agrega fondo blanco: neutralizarlo aquí por si aplica */
+    .table .img-thumbnail { background: transparent; border: none; padding: 0; }
+</style>
 @endpush
 
 @endsection

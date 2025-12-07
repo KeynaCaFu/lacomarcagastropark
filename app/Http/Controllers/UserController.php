@@ -41,6 +41,11 @@ class UserController extends Controller
         $users = $query->paginate($perPage)->appends($request->query());
         $roles = Role::all();
 
+        // Si es una solicitud AJAX, devolver solo la tabla
+        if ($request->expectsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return view('users.table', compact('users', 'roles'));
+        }
+
         return view('users.index', compact('users', 'roles', 'perPage'));
     }
 

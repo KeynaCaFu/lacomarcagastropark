@@ -28,12 +28,29 @@ class EventoModals {
         if(this.cache.has(key)) return this.cache.get(key);
         try{
             const url = `/eventos/${id}/${type}-modal`;
-            const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-            if(!res.ok) throw new Error('HTTP ' + res.status);
+            const res = await fetch(url, { 
+                method: 'GET',
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                } 
+            });
+            if(!res.ok){
+                let serverMsg = '';
+                try { serverMsg = await res.text(); } catch(_) {}
+                const err = new Error(`HTTP ${res.status} ${res.statusText}`);
+                err.details = serverMsg;
+                err.url = url;
+                throw err;
+            }
             const html = await res.text();
             this.cache.set(key, html);
             return html;
-        }catch(err){ console.error('Error fetching event modal:', err); throw err; }
+        }catch(err){
+            console.error('Error fetching event modal:', err);
+            if(err && err.details) console.error('Server response:', err.details);
+            throw err;
+        }
     }
 
     async openShowModal(id){
@@ -44,7 +61,15 @@ class EventoModals {
         const key = `show-${id}`;
         if(this.cache.has(key)){ content.innerHTML = this.cache.get(key); return; }
         content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
-        try{ const html = await this.fetchModalContent('show', id); content.innerHTML = html; } catch(e){ content.innerHTML = '<div class="p-3 text-center text-danger">Error al cargar</div>'; }
+        try{
+            const html = await this.fetchModalContent('show', id);
+            content.innerHTML = html;
+        } catch(e){
+            content.innerHTML = `<div class="p-3 text-center text-danger">
+                <div><strong>Error al cargar el modal.</strong></div>
+                <div class="small">${e && e.message ? e.message : 'Error desconocido'}</div>
+            </div>`;
+        }
     }
 
     async openEditModal(id){
@@ -63,7 +88,12 @@ class EventoModals {
             const html = await this.fetchModalContent('edit', id);
             content.innerHTML = html;
             this.initEditForm(content);
-        } catch(e){ content.innerHTML = '<div class="p-3 text-center text-danger">Error al cargar</div>'; }
+        } catch(e){
+            content.innerHTML = `<div class="p-3 text-center text-danger">
+                <div><strong>Error al cargar el modal.</strong></div>
+                <div class="small">${e && e.message ? e.message : 'Error desconocido'}</div>
+            </div>`;
+        }
     }
 
     // Inicializa handlers específicos del partial de edición que no ejecutan scripts inline al inyectar innerHTML

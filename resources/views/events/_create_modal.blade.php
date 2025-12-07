@@ -2,7 +2,7 @@
 <div id="createModal" class="custom-modal" style="display:none;">
     <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="createTitle">
         <div class="modal-header">
-            <h3 id="createTitle">Agregar Nuevo Evento</h3>
+            <h3 id="createTitle"><i class="fas fa-plus"></i> Agregar Nuevo Evento</h3>
             <button type="button" class="close" aria-label="Cerrar" onclick="closeModal('createModal')">&times;</button>
         </div>
 

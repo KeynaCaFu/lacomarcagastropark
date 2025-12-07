@@ -145,21 +145,25 @@
     }
 
     .btn-edit {
-        background: #dbeafe;
-        color: #0c4a6e;
+        background: transparent;
+        color: #3e3d3a;
+        border: 2px solid #43423f !important;
     }
 
     .btn-edit:hover {
-        background: #bfdbfe;
+        background: #fbbf24;
+        color: #000;
     }
 
     .btn-delete {
-        background: #fecaca;
-        color: #7f1d1d;
+        background: transparent;
+        color: #dc2626;
+        border: 2px solid #dc2626 !important;
     }
 
     .btn-delete:hover {
-        background: #fca5a5;
+        background: #dc2626;
+        color: white;
     }
 
     .empty-state {
@@ -244,17 +248,17 @@
     </div>
 
     <!-- Búsqueda y filtros -->
-    <form method="GET" action="{{ route('users.index') }}" class="search-filter-group">
+    <div class="search-filter-group">
         <input 
             type="text" 
-            name="q" 
+            id="searchInput"
             class="search-input" 
             placeholder="Buscar por nombre o email..." 
             value="{{ request('q') }}"
             style="flex: 1; min-width: 200px;"
         />
 
-        <select name="role" class="filter-select">
+        <select id="roleFilter" class="filter-select">
             <option value="">Todos los roles</option>
             @foreach($roles as $role)
                 <option value="{{ $role->role_id }}" {{ request('role') == $role->role_id ? 'selected' : '' }}>
@@ -263,105 +267,31 @@
             @endforeach
         </select>
 
-        <select name="status" class="filter-select">
+        <select id="statusFilter" class="filter-select">
             <option value="">Todos los estados</option>
             <option value="Active" {{ request('status') == 'Active' ? 'selected' : '' }}>Activo</option>
             <option value="Inactive" {{ request('status') == 'Inactive' ? 'selected' : '' }}>Inactivo</option>
         </select>
 
-        <select name="per_page" class="filter-select" onchange="this.form.submit()">
+        <select id="perPageFilter" class="filter-select">
             <option value="5" {{ request('per_page', 5) == 5 ? 'selected' : '' }}>5 por página</option>
             <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10 por página</option>
             <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15 por página</option>
             <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 por página</option>
         </select>
 
-        <button type="submit" class="btn-action" style="background: #16a34a; color: white; border: none; padding: 10px 20px;">
+        <button type="button" id="searchBtn" class="btn-action" style="background: #16a34a; color: white; border: none; padding: 10px 20px;">
             <i class="fas fa-search"></i> Buscar
         </button>
 
-        @if(request('q') || request('role') || request('status'))
-            <a href="{{ route('users.index') }}" class="btn-action" style="background: #e5e7eb; color: #374151; padding: 10px 20px;">
-                <i class="fas fa-redo"></i> Limpiar
-            </a>
-        @endif
-    </form>
+        <a href="javascript:void(0);" id="clearBtn" class="btn-action" style="background: #e5e7eb; color: #374151; padding: 10px 20px; display: none;">
+            <i class="fas fa-redo"></i> Limpiar
+        </a>
+    </div>
 
     <!-- Tabla de usuarios -->
-    <div class="table-wrapper">
-        @if($users->count() > 0)
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Email</th>
-                        <th>Teléfono</th>
-                        <th>Rol</th>
-                        <th>Estado</th>
-                        <th style="text-align: center;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($users as $user)
-                        <tr>
-                            <td>
-                                <strong>{{ $user->full_name }}</strong>
-                            </td>
-                            <td>{{ $user->email }}</td>
-                            <td>{{ $user->phone ?? '-' }}</td>
-                            <td>
-                                <span class="role-badge">
-                                    {{ $user->role->role_type ?? 'N/A' }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="status-badge status-{{ strtolower($user->status) }}">
-                                    {{ $user->status === 'Active' ? 'Activo' : 'Inactivo' }}
-                                </span>
-                            </td>
-                            <td style="text-align: center;">
-                                <div class="actions" style="justify-content: center;">
-                                    <button 
-                                        type="button" 
-                                        class="btn-action btn-edit"
-                                        onclick="openUserEditModal({{ $user->user_id }})"
-                                        title="Editar usuario"
-                                    >
-                                        <i class="fas fa-edit"></i> Editar
-                                    </button>
-                                    <form action="{{ route('users.destroy', $user) }}" method="POST" style="display: inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn-action btn-delete" onclick="return confirm('¿Estás seguro de que deseas eliminar este usuario?')" title="Eliminar usuario">
-                                            <i class="fas fa-trash"></i> Eliminar
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-
-            <!-- Paginación -->
-            @if($users->hasPages())
-                <div class="row mt-4">
-                    <div class="col-md-12 d-flex justify-content-between align-items-center">
-                        <div style="color: #6b7280; font-size: 14px;">
-                            Mostrando <strong>{{ $users->firstItem() }}</strong> a <strong>{{ $users->lastItem() }}</strong> de <strong>{{ $users->total() }}</strong> usuarios
-                        </div>
-                        <div class="pagination-container">
-                            {{ $users->onEachSide(1)->links() }}
-                        </div>
-                    </div>
-                </div>
-            @endif
-        @else
-            <div class="empty-state">
-                <i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 12px;"></i>
-                <p>No hay usuarios que mostrar</p>
-            </div>
-        @endif
+    <div id="usersTableContainer" class="table-wrapper">
+        @include('users.table', ['users' => $users])
     </div>
 </div>
 
@@ -383,8 +313,86 @@
 @push('scripts')
 <script src="{{ asset('js/user-modals.js') }}"></script>
 <script>
-    // Manejo de envío de formulario de creación de usuario
+    let currentPage = 1;
+
+    function loadUsers(page = 1) {
+        const q = document.getElementById('searchInput').value;
+        const role = document.getElementById('roleFilter').value;
+        const status = document.getElementById('statusFilter').value;
+        const per_page = document.getElementById('perPageFilter').value;
+
+        const params = new URLSearchParams();
+        if(q) params.append('q', q);
+        if(role) params.append('role', role);
+        if(status) params.append('status', status);
+        params.append('per_page', per_page);
+        params.append('page', page);
+
+        // Mostrar botón limpiar si hay filtros activos
+        const clearBtn = document.getElementById('clearBtn');
+        if(q || role || status) {
+            clearBtn.style.display = 'inline-flex';
+        } else {
+            clearBtn.style.display = 'none';
+        }
+
+        fetch(`{{ route('users.index') }}?${params.toString()}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('usersTableContainer').innerHTML = html;
+            currentPage = page;
+            
+            // Re-bind pagination links
+            bindPaginationLinks();
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function bindPaginationLinks() {
+        document.querySelectorAll('.pagination a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = new URL(this.href);
+                const page = url.searchParams.get('page');
+                if(page) loadUsers(page);
+            });
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+        const searchBtn = document.getElementById('searchBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const searchInput = document.getElementById('searchInput');
+        const roleFilter = document.getElementById('roleFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const perPageFilter = document.getElementById('perPageFilter');
+
+        searchBtn.addEventListener('click', () => loadUsers(1));
+        
+        searchInput.addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') {
+                loadUsers(1);
+            }
+        });
+
+        roleFilter.addEventListener('change', () => loadUsers(1));
+        statusFilter.addEventListener('change', () => loadUsers(1));
+        perPageFilter.addEventListener('change', () => loadUsers(1));
+
+        clearBtn.addEventListener('click', () => {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('roleFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('perPageFilter').value = '5';
+            loadUsers(1);
+        });
+
+        // Manejo de envío de formulario de creación de usuario
         const createForm = document.getElementById('createUserForm');
         if(createForm && !createForm.dataset._createBound) {
             createForm.dataset._createBound = 'true';
@@ -417,7 +425,7 @@
                     }
                     
                     window.userModals.closeModal('userCreateModal');
-                    window.location.reload();
+                    loadUsers(1);
                 } catch(error) {
                     window.userModals.handleValidationErrors(error, this);
                     submitBtn.disabled = false;
@@ -425,6 +433,8 @@
                 }
             });
         }
+
+        bindPaginationLinks();
     });
 </script>
 @endpush

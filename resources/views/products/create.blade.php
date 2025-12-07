@@ -23,10 +23,15 @@
     <div class="row">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header text-white d-flex align-items-center justify-content-between">
                     <h5 class="mb-0">
                         <i class="fas fa-form"></i> Información del Producto
                     </h5>
+                    <!-- Icono con tooltip de información útil -->
+                    <span class="ms-2" 
+                          title="• Los campos marcados con * son obligatorios\n• El nombre del producto debe ser único\n• El precio debe ser mayor o igual a 0">
+                        <i class="fas fa-info-circle" aria-label="Información"></i>
+                    </span>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('products.store') }}" method="POST" id="productForm" enctype="multipart/form-data">
@@ -34,8 +39,13 @@
 
                         <!-- Nombre -->
                         <div class="form-group mb-3">
-                            <label for="nombre" class="form-label">
-                                <strong>Nombre del Producto *</strong>
+                            <label for="nombre" class="form-label d-flex align-items-center justify-content-between">
+                                <span><strong>Nombre del Producto *</strong></span>
+                                <!-- Icono con tooltip junto al campo -->
+                                <span class="ms-2 text-white-50" 
+                                      title="El nombre debe ser único. Ejemplo: 'Café 1820 Molido'">
+                                    <i class="fas fa-info-circle" aria-label="Ayuda"></i>
+                                </span>
                             </label>
                             <input type="text" 
                                    class="form-control @error('nombre') is-invalid @enderror" 
@@ -108,8 +118,12 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="precio" class="form-label">
-                                        <strong>Precio *</strong>
+                                    <label for="precio" class="form-label d-flex align-items-center justify-content-between">
+                                        <span><strong>Precio *</strong></span>
+                                        <span class="ms-2 text-white-50" 
+                                              title="Ingrese un valor mayor o igual a 0. Use decimales con punto (ej: 1500.50)">
+                                            <i class="fas fa-info-circle" aria-label="Ayuda"></i>
+                                        </span>
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text">₡</span>
@@ -169,8 +183,12 @@
 
                         <!-- Estado -->
                         <div class="form-group mb-4">
-                            <label for="estado" class="form-label">
-                                <strong>Estado *</strong>
+                            <label for="estado" class="form-label d-flex align-items-center justify-content-between">
+                                <span><strong>Estado *</strong></span>
+                                <span class="ms-2 text-white-50" 
+                                      title="Seleccione si el producto estará disponible para la venta o no">
+                                    <i class="fas fa-info-circle" aria-label="Ayuda"></i>
+                                </span>
                             </label>
                             <select class="form-control @error('estado') is-invalid @enderror" 
                                     id="estado" 
@@ -202,22 +220,7 @@
                 </div>
             </div>
 
-            <!-- Información útil -->
-            <div class="card mt-3">
-                <div class="card-header bg-light">
-                    <h6 class="mb-0">
-                        <i class="fas fa-info-circle"></i> Información
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <ul class="mb-0">
-                        <li>Los campos marcados con <strong>*</strong> son obligatorios</li>
-                        <li>El nombre del producto debe ser único</li>
-                        <li>Puede agregar imágenes a la galería después de crear el producto</li>
-                        <li>El precio debe ser mayor o igual a 0</li>
-                    </ul>
-                </div>
-            </div>
+           
         </div>
 
         <!-- Sidebar de ayuda -->
@@ -253,6 +256,7 @@
                     <p class="small text-muted">Usa imágenes de buena calidad. La galería se puede actualizar después</p>
                 </div>
             </div>
+            
 
             <div class="alert alert-warning">
                 <strong>✓ Nota:</strong> Después de crear el producto, podrás agregar más imágenes a su galería

@@ -6,7 +6,7 @@
   <div class="modal-backdrop" style="background:rgba(0,0,0,0.5); backdrop-filter: blur(3px); z-index:9997;">
     <div class="modal-card" style="max-width: 740px; width:90%; z-index:9998; background:#fdfdfc;" role="dialog" aria-modal="true">
       <div class="modal-header" style="background:#faf9f6;">
-        <h3 class="modal-title">Editar Evento</h3>
+        <h3 class="modal-title"><i class="fas fa-edit"></i> Editar Evento</h3>
         <a href="{{ route('eventos.index') }}" class="modal-close" aria-label="Cerrar">×</a>
       </div>
 

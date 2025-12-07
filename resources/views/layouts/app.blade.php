@@ -20,12 +20,15 @@
     <!-- Container principal con diseño La Comarca -->
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
-            <nav class="sidebar col-md-2">
+            <!-- Sidebar (overlay/ocultable) -->
+            <nav class="sidebar drawer" id="appSidebar">
                 <div class="sidebar-header">
                     <a href="{{ route('dashboard') }}" class="brand text-decoration-none">
                         <span class="brand-text">La Comarca</span>
                     </a>
+                    <button class="btn btn-sm btn-outline-light ms-auto d-md-none" id="sidebarCloseBtn" aria-label="Cerrar menú">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
                 <div class="sidebar-menu">
                     <ul>
@@ -84,10 +87,15 @@
             </nav>
 
             <!-- Contenido principal -->
-            <main class="main-content col-md-10">
+            <main class="main-content" id="mainContent">
                 <!-- Header -->
                 <div class="header">
-                    <h1>@yield('title', 'Dashboard')</h1>
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-outline-secondary me-3" id="sidebarToggleBtn" aria-controls="appSidebar" aria-expanded="false">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h1 class="mb-0">@yield('title', 'Dashboard')</h1>
+                    </div>
                 </div>
 
                 <!-- Alertas de Bootstrap/Laravel -->
@@ -126,6 +134,116 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Toggle del sidebar tipo drawer (overlay)
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('appSidebar');
+            const toggleBtn = document.getElementById('sidebarToggleBtn');
+            const closeBtn = document.getElementById('sidebarCloseBtn');
+            const body = document.body;
+
+            const openSidebar = () => {
+                sidebar.classList.add('open');
+                body.classList.add('sidebar-open');
+                toggleBtn.setAttribute('aria-expanded', 'true');
+            };
+            const closeSidebar = () => {
+                sidebar.classList.remove('open');
+                body.classList.remove('sidebar-open');
+                toggleBtn.setAttribute('aria-expanded', 'false');
+            };
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (sidebar.classList.contains('open')) {
+                        closeSidebar();
+                    } else {
+                        openSidebar();
+                    }
+                });
+            }
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeSidebar();
+                });
+            }
+
+            // Cerrar al hacer clic fuera en móviles/escritorio
+            document.addEventListener('click', (e) => {
+                if (!sidebar.classList.contains('open')) return;
+                const clickInsideSidebar = e.target.closest('#appSidebar');
+                const clickToggle = e.target.closest('#sidebarToggleBtn');
+                if (!clickInsideSidebar && !clickToggle) {
+                    closeSidebar();
+                }
+            });
+        });
+    </script>
+    <style>
+        /* Drawer overlay styles */
+        .drawer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: #232c0c;
+            color: #fff;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 1040; /* above main */
+            box-shadow: 2px 0 12px rgba(0,0,0,0.3);
+            padding-bottom: 1rem;
+        }
+        .drawer.open {
+            transform: translateX(0);
+        }
+
+        /* Layout adjustments when sidebar open on larger screens */
+        @media (min-width: 992px) {
+            body.sidebar-open #mainContent {
+                margin-left: 280px;
+            }
+        }
+
+        /* Ensure main content spans full width when closed */
+        #mainContent {
+            width: 100%;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-menu {
+            padding: 1rem;
+        }
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Backdrop when open on small screens */
+        @media (max-width: 991.98px) {
+            body.sidebar-open::after {
+                content: '';
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.35);
+                z-index: 1030;
+            }
+        }
+    </style>
     @stack('scripts')
 </body>
 </html>

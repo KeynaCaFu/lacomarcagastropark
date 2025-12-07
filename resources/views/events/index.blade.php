@@ -315,5 +315,5 @@
   .event-actions .push-right{
     margin-left:auto !important;  /* empuja Eliminar a la derecha */
   }
-</styl>
+</style>
 @endsection
