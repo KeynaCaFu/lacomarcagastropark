@@ -311,7 +311,7 @@
 
 <div class="users-container">
     <div class="header-section">
-        <h2 style="margin: 0; color: #1f2937; font-weight: 700;">Usuarios del Sistema</h2>
+        <h2 style="margin: 7px; color: #1f2937; font-weight: 712;">Usuarios del Sistema</h2>
         <div class="header-actions">
             <button type="button" class="btn-create" onclick="openUserCreateModal()">
                 <i class="fas fa-plus"></i> Agregar Usuario
