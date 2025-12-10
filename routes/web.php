@@ -60,14 +60,14 @@ Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
         Route::get('/', [EventController::class, 'index'])->name('index');
         Route::get('/create', [EventController::class, 'create'])->name('create');
         Route::post('/', [EventController::class, 'store'])->name('guardar');
-        // Modales (AJAX) - DEBEN IR ANTES DE LA RUTA CON {id}
-        Route::get('/{event_id}/show-modal', [EventController::class, 'showModal'])->name('show.modal');
-        Route::get('/{event_id}/edit-modal', [EventController::class, 'editModal'])->name('edit.modal');
-        // Rutas generales
-        Route::get('/{id}', [EventController::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [EventController::class, 'edit'])->name('editar');
-        Route::put('/{id}', [EventController::class, 'update'])->name('actualizar');
-        Route::delete('/{id}', [EventController::class, 'destroy'])->name('eliminar');
+        // Modales (AJAX) - RUTAS EXPLÍCITAS SIN BINDING IMPLÍCITO
+        Route::get('/modal-show/{event_id}', [EventController::class, 'showModal'])->name('show.modal')->where('event_id', '[0-9]+');
+        Route::get('/modal-edit/{event_id}', [EventController::class, 'editModal'])->name('edit.modal')->where('event_id', '[0-9]+');
+        // Rutas generales - usando binding implícito con {evento}
+        Route::get('/{evento}', [EventController::class, 'show'])->name('show');
+        Route::get('/{evento}/edit', [EventController::class, 'edit'])->name('editar');
+        Route::put('/{evento}', [EventController::class, 'update'])->name('actualizar');
+        Route::delete('/{evento}', [EventController::class, 'destroy'])->name('eliminar');
     });
 });
 

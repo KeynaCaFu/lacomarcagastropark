@@ -4,7 +4,7 @@
 </div>
 
 <div class="modal-body">
-  <form id="editForm" action="{{ route('eventos.actualizar', ['id' => $event->event_id]) }}" method="POST" enctype="multipart/form-data">
+  <form id="editForm" action="{{ route('eventos.actualizar', ['evento' => $event->event_id]) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
 

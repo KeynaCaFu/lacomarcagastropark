@@ -20,14 +20,22 @@ class EventoModals {
 
     preloadModal(type, id){
         if(this.preloadTimeout) clearTimeout(this.preloadTimeout);
-        this.preloadTimeout = setTimeout(()=>{ const key = `${type}-${id}`; if(!this.cache.has(key)) this.fetchModalContent(type,id); }, 200);
+        this.preloadTimeout = setTimeout(()=>{ 
+            const key = `${type}-${id}`; 
+            if(!this.cache.has(key)) {
+                this.fetchModalContent(type, id).catch(err => console.error('Preload fetch failed:', err));
+            }
+        }, 200);
     }
 
     async fetchModalContent(type, id){
         const key = `${type}-${id}`;
         if(this.cache.has(key)) return this.cache.get(key);
         try{
-            const url = `/eventos/${id}/${type}-modal`;
+            // Usar nuevas rutas con prefijo modal- para evitar conflictos de routing
+            const url = type === 'show' 
+                ? `/eventos/modal-show/${id}`
+                : `/eventos/modal-edit/${id}`;
             const res = await fetch(url, { 
                 method: 'GET',
                 headers: { 
@@ -48,7 +56,6 @@ class EventoModals {
             return html;
         }catch(err){
             console.error('Error fetching event modal:', err);
-            if(err && err.details) console.error('Server response:', err.details);
             throw err;
         }
     }

@@ -79,7 +79,7 @@
             <i class="fas fa-trash"></i> Eliminar
           </button>
 
-          <form id="del-{{ $ev->event_id }}" action="{{ route('eventos.eliminar', $ev->event_id) }}" method="POST" style="display:none;">
+          <form id="del-{{ $ev->event_id }}" action="{{ route('eventos.eliminar', ['evento' => $ev->event_id]) }}" method="POST" style="display:none;">
             @csrf
             @method('DELETE')
           </form>
@@ -278,8 +278,6 @@
   <script> showDeletedOK(); </script>
 @endif
 
-{{-- Nota: no abrimos el modal de creación automáticamente; el usuario debe hacer click en "Nuevo Evento" --}}
-{{-- Si quieres, podemos mostrar los errores en la parte superior en vez de abrir el modal. --}}
 @if ($errors->any() && old('title'))
   <script>
     (function(){

@@ -49,7 +49,7 @@ class EventController extends Controller
 
         $imageUrl = null;
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('images', 'public');
+            $path = $request->file('photo')->store('events', 'public');
             $imageUrl = 'storage/' . $path;
         }
 
@@ -98,13 +98,28 @@ class EventController extends Controller
         ];
 
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('images', 'public');
+            // Eliminar imagen antigua si existe
+            if ($evento->image_url && str_starts_with($evento->image_url, 'storage/')) {
+                $rel = str_replace('storage/', '', $evento->image_url);
+                if (Storage::disk('public')->exists($rel)) {
+                    Storage::disk('public')->delete($rel);
+                }
+            }
+            
+            // Guardar nueva imagen en carpeta events
+            $path = $request->file('photo')->store('events', 'public');
             $data['image_url'] = 'storage/' . $path;
         }
 
         $this->eventData->update($evento->event_id, $data);
 
         return redirect()->route('eventos.index')->with('ok', 'saved');
+    }
+
+    // Mostrar un evento individual
+    public function show(Event $evento)
+    {
+        return view('events.show', ['event' => $evento]);
     }
 
     public function destroy(Event $evento)
