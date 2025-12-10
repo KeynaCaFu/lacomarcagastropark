@@ -14,6 +14,23 @@
     <link href="{{ asset('css/modals.css') }}" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
+    <style>
+        #sidebarToggleBtn {
+            border: 1px solid #6c757d !important;
+            transition: all 0.3s ease;
+        }
+        
+        #sidebarToggleBtn:hover {
+            background-color: #84878a;
+            border-color: #495057 !important;
+        }
+        
+        #sidebarToggleBtn:focus {
+            border-color: #495057 !important;
+            box-shadow: 0 0 0 0.25rem rgba(108, 117, 125, 0.25);
+        }
+    </style>
+    
     @stack('styles')
 </head>
 <body>
@@ -90,11 +107,14 @@
             <main class="main-content" id="mainContent">
                 <!-- Header -->
                 <div class="header">
-                    <div class="d-flex align-items-center">
-                        <button class="btn btn-outline-secondary me-3" id="sidebarToggleBtn" aria-controls="appSidebar" aria-expanded="false">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                        <h1 class="mb-0">@yield('title', 'Dashboard')</h1>
+                    <div class="d-flex align-items-center justify-content-between w-100">
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-outline-secondary me-3" id="sidebarToggleBtn" aria-controls="appSidebar" aria-expanded="false">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <h1 class="mb-0">@yield('title', 'Dashboard')</h1>
+                        </div>
+                        <div class="top-help" id="topHelpContainer"></div>
                     </div>
                 </div>
 

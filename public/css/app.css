@@ -146,12 +146,12 @@ body {
 }
 
 .header {
-    display: flex;
+  display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: -60px;
   padding-bottom: 69px;
-  border-bottom: 1px solid #ddd;
+  /* border-bottom: 1px solid #ddd; */
 }
 
 .header h1 {

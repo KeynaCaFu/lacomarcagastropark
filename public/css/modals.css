@@ -195,14 +195,14 @@
 }
 
 .modal-actions .btn-primary {
-    background: linear-gradient(135deg, #485a1a, #5a6d20);
+    background: linear-gradient(135deg, #485a1a, #0d5e2a);
     border: none;
     color: white;
     margin-right: 10px;
 }
 
 .modal-actions .btn-update{
-    background: linear-gradient(135deg, #485a1a, #5a6d20);
+    background: linear-gradient(135deg, #485a1a, #0d5e2a);
      color:#fff; 
      border:none;
       padding:10px 18px;
@@ -583,7 +583,7 @@
 
 .pagination .page-item.active span,
 .pagination .page-item.active a {
-    background: #16a34a;
+    background: linear-gradient(135deg, #485a1a, #0d5e2a);
     color: white;
     border-color: #16a34a;
     font-weight: 600;

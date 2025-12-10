@@ -25,12 +25,53 @@
         flex-wrap: wrap;
         gap: 12px;
     }
+    .header-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+    }
+    /* Contenedor para ubicar el botón de Ayuda fuera del card */
+    .top-help {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        padding: 0;
+        margin: 0;
+        position: relative;
+        z-index: 1100;
+    }
 
     .search-filter-group {
         display: flex;
         gap: 12px;
         flex-wrap: wrap;
         margin-bottom: 16px;
+    }
+    /* Accordion simple para filtros */
+    .filters-accordion {
+        margin-bottom: 12px;
+    }
+    .filters-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #e5e7eb;
+        background: #f8fafc;
+        color: #111827;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .filters-toggle i {
+        transition: transform .2s ease;
+    }
+    .filters-toggle.open i {
+        transform: rotate(180deg);
+    }
+    #filtersBody.closed {
+        display: none;
     }
 
     .btn-create {
@@ -51,6 +92,30 @@
     .btn-create:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 16px rgba(13, 94, 42, 0.3);
+    }
+
+    /* Botón Ayuda colocado arriba del botón verde */
+    .btn-help {
+       background: linear-gradient(135deg, #4e6657, #3d5144);
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+    .btn-help:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(13, 94, 42, 0.3);
+    }
+    .btn-help:active {
+        transform: translateY(0);
     }
 
     .search-input, .filter-select {
@@ -81,7 +146,7 @@
 
     th {
         padding: 12px;
-        text-align: left;
+        text-align: center;
         font-weight: 600;
         color: #374151;
         border-bottom: 2px solid #e5e7eb;
@@ -151,7 +216,7 @@
     }
 
     .btn-edit:hover {
-        background: #fbbf24;
+        background: #848380ec;
         color: #000;
     }
 
@@ -195,6 +260,11 @@
         color: #374151;
         text-decoration: none;
         transition: all 0.3s ease;
+        text-align: center;           /* centrar número */
+        min-width: 36px;              /* ancho mínimo para centrar bien */
+        display: inline-flex;         /* centrar vertical y horizontal */
+        align-items: center;
+        justify-content: center;
     }
 
     .page-link:hover {
@@ -242,13 +312,25 @@
 <div class="users-container">
     <div class="header-section">
         <h2 style="margin: 0; color: #1f2937; font-weight: 700;">Usuarios del Sistema</h2>
-        <button type="button" class="btn-create" onclick="openUserCreateModal()">
-            <i class="fas fa-plus"></i> Agregar Usuario
-        </button>
+        <div class="header-actions">
+            <button type="button" class="btn-create" onclick="openUserCreateModal()">
+                <i class="fas fa-plus"></i> Agregar Usuario
+            </button>
+
+          
+        </div>
+         
     </div>
 
-    <!-- Búsqueda y filtros -->
-    <div class="search-filter-group">
+   
+
+    <!-- Filtros en acordeón -->
+    <div class="filters-accordion">
+        <button type="button" id="filtersToggle" class="filters-toggle" aria-expanded="false" aria-controls="filtersBody">
+            <i class="fas fa-chevron-down"></i>
+            Filtros de usuarios
+        </button>
+        <div id="filtersBody" class="search-filter-group closed" role="region" aria-labelledby="filtersToggle">
         <input 
             type="text" 
             id="searchInput"
@@ -281,12 +363,13 @@
         </select>
 
         <button type="button" id="searchBtn" class="btn-action" style="background: #16a34a; color: white; border: none; padding: 10px 20px;">
-            <i class="fas fa-search"></i> Buscar
+            <i class="fas fa-search"></i> Buscar Usuarios
         </button>
 
         <a href="javascript:void(0);" id="clearBtn" class="btn-action" style="background: #e5e7eb; color: #374151; padding: 10px 20px; display: none;">
             <i class="fas fa-redo"></i> Limpiar
         </a>
+        </div>
     </div>
 
     <!-- Tabla de usuarios -->
@@ -308,7 +391,66 @@
     </div>
 </div>
 
+<!-- Modal de Ayuda -->
+<div id="helpModal" class="custom-modal" style="display:none;">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <div class="modal-header">
+            <h3 id="helpTitle"><i class="fas fa-question-circle"></i> Ayuda de Usuarios</h3>
+            <button type="button" class="close" aria-label="Cerrar" onclick="closeHelpModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="detail-section">
+                <h5>¿Cómo buscar usuarios?</h5>
+                <p>
+                    Usa el acordeón de filtros para buscar por nombre o email, filtrar por rol y estado.
+                    Pulsa "Buscar Usuarios" para actualizar la tabla sin recargar la página.
+                </p>
+            </div>
+            <div class="detail-section">
+                <h5>¿Cómo crear, editar y eliminar?</h5>
+                <p>
+                    - "Agregar Usuario" abre el formulario de creación.<br>
+                    - El ícono de lápiz permite editar un usuario.<br>
+                    - El ícono de papelera elimina el usuario tras confirmar.
+                </p>
+            </div>
+            <div class="detail-section">
+                <h5>Paginación</h5>
+                <p>
+                    Los números de página están centrados bajo la tabla. Al hacer clic se actualiza la lista vía AJAX.
+                </p>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeHelpModal()">Cerrar</button>
+        </div>
+    </div>
+    </div>
+
 @endsection
+
+<!-- Botón de Ayuda -->
+<div id="helpButtonContainer" style="display: none;">
+    <button id="helpButtonTop" type="button" class="btn-help">
+        <i class="fas fa-question-circle"></i> Ayuda
+    </button>
+</div>
+
+@push('scripts')
+<script>
+    // Mover el botón de ayuda al header
+    document.addEventListener('DOMContentLoaded', function() {
+        const helpContainer = document.getElementById('topHelpContainer');
+        const helpButtonContainer = document.getElementById('helpButtonContainer');
+        const helpButton = document.getElementById('helpButtonTop');
+        
+        if (helpContainer && helpButtonContainer && helpButton) {
+            helpContainer.appendChild(helpButton);
+            helpButtonContainer.style.display = 'none';
+        }
+    });
+</script>
+@endpush
 
 @push('scripts')
 <script src="{{ asset('js/user-modals.js') }}"></script>
@@ -364,15 +506,60 @@
         });
     }
 
+    // Funciones para manejar el modal de ayuda
+    function openHelpModal() {
+        const helpModal = document.getElementById('helpModal');
+        if (helpModal) {
+            helpModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeHelpModal() {
+        const helpModal = document.getElementById('helpModal');
+        if (helpModal) {
+            helpModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const searchBtn = document.getElementById('searchBtn');
+        const filtersToggle = document.getElementById('filtersToggle');
+        const filtersBody = document.getElementById('filtersBody');
         const clearBtn = document.getElementById('clearBtn');
         const searchInput = document.getElementById('searchInput');
         const roleFilter = document.getElementById('roleFilter');
         const statusFilter = document.getElementById('statusFilter');
         const perPageFilter = document.getElementById('perPageFilter');
+        const helpButtonTop = document.getElementById('helpButtonTop');
 
-        searchBtn.addEventListener('click', () => loadUsers(1));
+        // Toggle acordeón
+        if (filtersToggle && filtersBody) {
+            filtersToggle.addEventListener('click', () => {
+                const isClosed = filtersBody.classList.contains('closed');
+                if (isClosed) {
+                    filtersBody.classList.remove('closed');
+                    filtersToggle.classList.add('open');
+                    filtersToggle.setAttribute('aria-expanded', 'true');
+                } else {
+                    filtersBody.classList.add('closed');
+                    filtersToggle.classList.remove('open');
+                    filtersToggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+
+        // Al hacer clic en Buscar: si los filtros están ocultos, primero abrir acordeón
+        searchBtn.addEventListener('click', () => {
+            if (filtersBody && filtersBody.classList.contains('closed')) {
+                filtersBody.classList.remove('closed');
+                filtersToggle.classList.add('open');
+                filtersToggle.setAttribute('aria-expanded', 'true');
+                return; // no buscar hasta que el usuario vea los filtros
+            }
+            loadUsers(1);
+        });
         
         searchInput.addEventListener('keypress', (e) => {
             if(e.key === 'Enter') {
@@ -435,6 +622,13 @@
         }
 
         bindPaginationLinks();
+
+        // Event listener para el botón de ayuda
+        if (helpButtonTop) {
+            helpButtonTop.addEventListener('click', function() {
+                openHelpModal();
+            });
+        }
     });
 </script>
 @endpush

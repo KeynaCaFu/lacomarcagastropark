@@ -54,15 +54,13 @@
 
     <!-- Paginación -->
     @if($users->hasPages())
-        <div class="row mt-4">
-            <div class="col-md-12 d-flex justify-content-between align-items-center">
-                <div style="color: #6b7280; font-size: 14px;">
-                    Mostrando <strong>{{ $users->firstItem() }}</strong> a <strong>{{ $users->lastItem() }}</strong> de <strong>{{ $users->total() }}</strong> usuarios
-                </div>
-                <div class="pagination-container">
-                    {{ $users->onEachSide(1)->links() }}
-                </div>
+        <div class="pagination-wrapper" style="margin-top: 16px; display: flex; justify-content: center;">
+            <div class="pagination-container">
+                {{ $users->onEachSide(1)->links() }}
             </div>
+        </div>
+        <div style="text-align:center; color:#6b7280; font-size: 13px; margin-top:8px;">
+            Mostrando <strong>{{ $users->firstItem() }}</strong> a <strong>{{ $users->lastItem() }}</strong> de <strong>{{ $users->total() }}</strong> usuarios
         </div>
     @endif
 @else
