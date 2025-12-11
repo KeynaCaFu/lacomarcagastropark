@@ -438,6 +438,15 @@
 
 @push('scripts')
 <script>
+    // SweetAlert2 CDN guard
+    (function(){
+        const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+        if (!existing) {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+            document.head.appendChild(s);
+        }
+    })();
     // Mover el botón de ayuda al header
     document.addEventListener('DOMContentLoaded', function() {
         const helpContainer = document.getElementById('topHelpContainer');
@@ -447,6 +456,27 @@
         if (helpContainer && helpButtonContainer && helpButton) {
             helpContainer.appendChild(helpButton);
             helpButtonContainer.style.display = 'none';
+        }
+
+        // Session success/error and validation SweetAlerts
+        const successMsg = @json(session('success'));
+        const errorMsg = @json(session('error'));
+        const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
+        if (window.swAlert) {
+            if (successMsg) {
+                swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
+            }
+            if (errorMsg) {
+                swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+            }
+            if (hasErrors) {
+                swAlert({
+                    icon: 'error',
+                    title: 'Errores de validación',
+                    html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+                    confirmButtonColor: '#dc2626'
+                });
+            }
         }
     });
 </script>
@@ -491,6 +521,9 @@
             
             // Re-bind pagination links
             bindPaginationLinks();
+
+            // Bind delete confirmations for newly loaded rows
+            bindDeleteConfirmations();
         })
         .catch(error => console.error('Error:', error));
     }
@@ -503,6 +536,81 @@
                 const page = url.searchParams.get('page');
                 if(page) loadUsers(page);
             });
+        });
+    }
+
+    function bindDeleteConfirmations() {
+        // Find delete forms inside the table and intercept submit
+        document.querySelectorAll('#usersTableContainer form[method="POST"]').forEach(form => {
+            const deleteMethod = form.querySelector('input[name="_method"][value="DELETE"]');
+            if (deleteMethod && !form.dataset._swDeleteBound) {
+                form.dataset._swDeleteBound = 'true';
+                form.addEventListener('submit', function(e){
+                    e.preventDefault();
+                    const doAlert = function(){
+                        const row = form.closest('tr');
+                        const nameCell = row ? row.querySelector('td:nth-child(2) strong, td:nth-child(2)') : null;
+                        const userName = nameCell ? nameCell.textContent.trim() : 'este usuario';
+                        if (window.Swal) {
+                            swConfirm({
+                                title: 'Eliminar usuario',
+                                text: `¿Desea eliminar \"${userName}\"?`,
+                                icon: 'warning',
+                                confirmButtonColor: '#dc2626',
+                                confirmButtonText: 'Sí, eliminar'
+                            }).then(async (result) => {
+                                if (result.isConfirmed) {
+                                    // AJAX delete for smoother UX
+                                    const action = form.getAttribute('action');
+                                    const tokenEl = document.querySelector('meta[name="csrf-token"]');
+                                    const csrfToken = tokenEl ? tokenEl.content : (form.querySelector('input[name="_token"]')?.value || '');
+                                    const formData = new FormData(form);
+                                    // Ensure _method DELETE is present
+                                    if (!formData.get('_method')) formData.append('_method', 'DELETE');
+                                    try {
+                                        const res = await fetch(action, {
+                                            method: 'POST',
+                                            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                                            body: formData
+                                        });
+                                        if (!res.ok) {
+                                            let msg = 'No se pudo eliminar el usuario';
+                                            try { const data = await res.json(); msg = data.message || msg; } catch(_) {}
+                                            throw new Error(msg);
+                                        }
+                                        await loadUsers(currentPage);
+                                        swAlert({ icon: 'success', title: 'Éxito', text: 'Usuario eliminado correctamente' });
+                                    } catch(err) {
+                                        swAlert({ icon: 'error', title: 'Error', text: err.message || 'No se pudo eliminar el usuario', confirmButtonColor: '#dc2626' });
+                                    }
+                                }
+                            });
+                        } else {
+                            // Fallback si SweetAlert aún no está disponible
+                            const ok = confirm(`¿Desea eliminar "${userName}"?`);
+                            if (ok) {
+                                // Fallback: submit tradicional
+                                form.submit();
+                            }
+                        }
+                    };
+
+                    if (!window.Swal) {
+                        // Intentar cargar SweetAlert2 si no está presente
+                        let existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+                        if (!existing) {
+                            existing = document.createElement('script');
+                            existing.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+                            document.head.appendChild(existing);
+                        }
+                        existing.addEventListener('load', doAlert, { once: true });
+                        // También mostrar confirm nativo por si el usuario pulsa antes de que cargue
+                        setTimeout(() => { if (!window.Swal) doAlert(); }, 300);
+                    } else {
+                        doAlert();
+                    }
+                });
+            }
         });
     }
 
@@ -586,6 +694,17 @@
             
             createForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
+                // Confirm before submit
+                if (window.Swal) {
+                    const res = await swConfirm({
+                        title: 'Crear usuario',
+                        text: '¿Desea guardar este nuevo usuario?',
+                        icon: 'question',
+                        confirmButtonText: 'Sí, guardar',
+                        cancelButtonText: 'Cancelar'
+                    });
+                    if (!res.isConfirmed) return;
+                }
                 
                 const submitBtn = this.querySelector('button[type="submit"]');
                 if(submitBtn.disabled) return;
@@ -613,15 +732,98 @@
                     
                     window.userModals.closeModal('userCreateModal');
                     loadUsers(1);
+                    if (window.swAlert) {
+                        swAlert({ icon: 'success', title: 'Éxito', text: 'Usuario creado correctamente' });
+                    }
                 } catch(error) {
                     window.userModals.handleValidationErrors(error, this);
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalText;
+                    if (window.swAlert) {
+                        swAlert({ icon: 'error', title: 'Error', text: 'No se pudo crear el usuario', confirmButtonColor: '#dc2626' });
+                    }
                 }
             });
         }
 
+        // Manejo de envío de formulario de edición de usuario (modal AJAX)
+        function bindEditFormHandler() {
+            const editForm = document.querySelector('#userEditModal #editUserForm');
+            if (editForm && !editForm.dataset._editBound) {
+                editForm.dataset._editBound = 'true';
+                editForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    // Confirm before submit
+                    if (window.Swal) {
+                        const res = await Swal.fire({
+                            title: 'Editar usuario',
+                            text: '¿Desea guardar los cambios de este usuario?',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#16a34a',
+                            cancelButtonColor: '#6b7280',
+                            confirmButtonText: 'Sí, actualizar',
+                            cancelButtonText: 'Cancelar'
+                        });
+                        if (!res.isConfirmed) return;
+                    }
+
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    if(submitBtn && submitBtn.disabled) return;
+                    const originalText = submitBtn ? submitBtn.innerHTML : '';
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+                    }
+
+                    const action = this.getAttribute('action') || (this.dataset.updateUrl || '');
+                    const tokenEl = document.querySelector('meta[name="csrf-token"]');
+                    const csrfToken = tokenEl ? tokenEl.content : (this.querySelector('input[name="_token"]')?.value || '');
+                    const formData = new FormData(this);
+                    if (!formData.get('_method')) formData.append('_method', 'PUT');
+
+                    try {
+                        const res = await fetch(action, {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                            body: formData
+                        });
+                        if (!res.ok) {
+                            const data = await res.json();
+                            throw data;
+                        }
+                        window.userModals.closeModal('userEditModal');
+                        await loadUsers(currentPage);
+                        if (window.swAlert) {
+                            swAlert({ icon: 'success', title: 'Éxito', text: 'Usuario actualizado correctamente' });
+                        }
+                    } catch(error) {
+                        // Mostrar errores de validación en el formulario
+                        window.userModals && window.userModals.handleValidationErrors && window.userModals.handleValidationErrors(error, this);
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                        }
+                        if (window.swAlert) {
+                            const msg = (error && error.message) ? error.message : 'No se pudo actualizar el usuario';
+                            swAlert({ icon: 'error', title: 'Error', text: msg, confirmButtonColor: '#dc2626' });
+                        }
+                    }
+                });
+            }
+        }
+
+        // Observar cambios dentro del contenido del modal de edición para re-vincular el handler cuando llegue el parcial
+        const editContent = document.getElementById('editUserContent');
+        if (editContent) {
+            const observer = new MutationObserver(() => bindEditFormHandler());
+            observer.observe(editContent, { childList: true, subtree: true });
+        }
+        // Intento inicial de vínculo por si el contenido ya está presente
+        bindEditFormHandler();
+
         bindPaginationLinks();
+        bindDeleteConfirmations();
 
         // Event listener para el botón de ayuda
         if (helpButtonTop) {

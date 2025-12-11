@@ -112,6 +112,40 @@
     </div>
 </div>
 
+        <script>
+            // SweetAlert2 CDN guard
+            (function(){
+                const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+                if (!existing) {
+                    const s = document.createElement('script');
+                    s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+                    document.head.appendChild(s);
+                }
+            })();
+
+            // Confirmación antes de enviar edición
+            (function(){
+                const form = document.getElementById('editUserForm');
+                if (!form) return;
+                if (form.dataset._editConfirmBound === 'true') return;
+                form.dataset._editConfirmBound = 'true';
+                form.addEventListener('submit', async function(e){
+                    e.preventDefault();
+                    if (window.Swal) {
+                        const res = await (window.swConfirm ? swConfirm({
+                            title: 'Editar usuario',
+                            text: '¿Desea guardar los cambios de este usuario?',
+                            icon: 'question',
+                            confirmButtonText: 'Sí, actualizar',
+                            cancelButtonText: 'Cancelar'
+                        }) : Promise.resolve({ isConfirmed: true }));
+                        if (!res.isConfirmed) return;
+                    }
+                    form.submit();
+                });
+            })();
+        </script>
+
 <style>
     /* Asegurar superposición correcta */
     #editUserModal { z-index: 9999 !important; }

@@ -101,6 +101,67 @@
     </button>
 </div>
 
+<script>
+(function(){
+    // SweetAlert2 CDN guard + bind after load (for AJAX partials)
+    function bindEditConfirm() {
+        const form = document.getElementById('editUserForm');
+        if (form && !form.dataset._editConfirmBound) {
+            form.dataset._editConfirmBound = 'true';
+            form.addEventListener('submit', async function(e){
+                e.preventDefault();
+                if (window.Swal) {
+                    const res = await (window.swConfirm ? swConfirm({
+                        title: 'Editar usuario',
+                        text: '¿Desea guardar los cambios de este usuario?',
+                        icon: 'question',
+                        confirmButtonText: 'Sí, actualizar',
+                        cancelButtonText: 'Cancelar'
+                    }) : Promise.resolve({ isConfirmed: true }));
+                    if (!res.isConfirmed) return;
+                }
+                form.submit();
+            });
+        }
+    }
+
+    if (typeof Swal === 'undefined') {
+        let existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+        if (!existing) {
+            existing = document.createElement('script');
+            existing.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+            document.head.appendChild(existing);
+        }
+        existing.addEventListener('load', bindEditConfirm);
+    } else {
+        bindEditConfirm();
+    }
+
+    // Session success/error and validation SweetAlerts (in case rendered server-side)
+    try {
+        const successMsg = @json(session('success'));
+        const errorMsg = @json(session('error'));
+        const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
+        if (window.Swal) {
+            if (successMsg && window.swAlert) {
+                swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
+            }
+            if (errorMsg && window.swAlert) {
+                swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+            }
+            if (hasErrors && window.swAlert) {
+                swAlert({
+                    icon: 'error',
+                    title: 'Errores de validación',
+                    html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+                    confirmButtonColor: '#dc2626'
+                });
+            }
+        }
+    } catch(e) { /* noop */ }
+})();
+</script>
+
 <style>
     /* Alerta */
     .info-alert {

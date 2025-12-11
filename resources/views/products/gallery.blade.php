@@ -159,15 +159,7 @@
 
     @push('scripts')
     <script>
-        // SweetAlert2 CDN
-        (function(){
-            const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
-            if (!existing) {
-                const s = document.createElement('script');
-                s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
-                document.head.appendChild(s);
-            }
-        })();
+        // SweetAlert2 se carga globalmente desde el layout
         // Mostrar nombre del archivo seleccionado
         document.getElementById('image').addEventListener('change', function() {
             const fileName = this.files[0] ? this.files[0].name : 'Seleccionar archivo...';
@@ -176,14 +168,11 @@
 
         // Confirmar eliminación
         function confirmDelete(galleryId) {
-            if (window.Swal) {
-                Swal.fire({
+            if (window.swConfirm) {
+                swConfirm({
                     title: 'Eliminar imagen',
                     text: '¿Desea eliminar esta imagen de la galería?',
                     icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc2626',
-                    cancelButtonColor: '#6b7280',
                     confirmButtonText: 'Sí, eliminar',
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
@@ -223,15 +212,12 @@
             }
 
             // Confirmación antes de subir
-            if (window.Swal) {
+            if (window.swConfirm) {
                 e.preventDefault();
-                Swal.fire({
+                swConfirm({
                     title: 'Subir imagen',
                     text: '¿Desea subir esta imagen?',
                     icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#16a34a',
-                    cancelButtonColor: '#6b7280',
                     confirmButtonText: 'Sí, subir',
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
@@ -284,16 +270,16 @@
             }
             // Session alerts (success/error) and validation errors
             const successMsg = @json(session('success'));
-            if (successMsg && window.Swal) {
-                Swal.fire({ icon: 'success', title: 'Éxito', text: successMsg, confirmButtonColor: '#16a34a' });
+            if (successMsg && window.swAlert) {
+                swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
             }
             const errorMsg = @json(session('error'));
-            if (errorMsg && window.Swal) {
-                Swal.fire({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+            if (errorMsg && window.swAlert) {
+                swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
             }
             @if ($errors->any())
-            if (window.Swal) {
-                Swal.fire({
+            if (window.swAlert) {
+                swAlert({
                     icon: 'error',
                     title: 'Errores de validación',
                     html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,

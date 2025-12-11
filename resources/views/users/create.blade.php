@@ -134,7 +134,7 @@
 <div class="form-container">
     <h1 class="form-title">Crear Nuevo Usuario</h1>
 
-    <form method="POST" action="{{ route('users.store') }}" novalidate>
+    <form id="createUserFormPage" method="POST" action="{{ route('users.store') }}" novalidate>
         @csrf
 
         <!-- Nombre Completo -->
@@ -284,4 +284,59 @@
         </div>
     </form>
 </div>
+<script>
+(function(){
+    // SweetAlert2 CDN guard
+    if (typeof Swal === 'undefined') {
+        const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+        if (!existing) {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+            document.head.appendChild(s);
+        }
+    }
+
+    const form = document.getElementById('createUserFormPage');
+    if (form && !form.dataset._createConfirmBound) {
+        form.dataset._createConfirmBound = 'true';
+        form.addEventListener('submit', async function(e){
+            e.preventDefault();
+            if (window.swConfirm) {
+                const res = await swConfirm({
+                    title: 'Crear usuario',
+                    text: '¿Desea crear este nuevo usuario?',
+                    icon: 'question',
+                    confirmButtonText: 'Sí, crear',
+                    cancelButtonText: 'Cancelar'
+                });
+                if (!res.isConfirmed) return;
+            }
+            form.submit();
+        });
+    }
+
+    // Session success/error and validation SweetAlerts
+    try {
+        const successMsg = @json(session('success'));
+        const errorMsg = @json(session('error'));
+        const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
+        if (window.swAlert) {
+            if (successMsg) {
+                swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
+            }
+            if (errorMsg) {
+                swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+            }
+            if (hasErrors) {
+                swAlert({
+                    icon: 'error',
+                    title: 'Errores de validación',
+                    html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+                    confirmButtonColor: '#dc2626'
+                });
+            }
+        }
+    } catch(e) { /* noop */ }
+})();
+</script>
 @endsection

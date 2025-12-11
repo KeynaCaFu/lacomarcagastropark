@@ -49,3 +49,36 @@
         </div>
     </div>
 </div>
+
+<script>
+(function(){
+    const form = document.getElementById('formCreate');
+    if (form && !form.dataset._createConfirmBound) {
+        form.dataset._createConfirmBound = 'true';
+        form.addEventListener('submit', function(e){
+            e.preventDefault();
+            if (window.swConfirm) {
+                swConfirm({
+                    html: '<div class="swal-title-like">¿Estas seguro de Guardar el Evento?</div>',
+                    confirmButtonText: 'Sí, guardar',
+                    cancelButtonText: 'Cancelar'
+                }).then(r => { if (r.isConfirmed) form.submit(); });
+            } else if (confirm('¿Estas seguro de Guardar el Evento?')) {
+                form.submit();
+            }
+        });
+    }
+
+    // Session success/error and validation errors
+    try {
+        const successMsg = @json(session('success'));
+        const errorMsg = @json(session('error'));
+        const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
+        if (window.swAlert) {
+            if (successMsg) swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
+            if (errorMsg)   swAlert({ icon: 'error', title: 'Error', text: errorMsg });
+            if (hasErrors)  swAlert({ icon: 'error', title: 'Errores de validación', html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>` });
+        }
+    } catch(e) { /* noop */ }
+})();
+</script>

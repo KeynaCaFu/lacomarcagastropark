@@ -157,6 +157,144 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 global (carga perezosa si falta) y helpers de estilo -->
+    <script>
+        (function(){
+            // Cargar SweetAlert si no existe
+            if (typeof Swal === 'undefined') {
+                const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+                if (!existing) {
+                    const s = document.createElement('script');
+                    s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+                    document.head.appendChild(s);
+                }
+            }
+
+            // Utilidades globales para estilo consistente
+            window.SwalDefaults = {
+                confirmButtonColor: '#16a34a',
+                cancelButtonColor: '#6b7280',
+            };
+
+            window.swConfirm = function(options){
+                const base = {
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: window.SwalDefaults.confirmButtonColor,
+                    cancelButtonColor: window.SwalDefaults.cancelButtonColor,
+                    confirmButtonText: 'Confirmar',
+                    cancelButtonText: 'Cancelar'
+                };
+                const exec = function(){ return Swal.fire(Object.assign(base, options || {})); };
+                if (typeof Swal === 'undefined') {
+                    const scriptEl = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+                    if (scriptEl) return new Promise(resolve => scriptEl.addEventListener('load', () => resolve(exec())));
+                }
+                return exec();
+            };
+
+            window.swAlert = function(options){
+                const base = {
+                    icon: 'success',
+                    confirmButtonColor: window.SwalDefaults.confirmButtonColor,
+                };
+                const exec = function(){ return Swal.fire(Object.assign(base, options || {})); };
+                if (typeof Swal === 'undefined') {
+                    const scriptEl = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+                    if (scriptEl) return new Promise(resolve => scriptEl.addEventListener('load', () => resolve(exec())));
+                }
+                return exec();
+            };
+
+            // Notificación simple reutilizable (éxito/error/info)
+            window.showNotification = function(type, message) {
+                const iconMap = { success: 'success', error: 'error', info: 'info', warning: 'warning' };
+                const icon = iconMap[type] || 'info';
+                if (window.swAlert) return swAlert({ icon, title: '', text: message, timer: 1600, showConfirmButton: false });
+                return Promise.resolve();
+            };
+
+            // Confirmación con opción de deshacer: presenta una notificación con botón "Deshacer" por unos segundos.
+            // onConfirm se ejecuta al expirar el tiempo si no se deshace. onUndo cancela la acción.
+            window.confirmWithUndo = function({ message, delayMs = 5000, onConfirm, onUndo }){
+                // Render minimal toast-like panel
+                const containerId = 'undo-toast-container';
+                let container = document.getElementById(containerId);
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = containerId;
+                    container.style.position = 'fixed';
+                    container.style.bottom = '20px';
+                    container.style.right = '20px';
+                    container.style.zIndex = '1060';
+                    document.body.appendChild(container);
+                }
+
+                const panel = document.createElement('div');
+                panel.style.background = '#111827';
+                panel.style.color = '#fff';
+                panel.style.borderRadius = '12px';
+                panel.style.boxShadow = '0 10px 24px rgba(0,0,0,0.25)';
+                panel.style.padding = '14px 16px';
+                panel.style.marginTop = '8px';
+                panel.style.display = 'flex';
+                panel.style.alignItems = 'center';
+                panel.style.gap = '12px';
+
+                const text = document.createElement('div');
+                text.textContent = message || 'Se eliminará el registro';
+
+                const btnUndo = document.createElement('button');
+                btnUndo.textContent = 'Deshacer';
+                btnUndo.style.background = '#f59e0b';
+                btnUndo.style.color = '#111827';
+                btnUndo.style.border = 'none';
+                btnUndo.style.borderRadius = '8px';
+                btnUndo.style.padding = '8px 12px';
+                btnUndo.style.cursor = 'pointer';
+
+                const countdown = document.createElement('span');
+                countdown.style.marginLeft = 'auto';
+                countdown.style.fontSize = '12px';
+                countdown.style.opacity = '0.8';
+
+                panel.appendChild(text);
+                panel.appendChild(btnUndo);
+                panel.appendChild(countdown);
+                container.appendChild(panel);
+
+                let remaining = Math.floor(delayMs / 1000);
+                countdown.textContent = remaining + 's';
+                const interval = setInterval(() => {
+                    remaining -= 1;
+                    countdown.textContent = remaining + 's';
+                }, 1000);
+
+                const cleanup = () => {
+                    clearInterval(interval);
+                    panel.remove();
+                };
+
+                let undone = false;
+                btnUndo.addEventListener('click', () => {
+                    undone = true;
+                    try { if (typeof onUndo === 'function') onUndo(); } catch(e){}
+                    cleanup();
+                    if (window.showNotification) window.showNotification('info', 'Acción cancelada');
+                });
+
+                setTimeout(() => {
+                    if (!undone) {
+                        try { if (typeof onConfirm === 'function') onConfirm(); } catch(e){}
+                        if (window.showNotification) window.showNotification('success', 'Acción completada');
+                    }
+                    cleanup();
+                }, delayMs);
+
+                return Promise.resolve({ scheduled: true });
+            };
+        })();
+    </script>
     <script>
         // Toggle del sidebar tipo drawer (overlay)
         document.addEventListener('DOMContentLoaded', function() {

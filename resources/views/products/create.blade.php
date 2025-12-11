@@ -265,17 +265,13 @@
         }
 
         // Confirmación con SweetAlert antes de enviar
-        if (window.Swal) {
+        if (window.swConfirm) {
             e.preventDefault();
-            Swal.fire({
+            swConfirm({
                 title: 'Crear producto',
                 text: '¿Desea guardar este nuevo producto?',
                 icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#16a34a',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Sí, guardar',
-                cancelButtonText: 'Cancelar'
+                confirmButtonText: 'Sí, guardar'
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.submit();
@@ -287,29 +283,19 @@
     // Mostrar alertas de éxito desde sesión (si existen)
     document.addEventListener('DOMContentLoaded', function(){
         const successMsg = @json(session('success'));
-        if (successMsg && window.Swal) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: successMsg,
-                confirmButtonColor: '#16a34a'
-            });
+        if (successMsg && window.swAlert) {
+            swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
         }
 
         const errorMsg = @json(session('error'));
-        if (errorMsg && window.Swal) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: errorMsg,
-                confirmButtonColor: '#dc2626'
-            });
+        if (errorMsg && window.swAlert) {
+            swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
         }
 
         // Mostrar errores de validación (si existen) en un solo modal
         @if ($errors->any())
-        if (window.Swal) {
-            Swal.fire({
+        if (window.swAlert) {
+            swAlert({
                 icon: 'error',
                 title: 'Errores de validación',
                 html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,

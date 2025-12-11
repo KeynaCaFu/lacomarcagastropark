@@ -13,7 +13,7 @@
 @section('content')
 <div class="sage-main">
   <div class="events-bar">
-    <h2 class="section-title">Gestión de Eventos</h2>
+    {{-- <h2 class="section-title">Gestión de Eventos</h2> --}}
     <button type="button" class="btn btn-new btn-lg" id="btnOpenCreate" onclick="openCreateModal()">
       <i class="fas fa-plus"></i> Nuevo Evento
     </button>
@@ -113,7 +113,7 @@
 
   <script src="{{ asset('js/event-modals.js') }}"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  {{-- SweetAlert2 se carga globalmente desde el layout --}}
   <script>
     // Hook the "Nuevo Evento" button to the shared EventoModals API. openCreateModal is exposed
     // by public/js/event-modals.js and will show the create modal that's rendered in the page.
@@ -128,21 +128,10 @@
       return confirm('¿Estas seguro de Guardar el Evento?');
     }
 
-    const res = await Swal.fire({
+    const res = await swConfirm({
       title: '',
       html: `<div class="swal-title-like">¿Estas seguro de Guardar el Evento?</div>`,
-      backdrop: true,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      customClass: {
-        popup: 'sw-rounded',
-        confirmButton: 'sw-btn sw-btn-confirm',
-        cancelButton: 'sw-btn sw-btn-cancel'
-      },
-      buttonsStyling: false,
-      showCancelButton: true,
-      confirmButtonText: 'Sí, quiero',
-      cancelButtonText: 'Cancelar'
+      confirmButtonText: 'Sí, quiero'
     });
     return res.isConfirmed === true;
   }
@@ -158,7 +147,7 @@
       }
     }
 
-    return Swal.fire({
+    return swAlert({
       width: '100%',
       padding: 0,
       backdrop: `rgba(0,0,0,.40)`,
@@ -199,7 +188,7 @@
       return Promise.resolve({ isConfirmed: true });
     }
 
-    return Swal.fire({
+      return swConfirm({
       backdrop: true,
       allowOutsideClick: false,
       allowEscapeKey: false,
@@ -207,15 +196,7 @@
       html: `
         <div class="swal-title-like">¿Seguro que deseas eliminar<br><b>${nombre || 'este evento'}</b>?</div>
       `,
-      showCancelButton: true,
-      buttonsStyling: false,
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-      customClass: {
-        popup: 'sw-rounded',
-        confirmButton: 'sw-btn sw-btn-confirm',
-        cancelButton: 'sw-btn sw-btn-cancel'
-      }
+       confirmButtonText: 'Sí, eliminar'
     });
   }
 
@@ -223,7 +204,7 @@
     if (typeof window.showNotification === 'function'){
       try{ window.showNotification('success', 'Evento eliminado exitosamente'); return Promise.resolve(); }catch(e){}
     }
-    return Swal.fire({
+    if (window.swAlert) return swAlert({
       width: '100%',
       padding: 0,
       backdrop: `rgba(0,0,0,.40)`,
@@ -239,6 +220,7 @@
       showConfirmButton:false,
       timer: 1600
     });
+    return Promise.resolve();
   }
 
   // Atar confirmación a cada botón eliminar
@@ -282,7 +264,7 @@
   <script>
     (function(){
       // Mostrar alerta con los errores pero sin abrir el modal automáticamente
-      Swal.fire({
+          swAlert({
         title: 'Problemas con el formulario',
         html: `{!! implode('<br>', $errors->all()) !!}`,
         icon: 'error',
@@ -293,7 +275,7 @@
 @elseif (session('error'))
   <script>
     (function(){
-      Swal.fire({
+          swAlert({
         title: 'No se pudo guardar',
         html: @json(session('error')),
         icon: 'error',

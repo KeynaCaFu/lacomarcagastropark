@@ -76,8 +76,6 @@
   </div>
 </div>
 
-{{-- SweetAlert2 --}}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   // Preview imagen
   const fileInput = document.getElementById('photoInput');
@@ -94,31 +92,20 @@
   const formEdit = document.getElementById('formEdit');
   formEdit?.addEventListener('submit', function(e){
     e.preventDefault();
-    Swal.fire({
-      backdrop: true,
-      background:'#f8f6f2',
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      customClass: { popup: 'sw-rounded' },
-      html: `
-        <div class="swal-title-like">¿Deseas actualizar este evento?</div>
-        <div class="sw-btns" style="display:flex; gap:12px; justify-content:center;">
-          <button type="button" class="sw-btn sw-btn-cancel" id="btnCancel">Cancelar</button>
-          <button type="button" class="sw-btn sw-btn-confirm" id="btnOk">Sí, actualizar</button>
-        </div>
-      `,
-      didOpen: el => {
-        el.querySelector('#btnCancel').addEventListener('click', ()=>Swal.close());
-        el.querySelector('#btnOk').addEventListener('click', ()=>Swal.close({isConfirmed:true}));
-      },
-      showConfirmButton:false,
-      showCancelButton:false
-    }).then(r => { if(r.isConfirmed) this.submit(); });
+    if (window.swConfirm) {
+      swConfirm({
+        html: '<div class="swal-title-like">¿Deseas actualizar este evento?</div>',
+        confirmButtonText: 'Sí, actualizar',
+        cancelButtonText: 'Cancelar'
+      }).then(r => { if(r.isConfirmed) this.submit(); });
+    } else if (confirm('¿Deseas actualizar este evento?')) {
+      this.submit();
+    }
   });
 
   // Éxito tras actualizar (igual que lo tenías)
   @if(session('ok') === 'saved')
-  Swal.fire({
+  if (window.swAlert) swAlert({
     width: '100%',
     padding: 0,
     backdrop: `rgba(0,0,0,.40)`,
@@ -134,6 +121,13 @@
     showConfirmButton:false,
     timer:1700
   });
+  @endif
+
+  // Errores desde backend
+  @if ($errors->any())
+  if (window.swAlert) swAlert({ title: 'Errores de validación', html: `{!! implode('<br>', $errors->all()) !!}`, icon: 'error', customClass: { popup: 'sw-rounded' } });
+  @elseif (session('error'))
+  if (window.swAlert) swAlert({ title: 'No se pudo actualizar', html: @json(session('error')), icon: 'error', customClass: { popup: 'sw-rounded' } });
   @endif
 </script>
 @endsection

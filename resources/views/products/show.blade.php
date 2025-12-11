@@ -264,17 +264,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // Session success/error alerts
     const successMsg = @json(session('success'));
-    if (successMsg && window.Swal) {
-        Swal.fire({ icon: 'success', title: 'Éxito', text: successMsg, confirmButtonColor: '#16a34a' });
+    if (successMsg && window.swAlert) {
+        swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
     }
     const errorMsg = @json(session('error'));
-    if (errorMsg && window.Swal) {
-        Swal.fire({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+    if (errorMsg && window.swAlert) {
+        swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
     }
     // Validation errors
     @if ($errors->any())
-    if (window.Swal) {
-        Swal.fire({
+    if (window.swAlert) {
+        swAlert({
             icon: 'error',
             title: 'Errores de validación',
             html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
@@ -285,14 +285,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function removeGalleryImage(galleryId) {
-    if (window.Swal) {
-        Swal.fire({
+    if (window.swConfirm) {
+        swConfirm({
             title: 'Eliminar imagen',
             text: '¿Desea eliminar esta imagen de la galería?',
             icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc2626',
-            cancelButtonColor: '#6b7280',
             confirmButtonText: 'Sí, eliminar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
@@ -332,8 +329,8 @@ document.getElementById('addGalleryForm')?.addEventListener('submit', async func
 
     if (response.ok) {
         const data = await response.json();
-        if (window.Swal) {
-            Swal.fire({
+        if (window.swAlert) {
+            swAlert({
                 icon: 'success',
                 title: 'Imagen agregada',
                 text: data.message || 'La imagen se agregó correctamente',
@@ -344,8 +341,8 @@ document.getElementById('addGalleryForm')?.addEventListener('submit', async func
             location.reload();
         }
     } else {
-        if (window.Swal) {
-            Swal.fire({
+        if (window.swAlert) {
+            swAlert({
                 icon: 'error',
                 title: 'Error',
                 text: 'Error al agregar la imagen'
@@ -359,8 +356,8 @@ document.getElementById('addGalleryForm')?.addEventListener('submit', async func
 // Mostrar alertas de éxito desde sesión (si existen)
 document.addEventListener('DOMContentLoaded', function(){
     const successMsg = @json(session('success'));
-    if (successMsg && window.Swal) {
-        Swal.fire({
+    if (successMsg && window.swAlert) {
+        swAlert({
             icon: 'success',
             title: 'Éxito',
             text: successMsg,

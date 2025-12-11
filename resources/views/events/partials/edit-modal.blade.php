@@ -103,24 +103,13 @@
           'Sí, actualizar',
           'Cancelar'
         );
-      } else if (typeof Swal !== 'undefined'){
-        const res = await Swal.fire({
-          title: '',
-          html: `<div class="swal-title-like">¿Estás seguro de actualizar el Evento?</div>`,
-          backdrop: true,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          customClass: {
-            popup: 'sw-rounded',
-            confirmButton: 'sw-btn sw-btn-confirm',
-            cancelButton: 'sw-btn sw-btn-cancel'
-          },
-          buttonsStyling: false,
-          showCancelButton: true,
+      } else if (window.swConfirm){
+        const res = await swConfirm({
+          html: '<div class="swal-title-like">¿Estás seguro de actualizar el Evento?</div>',
           confirmButtonText: 'Sí, actualizar',
           cancelButtonText: 'Cancelar'
         });
-        ok = res.isConfirmed === true;
+        ok = !!res?.isConfirmed;
       } else {
         ok = confirm('¿Estás seguro de actualizar el evento?');
       }
@@ -128,5 +117,17 @@
 
     if (ok === true) formEdit.submit();
   });
+
+  // Mostrar SweetAlerts para errores/success cuando el partial se renderiza desde servidor
+  try {
+    const successMsg = @json(session('success'));
+    const errorMsg = @json(session('error'));
+    const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
+    if (window.swAlert) {
+      if (successMsg) swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
+      if (errorMsg)   swAlert({ icon: 'error', title: 'Error', text: errorMsg });
+      if (hasErrors)  swAlert({ icon: 'error', title: 'Errores de validación', html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>` });
+    }
+  } catch (e) { /* noop */ }
 })();
 </script>

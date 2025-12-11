@@ -94,6 +94,16 @@ class UserModals {
 
         form.addEventListener('submit', async function(e){
             e.preventDefault();
+            // Confirmación SweetAlert consistente
+            if (window.swConfirm) {
+                const res = await swConfirm({
+                    title: 'Editar usuario',
+                    text: '¿Desea guardar los cambios de este usuario?',
+                    icon: 'question',
+                    confirmButtonText: 'Sí, actualizar'
+                });
+                if (!res.isConfirmed) return;
+            }
             
             // El submitBtn puede estar dentro del form o referenciado con form="editUserForm"
             let submitBtn = form.querySelector('button[type="submit"]');
@@ -127,6 +137,9 @@ class UserModals {
                 
                 // Éxito
                 window.userModals.closeModal('userEditModal');
+                if (window.swAlert) {
+                    await swAlert({ icon: 'success', title: 'Éxito', text: 'Usuario actualizado correctamente' });
+                }
                 window.location.reload();
             } catch(error){
                 window.userModals.handleValidationErrors(error, form);
@@ -153,7 +166,11 @@ class UserModals {
                 }
             });
         } else {
-            alert('Ocurrió un error inesperado.');
+            if (window.swAlert) {
+                swAlert({ icon: 'error', title: 'Error', text: 'Ocurrió un error inesperado.' });
+            } else {
+                alert('Ocurrió un error inesperado.');
+            }
         }
     }
 

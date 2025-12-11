@@ -85,3 +85,59 @@
         <i class="fas fa-save"></i> Crear Usuario
     </button>
 </div>
+
+<script>
+(function(){
+    // SweetAlert2 CDN guard (partial may be loaded via AJAX)
+    if (typeof Swal === 'undefined') {
+        const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+        if (!existing) {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+            document.head.appendChild(s);
+        }
+    }
+
+    const form = document.getElementById('createUserForm');
+    if (form && !form.dataset._createConfirmBound) {
+        form.dataset._createConfirmBound = 'true';
+        form.addEventListener('submit', async function(e){
+            e.preventDefault();
+            if (window.Swal) {
+                const res = await (window.swConfirm ? swConfirm({
+                    title: 'Crear usuario',
+                    text: '¿Desea crear este nuevo usuario?',
+                    icon: 'question',
+                    confirmButtonText: 'Sí, crear',
+                    cancelButtonText: 'Cancelar'
+                }) : Promise.resolve({ isConfirmed: true }));
+                if (!res.isConfirmed) return;
+            }
+            form.submit();
+        });
+    }
+
+    // Session success/error and validation SweetAlerts (in case rendered server-side)
+    try {
+        const successMsg = @json(session('success'));
+        const errorMsg = @json(session('error'));
+        const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
+        if (window.Swal) {
+            if (successMsg && window.swAlert) {
+                swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
+            }
+            if (errorMsg && window.swAlert) {
+                swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+            }
+            if (hasErrors && window.swAlert) {
+                swAlert({
+                    icon: 'error',
+                    title: 'Errores de validación',
+                    html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+                    confirmButtonColor: '#dc2626'
+                });
+            }
+        }
+    } catch(e) { /* noop */ }
+})();
+</script>

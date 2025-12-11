@@ -125,22 +125,11 @@ class EventoModals {
                         'Sí, actualizar',
                         'Cancelar'
                     );
-                } else if (typeof Swal !== 'undefined'){
-                    const res = await Swal.fire({
+                } else if (typeof window.swConfirm !== 'undefined'){
+                    const res = await swConfirm({
                         title: '',
                         html: `<div class="swal-title-like">¿Estás seguro de actualizar el Evento?</div>`,
-                        backdrop: true,
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        customClass: {
-                            popup: 'sw-rounded',
-                            confirmButton: 'sw-btn sw-btn-confirm',
-                            cancelButton: 'sw-btn sw-btn-cancel'
-                        },
-                        buttonsStyling: false,
-                        showCancelButton: true,
-                        confirmButtonText: 'Sí, actualizar',
-                        cancelButtonText: 'Cancelar'
+                        confirmButtonText: 'Sí, actualizar'
                     });
                     ok = res.isConfirmed === true;
                 } else {

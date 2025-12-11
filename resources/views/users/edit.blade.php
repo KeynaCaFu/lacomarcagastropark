@@ -148,7 +148,7 @@
         <i class="fas fa-info-circle"></i> Deja en blanco los campos de contraseña si deseas mantener la actual.
     </div>
 
-    <form method="POST" action="{{ route('users.update', $user) }}" novalidate>
+    <form id="editUserFormPage" method="POST" action="{{ route('users.update', $user) }}" novalidate>
         @csrf
         @method('PUT')
 
@@ -294,4 +294,68 @@
         </div>
     </form>
 </div>
+<script>
+(function(){
+    // SweetAlert2 CDN guard
+    if (typeof Swal === 'undefined') {
+        const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+        if (!existing) {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+            document.head.appendChild(s);
+        }
+    }
+
+    function bindEditConfirm() {
+        const form = document.getElementById('editUserFormPage');
+        if (form && !form.dataset._editConfirmBound) {
+            form.dataset._editConfirmBound = 'true';
+            form.addEventListener('submit', async function(e){
+                e.preventDefault();
+                if (window.swConfirm) {
+                    const res = await swConfirm({
+                        title: 'Editar usuario',
+                        text: '¿Desea guardar los cambios de este usuario?',
+                        icon: 'question',
+                        confirmButtonText: 'Sí, actualizar',
+                        cancelButtonText: 'Cancelar'
+                    });
+                    if (!res.isConfirmed) return;
+                }
+                form.submit();
+            });
+        }
+    }
+
+    const scriptEl = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+    if (typeof Swal === 'undefined' && scriptEl) {
+        scriptEl.addEventListener('load', bindEditConfirm);
+    } else {
+        bindEditConfirm();
+    }
+
+    // Session success/error and validation SweetAlerts
+    try {
+        const successMsg = @json(session('success'));
+        const errorMsg = @json(session('error'));
+        const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
+        if (window.swAlert) {
+            if (successMsg) {
+                swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
+            }
+            if (errorMsg) {
+                swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+            }
+            if (hasErrors) {
+                swAlert({
+                    icon: 'error',
+                    title: 'Errores de validación',
+                    html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+                    confirmButtonColor: '#dc2626'
+                });
+            }
+        }
+    } catch(e) { /* noop */ }
+})();
+</script>
 @endsection

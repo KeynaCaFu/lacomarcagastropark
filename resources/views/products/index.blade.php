@@ -562,23 +562,23 @@
             const deleteMethod = form.querySelector('input[name="_method"][value="DELETE"]');
             if (deleteMethod) {
                 form.addEventListener('submit', function(e){
-                    if (window.Swal) {
-                        e.preventDefault();
-                        const productName = form.closest('tr')?.querySelector('td:nth-child(2) strong')?.textContent || 'este producto';
-                        Swal.fire({
+                    e.preventDefault();
+                    const productName = form.closest('tr')?.querySelector('td:nth-child(2) strong')?.textContent || 'este producto';
+                    if (window.swConfirm) {
+                        swConfirm({
                             title: 'Eliminar producto',
                             text: `¿Desea eliminar "${productName}"?`,
                             icon: 'warning',
-                            showCancelButton: true,
                             confirmButtonColor: '#dc2626',
-                            cancelButtonColor: '#6b7280',
-                            confirmButtonText: 'Sí, eliminar',
-                            cancelButtonText: 'Cancelar'
+                            confirmButtonText: 'Sí, eliminar'
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 form.submit();
                             }
                         });
+                    } else {
+                        const ok = confirm(`¿Desea eliminar "${productName}"?`);
+                        if (ok) form.submit();
                     }
                 });
             }
@@ -586,30 +586,20 @@
 
         // Mostrar alertas de éxito desde sesión (si existen)
         const successMsg = @json(session('success'));
-        if (successMsg && window.Swal) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: successMsg,
-                confirmButtonColor: '#16a34a'
-            });
+        if (successMsg && window.swAlert) {
+            swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
         }
 
         // Mostrar alertas de error desde sesión (si existen)
         const errorMsg = @json(session('error'));
-        if (errorMsg && window.Swal) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: errorMsg,
-                confirmButtonColor: '#dc2626'
-            });
+        if (errorMsg && window.swAlert) {
+            swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
         }
 
         // Mostrar errores de validación (si existen)
         @if ($errors->any())
-        if (window.Swal) {
-            Swal.fire({
+        if (window.swAlert) {
+            swAlert({
                 icon: 'error',
                 title: 'Errores de validación',
                 html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
