@@ -5,44 +5,48 @@
 @section('content')
 <style>
     .welcome-card{
-        max-width: 760px;
-        margin: clamp(24px, 8vh, 80px) auto;
-        padding: clamp(20px, 4vw, 40px);
+        max-width: 640px; /* antes 760px */
+        margin: clamp(16px, 6vh, 48px) auto; /* menos margen vertical */
+        padding: clamp(16px, 3vw, 28px); /* menos relleno interno */
         background: #ffffffde;
-        border-radius: 18px;
-        box-shadow: 0 10px 30px rgba(0,0,0,.08);
+        border-radius: 16px; /* ligeramente menor */
+        box-shadow: 0 8px 24px rgba(0,0,0,.07);
         text-align: center;
     }
    
     .logo-icon{ margin-bottom: 6px; }
     .logo-image{
-        width: min(300px, 70%);
+        width: min(240px, 60%); /* más pequeño */
         height: auto;
         filter: drop-shadow(0 6px 16px rgba(0,0,0,.15));
         transition: transform .25s ease;
     }
     .logo-image:hover{ transform: scale(1.02); }
     .welcome-title{
-        font-size: clamp(28px, 4vw, 42px);
-        margin: -52px 0 8px;
+        font-size: clamp(24px, 3.2vw, 36px); /* más compacto */
+        margin: -40px 0 6px; /* menos superposición y separación */
         font-weight: 800;
-        letter-spacing: .3px;
+        letter-spacing: .2px;
         color: #1f2937;
     }
     .welcome-subtitle{
         color: #4b5563;
-        font-size: clamp(14px, 1.8vw, 18px);
-        margin: 0 auto 24px;
-        line-height: 1.6;
+        font-size: clamp(13px, 1.6vw, 16px);
+        margin: 0 auto 18px; /* menos espacio inferior */
+        line-height: 1.55;
     }
 
     /* Estilos del formulario de login */
+    /* Integrar el formulario dentro del mismo contenedor (welcome-card) */
     .login-form-container {
-        background: white;
-        padding: 30px;
-        border-radius: 12px;
-        margin-top: 30px;
-        border: 1px solid #e5e7eb;
+        background: transparent; /* sin fondo propio */
+        padding: 0;              /* sin padding extra */
+        border-radius: 0;        /* sin bordes redondeados propios */
+        margin-top: 16px;        /* separación mínima dentro del card */
+        border: none;            /* sin borde propio */
+        max-width: 100%;         /* ocupa el ancho del card */
+        margin-left: 0;
+        margin-right: 0;
     }
 
     .form-group {
@@ -54,20 +58,36 @@
         display: block;
         font-weight: 600;
         color: #374151;
-        margin-bottom: 6px;
-        font-size: 14px;
+        margin-bottom: 4px; /* antes 6px */
+        font-size: 13px; /* antes 14px */
     }
 
     .form-input {
         width: 100%;
-        padding: 12px 14px;
+        padding: 10px 12px; /* antes 12px 14px */
         border: 2px solid #e5e7eb;
         border-radius: 8px;
-        font-size: 14px;
+        font-size: 13px; /* antes 14px */
         transition: border-color 0.3s ease, box-shadow 0.3s ease;
         font-family: inherit;
         box-sizing: border-box;
     }
+    .password-wrapper{
+        position: relative;
+    }
+    .toggle-password{
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #6b7280;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 6px;
+    }
+    .toggle-password:hover{ color: #16a34a; }
 
     .form-input:focus {
         outline: none;
@@ -84,7 +104,7 @@
     .remember-group {
         display: flex;
         align-items: center;
-        margin-bottom: 24px;
+        margin-bottom: 16px; /* antes 24px */
         justify-content: space-between;
     }
 
@@ -103,13 +123,13 @@
 
     .login-button {
         width: 100%;
-        padding: 12px;
+        padding: 10px; /* antes 12px */
         background: linear-gradient(135deg, #485a1a, #0d5e2a);
         color: white;
         border: none;
         border-radius: 8px;
         font-weight: 600;
-        font-size: 15px;
+        font-size: 14px; /* antes 15px */
         cursor: pointer;
         transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
     }
@@ -144,8 +164,9 @@
     }
 
     .forgot-password {
-        text-align: center;
-        margin-top: 16px;
+      text-align: left;
+        margin-top: 15px;
+        margin-left: 197px;
     }
 
     .forgot-password a {
@@ -233,8 +254,6 @@
 
     <!-- Formulario de login para usuarios no autenticados -->
     <div class="login-form-container">
-        <h3 style="color: #374151; margin-bottom: 20px; font-size: 18px;">Iniciar Sesión</h3>
-        
         <form method="POST" action="{{ route('login') }}">
             @csrf
 
@@ -250,21 +269,15 @@
             <!-- Password -->
             <div class="form-group">
                 <label for="password" class="form-label">Contraseña</label>
-                <input id="password" type="password" name="password" class="form-input" required autocomplete="current-password" placeholder="••••••••" />
+                                <div class="password-wrapper">
+                                    <input id="password" type="password" name="password" class="form-input" required autocomplete="current-password" placeholder="••••••••" />
+                                    <button type="button" class="toggle-password" aria-label="Mostrar u ocultar contraseña" onclick="(function(){const i=document.getElementById('password'); const b=event.currentTarget; const icon=b.querySelector('i'); const is=i.type==='password'; i.type=is?'text':'password'; icon.classList.toggle('fa-eye', !is); icon.classList.toggle('fa-eye-slash', is); })()">
+                                        <i class="fas fa-eye-slash"></i>
+                                    </button>
+                                </div>
                 @error('password')
                     <div class="error-message">{{ $message }}</div>
                 @enderror
-            </div>
-
-            <!-- Remember Me y Forgot Password -->
-            <div class="remember-group">
-                <div style="display: flex; align-items: center;">
-                    <input id="remember_me" type="checkbox" name="remember" class="remember-checkbox" />
-                    <label for="remember_me" class="remember-label">Recuérdame</label>
-                </div>
-                @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" class="forgot-password">¿Olvidaste tu contraseña?</a>
-                @endif
             </div>
 
             <!-- Submit Button -->
@@ -272,13 +285,15 @@
                 <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i>
                 Iniciar Sesión
             </button>
-        </form>
-    </div>
 
-    <div class="feature-icons">
-        <i class="fas fa-boxes" title="Insumos"></i>
-        <i class="fas fa-truck" title="Proveedores"></i>
-        <i class="fas fa-chart-line" title="Reportes"></i>
+             <!-- Remember Me y Forgot Password -->
+            <div class="remember-group">
+               
+                @if (Route::has('password.request'))
+                    <a href="{{ route('password.request') }}" class="forgot-password">¿Olvidaste tu contraseña?</a>
+                @endif
+            </div>
+        </form>
     </div>
 </div>
 @endsection
