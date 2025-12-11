@@ -6,19 +6,11 @@
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
-        <div class="col-md-8">
+        <div class="col-12">
             <h1 class="mb-0">
                 <i class="fas fa-images mr-2"></i> Galería de Imágenes
             </h1>
             <small class="text-muted">Gestiona las imágenes del producto: <strong>{{ $product->name }}</strong></small>
-        </div>
-        <div class="col-md-4 text-right">
-            <a href="{{ route('products.show', $product->product_id) }}" class="btn btn-info">
-                <i class="fas fa-eye"></i> Ver Detalles
-            </a>
-            <a href="{{ route('products.index') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Volver
-            </a>
         </div>
     </div>
 
@@ -52,7 +44,7 @@
         <!-- Panel de carga de imágenes -->
         <div class="col-md-4">
             <div class="card">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-cloud-upload-alt"></i> Agregar Imagen
                     </h5>
@@ -89,26 +81,12 @@
                             <i class="fas fa-upload"></i> Subir Imagen
                         </button>
                     </form>
-
-                    <hr>
-
-                    <div class="alert alert-info">
-                        <h6 class="alert-heading">
-                            <i class="fas fa-lightbulb"></i> Consejos
-                        </h6>
-                        <ul class="mb-0 small">
-                            <li>Usa imágenes de buena calidad</li>
-                            <li>Tamaño recomendado: 800x600px o mayor</li>
-                            <li>Puedes subir varias imágenes</li>
-                            <li>La primera imagen es la principal</li>
-                        </ul>
-                    </div>
                 </div>
             </div>
 
             <!-- Estadísticas -->
             <div class="card mt-3">
-                <div class="card-header bg-light">
+                <div class="card-header">
                     <h6 class="mb-0">
                         <i class="fas fa-bar-chart"></i> Estadísticas
                     </h6>
@@ -133,7 +111,7 @@
         <!-- Galería de imágenes -->
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header bg-secondary text-white">
+                <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-picture-o"></i> Imágenes del Producto
                     </h5>
@@ -264,7 +242,121 @@
             return false;
         }
     });
+
+    // Abrir modal de ayuda
+    function openGalleryHelpModal() {
+        const modal = document.getElementById('galleryHelpModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    // Cerrar modal de ayuda
+    function closeGalleryHelpModal() {
+        const modal = document.getElementById('galleryHelpModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    // Cerrar modal al hacer clic fuera
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('galleryHelpModal');
+        if (e.target === modal) {
+            closeGalleryHelpModal();
+        }
+    });
+
+    // Mover botón de ayuda al header
+    document.addEventListener('DOMContentLoaded', function() {
+        const helpContainer = document.getElementById('topHelpContainer');
+        const helpButtonContainer = document.getElementById('helpButtonContainerGallery');
+        const helpButton = document.getElementById('helpButtonGallery');
+        
+        if (helpContainer && helpButtonContainer && helpButton) {
+            helpContainer.appendChild(helpButton);
+            helpButtonContainer.style.display = 'none';
+        }
+
+        // Mover botón de volver al header
+        const backButtonContainer = document.getElementById('topBackButtonContainer');
+        const backButtonElement = document.getElementById('galleryBackButton');
+        
+        if (backButtonContainer && backButtonElement) {
+            backButtonContainer.appendChild(backButtonElement);
+        }
+    });
 </script>
 @endpush
+
+<!-- Botón de Volver para Galería -->
+<div id="galleryBackButtonContainer" style="display: none;">
+    <a id="galleryBackButton" href="{{ route('products.index') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 5px;">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+</div>
+
+<!-- Botón de Ayuda para Galería -->
+<div id="helpButtonContainerGallery" style="display: none;">
+    <button id="helpButtonGallery" type="button" class="btn btn-help" onclick="openGalleryHelpModal()">
+        <i class="fas fa-question-circle"></i> Ayuda
+    </button>
+</div>
+
+<!-- Modal de Ayuda para Galería -->
+<div id="galleryHelpModal" class="custom-modal" style="display:none;">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <div class="modal-header">
+            <h3 id="helpTitle"><i class="fas fa-lightbulb"></i> Consejos para Agregar Imágenes</h3>
+            <button type="button" class="close" aria-label="Cerrar" onclick="closeGalleryHelpModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="detail-section">
+                <h5><i class="fas fa-image"></i> Usa Imágenes de Buena Calidad</h5>
+                <p>
+                    Selecciona imágenes claras y bien iluminadas que muestren el producto de manera atractiva.<br>
+                    <small class="text-muted">Esto ayuda a los clientes a ver mejor el producto.</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-ruler"></i> Tamaño Recomendado</h5>
+                <p>
+                    Tamaño recomendado: 800x600px o mayor. Máximo 2MB.<br>
+                    <small class="text-muted">Las imágenes muy pequeñas se verán pixeladas, y las muy grandes ralentizarán la carga.</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-upload"></i> Formatos Aceptados</h5>
+                <p>
+                    Se aceptan: JPG, PNG, GIF<br>
+                    <small class="text-muted">Usa JPG para fotos naturales y PNG para imágenes con transparencia.</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-star"></i> Imagen Principal</h5>
+                <p>
+                    La primera imagen que subes será la principal del producto.<br>
+                    <small class="text-muted">Puedes subir varias imágenes, pero la primera es la que se mostrará en la lista.</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-images"></i> Múltiples Imágenes</h5>
+                <p>
+                    Puedes agregar varias imágenes del mismo producto desde diferentes ángulos.<br>
+                    <small class="text-muted">Esto permite a los clientes ver el producto de manera más completa.</small>
+                </p>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeGalleryHelpModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
 
 @endsection

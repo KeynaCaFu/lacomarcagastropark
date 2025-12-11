@@ -98,9 +98,9 @@
             <div class="card">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Galería de Imágenes</h5>
-                    <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addGalleryModal">
+                    {{-- <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addGalleryModal">
                         <i class="fas fa-plus"></i> Agregar imagen
-                    </button>
+                    </button> --}}
                 </div>
                 <div class="card-body">
                     @if($product->gallery->count() > 0)

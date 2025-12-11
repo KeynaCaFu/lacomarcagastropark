@@ -114,7 +114,10 @@
                             </button>
                             <h1 class="mb-0">@yield('title', 'Dashboard')</h1>
                         </div>
-                        <div class="top-help" id="topHelpContainer"></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div id="topBackButtonContainer"></div>
+                            <div class="top-help" id="topHelpContainer"></div>
+                        </div>
                     </div>
                 </div>
 

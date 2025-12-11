@@ -6,30 +6,23 @@
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
-        <div class="col-md-8">
+        <div class="col-12">
             <h1 class="mb-0">
                 <i class="fas fa-edit mr-2"></i> Editar Producto
             </h1>
             <small class="text-muted">Modifique la información del producto: {{ $product->name }}</small>
         </div>
-        <div class="col-md-4 text-right">
-            <a href="{{ route('products.show', $product->product_id) }}" class="btn btn-info">
-                <i class="fas fa-eye"></i> Ver Detalles
-            </a>
-            <a href="{{ route('products.index') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Volver
-            </a>
-        </div>
     </div>
 
-    <!-- Formulario de Edición -->
-    <div class="row">
-        <div class="col-md-8">
+    <!-- Formulario de Edición - Centrado -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
             <div class="card">
-                <div class="card-header text-white d-flex align-items-center justify-content-between">
+                <div class="card-header text-dark d-flex align-items-center justify-content-between">
                     <h5 class="mb-0">
                         <i class="fas fa-form"></i> Información del Producto
                     </h5>
+                    <!-- Icono con tooltip de información útil -->
                     <span class="ms-2" 
                           title="• Los campos marcados con * son obligatorios\n• El nombre debe mantenerse único\n• El precio debe ser mayor o igual a 0">
                         <i class="fas fa-info-circle" aria-label="Información"></i>
@@ -228,7 +221,7 @@
 
                         <!-- Botones de acción -->
                         <div class="form-group">
-                            <button type="submit" class="btn btn-warning">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Guardar Cambios
                             </button>
                             <a href="{{ route('products.show', $product->product_id) }}" class="btn btn-outline-secondary">
@@ -238,59 +231,6 @@
                     </form>
                 </div>
             </div>
-
-        </div>
-
-        <!-- Sidebar de ayuda -->
-        <div class="col-md-4">
-            <div class="card mb-3">
-                <div class="card-header bg-info text-white">
-                    <h6 class="mb-0">
-                        <i class="fas fa-lightbulb"></i> Consejos
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <h6>Cambios Rápidos</h6>
-                    <p class="small text-muted">Puedes cambiar cualquier campo y guardar los cambios inmediatamente</p>
-
-                    <hr>
-
-                    <h6>Precio</h6>
-                    <p class="small text-muted">Si cambias el precio, se actualizará para todos los clientes</p>
-
-                    <hr>
-
-                    <h6>Disponibilidad</h6>
-                    <p class="small text-muted">Marca como "No disponible" si temporalmente no tienes stock</p>
-
-                    <hr>
-
-                    <h6>Galería</h6>
-                    <p class="small text-muted">Ve a "Ver Detalles" para agregar más imágenes a la galería</p>
-
-                    <hr>
-
-                    <h6>Historial</h6>
-                    <p class="small text-muted">Puedes ver cuándo fue creado y modificado el producto arriba</p>
-                </div>
-            </div>
-
-            {{-- <!-- Acciones adicionales -->
-            <div class="card">
-                <div class="card-header bg-danger text-white">
-                    <h6 class="mb-0">
-                        <i class="fas fa-trash"></i> Zona de Peligro
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <p class="small text-muted mb-3">
-                        Si deseas eliminar este producto y su galería, haz clic en el botón de abajo
-                    </p>
-                    <button type="button" class="btn btn-danger btn-block" data-toggle="modal" data-target="#deleteModal">
-                        <i class="fas fa-trash-alt"></i> Eliminar Producto
-                    </button>
-                </div>
-            </div> --}}
         </div>
     </div>
 </div>
@@ -367,7 +307,132 @@
             return false;
         }
     });
+
+    // Abrir modal de ayuda
+    function openEditProductHelpModal() {
+        const modal = document.getElementById('editProductHelpModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    // Cerrar modal de ayuda
+    function closeEditProductHelpModal() {
+        const modal = document.getElementById('editProductHelpModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    // Cerrar modal al hacer clic fuera
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('editProductHelpModal');
+        if (e.target === modal) {
+            closeEditProductHelpModal();
+        }
+    });
+
+    // Mover botón de ayuda al header
+    document.addEventListener('DOMContentLoaded', function() {
+        const helpContainer = document.getElementById('topHelpContainer');
+        const helpButtonContainer = document.getElementById('helpButtonContainerEdit');
+        const helpButton = document.getElementById('helpButtonEdit');
+        
+        if (helpContainer && helpButtonContainer && helpButton) {
+            helpContainer.appendChild(helpButton);
+            helpButtonContainer.style.display = 'none';
+        }
+
+        // Mover botón de volver al header
+        const backButtonContainer = document.getElementById('topBackButtonContainer');
+        const backButtonElement = document.getElementById('editBackButton');
+        
+        if (backButtonContainer && backButtonElement) {
+            backButtonContainer.appendChild(backButtonElement);
+        }
+    });
 </script>
 @endpush
+
+
+<!-- Botón de Volver para Editar Producto -->
+<div id="editBackButtonContainer" style="display: none;">
+    <a id="editBackButton" href="{{ route('products.index') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 5px;">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+</div>
+
+<!-- Botón de Ayuda para Editar Producto -->
+<div id="helpButtonContainerEdit" style="display: none;">
+    <button id="helpButtonEdit" type="button" class="btn btn-help" onclick="openEditProductHelpModal()">
+        <i class="fas fa-question-circle"></i> Ayuda
+    </button>
+</div>
+
+
+
+<!-- Modal de Ayuda para Editar Producto -->
+<div id="editProductHelpModal" class="custom-modal" style="display:none;">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <div class="modal-header">
+            <h3 id="helpTitle"><i class="fas fa-lightbulb"></i> Consejos para Editar un Producto</h3>
+            <button type="button" class="close" aria-label="Cerrar" onclick="closeEditProductHelpModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="detail-section">
+                <h5><i class="fas fa-heading"></i> Cambios Rápidos</h5>
+                <p>
+                    Puedes cambiar cualquier campo y guardar los cambios inmediatamente.<br>
+                    <small class="text-muted">Los cambios se aplicarán en la tienda de inmediato.</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-money-bill"></i> Precio</h5>
+                <p>
+                    Si cambias el precio, se actualizará para todos los clientes.<br>
+                    <small class="text-muted">Ingresa el precio en colones con decimales (ej: 1500.50).</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-check"></i> Disponibilidad</h5>
+                <p>
+                    Marca como "No disponible" si temporalmente no tienes stock.<br>
+                    <small class="text-muted">Puedes cambiar esto cuando vuelva a estar disponible.</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-images"></i> Galería</h5>
+                <p>
+                    Ve a "Ver Detalles" para agregar más imágenes a la galería del producto.<br>
+                    <small class="text-muted">Desde aquí también puedes ver todas las imágenes subidas.</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-history"></i> Historial</h5>
+                <p>
+                    Puedes ver cuándo fue creado y modificado el producto al final del formulario.<br>
+                    <small class="text-muted">Esto te ayuda a llevar un control de los cambios.</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-image"></i> Cambiar Foto Principal</h5>
+                <p>
+                    Selecciona una nueva imagen para reemplazar la foto principal del producto.<br>
+                    <small class="text-muted">Formatos: JPG, PNG, GIF. Tamaño máximo: 2MB. Verás una vista previa de la imagen actual.</small>
+                </p>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeEditProductHelpModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
 
 @endsection

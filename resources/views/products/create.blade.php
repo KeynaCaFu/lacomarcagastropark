@@ -6,24 +6,19 @@
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
-        <div class="col-md-8">
+        <div class="col-12">
             <h1 class="mb-0">
                 <i class="fas fa-plus-circle mr-2"></i> Crear Nuevo Producto
             </h1>
             <small class="text-muted">Agregue un nuevo producto al catálogo</small>
         </div>
-        <div class="col-md-4 text-right">
-            <a href="{{ route('products.index') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Volver
-            </a>
-        </div>
     </div>
 
-    <!-- Formulario de Creación -->
-    <div class="row">
-        <div class="col-md-8">
+    <!-- Formulario de Creación - Centrado -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
             <div class="card">
-                <div class="card-header text-white d-flex align-items-center justify-content-between">
+                <div class="card-header text-dark d-flex align-items-center justify-content-between">
                     <h5 class="mb-0">
                         <i class="fas fa-form"></i> Información del Producto
                     </h5>
@@ -219,48 +214,6 @@
                     </form>
                 </div>
             </div>
-
-           
-        </div>
-
-        <!-- Sidebar de ayuda -->
-        <div class="col-md-4">
-            <div class="card mb-3">
-                <div class="card-header bg-info text-white">
-                    <h6 class="mb-0">
-                        <i class="fas fa-lightbulb"></i> Consejos
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <h6>Nombre del Producto</h6>
-                    <p class="small text-muted">Usa un nombre descriptivo y claro. Ej: "Café 1820 Molido"</p>
-
-                    <hr>
-
-                    <h6>Descripción</h6>
-                    <p class="small text-muted">Proporciona detalles útiles sobre el producto para que los clientes lo conozcan mejor</p>
-
-                    <hr>
-
-                    <h6>Precio</h6>
-                    <p class="small text-muted">Ingresa el precio en colones. Usa puntos para decimales. Ej: 1500.50</p>
-
-                    <hr>
-
-                    <h6>Categoría</h6>
-                    <p class="small text-muted">Usa categorías consistentes. Ej: Bebidas, Alimentos, Postres</p>
-
-                    <hr>
-
-                    <h6>Foto Principal</h6>
-                    <p class="small text-muted">Usa imágenes de buena calidad. La galería se puede actualizar después</p>
-                </div>
-            </div>
-            
-
-            <div class="alert alert-warning">
-                <strong>✓ Nota:</strong> Después de crear el producto, podrás agregar más imágenes a su galería
-            </div>
         </div>
     </div>
 </div>
@@ -300,7 +253,137 @@
             return false;
         }
     });
+
+    // Abrir modal de ayuda
+    function openCreateProductHelpModal() {
+        const modal = document.getElementById('createProductHelpModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    // Cerrar modal de ayuda
+    function closeCreateProductHelpModal() {
+        const modal = document.getElementById('createProductHelpModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    // Cerrar modal al hacer clic fuera
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('createProductHelpModal');
+        if (e.target === modal) {
+            closeCreateProductHelpModal();
+        }
+    });
+
+    // Mover botón de ayuda al header
+    document.addEventListener('DOMContentLoaded', function() {
+        const helpContainer = document.getElementById('topHelpContainer');
+        const helpButtonContainer = document.getElementById('helpButtonContainerProducts');
+        const helpButton = document.getElementById('helpButtonProducts');
+        
+        if (helpContainer && helpButtonContainer && helpButton) {
+            helpContainer.appendChild(helpButton);
+            helpButtonContainer.style.display = 'none';
+        }
+
+        // Mover botón de volver al header
+        const backButtonContainer = document.getElementById('topBackButtonContainer');
+        const backButtonElement = document.getElementById('createBackButton');
+        
+        if (backButtonContainer && backButtonElement) {
+            backButtonContainer.appendChild(backButtonElement);
+        }
+    });
 </script>
 @endpush
+
+<!-- Botón de Volver para Crear Producto -->
+<div id="createBackButtonContainer" style="display: none;">
+    <a id="createBackButton" href="{{ route('products.index') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 5px;">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+</div>
+
+<!-- Botón de Ayuda para Productos -->
+<div id="helpButtonContainerProducts" style="display: none;">
+    <button id="helpButtonProducts" type="button" class="btn btn-help" onclick="openCreateProductHelpModal()">
+        <i class="fas fa-question-circle"></i> Ayuda
+    </button>
+</div>
+
+<!-- Modal de Ayuda para Crear Producto -->
+<div id="createProductHelpModal" class="custom-modal" style="display:none;">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <div class="modal-header">
+            <h3 id="helpTitle"><i class="fas fa-lightbulb"></i> Consejos para Crear un Producto</h3>
+            <button type="button" class="close" aria-label="Cerrar" onclick="closeCreateProductHelpModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="detail-section">
+                <h5><i class="fas fa-heading"></i> Nombre del Producto</h5>
+                <p>
+                    Usa un nombre descriptivo y claro. Ejemplo: "Café 1820 Molido"<br>
+                    <small class="text-muted">El nombre debe ser único y no puede repetirse con otros productos.</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-align-left"></i> Descripción</h5>
+                <p>
+                    Proporciona detalles útiles sobre el producto para que los clientes lo conozcan mejor.<br>
+                    <small class="text-muted">Incluye ingredientes, origen, características especiales, etc.</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-tag"></i> Categoría</h5>
+                <p>
+                    Usa categorías consistentes. Ejemplos: Bebidas, Alimentos, Postres<br>
+                    <small class="text-muted">Esto ayuda a organizar mejor los productos en el catálogo.</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-leaf"></i> Tipo de Producto</h5>
+                <p>
+                    Especifica el tipo. Ejemplos: Bebida, Entrada, Plato Principal<br>
+                    <small class="text-muted">Útil para filtrar productos por tipo.</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-money-bill"></i> Precio</h5>
+                <p>
+                    Ingresa el precio en colones. Usa puntos para decimales. Ejemplo: 1500.50<br>
+                    <small class="text-muted">El precio debe ser mayor o igual a 0.</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-image"></i> Foto Principal</h5>
+                <p>
+                    Usa imágenes de buena calidad (JPG, PNG, GIF). Tamaño máximo: 2MB<br>
+                    <small class="text-muted">Recomendado: 800x600px o mayor. La galería se puede actualizar después de crear el producto.</small>
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h5><i class="fas fa-check"></i> Estado</h5>
+                <p>
+                    Selecciona si el producto estará disponible para la venta o no.<br>
+                    <small class="text-muted">Puedes cambiar el estado en cualquier momento desde el detalle del producto.</small>
+                </p>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeCreateProductHelpModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
 
 @endsection
