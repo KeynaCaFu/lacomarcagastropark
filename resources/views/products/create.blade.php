@@ -222,6 +222,15 @@
 
 @push('scripts')
 <script>
+    // SweetAlert2 CDN
+    (function(){
+        const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+        if (!existing) {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+            document.head.appendChild(s);
+        }
+    })();
     // Mostrar nombre del archivo seleccionado
     document.getElementById('foto').addEventListener('change', function() {
         const fileName = this.files[0] ? this.files[0].name : 'Seleccionar archivo...';
@@ -254,6 +263,60 @@
             document.getElementById('estado').focus();
             return false;
         }
+
+        // Confirmación con SweetAlert antes de enviar
+        if (window.Swal) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Crear producto',
+                text: '¿Desea guardar este nuevo producto?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#16a34a',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, guardar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        }
+    });
+
+    // Mostrar alertas de éxito desde sesión (si existen)
+    document.addEventListener('DOMContentLoaded', function(){
+        const successMsg = @json(session('success'));
+        if (successMsg && window.Swal) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: successMsg,
+                confirmButtonColor: '#16a34a'
+            });
+        }
+
+        const errorMsg = @json(session('error'));
+        if (errorMsg && window.Swal) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: errorMsg,
+                confirmButtonColor: '#dc2626'
+            });
+        }
+
+        // Mostrar errores de validación (si existen) en un solo modal
+        @if ($errors->any())
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Errores de validación',
+                html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+                confirmButtonColor: '#dc2626'
+            });
+        }
+        @endif
     });
 
     // Abrir modal de ayuda

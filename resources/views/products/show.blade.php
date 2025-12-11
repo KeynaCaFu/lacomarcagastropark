@@ -246,6 +246,15 @@
 
 @push('scripts')
 <script>
+// SweetAlert2 CDN
+(function(){
+    const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+    if (!existing) {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+        document.head.appendChild(s);
+    }
+})();
 // Mover botón Volver al header
 document.addEventListener('DOMContentLoaded', function() {
     const backButtonContainer = document.getElementById('topBackButtonContainer');
@@ -253,10 +262,51 @@ document.addEventListener('DOMContentLoaded', function() {
     if (backButtonContainer && backButtonElement) {
         backButtonContainer.appendChild(backButtonElement);
     }
+    // Session success/error alerts
+    const successMsg = @json(session('success'));
+    if (successMsg && window.Swal) {
+        Swal.fire({ icon: 'success', title: 'Éxito', text: successMsg, confirmButtonColor: '#16a34a' });
+    }
+    const errorMsg = @json(session('error'));
+    if (errorMsg && window.Swal) {
+        Swal.fire({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+    }
+    // Validation errors
+    @if ($errors->any())
+    if (window.Swal) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Errores de validación',
+            html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+            confirmButtonColor: '#dc2626'
+        });
+    }
+    @endif
 });
 
 function removeGalleryImage(galleryId) {
-    if (confirm('¿Está seguro de que desea eliminar esta imagen?')) {
+    if (window.Swal) {
+        Swal.fire({
+            title: 'Eliminar imagen',
+            text: '¿Desea eliminar esta imagen de la galería?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/productos/gallery/' + galleryId;
+                form.innerHTML = '<input type="hidden" name="_method" value="DELETE">' +
+                                '<input type="hidden" name="_token" value="{{ csrf_token() }}">';
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    } else if (confirm('¿Está seguro de que desea eliminar esta imagen?')) {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '/productos/gallery/' + galleryId;
@@ -282,10 +332,40 @@ document.getElementById('addGalleryForm')?.addEventListener('submit', async func
 
     if (response.ok) {
         const data = await response.json();
-        alert(data.message);
-        location.reload();
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Imagen agregada',
+                text: data.message || 'La imagen se agregó correctamente',
+                confirmButtonColor: '#16a34a'
+            }).then(() => location.reload());
+        } else {
+            alert(data.message || 'La imagen se agregó correctamente');
+            location.reload();
+        }
     } else {
-        alert('Error al agregar la imagen');
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al agregar la imagen'
+            });
+        } else {
+            alert('Error al agregar la imagen');
+        }
+    }
+});
+
+// Mostrar alertas de éxito desde sesión (si existen)
+document.addEventListener('DOMContentLoaded', function(){
+    const successMsg = @json(session('success'));
+    if (successMsg && window.Swal) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Éxito',
+            text: successMsg,
+            confirmButtonColor: '#16a34a'
+        });
     }
 });
 </script>

@@ -159,6 +159,15 @@
 
     @push('scripts')
     <script>
+        // SweetAlert2 CDN
+        (function(){
+            const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+            if (!existing) {
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+                document.head.appendChild(s);
+            }
+        })();
         // Mostrar nombre del archivo seleccionado
         document.getElementById('image').addEventListener('change', function() {
             const fileName = this.files[0] ? this.files[0].name : 'Seleccionar archivo...';
@@ -167,9 +176,28 @@
 
         // Confirmar eliminación
         function confirmDelete(galleryId) {
-            const form = document.getElementById('deleteForm');
-            form.action = `/productos/gallery/${galleryId}`;
-            $('#deleteModal').modal('show');
+            if (window.Swal) {
+                Swal.fire({
+                    title: 'Eliminar imagen',
+                    text: '¿Desea eliminar esta imagen de la galería?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = document.getElementById('deleteForm');
+                        form.action = `/productos/gallery/${galleryId}`;
+                        form.submit();
+                    }
+                });
+            } else {
+                const form = document.getElementById('deleteForm');
+                form.action = `/productos/gallery/${galleryId}`;
+                $('#deleteModal').modal('show');
+            }
         }
 
         // Validación del formulario
@@ -192,6 +220,25 @@
                 e.preventDefault();
                 alert('Solo se aceptan imágenes JPG, PNG o GIF');
                 return false;
+            }
+
+            // Confirmación antes de subir
+            if (window.Swal) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Subir imagen',
+                    text: '¿Desea subir esta imagen?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#16a34a',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Sí, subir',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
             }
         });
 
@@ -235,6 +282,25 @@
             if (backButtonContainer && backButtonElement) {
                 backButtonContainer.appendChild(backButtonElement);
             }
+            // Session alerts (success/error) and validation errors
+            const successMsg = @json(session('success'));
+            if (successMsg && window.Swal) {
+                Swal.fire({ icon: 'success', title: 'Éxito', text: successMsg, confirmButtonColor: '#16a34a' });
+            }
+            const errorMsg = @json(session('error'));
+            if (errorMsg && window.Swal) {
+                Swal.fire({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+            }
+            @if ($errors->any())
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Errores de validación',
+                    html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+                    confirmButtonColor: '#dc2626'
+                });
+            }
+            @endif
         });
     </script>
     @endpush
