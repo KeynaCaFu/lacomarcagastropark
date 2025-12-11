@@ -216,7 +216,7 @@
 
             // Confirmación con opción de deshacer: presenta una notificación con botón "Deshacer" por unos segundos.
             // onConfirm se ejecuta al expirar el tiempo si no se deshace. onUndo cancela la acción.
-            window.confirmWithUndo = function({ message, delayMs = 5000, onConfirm, onUndo }){
+            window.confirmWithUndo = function({ message, delayMs = 10000, onConfirm, onUndo }){
                 // Render minimal toast-like panel
                 const containerId = 'undo-toast-container';
                 let container = document.getElementById(containerId);
@@ -224,30 +224,40 @@
                     container = document.createElement('div');
                     container.id = containerId;
                     container.style.position = 'fixed';
-                    container.style.bottom = '20px';
+                    container.style.top = '20px';
                     container.style.right = '20px';
+                    container.style.left = 'auto';
+                    container.style.transform = 'none';
                     container.style.zIndex = '1060';
+                    container.style.display = 'flex';
+                    container.style.flexDirection = 'column';
+                    container.style.alignItems = 'flex-end';
                     document.body.appendChild(container);
                 }
 
                 const panel = document.createElement('div');
-                panel.style.background = '#111827';
-                panel.style.color = '#fff';
+                panel.style.background = '#ffffff';
+                panel.style.color = '#065f46';
+                panel.style.border = '1px solid #10b981';
                 panel.style.borderRadius = '12px';
-                panel.style.boxShadow = '0 10px 24px rgba(0,0,0,0.25)';
+                panel.style.boxShadow = '0 10px 24px rgba(0,0,0,0.08)';
                 panel.style.padding = '14px 16px';
                 panel.style.marginTop = '8px';
+                panel.style.maxWidth = '520px';
                 panel.style.display = 'flex';
                 panel.style.alignItems = 'center';
                 panel.style.gap = '12px';
 
                 const text = document.createElement('div');
-                text.textContent = message || 'Se eliminará el registro';
+                let remainingMs = typeof delayMs === 'number' ? delayMs : 10000;
+                let remaining = Math.floor(remainingMs / 1000);
+                const baseMessage = message || 'Se eliminará el registro';
+                text.textContent = `${baseMessage} en ${remaining}s`;
 
                 const btnUndo = document.createElement('button');
                 btnUndo.textContent = 'Deshacer';
-                btnUndo.style.background = '#f59e0b';
-                btnUndo.style.color = '#111827';
+                btnUndo.style.background = '#10b981';
+                btnUndo.style.color = '#ffffff';
                 btnUndo.style.border = 'none';
                 btnUndo.style.borderRadius = '8px';
                 btnUndo.style.padding = '8px 12px';
@@ -256,6 +266,7 @@
                 const countdown = document.createElement('span');
                 countdown.style.marginLeft = 'auto';
                 countdown.style.fontSize = '12px';
+                countdown.style.color = '#065f46';
                 countdown.style.opacity = '0.8';
 
                 panel.appendChild(text);
@@ -263,11 +274,11 @@
                 panel.appendChild(countdown);
                 container.appendChild(panel);
 
-                let remaining = Math.floor(delayMs / 1000);
                 countdown.textContent = remaining + 's';
                 const interval = setInterval(() => {
                     remaining -= 1;
                     countdown.textContent = remaining + 's';
+                    text.textContent = `${baseMessage} en ${Math.max(remaining,0)}s`;
                 }, 1000);
 
                 const cleanup = () => {
@@ -289,7 +300,7 @@
                         if (window.showNotification) window.showNotification('success', 'Acción completada');
                     }
                     cleanup();
-                }, delayMs);
+                }, remainingMs);
 
                 return Promise.resolve({ scheduled: true });
             };

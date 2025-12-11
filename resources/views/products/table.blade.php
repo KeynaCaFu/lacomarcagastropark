@@ -61,11 +61,10 @@
                                class="btn-action btn-edit" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <form method="POST" action="{{ route('products.destroy', $product->product_id) }}" style="display:inline;" 
-                                  onsubmit="return confirm('¿Está seguro de que desea eliminar &quot;{{ $product->name }}&quot;?');">
+                            <form id="del-product-{{ $product->product_id }}" method="POST" action="{{ route('products.destroy', $product->product_id) }}" style="display:inline;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn-action btn-delete" title="Eliminar">
+                                <button type="button" class="btn-action btn-delete" data-id="{{ $product->product_id }}" data-name="{{ $product->name }}" title="Eliminar">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
@@ -94,3 +93,27 @@
         <p>No hay productos que mostrar</p>
     </div>
 @endif
+
+<script>
+// Bind delete with Undo for Products table
+(function(){
+    document.querySelectorAll('.btn-delete[data-id]').forEach(btn => {
+        if (btn.dataset._undoBound === 'true') return;
+        btn.dataset._undoBound = 'true';
+        btn.addEventListener('click', (e) => {
+            const id = btn.dataset.id;
+            const name = btn.dataset.name || 'este producto';
+            const formId = 'del-product-' + id;
+            const submitAction = () => { const f = document.getElementById(formId); if (f) f.submit(); };
+            if (typeof window.confirmWithUndo === 'function') {
+                const ask = window.swConfirm ? swConfirm({ html: `<div class='swal-title-like'>¿Seguro que deseas eliminar <b>${name}</b>?</div>`, confirmButtonText: 'Sí, eliminar' }) : Promise.resolve({ isConfirmed: confirm('¿Seguro que deseas eliminar este producto?') });
+                ask.then(r => { if (r.isConfirmed) window.confirmWithUndo({ message: `Se eliminará: ${name}`, delayMs: 10000, onConfirm: submitAction, onUndo: function(){} }); });
+            } else if (window.swConfirm) {
+                swConfirm({ html: `<div class='swal-title-like'>¿Seguro que deseas eliminar <b>${name}</b>?</div>`, confirmButtonText: 'Sí, eliminar' }).then(r => { if (r.isConfirmed) submitAction(); });
+            } else if (confirm('¿Seguro que deseas eliminar este producto?')) {
+                submitAction();
+            }
+        });
+    });
+})();
+</script>

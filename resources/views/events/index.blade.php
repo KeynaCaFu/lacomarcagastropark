@@ -180,12 +180,18 @@
   function confirmDelete(nombre, onConfirmSubmit){
     // If supplies confirmWithUndo is available, use it so the user can undo deletion
     if (typeof window.confirmWithUndo === 'function'){
-      // schedule the actual submission in confirmWithUndo and mark the row visually
-      const formSubmit = () => { if (typeof onConfirmSubmit === 'function') onConfirmSubmit(); };
-      const undo = () => { /* no-op here; original form will not be submitted until timer expires */ };
-      // Show the warn notification with Undo button
-      window.confirmWithUndo({ message: `Se eliminará: ${nombre || 'este evento'}`, delayMs: 5000, onConfirm: formSubmit, onUndo: undo });
-      return Promise.resolve({ isConfirmed: true });
+      // First ask confirmation, then present undo toast
+      return swConfirm({
+        html: `<div class="swal-title-like">¿Seguro que deseas eliminar <b>${nombre || 'este evento'}</b>?</div>`,
+        confirmButtonText: 'Sí, eliminar'
+      }).then(r => {
+        if (r.isConfirmed) {
+          const formSubmit = () => { if (typeof onConfirmSubmit === 'function') onConfirmSubmit(); };
+          const undo = () => {};
+          window.confirmWithUndo({ message: `Se eliminará: ${nombre || 'este evento'}`, delayMs: 10000, onConfirm: formSubmit, onUndo: undo });
+        }
+        return r;
+      });
     }
 
       return swConfirm({
@@ -229,8 +235,8 @@
       const id = btn.dataset.id;
       const name = btn.dataset.name || 'este evento';
       // If confirmWithUndo exists, it will handle scheduling the action and calling onConfirm
+      // confirmDelete handles both undo toast and standard confirm
       if (typeof window.confirmWithUndo === 'function'){
-        // Prevent immediate form submit; pass a callback that submits the form when the confirmWithUndo timer expires
         confirmDelete(name, () => document.getElementById('del-' + id).submit());
         return;
       }
@@ -294,6 +300,11 @@
   }
   .event-actions .push-right{
     margin-left:auto !important;  /* empuja Eliminar a la derecha */
+  }
+  /* Mover el botón "Nuevo Evento" a la derecha */
+  .events-bar{
+    display:flex;
+    justify-content:flex-end;
   }
 </style>
 @endsection

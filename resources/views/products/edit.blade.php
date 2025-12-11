@@ -224,7 +224,7 @@
                             <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #485a1a, #0d5e2a); border:none; font-weight:600;">
                                 <i class="fas fa-save"></i> Guardar Cambios
                             </button>
-                            <a href="{{ route('products.show', $product->product_id) }}" class="btn btn-outline-secondary" style="border-color:#e5e7eb; color:#374151;">
+                            <a href="{{ route('products.index') }}" class="btn btn-outline-secondary" style="border-color:#e5e7eb; color:#374151;">
                                 <i class="fas fa-times"></i> Cancelar
                             </a>
                         </div>
