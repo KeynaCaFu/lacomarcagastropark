@@ -5,20 +5,16 @@
 @section('content')
 <div class="container-fluid">
     <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="mb-0">
-                <i class="fas fa-box mr-2"></i> {{ $product->name }}
-            </h1>
-            <small class="text-muted">Detalles y gestión del producto</small>
-        </div>
-        <div class="col-md-4 text-right">
-            <button type="button" class="btn btn-warning mr-2" data-toggle="modal" data-target="#editProductModal">
-                <i class="fas fa-edit"></i> Editar
-            </button>
-            <a href="{{ route('products.index') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Volver
-            </a>
+    <div class="row mb-3">
+        <div class="col-12 d-flex align-items-center justify-content-between">
+            <div style="flex:1;">
+                <h2 style="margin: 7px; color: #1f2937; font-weight: 712;">
+                    <i class="fas fa-box" style="margin-right:8px;"></i> {{ $product->name }}
+                </h2>
+                <div style="height:4px; width:120px; background:#f59e0b; border-radius:2px; margin-left:7px;"></div>
+                <small class="text-muted">Detalles y gestión del producto</small>
+            </div>
+            <div id="topBackButtonContainer" class="top-help" style="gap:8px;"></div>
         </div>
     </div>
 
@@ -26,8 +22,8 @@
     <div class="row mb-4">
         <!-- Foto principal y datos básicos -->
         <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-body text-center">
+            <div class="card mb-4" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                <div class="card-body text-center" style="padding:20px;">
                     @if($product->photo)
                         <img src="{{ $product->photo }}" alt="{{ $product->name }}" 
                              class="img-fluid mb-3" style="max-height: 300px; object-fit: cover;">
@@ -42,25 +38,25 @@
             </div>
 
             <!-- Información rápida -->
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">Información Rápida</h6>
+            <div class="card" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                <div class="card-body" style="padding:20px;">
+                    <h6 class="card-title" style="color:#1f2937; font-weight:700;">Información Rápida</h6>
                     <div class="mb-3">
                         <strong>Precio:</strong>
-                        <h4 class="text-primary">₡{{ number_format($product->price, 2, ',', '.') }}</h4>
+                        <h4 style="color:#0ea5e9;">₡{{ number_format($product->price, 2, ',', '.') }}</h4>
                     </div>
                     <div class="mb-3">
                         <strong>Estado:</strong>
                         @if($product->status === 'Available')
-                            <span class="badge badge-success">Disponible</span>
+                            <span class="status-badge status-available">Disponible</span>
                         @else
-                            <span class="badge badge-danger">No disponible</span>
+                            <span class="status-badge status-unavailable">No disponible</span>
                         @endif
                     </div>
                     @if($product->category)
                         <div class="mb-3">
                             <strong>Categoría:</strong>
-                            <br><span class="badge badge-info">{{ $product->category }}</span>
+                            <br><span class="category-badge">{{ $product->category }}</span>
                         </div>
                     @endif
                     @if($product->tag)
@@ -81,11 +77,11 @@
 
         <!-- Descripción y detalles -->
         <div class="col-md-8">
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Descripción</h5>
+            <div class="card mb-4" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                <div class="card-header" style="background:#f8fafc; border-bottom:1px solid #e5e7eb; border-top-left-radius:12px; border-top-right-radius:12px;">
+                    <h5 class="mb-0" style="color:#1f2937; font-weight:700;">Descripción</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="padding:20px;">
                     @if($product->description)
                         <p>{{ $product->description }}</p>
                     @else
@@ -95,22 +91,22 @@
             </div>
 
             <!-- Galería de imágenes -->
-            <div class="card">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Galería de Imágenes</h5>
+            <div class="card" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background:#f8fafc; border-bottom:1px solid #e5e7eb; border-top-left-radius:12px; border-top-right-radius:12px;">
+                    <h5 class="mb-0" style="color:#1f2937; font-weight:700;">Galería de Imágenes</h5>
                     {{-- <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addGalleryModal">
                         <i class="fas fa-plus"></i> Agregar imagen
                     </button> --}}
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="padding:20px;">
                     @if($product->gallery->count() > 0)
                         <div class="row">
                             @foreach($product->gallery as $image)
                                 <div class="col-md-6 col-lg-4 mb-3">
-                                    <div class="card position-relative">
+                                    <div class="card position-relative" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow:hidden;">
                                         <img src="{{ $image->image_url }}" alt="Galería" 
                                              class="card-img-top" style="height: 200px; object-fit: cover;">
-                                        <div class="card-body p-2">
+                                        <div class="card-body p-2" style="background:#ffffff;">
                                             <button type="button" class="btn btn-sm btn-danger btn-block" 
                                                     onclick="removeGalleryImage({{ $image->product_gallery_id }})">
                                                 <i class="fas fa-trash"></i> Eliminar
@@ -130,7 +126,7 @@
             </div>
 
             <!-- Fecha de creación/actualización -->
-            <div class="alert alert-info mt-4 mb-0">
+            <div class="alert alert-info mt-4 mb-0" style="border-radius:8px;">
                 <small>
                     <strong>Creado:</strong> {{ $product->created_at->format('d/m/Y H:i') }}
                     <br>
@@ -250,6 +246,15 @@
 
 @push('scripts')
 <script>
+// Mover botón Volver al header
+document.addEventListener('DOMContentLoaded', function() {
+    const backButtonContainer = document.getElementById('topBackButtonContainer');
+    const backButtonElement = document.getElementById('productShowBackButton');
+    if (backButtonContainer && backButtonElement) {
+        backButtonContainer.appendChild(backButtonElement);
+    }
+});
+
 function removeGalleryImage(galleryId) {
     if (confirm('¿Está seguro de que desea eliminar esta imagen?')) {
         const form = document.createElement('form');
@@ -287,3 +292,10 @@ document.getElementById('addGalleryForm')?.addEventListener('submit', async func
 @endpush
 
 @endsection
+
+<!-- Botón de Volver oculto para mover al header -->
+<div id="productShowBackButtonContainer" style="display:none;">
+    <a id="productShowBackButton" href="{{ route('products.index') }}" class="btn btn-outline-secondary" style="display:inline-flex; align-items:center; gap:5px; border-color:#e5e7eb; color:#374151;">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+></div>

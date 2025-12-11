@@ -43,41 +43,72 @@
     /* Estadísticas Grid */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 16px;
         margin-bottom: 24px;
     }
 
     .stat-card {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        position: relative;
         border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,.07);
-        border-left: 4px solid #485a1a;
+        padding: 18px 20px;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        transition: transform .2s ease, box-shadow .2s ease;
+        display: flex;
+        align-items: center;
+        gap: 14px;
     }
 
-    .stat-card.available {
-        border-left-color: #16a34a;
-        /* background: linear-gradient(135deg, #dcfce7 0%, #86efac 100%); */
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.08);
     }
 
-    .stat-card.unavailable {
-        border-left-color: #dc2626;
-        /* background: linear-gradient(135deg, #fee2e2 0%, #fca5a5 100%); */
+    .stat-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0f172a;
+        flex-shrink: 0;
+    }
+
+    .stat-card.total .stat-icon {
+        background: #e0f2fe; /* sky-100 */
+        color: #0369a1;      /* sky-700 */
+    }
+    .stat-card.available .stat-icon {
+        background: #dcfce7; /* green-100 */
+        color: #16a34a;      /* green-600 */
+    }
+    .stat-card.unavailable .stat-icon {
+        background: #fee2e2; /* red-100 */
+        color: #dc2626;      /* red-600 */
+    }
+
+    .stat-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
     }
 
     .stat-label {
         font-size: 12px;
         font-weight: 600;
-        color: #666;
+        color: #6b7280;
         text-transform: uppercase;
-        margin-bottom: 8px;
+        letter-spacing: 0.02em;
     }
 
     .stat-number {
-        font-size: 32px;
+        font-size: 28px;
         font-weight: 800;
         color: #1f2937;
+        line-height: 1.1;
     }
 
     .btn-create {
@@ -359,17 +390,26 @@
 
     <!-- Tarjetas de estadísticas -->
     <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-label">Total de Productos</div>
-            <div class="stat-number">{{ $totals['total'] }}</div>
+        <div class="stat-card total">
+            <div class="stat-icon"><i class="fas fa-boxes"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Total de Productos</div>
+                <div class="stat-number">{{ $totals['total'] }}</div>
+            </div>
         </div>
         <div class="stat-card available">
-            <div class="stat-label">Disponibles</div>
-            <div class="stat-number">{{ $totals['available'] }}</div>
+            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Disponibles</div>
+                <div class="stat-number">{{ $totals['available'] }}</div>
+            </div>
         </div>
         <div class="stat-card unavailable">
-            <div class="stat-label">No Disponibles</div>
-            <div class="stat-number">{{ $totals['unavailable'] }}</div>
+            <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">No Disponibles</div>
+                <div class="stat-number">{{ $totals['unavailable'] }}</div>
+            </div>
         </div>
     </div>
 
@@ -419,92 +459,7 @@
 
     <!-- Tabla de productos -->
     <div id="productsTableContainer" class="table-wrapper">
-        <div class="table-responsive">
-            <table class="table table-striped mb-0">
-                <thead class="bg-light">
-                    <tr>
-                        <th>Foto</th>
-                        <th>Nombre</th>
-                        <th>Categoría</th>
-                        <th>Precio</th>
-                        <th>Galería</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($products as $product)
-                        <tr>
-                            <td>
-                                @if($product->photo)
-                                     <img src="{{ $product->photo }}" alt="{{ $product->name }}" 
-                                         class="product-thumb" style="width: 50px; height: 50px; object-fit: cover;">
-                                @else
-                                    <span class="badge badge-secondary">Sin foto</span>
-                                @endif
-                            </td>
-                            <td>
-                                <strong>{{ $product->name }}</strong>
-                                @if($product->description)
-                                    <br><small class="text-muted">{{ Str::limit($product->description, 50) }}</small>
-                                @endif
-                            </td>
-                            <td>
-                                @if($product->category)
-                                    <span class="category-badge">{{ $product->category }}</span>
-                                @else
-                                    <span class="text-muted">-</span>
-                                @endif
-                            </td>
-                            <td>
-                                <strong>₡{{ number_format($product->price, 2, ',', '.') }}</strong>
-                            </td>
-                            <td>
-                                <a href="{{ route('products.gallery', $product->product_id) }}" 
-                                   class="btn-action btn-view" title="Ver galería">
-                                    <i class="fas fa-images"></i> {{ $product->gallery_count ?? 0 }}
-                                </a>
-                            </td>
-                            <td>
-                                @if($product->status === 'Available')
-                                    <span class="status-badge status-available">Disponible</span>
-                                @else
-                                    <span class="status-badge status-unavailable">No disponible</span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="actions">
-                                    <a href="{{ route('products.show', $product->product_id) }}" 
-                                       class="btn-action btn-view" title="Ver detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ route('products.edit', $product->product_id) }}" 
-                                       class="btn-action btn-edit" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form method="POST" action="{{ route('products.destroy', $product->product_id) }}" 
-                                          style="display:inline;" 
-                                          onsubmit="return confirm('¿Está seguro de que desea eliminar &quot;{{ $product->name }}&quot;?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn-action btn-delete" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="empty-state">
-                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">No hay productos registrados</p>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+        @include('products.table', ['products' => $products])
     </div>
 
     <!-- Paginación -->

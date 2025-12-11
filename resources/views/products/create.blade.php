@@ -5,30 +5,32 @@
 @section('content')
 <div class="container-fluid">
     <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="mb-0">
-                <i class="fas fa-plus-circle mr-2"></i> Crear Nuevo Producto
-            </h1>
-            <small class="text-muted">Agregue un nuevo producto al catálogo</small>
+    <div class="row mb-3">
+        <div class="col-12 d-flex align-items-center justify-content-between">
+            <div style="flex:1;">
+                <h2 style="margin: 7px; color: #1f2937; font-weight: 712;">
+                    <i class="fas fa-plus-circle" style="margin-right:8px;"></i> Crear Nuevo Producto
+                </h2>
+                <div style="height:4px; width:120px; background:#f59e0b; border-radius:2px; margin-left:7px;"></div>
+                <small class="text-muted">Agregue un nuevo producto al catálogo</small>
+            </div>
+            <div id="topBackButtonContainer" class="top-help" style="gap:8px;"></div>
         </div>
     </div>
 
     <!-- Formulario de Creación - Centrado -->
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header text-dark d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0">
-                        <i class="fas fa-form"></i> Información del Producto
+            <div class="card" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                <div class="card-header d-flex align-items-center justify-content-between" style="background:#f8fafc; border-bottom:1px solid #e5e7eb; border-top-left-radius:12px; border-top-right-radius:12px;">
+                    <h5 class="mb-0" style="color:#1f2937; font-weight:700; display:flex; align-items:center; gap:8px;">
+                        <i class="fas fa-file-alt"></i> Información del Producto
                     </h5>
-                    <!-- Icono con tooltip de información útil -->
-                    <span class="ms-2" 
-                          title="• Los campos marcados con * son obligatorios\n• El nombre del producto debe ser único\n• El precio debe ser mayor o igual a 0">
-                        <i class="fas fa-info-circle" aria-label="Información"></i>
-                    </span>
+                    <button type="button" class="btn btn-help" onclick="openCreateProductHelpModal()" style="background: linear-gradient(135deg, #4e6657, #3d5144); color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:600; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fas fa-question-circle"></i> Ayuda
+                    </button>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="padding:20px;">
                     <form action="{{ route('products.store') }}" method="POST" id="productForm" enctype="multipart/form-data">
                         @csrf
 
@@ -77,7 +79,7 @@
                                     <label for="categoria" class="form-label">
                                         <strong>Categoría</strong>
                                     </label>
-                                    <input type="text" 
+                                     <input type="text" 
                                            class="form-control @error('categoria') is-invalid @enderror" 
                                            id="categoria" 
                                            name="categoria" 
@@ -95,7 +97,7 @@
                                     <label for="tipo_producto" class="form-label">
                                         <strong>Tipo de Producto</strong>
                                     </label>
-                                    <input type="text" 
+                                     <input type="text" 
                                            class="form-control @error('tipo_producto') is-invalid @enderror" 
                                            id="tipo_producto" 
                                            name="tipo_producto" 
@@ -121,7 +123,7 @@
                                         </span>
                                     </label>
                                     <div class="input-group">
-                                        <span class="input-group-text">₡</span>
+                                        <span class="input-group-text" style="background:#f8fafc; border:1px solid #e5e7eb;">₡</span>
                                         <input type="number" 
                                                class="form-control @error('precio') is-invalid @enderror" 
                                                id="precio" 
@@ -143,7 +145,7 @@
                                     <label for="etiqueta" class="form-label">
                                         <strong>Etiqueta</strong>
                                     </label>
-                                    <input type="text" 
+                                     <input type="text" 
                                            class="form-control @error('etiqueta') is-invalid @enderror" 
                                            id="etiqueta" 
                                            name="etiqueta" 
@@ -203,11 +205,11 @@
                         </div>
 
                         <!-- Botones de acción -->
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary">
+                        <div class="form-group" style="display:flex; gap:10px;">
+                            <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #485a1a, #0d5e2a); border:none; font-weight:600;">
                                 <i class="fas fa-save"></i> Crear Producto
                             </button>
-                            <a href="{{ route('products.index') }}" class="btn btn-outline-secondary">
+                            <a href="{{ route('products.index') }}" class="btn btn-outline-secondary" style="border-color:#e5e7eb; color:#374151;">
                                 <i class="fas fa-times"></i> Cancelar
                             </a>
                         </div>
@@ -280,7 +282,7 @@
         }
     });
 
-    // Mover botón de ayuda al header
+    // Mover botón de ayuda al header y botón volver
     document.addEventListener('DOMContentLoaded', function() {
         const helpContainer = document.getElementById('topHelpContainer');
         const helpButtonContainer = document.getElementById('helpButtonContainerProducts');
@@ -291,10 +293,8 @@
             helpButtonContainer.style.display = 'none';
         }
 
-        // Mover botón de volver al header
         const backButtonContainer = document.getElementById('topBackButtonContainer');
         const backButtonElement = document.getElementById('createBackButton');
-        
         if (backButtonContainer && backButtonElement) {
             backButtonContainer.appendChild(backButtonElement);
         }

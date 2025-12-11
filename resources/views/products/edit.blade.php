@@ -5,30 +5,30 @@
 @section('content')
 <div class="container-fluid">
     <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="mb-0">
-                <i class="fas fa-edit mr-2"></i> Editar Producto
-            </h1>
-            <small class="text-muted">Modifique la información del producto: {{ $product->name }}</small>
+    <div class="row mb-3">
+        <div class="col-12 d-flex align-items-center justify-content-between">
+            <div style="flex:1;">
+                <h2 style="margin: 7px; color: #1f2937; font-weight: 712;">
+                    <i class="fas fa-edit" style="margin-right:8px;"></i> Editar Producto
+                </h2>
+                <div style="height:4px; width:120px; background:#f59e0b; border-radius:2px; margin-left:7px;"></div>
+                <small class="text-muted">Modifique la información del producto: {{ $product->name }}</small>
+            </div>
+            <div id="topBackButtonContainer" class="top-help" style="gap:8px;"></div>
         </div>
     </div>
 
     <!-- Formulario de Edición - Centrado -->
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header text-dark d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0">
-                        <i class="fas fa-form"></i> Información del Producto
+            <div class="card" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                <div class="card-header d-flex align-items-center justify-content-between" style="background:#f8fafc; border-bottom:1px solid #e5e7eb; border-top-left-radius:12px; border-top-right-radius:12px;">
+                    <h5 class="mb-0" style="color:#1f2937; font-weight:700; display:flex; align-items:center; gap:8px;">
+                        <i class="fas fa-file-alt"></i> Información del Producto
                     </h5>
-                    <!-- Icono con tooltip de información útil -->
-                    <span class="ms-2" 
-                          title="• Los campos marcados con * son obligatorios\n• El nombre debe mantenerse único\n• El precio debe ser mayor o igual a 0">
-                        <i class="fas fa-info-circle" aria-label="Información"></i>
-                    </span>
+                    
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="padding:20px;">
                     <form action="{{ route('products.update', $product->product_id) }}" method="POST" id="productForm" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
@@ -121,7 +121,7 @@
                                         </span>
                                     </label>
                                     <div class="input-group">
-                                        <span class="input-group-text">₡</span>
+                                        <span class="input-group-text" style="background:#f8fafc; border:1px solid #e5e7eb;">₡</span>
                                         <input type="number" 
                                                class="form-control @error('precio') is-invalid @enderror" 
                                                id="precio" 
@@ -220,11 +220,11 @@
                         </div>
 
                         <!-- Botones de acción -->
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary">
+                        <div class="form-group" style="display:flex; gap:10px;">
+                            <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #485a1a, #0d5e2a); border:none; font-weight:600;">
                                 <i class="fas fa-save"></i> Guardar Cambios
                             </button>
-                            <a href="{{ route('products.show', $product->product_id) }}" class="btn btn-outline-secondary">
+                            <a href="{{ route('products.show', $product->product_id) }}" class="btn btn-outline-secondary" style="border-color:#e5e7eb; color:#374151;">
                                 <i class="fas fa-times"></i> Cancelar
                             </a>
                         </div>
