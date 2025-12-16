@@ -72,7 +72,7 @@
 
           {{-- Botón Eliminar separado a la derecha --}}
     <button type="button"
-      class="btn btn-danger btn-del push-right"
+      class="btn btn-danger btn-del push-left"
       data-id="{{ $ev->event_id }}"
       data-name="{{ $ev->title }}"
       onclick="event.stopPropagation();" aria-label="Eliminar evento">

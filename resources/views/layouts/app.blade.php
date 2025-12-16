@@ -63,14 +63,14 @@
                                 </a>
                             </li>
 
-                            <li class="mt-3">
+                            {{-- <li class="mt-3">
                                 <form method="POST" action="{{ route('logout') }}" class="d-inline">
                                     @csrf
                                     <button type="submit" class="btn btn-link text-danger text-decoration-none w-100 text-start">
                                         <i class="fas fa-sign-out-alt"></i> Cerrar sesión
                                     </button>
                                 </form>
-                            </li>
+                            </li> --}}
                         @else
                             <li>
                                 <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
@@ -82,24 +82,37 @@
                                     <i class="fas fa-box"></i> Productos
                                 </a>
                             </li>
-                            <li class="mt-3">
+                            {{-- <li class="mt-3">
                                 <form method="POST" action="{{ route('logout') }}" class="d-inline">
                                     @csrf
                                     <button type="submit" class="btn btn-link text-danger text-decoration-none w-100 text-start">
                                         <i class="fas fa-sign-out-alt"></i> Cerrar sesión
                                     </button>
                                 </form>
-                            </li>
+                            </li> --}}
                         @endif
                     </ul>
                 </div>
                 
                 <!-- Usuario administrador al final del sidebar -->
                 <div class="sidebar-footer">
-                    <a href="{{ route('profile.edit') }}" class="admin-info text-decoration-none">
-                        <i class="fas fa-user-circle fa-2x"></i>
-                        <span>{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
-                    </a>
+                    <div class="admin-hover-wrapper">
+                        <a href="{{ route('profile.edit') }}" class="admin-info text-decoration-none" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-user-circle fa-2x"></i>
+                            <span>{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
+                        </a>
+                        <div class="admin-hover-menu" role="menu" aria-label="Acciones de perfil">
+                            <a href="{{ route('profile.edit') }}" class="dropdown-item" role="menuitem">
+                                <i class="fas fa-user-edit"></i> Editar perfil
+                            </a>
+                            <form method="POST" action="{{ route('logout') }}" class="mt-1" role="none">
+                                @csrf
+                                <button type="submit" class="dropdown-item text-danger" role="menuitem">
+                                    <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </nav>
 
@@ -403,6 +416,54 @@
             right: 0;
             padding: 1rem;
             border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Admin hover actions */
+        .admin-hover-wrapper {
+            position: relative;
+            display: block;
+        }
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            color: #fff;
+        }
+        .admin-info:hover {
+            text-decoration: none;
+            color: #e2e8f0;
+        }
+        .admin-hover-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #ffffff;
+            color: #1f2937;
+            border: 1px solid rgba(0,0,0,0.08);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+            border-radius: 10px;
+            padding: .5rem;
+            min-width: 180px;
+            display: none;
+        }
+        .admin-hover-wrapper:hover .admin-hover-menu,
+        .admin-hover-wrapper:focus-within .admin-hover-menu {
+            display: block;
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .35rem .5rem;
+            border-radius: 6px;
+            color: #1f2937;
+            text-decoration: none;
+            background: transparent;
+        }
+        .dropdown-item:hover,
+        .dropdown-item:focus {
+            background: #f3f4f6;
+            outline: none;
         }
 
         /* Backdrop when open on small screens */
