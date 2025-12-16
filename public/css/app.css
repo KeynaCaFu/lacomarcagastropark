@@ -463,10 +463,10 @@ tr:hover {
     background-color: #bac7bf;
 }
 
-.btn-secondary {
+/* .btn-secondary {
    background: linear-gradient(135deg, #485a1a, #0d5e2a);
     color: white;
-}
+} */
 
 .btn-secondary:hover {
     background-color: #54625a;

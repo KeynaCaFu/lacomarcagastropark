@@ -211,7 +211,7 @@
        border-radius:8px; 
        font-weight:700;
 }
-.modal-actions .btn-update:hover{ background:#c46824; }
+.modal-actions .btn-update:hover{ background:#687160; }
 
 .modal-actions .btn-primary:hover {
     background: linear-gradient(135deg, #5a6d20, #6d8025);
@@ -228,6 +228,7 @@
 .modal-actions .btn-secondary:hover {
     background-color: #5a6268;
     transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
 }
 
 /* Estilos para contenido de detalles */

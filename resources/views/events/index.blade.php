@@ -66,8 +66,8 @@
         </div>
 
         <div class="event-actions">
-          <button type="button" class="btn btn-edit" onclick="event.stopPropagation(); openEditModal({{ $ev->event_id }});">
-            <i class="fas fa-edit"></i> Editar
+          <button type="button" class="btn btn-edit" onclick="event.stopPropagation(); openEditModal({{ $ev->event_id }});" aria-label="Editar evento">
+            <i class="fas fa-edit"></i>
           </button>
 
           {{-- Botón Eliminar separado a la derecha --}}
@@ -75,8 +75,8 @@
       class="btn btn-danger btn-del push-right"
       data-id="{{ $ev->event_id }}"
       data-name="{{ $ev->title }}"
-      onclick="event.stopPropagation();">
-            <i class="fas fa-trash"></i> Eliminar
+      onclick="event.stopPropagation();" aria-label="Eliminar evento">
+            <i class="fas fa-trash"></i>
           </button>
 
           <form id="del-{{ $ev->event_id }}" action="{{ route('eventos.eliminar', ['evento' => $ev->event_id]) }}" method="POST" style="display:none;">
@@ -305,6 +305,33 @@
   .events-bar{
     display:flex;
     justify-content:flex-end;
+  }
+  /* Colores de botones para igualar a Usuarios */
+  .event-actions .btn-edit{
+    background: transparent !important;
+    color: #3e3d3a !important;
+    border: 2px solid #43423f !important;
+    padding: 0; /* usar tamaño compacto global */
+    border-radius: 6px;
+    font-weight: 500;
+    width: 36px; height: 36px; font-size: 0; display:inline-flex; align-items:center; justify-content:center;
+  }
+  .event-actions .btn-edit:hover{
+    background: #848380ec !important;
+    color: #000 !important;
+  }
+  .event-actions .btn-del{
+    background: transparent !important;
+    color: #dc2626 !important;
+    border: 2px solid #dc2626 !important;
+    padding: 0; /* usar tamaño compacto global */
+    border-radius: 6px;
+    font-weight: 500;
+    width: 36px; height: 36px; font-size: 0; display:inline-flex; align-items:center; justify-content:center;
+  }
+  .event-actions .btn-del:hover{
+    background: #dc2626 !important;
+    color: #fff !important;
   }
 </style>
 @endsection
