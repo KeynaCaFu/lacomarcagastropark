@@ -26,9 +26,9 @@
                     <h5 class="mb-0" style="color:#1f2937; font-weight:700; display:flex; align-items:center; gap:8px;">
                         <i class="fas fa-file-alt"></i> Información del Producto
                     </h5>
-                    <button type="button" class="btn btn-help" onclick="openCreateProductHelpModal()" style="background: linear-gradient(135deg, #4e6657, #3d5144); color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:600; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                    {{-- <button type="button" class="btn btn-help" onclick="openCreateProductHelpModal()" style="background: linear-gradient(135deg, #4e6657, #3d5144); color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:600; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
                         <i class="fas fa-question-circle"></i> Ayuda
-                    </button>
+                    </button> --}}
                 </div>
                 <div class="card-body" style="padding:20px;">
                     <form action="{{ route('products.store') }}" method="POST" id="productForm" enctype="multipart/form-data">
@@ -222,6 +222,14 @@
 
 @push('scripts')
 <script>
+    // Mover botón de volver al header
+    document.addEventListener('DOMContentLoaded', function() {
+        const backButtonContainer = document.getElementById('topBackButtonContainer');
+        const backButtonElement = document.getElementById('createBackButton');
+        if (backButtonContainer && backButtonElement) {
+            backButtonContainer.appendChild(backButtonElement);
+        }
+    });
     // SweetAlert2 CDN
     (function(){
         const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
@@ -350,6 +358,13 @@
     });
 </script>
 @endpush
+
+<!-- Botón de Volver para Crear Producto -->
+<div id="createBackButtonContainer" style="display: none;">
+    <a id="createBackButton" href="{{ route('products.index') }}" class="btn btn-outline-secondary" style="display: inline-flex; align-items: center; gap: 5px; border-color:#e5e7eb; color:#374151;">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+</div>
 
 <!-- Botón de Volver para Crear Producto -->
 <div id="createBackButtonContainer" style="display: none;">

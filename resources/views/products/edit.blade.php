@@ -409,7 +409,7 @@
 
 <!-- Botón de Volver para Editar Producto -->
 <div id="editBackButtonContainer" style="display: none;">
-    <a id="editBackButton" href="{{ route('products.index') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 5px;">
+    <a id="editBackButton" href="{{ route('products.index') }}" class="btn btn-outline-secondary" style="display: inline-flex; align-items: center; gap: 5px; border-color:#e5e7eb; color:#374151;">
         <i class="fas fa-arrow-left"></i> Volver
     </a>
 </div>
