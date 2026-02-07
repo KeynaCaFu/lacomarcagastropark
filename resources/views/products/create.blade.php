@@ -315,6 +315,7 @@
         const modal = document.getElementById('createProductHelpModal');
         if (modal) {
             modal.style.display = 'flex';
+            modal.style.pointerEvents = 'auto';
             document.body.style.overflow = 'hidden';
         }
     }
@@ -324,6 +325,7 @@
         const modal = document.getElementById('createProductHelpModal');
         if (modal) {
             modal.style.display = 'none';
+            modal.style.pointerEvents = 'none';
             document.body.style.overflow = 'auto';
         }
     }
@@ -333,6 +335,16 @@
         const modal = document.getElementById('createProductHelpModal');
         if (e.target === modal) {
             closeCreateProductHelpModal();
+        }
+    });
+
+    // Cerrar modal con tecla Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('createProductHelpModal');
+            if (modal && modal.style.display === 'flex') {
+                closeCreateProductHelpModal();
+            }
         }
     });
 
