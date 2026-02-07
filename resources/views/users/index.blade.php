@@ -428,8 +428,6 @@
     </div>
     </div>
 
-@endsection
-
 <!-- Botón de Ayuda -->
 <div id="helpButtonContainer" style="display: none;">
     <button id="helpButtonTop" type="button" class="btn-help">

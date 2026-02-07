@@ -21,8 +21,12 @@ use Illuminate\Http\Request;
 */
 
 // Welcome page (without authentication)
+// Home: redirige según sesión (login o dashboard correspondiente)
 Route::get('/', function () {
-    return view('welcome');
+    if (auth()->check()) {
+        return redirect()->route(auth()->user()->isAdminGlobal() ? 'admin.dashboard' : 'dashboard');
+    }
+    return redirect()->route('login');
 })->name('home');
 
 // Redirect legacy routes to login
