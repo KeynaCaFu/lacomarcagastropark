@@ -16,18 +16,37 @@
     
     <style>
         #sidebarToggleBtn {
-            border: 1px solid #6c757d !important;
-            transition: all 0.3s ease;
+            color: #ff9900 !important;
+            transition: all 0.3s ease !important;
+            background: #232c0c !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            width: 28px !important;
+            height: 28px !important;
+            position: absolute !important;
+            right: -14px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            border-radius: 3px !important;
+            z-index: 1041 !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+            font-size: 0.9rem !important;
         }
         
         #sidebarToggleBtn:hover {
-            background-color: #84878a;
-            border-color: #495057 !important;
+            color: #ffb84d !important;
+            background: #2a3410 !important;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3) !important;
         }
         
         #sidebarToggleBtn:focus {
-            border-color: #495057 !important;
-            box-shadow: 0 0 0 0.25rem rgba(108, 117, 125, 0.25);
+            outline: none !important;
+            color: #ff9900 !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
         }
         
         /* Estilos para Dashboard */
@@ -72,14 +91,14 @@
     <!-- Container principal con diseño La Comarca -->
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar (overlay/ocultable) -->
+            <!-- Sidebar (colapsable/ocultable) -->
             <nav class="sidebar drawer" id="appSidebar">
                 <div class="sidebar-header">
-                    <a href="{{ route('dashboard') }}" class="brand text-decoration-none">
-                        <span class="brand-text">La Comarca</span>
+                    <a href="{{ (auth()->check() && auth()->user()->isAdminGlobal()) ? route('admin.dashboard') : route('dashboard') }}" class="brand text-decoration-none" title="La Comarca">
+                        <img src="{{ asset('images/iconoblanco.png') }}" alt="La Comarca" class="brand-logo">
                     </a>
-                    <button class="btn btn-sm btn-outline-light ms-auto d-md-none" id="sidebarCloseBtn" aria-label="Cerrar menú">
-                        <i class="fas fa-times"></i>
+                    <button class="sidebar-toggle-btn d-lg-none" id="sidebarToggleBtn" aria-controls="appSidebar" aria-expanded="false">
+                        <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
                 <div class="sidebar-menu">
@@ -88,49 +107,31 @@
 
                         @if($mode === 'global')
                             <li>
-                                <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                                    <i class="fas fa-tachometer-alt"></i> Dashboard
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users*') ? 'active' : '' }}">
-                                    <i class="fas fa-users"></i> Usuarios
-                                </a>
-                            </li>
-                            
-                            <li>
-                                <a href="{{ route('eventos.index') }}" class="{{ request()->routeIs('eventos*') ? 'active' : '' }}">
-                                    <i class="fas fa-calendar-days"></i> Eventos
-                                </a>
-                            </li>
-
-                            {{-- <li class="mt-3">
-                                <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-link text-danger text-decoration-none w-100 text-start">
-                                        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-                                    </button>
-                                </form>
-                            </li> --}}
-                        @else
-                            <li>
-                                <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                                <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" data-tooltip="Dashboard">
                                     <i class="fas fa-home"></i> Dashboard
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('products.index') }}" class="{{ request()->routeIs('products*') ? 'active' : '' }}">
+                                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users*') ? 'active' : '' }}" data-tooltip="Usuarios">
+                                    <i class="fas fa-users"></i> Usuarios
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('eventos.index') }}" class="{{ request()->routeIs('eventos*') ? 'active' : '' }}" data-tooltip="Eventos">
+                                    <i class="fas fa-calendar-days"></i> Eventos
+                                </a>
+                            </li>
+                        @else
+                            <li>
+                                <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" data-tooltip="Dashboard">
+                                    <i class="fas fa-home"></i> Dashboard
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('products.index') }}" class="{{ request()->routeIs('products*') ? 'active' : '' }}" data-tooltip="Productos">
                                     <i class="fas fa-box"></i> Productos
                                 </a>
                             </li>
-                            {{-- <li class="mt-3">
-                                <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-link text-danger text-decoration-none w-100 text-start">
-                                        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-                                    </button>
-                                </form>
-                            </li> --}}
                         @endif
                     </ul>
                 </div>
@@ -163,9 +164,6 @@
                 <div class="header">
                     <div class="d-flex align-items-center justify-content-between w-100">
                         <div class="d-flex align-items-center">
-                            <button class="btn btn-outline-secondary me-3" id="sidebarToggleBtn" aria-controls="appSidebar" aria-expanded="false">
-                                <i class="fas fa-bars"></i>
-                            </button>
                             <h1 class="mb-0">@yield('title', 'Dashboard')</h1>
                         </div>
                         <div class="d-flex align-items-center gap-2">
@@ -268,10 +266,8 @@
                 return Promise.resolve();
             };
 
-            // Confirmación con opción de deshacer: presenta una notificación con botón "Deshacer" por unos segundos.
-            // onConfirm se ejecuta al expirar el tiempo si no se deshace. onUndo cancela la acción.
+            // Confirmación con opción de deshacer
             window.confirmWithUndo = function({ message, delayMs = 10000, onConfirm, onUndo }){
-                // Render minimal toast-like panel
                 const containerId = 'undo-toast-container';
                 let container = document.getElementById(containerId);
                 if (!container) {
@@ -361,55 +357,63 @@
         })();
     </script>
     <script>
-        // Toggle del sidebar tipo drawer (overlay)
+        // Toggle del sidebar - Colapsable en desktop, overlay en móvil
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('appSidebar');
-            const toggleBtn = document.getElementById('sidebarToggleBtn');
-            const closeBtn = document.getElementById('sidebarCloseBtn');
+            const toggleBtn = document.querySelector('.sidebar-toggle-btn');
             const body = document.body;
 
-            const openSidebar = () => {
-                sidebar.classList.add('open');
-                body.classList.add('sidebar-open');
-                toggleBtn.setAttribute('aria-expanded', 'true');
+            const toggleSidebar = () => {
+                if (window.innerWidth >= 992) {
+                    // Desktop: collapsar/expandir
+                    sidebar.classList.toggle('collapsed');
+                    body.classList.toggle('sidebar-collapsed');
+                    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', sidebar.classList.contains('collapsed') ? 'true' : 'false');
+                } else {
+                    // Mobile: abrir/cerrar
+                    sidebar.classList.toggle('open');
+                    body.classList.toggle('sidebar-open');
+                    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', sidebar.classList.contains('open') ? 'true' : 'false');
+                }
             };
+
             const closeSidebar = () => {
                 sidebar.classList.remove('open');
                 body.classList.remove('sidebar-open');
-                toggleBtn.setAttribute('aria-expanded', 'false');
+                if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
             };
+
+            // Escuchar cambios de tamaño de ventana
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 992) {
+                    sidebar.classList.remove('open');
+                    body.classList.remove('sidebar-open');
+                } else {
+                    sidebar.classList.remove('collapsed');
+                    body.classList.remove('sidebar-collapsed');
+                }
+            });
 
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if (sidebar.classList.contains('open')) {
-                        closeSidebar();
-                    } else {
-                        openSidebar();
-                    }
+                    toggleSidebar();
                 });
             }
 
-            if (closeBtn) {
-                closeBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    closeSidebar();
-                });
-            }
-
-            // Cerrar al hacer clic fuera en móviles/escritorio
+            // Cerrar al hacer clic fuera en móviles
             document.addEventListener('click', (e) => {
-                if (!sidebar.classList.contains('open')) return;
+                if (window.innerWidth < 992 && !sidebar.classList.contains('open')) return;
                 const clickInsideSidebar = e.target.closest('#appSidebar');
-                const clickToggle = e.target.closest('#sidebarToggleBtn');
-                if (!clickInsideSidebar && !clickToggle) {
+                const clickToggle = e.target.closest('.sidebar-toggle-btn');
+                if (!clickInsideSidebar && !clickToggle && window.innerWidth < 992) {
                     closeSidebar();
                 }
             });
         });
     </script>
     <style>
-        /* Drawer overlay styles */
+        /* Drawer/Sidebar styles */
         .drawer {
             position: fixed;
             top: 0;
@@ -419,61 +423,233 @@
             background: #232c0c;
             color: #fff;
             transform: translateX(-100%);
-            transition: transform 0.3s ease;
-            z-index: 1040; /* above main */
+            transition: transform 0.3s ease, width 0.3s ease;
+            z-index: 1040;
             box-shadow: 2px 0 12px rgba(0,0,0,0.3);
             padding-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
         }
+
         .drawer.open {
             transform: translateX(0);
         }
 
-        /* Layout adjustments when sidebar open on larger screens */
-        @media (min-width: 992px) {
-            body.sidebar-open #mainContent {
-                margin-left: 280px;
-            }
+        .drawer.collapsed {
+            width: 100px;
         }
 
-        /* Ensure main content spans full width when closed */
-        #mainContent {
-            width: 100%;
+        .drawer:not(.collapsed) {
+            width: 280px;
         }
 
+        /* Sidebar Header */
         .sidebar-header {
             display: flex;
             align-items: center;
             gap: .5rem;
             padding: 1rem;
             border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .sidebar-menu {
-            padding: 1rem;
-        }
-        .sidebar-footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 1rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            justify-content: center;
         }
 
-        /* Admin hover actions */
-        .admin-hover-wrapper {
-            position: relative;
-            display: block;
+        .brand-logo {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            transition: all 0.3s ease;
         }
+
+        .drawer.collapsed .brand-logo {
+            width: 50px;
+            height: 50px;
+        }
+
+        .drawer:not(.collapsed) .brand-logo {
+            width: 50px;
+            height: 50px;
+        }
+
+        .brand-text {
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 700;
+            transition: opacity 0.3s ease;
+            display: none;
+        }
+
+        .drawer.collapsed .brand-text {
+            display: none;
+        }
+
+        .drawer:not(.collapsed) .brand-text {
+            display: inline;
+        }
+
+        /* Sidebar Menu */
+        .sidebar-menu {
+            padding: 1rem;
+            flex: 1;
+            overflow-y: auto;
+            transition: padding 0.3s ease;
+        }
+
+        .sidebar-menu ul {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 17px;
+            transition: margin-bottom 0.3s ease;
+        }
+
+        .sidebar-menu a {
+            transition: all 0.3s ease;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 10px 15px;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #ff9900;
+        }
+
+        .sidebar-menu i {
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        /* Estado colapsado */
+        .drawer.collapsed .sidebar-menu a {
+            padding: 15px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0;
+            position: relative;
+        }
+
+        .drawer:not(.collapsed) .sidebar-menu a {
+            display: flex;
+            padding: 10px 20px;
+            font-size: inherit;
+        }
+
+        .drawer.collapsed .sidebar-menu a i {
+            margin-right: 0;
+            font-size: 1.5rem;
+        }
+
+        /* Tooltips para estado colapsado */
+        .drawer.collapsed .sidebar-menu a::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #1f2937;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            margin-left: 12px;
+            z-index: 1050;
+        }
+
+        .drawer.collapsed .sidebar-menu a:hover::after {
+            opacity: 1;
+        }
+
+        /* Sidebar Footer */
+        .sidebar-footer {
+            position: relative;
+            padding: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: auto;
+            transition: padding 0.3s ease;
+        }
+
+        .drawer.collapsed .sidebar-footer {
+            padding: 1rem 0.5rem;
+        }
+
+        .drawer:not(.collapsed) .sidebar-footer {
+            padding: 1rem;
+        }
+
+        /* Admin Info */
         .admin-info {
             display: flex;
             align-items: center;
             gap: .5rem;
             color: #fff;
-        }
-        .admin-info:hover {
+            cursor: pointer;
             text-decoration: none;
-            color: #e2e8f0;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            transition: all 0.3s ease;
         }
+
+        .admin-info:hover {
+            background-color: rgba(72, 90, 26, 0.3);
+            color: rgba(255, 255, 255, 1);
+        }
+
+        .admin-info i {
+            color: rgba(255, 255, 255, 0.8);
+            transition: color 0.3s ease;
+            font-size: 1.5rem;
+        }
+
+        .admin-info:hover i {
+            color: #ff9900;
+        }
+
+        .admin-info span {
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: opacity 0.3s ease;
+        }
+
+        .drawer.collapsed .admin-info {
+            display: flex;
+            justify-content: center;
+            padding: 0.5rem;
+        }
+
+        .drawer.collapsed .admin-info span {
+            display: none;
+        }
+
+        .drawer:not(.collapsed) .admin-info span {
+            display: inline;
+        }
+
+        .drawer.collapsed .admin-hover-menu {
+            left: 100%;
+            bottom: auto;
+            top: -8px;
+        }
+
+        /* Admin Hover Wrapper */
+        .admin-hover-wrapper {
+            position: relative;
+            display: block;
+        }
+
         .admin-hover-menu {
             position: absolute;
             bottom: 100%;
@@ -487,10 +663,12 @@
             min-width: 180px;
             display: none;
         }
+
         .admin-hover-wrapper:hover .admin-hover-menu,
         .admin-hover-wrapper:focus-within .admin-hover-menu {
             display: block;
         }
+
         .dropdown-item {
             display: flex;
             align-items: center;
@@ -500,14 +678,50 @@
             color: #1f2937;
             text-decoration: none;
             background: transparent;
+            border: none;
+            cursor: pointer;
         }
+
         .dropdown-item:hover,
         .dropdown-item:focus {
             background: #f3f4f6;
             outline: none;
         }
 
-        /* Backdrop when open on small screens */
+        /* Main Content */
+        #mainContent {
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            transition: margin-left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Layout adjustments */
+        @media (min-width: 992px) {
+            #mainContent {
+                margin-left: 280px;
+            }
+            
+            body.sidebar-collapsed #mainContent {
+                margin-left: 100px;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            #mainContent {
+                margin-left: 0;
+            }
+        }
+
+        /* Header */
+        .header {
+            position: relative;
+            z-index: 1050;
+        }
+
+        /* Backdrop cuando drawer está abierto */
         @media (max-width: 991.98px) {
             body.sidebar-open::after {
                 content: '';
