@@ -29,6 +29,41 @@
             border-color: #495057 !important;
             box-shadow: 0 0 0 0.25rem rgba(108, 117, 125, 0.25);
         }
+        
+        /* Estilos para Dashboard */
+        .dash-container { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.08); padding: 20px; }
+        .stats-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:16px; margin-bottom: 20px; }
+        .stat-card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; display:flex; align-items:center; gap:12px; }
+        .stat-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+        .ic-total { background:#e0f2fe; color:#0369a1; }
+        .ic-active { background:#dcfce7; color:#16a34a; }
+        .ic-inactive { background:#fee2e2; color:#dc2626; }
+        .ic-upcoming { background:#fef3c7; color:#b45309; }
+        .stat-title { font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:.02em; }
+        .stat-number { font-size:28px; font-weight:800; color:#111827; }
+        .quick-links { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:12px; margin: 8px 0 20px; }
+        .quick-link { display:flex; align-items:center; gap:10px; border:1px solid #e5e7eb; background:#ffffff; border-radius:12px; padding:14px 16px; text-decoration:none; color:#111827; transition:transform .2s ease, box-shadow .2s ease; }
+        .quick-link:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.06); }
+        .quick-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+        .qi-users { background:#e0f2fe; color:#0369a1; }
+        .qi-stores { background:#ede9fe; color:#6d28d9; }
+        .qi-events { background:#ffe4e6; color:#be123c; }
+        .qi-new { background:#dcfce7; color:#166534; }
+        .quick-text { display:flex; flex-direction:column; }
+        .quick-title { font-weight:700; }
+        .quick-hint { font-size:12px; color:#6b7280; }
+        .cards-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+        @media (max-width: 992px){ .cards-grid{ grid-template-columns: 1fr; } }
+        .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; }
+        .card-header { padding:12px 16px; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; }
+        .card-title { margin:0; font-weight:700; color:#111827; }
+        .card-body { padding:12px 16px; }
+        table { width:100%; border-collapse:collapse; }
+        th, td { padding:10px; border-bottom:1px solid #e5e7eb; text-align:left; }
+        th { background:#f9fafb; font-weight:700; color:#374151; }
+        .badge { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700; }
+        .bd-active { background:#dcfce7; color:#166534; }
+        .bd-inactive { background:#fee2e2; color:#991b1b; }
     </style>
     
     @stack('styles')
@@ -53,10 +88,16 @@
 
                         @if($mode === 'global')
                             <li>
+                                <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users*') ? 'active' : '' }}">
                                     <i class="fas fa-users"></i> Usuarios
                                 </a>
                             </li>
+                            
                             <li>
                                 <a href="{{ route('eventos.index') }}" class="{{ request()->routeIs('eventos*') ? 'active' : '' }}">
                                     <i class="fas fa-calendar-days"></i> Eventos

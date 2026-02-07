@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\LocalDashboardController;
+use App\Http\Controllers\AdminDashboardController;
 use Illuminate\Http\Request;
 
 /*
@@ -41,6 +43,20 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+
+// Dashboard - requires authentication
+Route::get('/dashboard', function () {
+    if (auth()->user()->isAdminGlobal()) {
+        return redirect()->route('admin.dashboard');
+    }
+    return app(LocalDashboardController::class)->index(request());
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+// RUTAS PARA ADMIN GLOBAL
+Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
+    Route::get('/admin', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    // ... (resto de rutas admin global si las quieres)
+});
 // ============================================================================
 // RUTAS PARA ADMIN GLOBAL (Administrador Principal)
 // ============================================================================
@@ -93,6 +109,8 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
         Route::get('/{id}/edit-modal', [ProductController::class, 'editModal'])->name('edit.modal');
     });
 });
+
+
 
 // Profile routes (authenticated users)
 Route::middleware('auth')->group(function () {
