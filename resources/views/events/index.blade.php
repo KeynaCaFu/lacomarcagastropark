@@ -11,6 +11,7 @@
 @endpush
 
 @section('content')
+<div style="padding: 0 15px;">
 <div class="sage-main">
   <div class="events-bar">
     {{-- <h2 class="section-title">Gestión de Eventos</h2> --}}
@@ -334,4 +335,5 @@
     color: #fff !important;
   }
 </style>
+</div>
 @endsection

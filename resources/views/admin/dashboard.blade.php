@@ -41,6 +41,7 @@
 @endpush
 
 @section('content')
+<div style="padding: 0 15px;">
 <div class="dash-container">
     <div class="stats-grid">
         <!-- KPIs: Usuarios -->
@@ -149,3 +150,5 @@ document.addEventListener('keydown', function(e){
 });
 </script>
 @endpush
+</div>
+@endsection

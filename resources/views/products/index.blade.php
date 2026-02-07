@@ -7,6 +7,7 @@
 @endpush
 
 @section('content')
+<div style="padding: 0 15px;">
 <style>
     .products-container {
         background: white;
@@ -714,4 +715,5 @@
     </div>
 </div>
 
+</div>
 @endsection

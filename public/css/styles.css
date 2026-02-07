@@ -90,11 +90,11 @@ body, input, button, textarea, select{
   background:var(--green-2); 
 }
 .btn-search{ 
-  background:var(--orange); 
+  background: #222; 
   color:#fff; 
 }
 .btn-search:hover{
-   background:var(--orange-2);
+   background:#4d4946;
    }
 .btn-clear{
    background:#e8ece6; color:#222; 

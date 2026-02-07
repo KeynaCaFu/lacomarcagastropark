@@ -3,32 +3,85 @@
 @section('title', 'Editar Producto')
 
 @section('content')
-<div class="container-fluid">
+<div style="padding: 0 15px;">
+<style>
+    .page-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 24px;
+        width: 100%;
+    }
+
+    .form-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        width: 100%;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .form-header {
+        margin-bottom: 24px;
+        text-align: left;
+        margin-left: 0;
+        margin-right: auto;
+    }
+
+    .form-header h2 {
+        margin: 0;
+        color: #1f2937;
+        font-weight: 700;
+        font-size: 17px;
+    }
+
+    .form-header .accent-line {
+        height: 4px;
+        width: 120px;
+        background: #f59e0b;
+        border-radius: 2px;
+        margin-top: 8px;
+    }
+
+    .form-header .subtitle {
+        display: block;
+        margin-top: 4px;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .card-header-custom {
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        padding: 16px 20px;
+    }
+
+    .card-body-custom {
+        padding: 24px;
+    }
+</style>
+
+<div class="page-wrapper">
     <!-- Header -->
-    <div class="row mb-3">
-        <div class="col-12 d-flex align-items-center justify-content-between">
-            <div style="flex:1;">
-                <h2 style="margin: 7px; color: #1f2937; font-weight: 712;">
-                    <i class="fas fa-edit" style="margin-right:8px;"></i> Editar Producto
-                </h2>
-                <div style="height:4px; width:120px; background:#f59e0b; border-radius:2px; margin-left:7px;"></div>
-                <small class="text-muted">Modifique la información del producto: {{ $product->name }}</small>
-            </div>
-            <div id="topBackButtonContainer" class="top-help" style="gap:8px;"></div>
-        </div>
+    <div class="form-header">
+        <h2>
+            <i class="fas fa-edit" style="margin-right:8px;"></i> Actualizar Producto
+        </h2>
+        <div class="accent-line"></div>
+        <span class="subtitle">Modifique la información del producto: {{ $product->name }}</span>
     </div>
 
-    <!-- Formulario de Edición - Centrado -->
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-                <div class="card-header d-flex align-items-center justify-content-between" style="background:#f8fafc; border-bottom:1px solid #e5e7eb; border-top-left-radius:12px; border-top-right-radius:12px;">
-                    <h5 class="mb-0" style="color:#1f2937; font-weight:700; display:flex; align-items:center; gap:8px;">
-                        <i class="fas fa-file-alt"></i> Información del Producto
-                    </h5>
-                    
-                </div>
-                <div class="card-body" style="padding:20px;">
+    <!-- Formulario -->
+    <div class="form-container">
+        <div class="card-header-custom d-flex align-items-center justify-content-between">
+            <h5 class="mb-0" style="color:#1f2937; font-weight:700; display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-file-alt"></i> Información del Producto
+            </h5>
+        </div>
+        <div class="card-body-custom">
                     <form action="{{ route('products.update', $product->product_id) }}" method="POST" id="productForm" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
@@ -229,8 +282,6 @@
                             </a>
                         </div>
                     </form>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -336,8 +387,8 @@
     // Mostrar alertas de éxito desde sesión (si existen)
     document.addEventListener('DOMContentLoaded', function(){
         const successMsg = @json(session('success'));
-        if (successMsg && window.swAlert) {
-            swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
+        if (successMsg && window.swNotify) {
+            swNotify({ type: 'success', title: 'Éxito', message: successMsg });
         }
 
         const errorMsg = @json(session('error'));
@@ -485,4 +536,5 @@
     </div>
 </div>
 
+</div>
 @endsection

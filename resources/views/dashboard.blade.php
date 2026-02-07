@@ -4,6 +4,7 @@
 
 @section('content')
 
+<div style="padding: 0 15px;">
 <div class="dash-container">
     <!-- KPIs con el mismo diseño del admin -->
     <div class="stats-grid">
@@ -181,3 +182,4 @@ document.addEventListener('keydown', function(e){
 });
 </script>
 @endpush
+</div>

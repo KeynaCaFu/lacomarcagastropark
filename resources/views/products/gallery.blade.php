@@ -3,10 +3,10 @@
 @section('title', 'Galería - ' . $product->name)
 
 @section('content')
-<div class="container-fluid">
+<div style="padding: 0 15px;">
         <!-- Header -->
-        <div class="row mb-3">
-            <div class="col-12 d-flex align-items-center justify-content-between">
+        <div style="margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                 <div style="flex:1;">
                     <h2 style="margin: 7px; color: #1f2937; font-weight: 712;">
                         <i class="fas fa-images" style="margin-right:8px;"></i> Galería de Imágenes
@@ -38,9 +38,9 @@
             </div>
         @endif
 
-        <div class="row">
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; @media (max-width: 768px) { grid-template-columns: 1fr; }">
             <!-- Panel de carga de imágenes -->
-            <div class="col-md-4">
+            <div>
                 <div class="card" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
                     <div class="card-header" style="background:#f8fafc; border-bottom:1px solid #e5e7eb; border-top-left-radius:12px; border-top-right-radius:12px;">
                         <h5 class="mb-0" style="color:#1f2937; font-weight:700; display:flex; align-items:center; gap:8px;">
@@ -91,7 +91,7 @@
             </div>
 
             <!-- Galería de imágenes -->
-            <div class="col-md-8">
+            <div>
                 <div class="card" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
                     <div class="card-header" style="background:#f8fafc; border-bottom:1px solid #e5e7eb; border-top-left-radius:12px; border-top-right-radius:12px;">
                         <h5 class="mb-0" style="color:#1f2937; font-weight:700; display:flex; align-items:center; gap:8px;">

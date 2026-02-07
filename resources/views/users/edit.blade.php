@@ -3,6 +3,7 @@
 @section('title', 'Editar Usuario')
 
 @section('content')
+<div style="padding: 0 15px;">
 <style>
     .form-container {
         background: white;
@@ -358,4 +359,6 @@
     } catch(e) { /* noop */ }
 })();
 </script>
+
+</div>
 @endsection

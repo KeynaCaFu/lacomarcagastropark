@@ -139,11 +139,16 @@
                 <!-- Usuario administrador al final del sidebar -->
                 <div class="sidebar-footer">
                     <div class="admin-hover-wrapper">
-                        <a href="{{ route('profile.edit') }}" class="admin-info text-decoration-none" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-user-circle fa-2x"></i>
-                            <span>{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
-                        </a>
-                        <div class="admin-hover-menu" role="menu" aria-label="Acciones de perfil">
+                        <div class="admin-info-container">
+                            <a href="{{ route('profile.edit') }}" class="admin-info text-decoration-none" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-user-circle fa-2x"></i>
+                                <span>{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
+                            </a>
+                            <button class="admin-menu-toggle" id="adminMenuToggle" aria-haspopup="true" aria-expanded="false" type="button">
+                                <i class="fas fa-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="admin-hover-menu" role="menu" aria-label="Acciones de perfil" id="adminMenu">
                             <a href="{{ route('profile.edit') }}" class="dropdown-item" role="menuitem">
                                 <i class="fas fa-user-edit"></i> Editar perfil
                             </a>
@@ -357,6 +362,31 @@
         })();
     </script>
     <script>
+        // Manejo del menú de admin cuando el sidebar está colapsado
+        document.addEventListener('DOMContentLoaded', function() {
+            const adminMenuToggle = document.getElementById('adminMenuToggle');
+            const adminMenu = document.getElementById('adminMenu');
+            const sidebar = document.getElementById('appSidebar');
+
+            if (adminMenuToggle && adminMenu) {
+                // Alternar menú al hacer click en flecha
+                adminMenuToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    adminMenu.classList.toggle('show');
+                    adminMenuToggle.setAttribute('aria-expanded', adminMenu.classList.contains('show') ? 'true' : 'false');
+                });
+
+                // Cerrar menú al hacer click afuera
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.admin-hover-wrapper') && !e.target.closest('#adminMenuToggle')) {
+                        adminMenu.classList.remove('show');
+                        adminMenuToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+        });
+    </script>
+    <script>
         // Toggle del sidebar - Colapsable en desktop, overlay en móvil
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('appSidebar');
@@ -429,6 +459,7 @@
             padding-bottom: 1rem;
             display: flex;
             flex-direction: column;
+            overflow: visible !important;
         }
 
         .drawer.open {
@@ -579,10 +610,12 @@
             border-top: 1px solid rgba(255,255,255,0.1);
             margin-top: auto;
             transition: padding 0.3s ease;
+            overflow: visible !important;
         }
 
         .drawer.collapsed .sidebar-footer {
             padding: 1rem 0.5rem;
+            overflow: visible !important;
         }
 
         .drawer:not(.collapsed) .sidebar-footer {
@@ -628,6 +661,48 @@
             display: flex;
             justify-content: center;
             padding: 0.5rem;
+            flex: 1;
+        }
+
+        .admin-info-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .admin-info-container .admin-info {
+            flex: 1;
+        }
+
+        .admin-menu-toggle {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ff9900;
+            border-radius: 6px;
+            padding: 0.5rem;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .admin-menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffb84d;
+        }
+
+        .admin-menu-toggle i {
+            transition: transform 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .admin-menu-toggle[aria-expanded="true"] i {
+            transform: rotate(180deg);
         }
 
         .drawer.collapsed .admin-info span {
@@ -636,12 +711,6 @@
 
         .drawer:not(.collapsed) .admin-info span {
             display: inline;
-        }
-
-        .drawer.collapsed .admin-hover-menu {
-            left: 100%;
-            bottom: auto;
-            top: -8px;
         }
 
         /* Admin Hover Wrapper */
@@ -659,14 +728,28 @@
             border: 1px solid rgba(0,0,0,0.08);
             box-shadow: 0 10px 24px rgba(0,0,0,0.18);
             border-radius: 10px;
-            padding: .5rem;
+            padding: 0.75rem 0.5rem;
             min-width: 180px;
-            display: none;
+            display: none !important;
+            z-index: 1051;
+            margin-bottom: 10px;
         }
 
-        .admin-hover-wrapper:hover .admin-hover-menu,
-        .admin-hover-wrapper:focus-within .admin-hover-menu {
-            display: block;
+        .drawer.collapsed .admin-hover-menu {
+            position: absolute !important;
+            left: auto !important;
+            right: -220px !important;
+            bottom: 0 !important;
+            top: auto !important;
+            transform: none !important;
+            margin-bottom: 0 !important;
+            min-width: 200px !important;
+        }
+
+        .admin-hover-menu.show {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
 
         .dropdown-item {

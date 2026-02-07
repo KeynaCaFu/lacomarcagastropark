@@ -7,6 +7,7 @@
 @endpush
 
 @section('content')
+<div style="padding: 0 15px;">
 <style>
    
     .users-container {
@@ -834,3 +835,5 @@
     });
 </script>
 @endpush
+</div>
+@endsection

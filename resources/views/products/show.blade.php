@@ -3,10 +3,10 @@
 @section('title', 'Detalles del Producto')
 
 @section('content')
-<div class="container-fluid">
+<div style="padding: 0 15px;">
     <!-- Header -->
-    <div class="row mb-3">
-        <div class="col-12 d-flex align-items-center justify-content-between">
+    <div style="margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
             <div style="flex:1;">
                 <h2 style="margin: 7px; color: #1f2937; font-weight: 712;">
                     <i class="fas fa-box" style="margin-right:8px;"></i> {{ $product->name }}
@@ -19,14 +19,14 @@
     </div>
 
     <!-- Información principal -->
-    <div class="row mb-4">
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 2rem; @media (max-width: 768px) { grid-template-columns: 1fr; }">
         <!-- Foto principal y datos básicos -->
-        <div class="col-md-4">
+        <div>
             <div class="card mb-4" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
                 <div class="card-body text-center" style="padding:20px;">
                     @if($product->photo)
                         <img src="{{ $product->photo }}" alt="{{ $product->name }}" 
-                             class="img-fluid mb-3" style="max-height: 300px; object-fit: cover;">
+                             class="img-fluid mb-3" style="max-height: 300px; object-fit: cover; width: 100%;">
                     @else
                         <div class="bg-light p-5 mb-3">
                             <i class="fas fa-image fa-5x text-muted"></i>
@@ -76,7 +76,7 @@
         </div>
 
         <!-- Descripción y detalles -->
-        <div class="col-md-8">
+        <div>
             <div class="card mb-4" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
                 <div class="card-header" style="background:#f8fafc; border-bottom:1px solid #e5e7eb; border-top-left-radius:12px; border-top-right-radius:12px;">
                     <h5 class="mb-0" style="color:#1f2937; font-weight:700;">Descripción</h5>
@@ -368,6 +368,7 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 @endpush
 
+</div>
 @endsection
 
 <!-- Botón de Volver oculto para mover al header -->
@@ -375,4 +376,5 @@ document.addEventListener('DOMContentLoaded', function(){
     <a id="productShowBackButton" href="{{ route('products.index') }}" class="btn btn-outline-secondary" style="display:inline-flex; align-items:center; gap:5px; border-color:#e5e7eb; color:#374151;">
         <i class="fas fa-arrow-left"></i> Volver
     </a>
-></div>
+</div>
+

@@ -3,13 +3,13 @@
 @section('title', 'Crear Producto')
 
 @section('content')
-<div class="container-fluid">
+<div style="padding: 0 15px;">
     <!-- Header -->
-    <div class="row mb-3">
-        <div class="col-12 d-flex align-items-center justify-content-between">
+    <div style="margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
             <div style="flex:1;">
                 <h2 style="margin: 7px; color: #1f2937; font-weight: 712;">
-                    <i class="fas fa-plus-circle" style="margin-right:8px;"></i> Crear Nuevo Producto
+                    <i class="fas fa-plus-circle" style="margin-right:8px;"></i> Registrar Nuevo Producto
                 </h2>
                 <div style="height:4px; width:120px; background:#f59e0b; border-radius:2px; margin-left:7px;"></div>
                 <small class="text-muted">Agregue un nuevo producto al catálogo</small>
@@ -19,16 +19,13 @@
     </div>
 
     <!-- Formulario de Creación - Centrado -->
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
+    <div style="display: flex; justify-content: center;">
+        <div style="width: 100%; max-width: 800px;">
             <div class="card" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
                 <div class="card-header d-flex align-items-center justify-content-between" style="background:#f8fafc; border-bottom:1px solid #e5e7eb; border-top-left-radius:12px; border-top-right-radius:12px;">
                     <h5 class="mb-0" style="color:#1f2937; font-weight:700; display:flex; align-items:center; gap:8px;">
                         <i class="fas fa-file-alt"></i> Información del Producto
                     </h5>
-                    {{-- <button type="button" class="btn btn-help" onclick="openCreateProductHelpModal()" style="background: linear-gradient(135deg, #4e6657, #3d5144); color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:600; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fas fa-question-circle"></i> Ayuda
-                    </button> --}}
                 </div>
                 <div class="card-body" style="padding:20px;">
                     <form action="{{ route('products.store') }}" method="POST" id="productForm" enctype="multipart/form-data">
@@ -73,8 +70,8 @@
                         </div>
 
                         <!-- Fila: Categoría y Tipo de Producto -->
-                        <div class="row">
-                            <div class="col-md-6">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
                                 <div class="form-group mb-3">
                                     <label for="categoria" class="form-label">
                                         <strong>Categoría</strong>
@@ -92,7 +89,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
+                            <div>
                                 <div class="form-group mb-3">
                                     <label for="tipo_producto" class="form-label">
                                         <strong>Tipo de Producto</strong>
@@ -112,7 +109,7 @@
                         </div>
 
                         <!-- Fila: Precio y Etiqueta -->
-                        <div class="row">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
                                     <label for="precio" class="form-label d-flex align-items-center justify-content-between">
@@ -140,7 +137,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
+                            <div>
                                 <div class="form-group mb-3">
                                     <label for="etiqueta" class="form-label">
                                         <strong>Etiqueta</strong>
@@ -366,13 +363,6 @@
     </a>
 </div>
 
-<!-- Botón de Volver para Crear Producto -->
-<div id="createBackButtonContainer" style="display: none;">
-    <a id="createBackButton" href="{{ route('products.index') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 5px;">
-        <i class="fas fa-arrow-left"></i> Volver
-    </a>
-</div>
-
 <!-- Botón de Ayuda para Productos -->
 <div id="helpButtonContainerProducts" style="display: none;">
     <button id="helpButtonProducts" type="button" class="btn btn-help" onclick="openCreateProductHelpModal()">
@@ -450,4 +440,5 @@
     </div>
 </div>
 
+</div>
 @endsection

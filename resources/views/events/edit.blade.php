@@ -2,7 +2,8 @@
 @section('title', 'Editar Evento')
 
 @section('content')
-<div id="modalEdit" class="sage-modal open" aria-hidden="false" style="z-index:9997;">
+<div style="padding: 0 15px;">
+  <div id="modalEdit" class="sage-modal open" aria-hidden="false" style="z-index:9997;">
   <div class="modal-backdrop" style="background:rgba(0,0,0,0.5); backdrop-filter: blur(3px); z-index:9997;">
     <div class="modal-card" style="max-width: 740px; width:90%; z-index:9998; background:#fdfdfc;" role="dialog" aria-modal="true">
       <div class="modal-header" style="background:#faf9f6;">
