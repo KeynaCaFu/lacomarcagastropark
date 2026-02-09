@@ -1,6 +1,7 @@
 @extends('layouts.welcome')
 
-@section('title', 'Bienvenido - La Comarca')
+@section('title', 'La Comarca - Panel de Control
+')
 
 @section('content')
 <style>
