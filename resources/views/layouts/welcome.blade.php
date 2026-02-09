@@ -26,10 +26,10 @@
         }
         
         .welcome-card {
-            background: rgba(255, 255, 255, 0.78);
+            background: rgba(255, 255, 255, 0.98);
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            padding: 60px 40px;
+            padding: 40px 89px;
             text-align: center;
             max-width: 500px;
             backdrop-filter: blur(10px);

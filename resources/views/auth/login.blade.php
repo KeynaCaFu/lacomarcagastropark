@@ -8,8 +8,8 @@
         <div class="logo-icon">
             <img src="{{ asset('images/logo_comarca.png') }}" alt="Logo La Comarca" class="logo-img">
         </div>
-        <h1 class="welcome-title">¡Bienvenido!</h1>
-        <p class="welcome-subtitle">Sistema de administración La Comarca Gastro Park</p>
+        {{-- <h1 class="welcome-title">¡Bienvenido!</h1>
+        <p class="welcome-subtitle">Sistema de administración La Comarca Gastro Park</p> --}}
 
         @if (session('status'))
             <div class="alert alert-success" role="alert">
