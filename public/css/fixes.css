@@ -85,7 +85,8 @@ body {
             align-items: center !important;
             justify-content: center !important;
             gap: 10px !important;
-            width: 100% !important;
+            width: 103% !important;
+            margin-top: -26px;
 }
 
 .brand-text {

@@ -4,9 +4,9 @@
 
 @section('content')
 <div class="profile-container" style="padding: 0 15px;">
-    <div style="margin-bottom: 20px;">
-        <h2 style="margin: 0; padding: 0;">Editar Perfil</h2>
-    </div>
+    {{-- <div style="margin-bottom: 20px;">
+        <h2 style="margin: 0; padding: 0;">Actualiza tu Perfil</h2>
+    </div> --}}
 
     <div style="max-width: 800px;">
         <!-- Formulario de actualización de perfil -->

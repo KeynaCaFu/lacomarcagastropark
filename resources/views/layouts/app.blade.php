@@ -499,7 +499,8 @@
 
         .drawer:not(.collapsed) .brand-logo {
             width: 50px;
-            height: 50px;
+            height: 105px;
+            padding: -21px;
         }
 
         .brand-text {
