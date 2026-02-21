@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-    <title>@yield('title', 'La Comarca - Panel de Control
-')</title>
+    <title>@yield('title', 'Bienvenido - La Comarca')</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/ico" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
@@ -13,9 +17,15 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #485a1a 0%, #232c0c 100%);
+            background: #ffffff;
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+         .logo-img {
+            max-width: 273px;
+                height: auto;
+                margin: -105px;
         }
         
         .welcome-container {
@@ -26,14 +36,14 @@
         }
         
         .welcome-card {
-            background: rgba(255, 255, 255, 0.98);
+            background: rgb(13, 14, 12);
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            padding: 40px 89px;
+            box-shadow: 0 20px 40px rgba(57, 58, 55, 0.3);
+            padding: 43px 103px;
             text-align: center;
-            max-width: 500px;
+            max-width: 514px;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(26, 24, 24, 0.2);
         }
         
         .logo-icon {
@@ -52,20 +62,20 @@
         }
         
         .welcome-subtitle {
-            color: #6c757d;
+            color: #161819;
             font-size: 1.2rem;
             margin-bottom: 40px;
             line-height: 1.6;
         }
         
         .btn-gestionar {
-            background: linear-gradient(135deg, #485a1a, #5a6d20);
+            background: linear-gradient(-1deg, #e18018, #915016);
             color: white;
             border: none;
-            padding: 15px 40px;
+            padding: 8px 34px;
             font-size: 1.3rem;
-            font-weight: 600;
-            border-radius: 50px;
+            font-weight: 601;
+            border-radius: 37px;
             box-shadow: 0 8px 16px rgba(72, 90, 26, 0.3);
             transition: all 0.3s ease;
             text-decoration: none;
@@ -80,40 +90,6 @@
         
         .btn-gestionar:active {
             transform: translateY(-1px);
-        }
-        
-        .floating-elements {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: -1;
-        }
-        
-        .floating-elements::before,
-        .floating-elements::after {
-            content: '';
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 153, 0, 0.1);
-        }
-        
-        .floating-elements::before {
-            width: 200px;
-            height: 200px;
-            top: 10%;
-            left: 10%;
-            animation: float 6s ease-in-out infinite;
-        }
-        
-        .floating-elements::after {
-            width: 150px;
-            height: 150px;
-            bottom: 10%;
-            right: 10%;
-            animation: float 8s ease-in-out infinite reverse;
         }
         
         @keyframes float {
@@ -157,7 +133,6 @@
     @stack('styles')
 </head>
 <body>
-    <div class="floating-elements"></div>
     
     <div class="welcome-container">
         @yield('content')

@@ -4,13 +4,15 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Role;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
@@ -20,7 +22,8 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register');
+        // Mostramos la misma vista de login pero indicando que debe abrir el panel de registro
+        return view('auth.login')->with('auth_mode', 'register');
     }
 
     /**
@@ -30,16 +33,31 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        // Validamos datos para registro de clientes
+        $validator = Validator::make($request->all(), [
+            'full_name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:tbuser,email'],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('auth_mode', 'register');
+        }
+
+        // Buscamos el rol "Cliente"; si no existe, no impedimos el registro pero dejamos sin rol
+        $clientRoleId = Role::where('role_type', 'Cliente')->value('role_id');
+
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'full_name' => $request->input('full_name'),
+            'email' => $request->input('email'),
+            'phone' => $request->input('phone'),
+            'password' => Hash::make($request->input('password')),
+            'role_id' => $clientRoleId,
+            'status' => 'Active',
         ]);
 
         event(new Registered($user));

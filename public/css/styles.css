@@ -81,9 +81,9 @@ body, input, button, textarea, select{
 }
 
 .btn-new{ 
-  background: linear-gradient(135deg, #485a1a, #0d5e2a);
-   color:#fff; 
-   margin-top: -69px;;
+    background: linear-gradient(135deg, #485a1a, #0d5e2a);
+    color: #fff;
+    margin-top: -59px;
   }
 
 .btn-new:hover{ 
