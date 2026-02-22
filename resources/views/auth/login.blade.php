@@ -71,6 +71,14 @@
 
                 <button type="submit" class="btn-login">Iniciar sesión</button>
 
+                <div class="divider-social">
+                    <span>O continúa con</span>
+                </div>
+
+                <a href="{{ route('auth.google') }}" class="btn-google">
+                    <i class="fa-brands fa-google"></i> Google
+                </a>
+
                 @if (Route::has('password.request'))
                     <a href="{{ route('password.request') }}" class="forgot-password">¿Olvidaste tu contraseña?</a>
                 @endif
@@ -355,7 +363,7 @@
         max-width: 171px;
         height: auto;
         margin: 0;
-        margin-top: -131px;
+        margin-top: -45px;
     }
 
     .login-logoRegister{
@@ -614,6 +622,84 @@
     .btn-register:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 16px rgba(225, 128, 24, 0.3);
+    }
+
+    /* ===== DIVIDER SOCIAL ===== */
+    .divider-social {
+        display: flex;
+        align-items: center;
+        margin: 16px 0;
+        gap: 10px;
+    }
+
+    .divider-social::before,
+    .divider-social::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #555;
+    }
+
+    .divider-social span {
+        font-size: 13px;
+        color: #a0a0a0;
+        font-weight: 500;
+    }
+
+    /* ===== GOOGLE BUTTON ===== */
+    .btn-google {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 12px;
+        background: #fff;
+        border: 2px solid #444;
+        border-radius: 8px;
+        color: #333;
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .login-panel .btn-google {
+        background: #fff;
+        border: 2px solid #555;
+        color: #333;
+    }
+
+    .login-panel .btn-google:hover {
+        background: #f5f5f5;
+        border-color: #e18018;
+        box-shadow: 0 4px 12px rgba(225, 128, 24, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .login-panel .btn-google i {
+        font-size: 18px;
+        color: #4285f4;
+    }
+
+    .register-panel .btn-google {
+        background: #fff;
+        border: 2px solid #555;
+        color: #333;
+    }
+
+    .register-panel .btn-google:hover {
+        background: #f5f5f5;
+        border-color: #e18018;
+        box-shadow: 0 4px 12px rgba(225, 128, 24, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .register-panel .btn-google i {
+        font-size: 18px;
+        color: #4285f4;
     }
 
     .forgot-password {
