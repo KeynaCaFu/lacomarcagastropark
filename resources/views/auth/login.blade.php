@@ -71,17 +71,21 @@
 
                 <button type="submit" class="btn-login">Iniciar sesión</button>
 
+                 @if (Route::has('password.request'))
+                    <a href="{{ route('password.request') }}" class="forgot-password">¿Olvidaste tu contraseña?</a>
+                @endif
+
                 <div class="divider-social">
                     <span>O continúa con</span>
                 </div>
 
-                <a href="{{ route('auth.google') }}" class="btn-google">
-                    <i class="fa-brands fa-google"></i> Google
-                </a>
+                <div class="google-container">
+                    <a href="{{ route('auth.google') }}" class="btn-google" title="Iniciar sesión con Google">
+                        <i class="fa-brands fa-google"></i>
+                    </a>
+                </div>
 
-                @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" class="forgot-password">¿Olvidaste tu contraseña?</a>
-                @endif
+               
             </form>
 
             {{-- <div class="panel-footer">
@@ -194,10 +198,10 @@
                 <button type="submit" class="btn-register">Registrarme</button>
             </form>
 
-            <div class="panel-footer">
+            {{-- <div class="panel-footer">
                 ¿Ya tienes cuenta? 
                 <button type="button" class="switch-btn" id="switchLogin">Inicia sesión</button>
-            </div>
+            </div> --}}
         </div>
 
         {{-- OVERLAY ANIMATED --}}
@@ -363,7 +367,7 @@
         max-width: 171px;
         height: auto;
         margin: 0;
-        margin-top: -45px;
+        margin-top: -2px;
     }
 
     .login-logoRegister{
@@ -647,59 +651,33 @@
     }
 
     /* ===== GOOGLE BUTTON ===== */
+    .google-container {
+        display: flex;
+        justify-content: center;
+        margin: 16px 0;
+    }
+
     .btn-google {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 10px;
-        width: 100%;
-        padding: 12px;
-        margin-bottom: 12px;
-        background: #fff;
-        border: 2px solid #444;
+        width: 48px;
+        height: 48px;
+        background: #ffffff24;
+        border: 2px solid #b96317;
         border-radius: 8px;
-        color: #333;
-        font-size: 15px;
-        font-weight: 600;
+        color: #a45f22;
+        font-size: 24px;
         text-decoration: none;
         cursor: pointer;
         transition: all 0.3s;
     }
 
-    .login-panel .btn-google {
-        background: #fff;
-        border: 2px solid #555;
-        color: #333;
-    }
-
-    .login-panel .btn-google:hover {
-        background: #f5f5f5;
-        border-color: #e18018;
-        box-shadow: 0 4px 12px rgba(225, 128, 24, 0.2);
+    .btn-google:hover {
+        background: #ffffff24;
+        border-color: #a45f22;
+        box-shadow: 0 4px 12px rgba(244, 191, 66, 0.2);
         transform: translateY(-2px);
-    }
-
-    .login-panel .btn-google i {
-        font-size: 18px;
-        color: #4285f4;
-    }
-
-    .register-panel .btn-google {
-        background: #fff;
-        border: 2px solid #555;
-        color: #333;
-    }
-
-    .register-panel .btn-google:hover {
-        background: #f5f5f5;
-        border-color: #e18018;
-        box-shadow: 0 4px 12px rgba(225, 128, 24, 0.2);
-        transform: translateY(-2px);
-    }
-
-    .register-panel .btn-google i {
-        font-size: 18px;
-        color: #4285f4;
     }
 
     .forgot-password {
