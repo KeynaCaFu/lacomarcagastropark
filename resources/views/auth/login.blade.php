@@ -257,12 +257,12 @@
 
     .login-panel {
         right: 0;
-        background: #1A1A1A;
+        background: #0C0C0E;
     }
 
     .register-panel {
         left: 0;
-        background: #1A1A1A;
+        background: #0C0C0E;
         transform: translateX(-100%);
     }
 

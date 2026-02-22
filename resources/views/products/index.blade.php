@@ -113,7 +113,7 @@
     }
 
     .btn-create {
-        background: linear-gradient(135deg, #485a1a, #0d5e2a);
+        background: linear-gradient(135deg, #915016, #a85e1f);
         color: white;
         padding: 10px 20px;
         border-radius: 8px;
@@ -128,7 +128,7 @@
     }
 
     .btn-create:hover {
-        background-color: #54625a;
+        background-color: #a85e1f;
         color: white;
         
     }

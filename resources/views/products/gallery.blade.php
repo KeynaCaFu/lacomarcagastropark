@@ -61,7 +61,7 @@
                                     <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
                                 @enderror
                             </div>
-                            <button type="submit" class="btn btn-primary btn-block" style="background: linear-gradient(135deg, #485a1a, #0d5e2a); border:none; font-weight:600;">
+                            <button type="submit" class="btn btn-primary btn-block" style="background: linear-gradient(135deg, #e18018, #915016); font-weight:600;">
                                 <i class="fas fa-upload"></i> Subir Imagen
                             </button>
                         </form>

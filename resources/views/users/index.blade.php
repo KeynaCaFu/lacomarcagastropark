@@ -76,7 +76,7 @@
     }
 
     .btn-create {
-        background: linear-gradient(135deg, #485a1a, #0d5e2a);
+        background: linear-gradient(135deg, #915016, #a85e1f);
         color: white;
         padding: 10px 20px;
         border-radius: 8px;
@@ -92,7 +92,7 @@
 
     .btn-create:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(13, 94, 42, 0.3);
+        box-shadow: 0 8px 16px rgba(145, 80, 22, 0.3);
     }
 
     /* Botón Ayuda colocado arriba del botón verde */

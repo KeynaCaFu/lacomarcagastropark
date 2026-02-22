@@ -81,13 +81,13 @@ body, input, button, textarea, select{
 }
 
 .btn-new{ 
-    background: linear-gradient(135deg, #485a1a, #0d5e2a);
+    background: linear-gradient(135deg, #915016, #a85e1f);
     color: #fff;
     margin-top: -59px;
   }
 
 .btn-new:hover{ 
-  background:var(--green-2); 
+  background:#a85e1f; 
 }
 .btn-search{ 
   background: #222; 

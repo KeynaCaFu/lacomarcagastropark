@@ -203,14 +203,14 @@
 }
 
 .modal-actions .btn-primary {
-    background: linear-gradient(135deg, #485a1a, #0d5e2a);
+    background: linear-gradient(135deg, #915016, #a85e1f);
     border: none;
     color: white;
     margin-right: 10px;
 }
 
 .modal-actions .btn-update {
-    background: linear-gradient(135deg, #485a1a, #0d5e2a);
+    background: linear-gradient(135deg, #915016, #a85e1f);
     color: #fff; 
     border: none;
     padding: 10px 18px;
@@ -219,13 +219,13 @@
 }
 
 .modal-actions .btn-update:hover {
-    background: #687160;
+    background: #a85e1f;
 }
 
 .modal-actions .btn-primary:hover {
-    background: linear-gradient(135deg, #5a6d20, #6d8025);
+    background: linear-gradient(135deg, #a85e1f, #b8682a);
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(72, 90, 26, 0.3);
+    box-shadow: 0 5px 15px rgba(145, 80, 22, 0.3);
 }
 
 .modal-actions .btn-secondary {
@@ -652,15 +652,15 @@
 
 .pagination .page-item a:hover {
     background: #f3f4f6;
-    border-color: #16a34a;
-    color: #16a34a;
+    border-color: #915016;
+    color: #915016;
 }
 
 .pagination .page-item.active span,
 .pagination .page-item.active a {
-    background: linear-gradient(135deg, #485a1a, #0d5e2a);
+    background: linear-gradient(135deg, #e18018, #915016);
     color: white;
-    border-color: #16a34a;
+    border-color: #915016;
     font-weight: 600;
 }
 

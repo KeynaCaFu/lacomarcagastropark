@@ -17,7 +17,7 @@
 }
 
 body {
-    background-color: #c4d0cc;
+    background-color: #f0f0f0;
     color: #333;
 }
 
@@ -141,7 +141,7 @@ body {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
-    background-color: #c4d0cc;
+    background-color: #f0f0f0;
     min-width: 0;
 }
 
@@ -375,13 +375,13 @@ tr:hover {
 }
 
 .btn-add{
-    background: #485a1a;
+    background: #915016;
     width:  225px;
     color: #fff;
 }
 
 .btn-add:hover{
-    background-color: #0a612c;
+    background-color: #a85e1f;
 }
 
 .btn-asignar{
@@ -409,18 +409,18 @@ tr:hover {
 }
 
 .btn-primary {
-   background: linear-gradient(135deg, #485a1a, #0d5e2a);
+   background: linear-gradient(135deg, #915016, #a85e1f);
     width:  193px;
     color: #fff;
 }
 
 .btn-primary:hover {
-    background: #0f750f;
+    background: #a85e1f;
     color: #fff;
 }
 
 .btn-addNew {
-    background: #485a1a;
+    background: #915016;
     width:  193px;
     color: #fff;
     padding: 10px 20px;
@@ -432,7 +432,7 @@ tr:hover {
 }
 
 .btn-addNew:hover {
-    background: #116411;
+    background: #a85e1f;
 }
 
 .btn-save {

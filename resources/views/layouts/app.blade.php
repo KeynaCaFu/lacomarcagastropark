@@ -19,7 +19,7 @@
         #sidebarToggleBtn {
             color: #ff9900 !important;
             transition: all 0.3s ease !important;
-            background: #232c0c !important;
+            background: #0C0C0E !important;
             border: 1px solid rgba(255,255,255,0.1) !important;
             padding: 0 !important;
             display: flex !important;
@@ -40,7 +40,7 @@
         
         #sidebarToggleBtn:hover {
             color: #ffb84d !important;
-            background: #2a3410 !important;
+            background: #915016 !important;
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3) !important;
         }
         
@@ -451,7 +451,7 @@
             left: 0;
             height: 100vh;
             width: 280px;
-            background: #232c0c;
+            background: #0C0C0E;
             color: #fff;
             transform: translateX(-100%);
             transition: transform 0.3s ease, width 0.3s ease;
@@ -550,8 +550,8 @@
 
         .sidebar-menu a:hover,
         .sidebar-menu a.active {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-left: 4px solid #ff9900;
+            background-color: #915016;
+            border-left: 4px solid #915016;
         }
 
         .sidebar-menu i {
@@ -639,7 +639,7 @@
         }
 
         .admin-info:hover {
-            background-color: rgba(72, 90, 26, 0.3);
+            background-color: rgba(145, 80, 22, 0.5);
             color: rgba(255, 255, 255, 1);
         }
 
@@ -650,7 +650,7 @@
         }
 
         .admin-info:hover i {
-            color: #ff9900;
+            color: #915016;
         }
 
         .admin-info span {
