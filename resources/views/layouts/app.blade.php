@@ -90,11 +90,6 @@
     @stack('styles')
 </head>
 <body>
-    <!-- Botón hamburguesa para móvil -->
-    <button class="mobile-hamburger" id="mobileHamburger" aria-label="Abrir menú" type="button">
-        <i class="fas fa-bars"></i>
-    </button>
-
     <!-- Container principal con diseño La Comarca -->
     <div class="container-fluid">
         <div class="row">
@@ -438,23 +433,12 @@
                 });
             }
 
-            // Botón hamburguesa móvil
-            const mobileHamburger = document.getElementById('mobileHamburger');
-            if (mobileHamburger) {
-                mobileHamburger.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    sidebar.classList.add('open');
-                    body.classList.add('sidebar-open');
-                });
-            }
-
             // Cerrar al hacer clic fuera en móviles
             document.addEventListener('click', (e) => {
                 if (window.innerWidth < 992 && !sidebar.classList.contains('open')) return;
                 const clickInsideSidebar = e.target.closest('#appSidebar');
                 const clickToggle = e.target.closest('.sidebar-toggle-btn');
-                const clickHamburger = e.target.closest('#mobileHamburger');
-                if (!clickInsideSidebar && !clickToggle && !clickHamburger && window.innerWidth < 992) {
+                if (!clickInsideSidebar && !clickToggle && window.innerWidth < 992) {
                     closeSidebar();
                 }
             });
