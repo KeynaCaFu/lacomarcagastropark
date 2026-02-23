@@ -92,6 +92,11 @@
                 ¿No tienes cuenta? 
                 <button type="button" class="switch-btn" id="switchRegister">Registrate aquí</button>
             </div> --}}
+            
+            <!-- Botón para cambiar a registro en responsivo -->
+            <div class="responsive-footer" id="loginFooter">
+                <p>¿No tienes cuenta? <button type="button" class="switch-btn" id="switchRegisterResponsive">Registrate aquí</button></p>
+            </div>
         </div>
 
         {{-- PANEL REGISTRO --}}
@@ -202,6 +207,11 @@
                 ¿Ya tienes cuenta? 
                 <button type="button" class="switch-btn" id="switchLogin">Inicia sesión</button>
             </div> --}}
+            
+            <!-- Botón para cambiar a login en responsivo -->
+            <div class="responsive-footer" id="registerFooter">
+                <p>¿Ya tienes cuenta? <button type="button" class="switch-btn" id="switchLoginResponsive">Inicia sesión</button></p>
+            </div>
         </div>
 
         {{-- OVERLAY ANIMATED --}}
@@ -725,11 +735,122 @@
         text-decoration: underline;
     }
 
-    /* ===== RESPONSIVE ===== */
+    /* ===== RESPONSIVE FOOTER ===== */
+    .responsive-footer {
+        display: none;
+        text-align: center;
+        color: #d0d0d0;
+        font-size: 13px;
+        margin-top: auto;
+        padding-top: 10px;
+    }
+
+    .responsive-footer p {
+        margin: 0;
+    }
+
+    .responsive-footer .switch-btn {
+        margin-left: 4px;
+    }
+
+    /* ===== ANIMACIÓN RESPONSIVO ===== */
+    @keyframes slideOutToLeft {
+        0% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        100% {
+            opacity: 0;
+            transform: translateX(-100%);
+        }
+    }
+
+    @keyframes slideOutToRight {
+        0% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        100% {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+    }
+
+    @keyframes slideInFromLeft {
+        0% {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slideInFromRight {
+        0% {
+            opacity: 0;
+            transform: translateX(-100%);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .login-panel.slide-out-right,
+    .register-panel.slide-out-right {
+        animation: slideOutToRight 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .login-panel.slide-out-left,
+    .register-panel.slide-out-left {
+        animation: slideOutToLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .login-panel.slide-in-right,
+    .register-panel.slide-in-right {
+        animation: slideInFromRight 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .login-panel.slide-in-left,
+    .register-panel.slide-in-left {
+        animation: slideInFromLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    /* Fondo anaranjado durante la transición en responsivo */
     @media (max-width: 900px) {
+        .login-wrapper.transitioning {
+            background: linear-gradient(135deg, #e18018, #915016);
+        }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1200px) {
+        .login-wrapper {
+            height: 550px;
+        }
+
+        .login-panel,
+        .register-panel {
+            padding: 40px 30px;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .login-container {
+            width: 100%;
+            max-width: 100%;
+        }
+
         .login-wrapper {
             height: auto;
             min-height: 600px;
+            border-radius: 0;
+            box-shadow: none;
+            display: block;
+            overflow: hidden;
+            background: #0C0C0E;
         }
 
         .login-panel,
@@ -737,6 +858,10 @@
             width: 100%;
             position: relative;
             padding: 40px 30px;
+            min-height: auto;
+            transform: none;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            display: block;
         }
 
         .auth-overlay {
@@ -744,21 +869,140 @@
         }
 
         .login-panel {
-            transform: translateX(0);
-            right: auto;
+            display: block;
         }
 
         .register-panel {
-            transform: translateX(-100%);
-            left: auto;
+            display: none;
         }
 
         .login-container.show-register .login-panel {
-            transform: translateX(100%);
+            display: none;
         }
 
         .login-container.show-register .register-panel {
-            transform: translateX(0);
+            display: block;
+        }
+
+        .responsive-footer {
+            display: block;
+        }
+
+        .login-header,
+        .register-header {
+            margin-bottom: 20px;
+        }
+
+        .login-logo,
+        .login-logoRegister {
+            max-width: 140px;
+            margin-top: 0 !important;
+        }
+
+        .login-title {
+            font-size: 24px;
+            margin-top: 10px !important;
+        }
+
+        .form-group input {
+            padding: 12px 40px 12px 14px;
+            font-size: 16px;
+        }
+
+        .btn-login,
+        .btn-register {
+            padding: 10px;
+            font-size: 15px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .login-container {
+            padding: 15px;
+        }
+
+        .login-wrapper {
+            border-radius: 15px;
+            min-height: 500px;
+            height: auto;
+        }
+
+        .login-panel,
+        .register-panel {
+            padding: 35px 20px;
+            min-height: auto;
+            max-height: none;
+            justify-content: flex-start;
+            padding-top: 30px;
+        }
+
+        .login-header,
+        .register-header {
+            margin-bottom: 15px;
+        }
+
+        .login-logo,
+        .login-logoRegister {
+            max-width: 120px;
+        }
+
+        .login-title {
+            font-size: 22px;
+            margin: 15px 0 3px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group input {
+            padding: 11px 38px 11px 12px;
+            font-size: 16px;
+            border-radius: 6px;
+        }
+
+        .input-icon i {
+            right: 12px;
+            font-size: 15px;
+        }
+
+        .form-checkbox {
+            margin-bottom: 15px;
+        }
+
+        .form-checkbox label {
+            font-size: 12px;
+        }
+
+        .btn-login,
+        .btn-register {
+            padding: 10px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .divider-social {
+            margin: 12px 0;
+            gap: 8px;
+        }
+
+        .divider-social span {
+            font-size: 12px;
+        }
+
+        .google-container {
+            margin: 12px 0;
+        }
+
+        .btn-google {
+            width: 44px;
+            height: 44px;
+            font-size: 20px;
+        }
+
+        .forgot-password {
+            font-size: 12px;
+            margin-top: 10px;
         }
     }
 
@@ -768,21 +1012,141 @@
         }
 
         .login-wrapper {
-            min-height: 500px;
-            border-radius: 15px;
+            min-height: 520px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
         .login-panel,
         .register-panel {
-            padding: 30px 20px;
+            padding: 25px 18px;
+            min-height: auto;
+        }
+
+        .login-header,
+        .register-header {
+            margin-bottom: 12px;
+        }
+
+        .login-logo,
+        .login-logoRegister {
+            max-width: 100px;
+            margin: 0;
         }
 
         .login-title {
-            font-size: 24px;
+            font-size: 20px;
+            margin: 12px 0 0;
         }
 
-        .login-logo {
-            max-width: 100px;
+        .form-group {
+            margin-bottom: 9px;
+        }
+
+        .form-group input {
+            padding: 10px 36px 10px 11px;
+            font-size: 15px;
+        }
+
+        .input-icon i {
+            right: 10px;
+            font-size: 14px;
+        }
+
+        .form-checkbox {
+            margin-bottom: 12px;
+        }
+
+        .form-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
+        .form-checkbox label {
+            font-size: 11px;
+        }
+
+        .btn-login,
+        .btn-register {
+            padding: 9px;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .divider-social {
+            margin: 10px 0;
+            gap: 6px;
+        }
+
+        .divider-social span {
+            font-size: 11px;
+        }
+
+        .google-container {
+            margin: 10px 0;
+        }
+
+        .btn-google {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+
+        .forgot-password {
+            font-size: 11px;
+            margin-top: 8px;
+        }
+
+        .toggle-btn {
+            right: 40px;
+            font-size: 14px;
+        }
+
+        .form-error {
+            font-size: 11px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .login-container {
+            padding: 8px;
+        }
+
+        .login-wrapper {
+            min-height: 480px;
+            border-radius: 10px;
+        }
+
+        .login-panel,
+        .register-panel {
+            padding: 20px 16px;
+        }
+
+        .login-logo,
+        .login-logoRegister {
+            max-width: 90px;
+        }
+
+        .login-title {
+            font-size: 18px;
+            margin: 10px 0 0;
+        }
+
+        .form-group input {
+            padding: 9px 34px 9px 10px;
+            font-size: 14px;
+        }
+
+        .btn-login,
+        .btn-register {
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .btn-google {
+            width: 38px;
+            height: 38px;
+            font-size: 16px;
         }
     }
 </style>
@@ -792,12 +1156,67 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const authContainer = document.getElementById('authContainer');
+    const loginPanel = document.getElementById('loginPanel');
+    const registerPanel = document.getElementById('registerPanel');
+    const loginWrapper = document.getElementById('authWrapper');
     const switchRegisterBtn = document.getElementById('switchRegister');
     const switchLoginBtn = document.getElementById('switchLogin');
+    const switchRegisterResponsiveBtn = document.getElementById('switchRegisterResponsive');
+    const switchLoginResponsiveBtn = document.getElementById('switchLoginResponsive');
     const overlayRegisterBtn = document.getElementById('overlayRegisterBtn');
     const overlayLoginBtn = document.getElementById('overlayLoginBtn');
     const togglePasswordBtn = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
+
+    const isResponsive = () => window.innerWidth <= 900;
+
+    // Función para cambiar a registro
+    const switchToRegister = () => {
+        if (isResponsive()) {
+            // En responsivo: slide out left del login, slide in left del registro
+            loginWrapper.classList.add('transitioning');
+            loginPanel.classList.add('slide-out-left');
+            loginPanel.classList.remove('slide-in-right');
+            
+            setTimeout(() => {
+                authContainer.classList.add('show-register');
+                registerPanel.classList.add('slide-in-left');
+                registerPanel.classList.remove('slide-out-right');
+                loginPanel.classList.remove('slide-out-left');
+            }, 400);
+            
+            setTimeout(() => {
+                loginWrapper.classList.remove('transitioning');
+            }, 800);
+        } else {
+            authContainer.classList.add('show-register');
+        }
+        window.scrollTo(0, 0);
+    };
+
+    // Función para cambiar a login
+    const switchToLogin = () => {
+        if (isResponsive()) {
+            // En responsivo: slide out right del registro, slide in right del login
+            loginWrapper.classList.add('transitioning');
+            registerPanel.classList.add('slide-out-right');
+            registerPanel.classList.remove('slide-in-left');
+            
+            setTimeout(() => {
+                authContainer.classList.remove('show-register');
+                loginPanel.classList.add('slide-in-right');
+                loginPanel.classList.remove('slide-out-left');
+                registerPanel.classList.remove('slide-out-right');
+            }, 400);
+            
+            setTimeout(() => {
+                loginWrapper.classList.remove('transitioning');
+            }, 800);
+        } else {
+            authContainer.classList.remove('show-register');
+        }
+        window.scrollTo(0, 0);
+    };
 
     // Mostrar registro si viene de la ruta /register o hay error
     const shouldShowRegister = {{ (old('is_register') || (isset($auth_mode) && $auth_mode === 'register')) ? 'true' : 'false' }};
@@ -805,32 +1224,34 @@ document.addEventListener('DOMContentLoaded', function () {
         authContainer.classList.add('show-register');
     }
 
-    // Switch a registro desde botón en panel login
+    // Switch a registro desde botón en panel login (desktop)
     if (switchRegisterBtn) {
-        switchRegisterBtn.addEventListener('click', () => {
-            authContainer.classList.add('show-register');
-        });
+        switchRegisterBtn.addEventListener('click', switchToRegister);
+    }
+
+    // Switch a registro desde botón en responsivo
+    if (switchRegisterResponsiveBtn) {
+        switchRegisterResponsiveBtn.addEventListener('click', switchToRegister);
     }
 
     // Switch a registro desde botón en overlay
     if (overlayRegisterBtn) {
-        overlayRegisterBtn.addEventListener('click', () => {
-            authContainer.classList.add('show-register');
-        });
+        overlayRegisterBtn.addEventListener('click', switchToRegister);
     }
 
-    // Switch a login desde botón en panel registro
+    // Switch a login desde botón en panel registro (desktop)
     if (switchLoginBtn) {
-        switchLoginBtn.addEventListener('click', () => {
-            authContainer.classList.remove('show-register');
-        });
+        switchLoginBtn.addEventListener('click', switchToLogin);
+    }
+
+    // Switch a login desde botón en responsivo
+    if (switchLoginResponsiveBtn) {
+        switchLoginResponsiveBtn.addEventListener('click', switchToLogin);
     }
 
     // Switch a login desde botón en overlay
     if (overlayLoginBtn) {
-        overlayLoginBtn.addEventListener('click', () => {
-            authContainer.classList.remove('show-register');
-        });
+        overlayLoginBtn.addEventListener('click', switchToLogin);
     }
 
     // Toggle contraseña
