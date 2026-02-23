@@ -389,14 +389,14 @@
         });
     </script>
     <script>
-        // Toggle del sidebar - Colapsable en desktop, overlay en móvil
+        // Toggle del sidebar - Colapsable en desktop (>=1024px), overlay en móvil/tablet (<1024px)
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('appSidebar');
             const toggleBtn = document.querySelector('.sidebar-toggle-btn');
             const body = document.body;
 
             const toggleSidebar = () => {
-                if (window.innerWidth >= 992) {
+                if (window.innerWidth >= 1024) {
                     // Desktop: collapsar/expandir
                     sidebar.classList.toggle('collapsed');
                     body.classList.toggle('sidebar-collapsed');
@@ -415,16 +415,23 @@
                 if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
             };
 
-            // Escuchar cambios de tamaño de ventana
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 992) {
+            const applyLayoutByWidth = () => {
+                if (window.innerWidth >= 1024) {
+                    // Modo desktop: sidebar fijo, sin overlay
                     sidebar.classList.remove('open');
                     body.classList.remove('sidebar-open');
                 } else {
+                    // Modo móvil/tablet: sidebar como drawer cerrado por defecto
                     sidebar.classList.remove('collapsed');
                     body.classList.remove('sidebar-collapsed');
                 }
-            });
+            };
+
+            // Aplicar estado inicial según ancho actual
+            applyLayoutByWidth();
+
+            // Escuchar cambios de tamaño de ventana
+            window.addEventListener('resize', applyLayoutByWidth);
 
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', (e) => {
@@ -435,10 +442,10 @@
 
             // Cerrar al hacer clic fuera en móviles
             document.addEventListener('click', (e) => {
-                if (window.innerWidth < 992 && !sidebar.classList.contains('open')) return;
+                if (window.innerWidth < 1024 && !sidebar.classList.contains('open')) return;
                 const clickInsideSidebar = e.target.closest('#appSidebar');
                 const clickToggle = e.target.closest('.sidebar-toggle-btn');
-                if (!clickInsideSidebar && !clickToggle && window.innerWidth < 992) {
+                if (!clickInsideSidebar && !clickToggle && window.innerWidth < 1024) {
                     closeSidebar();
                 }
             });
@@ -454,7 +461,8 @@
             width: 280px;
             background: #0C0C0E;
             color: #fff;
-            transform: translateX(-100%);
+            /* En escritorio/tablet el sidebar está visible por defecto */
+            transform: translateX(0);
             transition: transform 0.3s ease, width 0.3s ease;
             z-index: 1100;
             box-shadow: 2px 0 12px rgba(0,0,0,0.3);
@@ -473,7 +481,7 @@
         }
 
         .drawer:not(.collapsed) {
-            width: 280px;
+            width: 320px;
         }
 
         /* Sidebar Header */
@@ -791,10 +799,21 @@
             flex-direction: column;
         }
 
+        /* Sidebar más estrecho en tablets/móviles hasta 992px */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 180px;
+                min-width: 80px;
+                max-width: 220px;
+                padding: 4px 0;
+                padding-bottom: 4px;
+            }
+        }
+
         /* Layout adjustments */
-        @media (min-width: 992px) {
+        @media (min-width: 1024px) {
             #mainContent {
-                margin-left: 280px;
+                margin-left: 320px;
             }
             
             body.sidebar-collapsed #mainContent {
@@ -802,9 +821,14 @@
             }
         }
 
-        @media (max-width: 991.98px) {
+        @media (max-width: 1023.98px) {
             #mainContent {
                 margin-left: 0;
+            }
+
+            /* En móviles el sidebar actúa como drawer cerrado por defecto */
+            .drawer {
+                transform: translateX(-100%);
             }
         }
 
@@ -815,7 +839,7 @@
         }
 
         /* Backdrop cuando drawer está abierto */
-        @media (max-width: 991.98px) {
+        @media (max-width: 1023.98px) {
             body.sidebar-open::after {
                 content: '';
                 position: fixed;
