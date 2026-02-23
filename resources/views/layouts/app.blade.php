@@ -455,7 +455,7 @@
             color: #fff;
             transform: translateX(-100%);
             transition: transform 0.3s ease, width 0.3s ease;
-            z-index: 1040;
+            z-index: 1100;
             box-shadow: 2px 0 12px rgba(0,0,0,0.3);
             padding-bottom: 1rem;
             display: flex;
@@ -568,6 +568,7 @@
             justify-content: center;
             font-size: 0;
             position: relative;
+            z-index: 1;
         }
 
         .drawer:not(.collapsed) .sidebar-menu a {
@@ -582,14 +583,19 @@
         }
 
         /* Tooltips para estado colapsado */
+        /* Cuando el sidebar está colapsado, mostramos tooltip naranja a la derecha */
+        .drawer.collapsed .sidebar-menu {
+            overflow: visible !important;
+        }
+
         .drawer.collapsed .sidebar-menu a::after {
             content: attr(data-tooltip);
             position: absolute;
             left: 100%;
             top: 50%;
             transform: translateY(-50%);
-            background: #1f2937;
-            color: #fff;
+            background: #ff9900;
+            color: #0C0C0E;
             padding: 8px 12px;
             border-radius: 6px;
             font-size: 0.875rem;
@@ -598,7 +604,8 @@
             opacity: 0;
             transition: opacity 0.2s ease;
             margin-left: 12px;
-            z-index: 1050;
+            z-index: 2000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
         .drawer.collapsed .sidebar-menu a:hover::after {
@@ -777,7 +784,7 @@
         #mainContent {
             width: 100%;
             position: relative;
-            z-index: 1;
+            z-index: 0;
             transition: margin-left 0.3s ease;
             display: flex;
             flex-direction: column;
