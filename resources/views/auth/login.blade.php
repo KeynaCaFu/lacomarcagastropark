@@ -201,6 +201,16 @@
                 </div>
 
                 <button type="submit" class="btn-register">Registrarme</button>
+
+                <div class="divider-social">
+                    <span>O continúa con</span>
+                </div>
+
+                <div class="google-container">
+                    <a href="{{ route('auth.google') }}" class="btn-google" title="Registrarse con Google">
+                        <i class="fa-brands fa-google"></i>
+                    </a>
+                </div>
             </form>
 
             {{-- <div class="panel-footer">
@@ -247,7 +257,8 @@
     .login-wrapper {
         position: relative;
         width: 100%;
-        height: 600px;
+        height: auto;
+        min-height: 650px;
         background: #fff;
         border-radius: 20px;
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
@@ -261,7 +272,7 @@
         position: absolute;
         width: 50%;
         height: 100%;
-        padding: 50px 40px;
+        padding: 40px 35px;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -370,7 +381,7 @@
     .login-header,
     .register-header {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
     }
 
     .login-logo {
@@ -395,12 +406,12 @@
 
     .login-panel .login-title {
         color: #fff;
-        margin-top: -19px;
+        margin-top: 0;
     }
 
     .register-panel .login-title {
         color: #fff;
-        margin-top: -41px;
+        margin-top: -15px;
     }
 
     .register-subtitle {
@@ -411,7 +422,7 @@
 
     /* ===== FORMULARIOS ===== */
     .form-group {
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
 
     .form-group label {
@@ -575,7 +586,7 @@
     .form-checkbox {
         display: flex;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     }
 
     .form-checkbox input[type="checkbox"] {
@@ -642,7 +653,7 @@
     .divider-social {
         display: flex;
         align-items: center;
-        margin: 16px 0;
+        margin: 12px 0;
         gap: 10px;
     }
 
@@ -664,7 +675,7 @@
     .google-container {
         display: flex;
         justify-content: center;
-        margin: 16px 0;
+        margin: 12px 0;
     }
 
     .btn-google {
