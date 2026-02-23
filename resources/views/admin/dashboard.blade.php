@@ -111,6 +111,7 @@
             </div>
             <div class="card-body">
                 @if($topManagers->count())
+                    <div style="overflow-x: auto;">
                     <table>
                         <thead>
                             <tr>
@@ -127,6 +128,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                    </div>
                 @else
                     <div style="color:#6b7280;">No hay gerentes con locales asignados.</div>
                 @endif

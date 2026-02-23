@@ -6,7 +6,7 @@
 <div style="padding: 0 15px;">
     <!-- Header -->
     <div style="margin-bottom: 1rem;">
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 8px;">
             <div style="flex:1;">
                 <h2 style="margin: 7px; color: #1f2937; font-weight: 712;">
                     <i class="fas fa-box" style="margin-right:8px;"></i> {{ $product->name }}
@@ -19,7 +19,7 @@
     </div>
 
     <!-- Información principal -->
-    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 2rem; @media (max-width: 768px) { grid-template-columns: 1fr; }">
+    <div class="product-detail-grid" style="margin-bottom: 2rem;">
         <!-- Foto principal y datos básicos -->
         <div>
             <div class="card mb-4" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">

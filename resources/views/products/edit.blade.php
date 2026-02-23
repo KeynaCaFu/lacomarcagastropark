@@ -273,7 +273,7 @@
                         </div>
 
                         <!-- Botones de acción -->
-                        <div class="form-group" style="display:flex; gap:10px;">
+                        <div class="form-group" style="display:flex; gap:10px; flex-wrap:wrap;">
                             <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #e18018, #915016); border:none; font-weight:600;">
                                 <i class="fas fa-save"></i> Guardar Cambios
                             </button>

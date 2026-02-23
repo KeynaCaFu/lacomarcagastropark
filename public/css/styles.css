@@ -57,10 +57,8 @@ body, input, button, textarea, select{
 .section-title{ 
   font-size: 32px;
   font-weight: 800;
-  margin: 51px;
-    margin-top: 51px;
+  margin: 0;
   color: #1b2114;
-  margin-top: -80px;
 }
 
 .btn{
@@ -83,7 +81,6 @@ body, input, button, textarea, select{
 .btn-new{ 
     background: linear-gradient(135deg, #915016, #a85e1f);
     color: #fff;
-    margin-top: -59px;
   }
 
 .btn-new:hover{ 

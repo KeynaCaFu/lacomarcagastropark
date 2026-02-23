@@ -6,8 +6,8 @@
 <div style="padding: 0 15px;">
     <!-- Header -->
     <div style="margin-bottom: 1rem;">
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-            <div style="flex:1;">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 8px;">
+            <div style="flex:1; min-width:200px;">
                 <h2 style="margin: 7px; color: #1f2937; font-weight: 712;">
                     <i class="fas fa-plus-circle" style="margin-right:8px;"></i> Registrar Nuevo Producto
                 </h2>
@@ -70,7 +70,7 @@
                         </div>
 
                         <!-- Fila: Categoría y Tipo de Producto -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-grid-2col">
                             <div>
                                 <div class="form-group mb-3">
                                     <label for="categoria" class="form-label">
@@ -109,7 +109,7 @@
                         </div>
 
                         <!-- Fila: Precio y Etiqueta -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-grid-2col">
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
                                     <label for="precio" class="form-label d-flex align-items-center justify-content-between">
@@ -202,7 +202,7 @@
                         </div>
 
                         <!-- Botones de acción -->
-                        <div class="form-group" style="display:flex; gap:10px;">
+                        <div class="form-group" style="display:flex; gap:10px; flex-wrap:wrap;">
                             <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #e18018, #915016); border:none; font-weight:600;">
                                 <i class="fas fa-save"></i> Crear Producto
                             </button>

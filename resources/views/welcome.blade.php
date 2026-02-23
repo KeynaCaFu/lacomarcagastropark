@@ -165,9 +165,8 @@
     }
 
     .forgot-password {
-      text-align: left;
+      text-align: right;
         margin-top: 15px;
-        margin-left: 197px;
     }
 
     .forgot-password a {

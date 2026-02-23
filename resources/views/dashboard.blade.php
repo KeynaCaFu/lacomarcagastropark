@@ -63,6 +63,7 @@
             </div>
             <div class="card-body">
                 @if(isset($local) && $local)
+                    <div style="overflow-x: auto;">
                     <table>
                         <tbody>
                             <tr>
@@ -85,6 +86,7 @@
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                 @else
                     <div style="color:#6b7280;">Sin local asignado.</div>
                 @endif
@@ -97,6 +99,7 @@
             </div>
             <div class="card-body">
                 @if(isset($recentProducts) && $recentProducts->count())
+                    <div style="overflow-x: auto;">
                     <table>
                         <thead>
                             <tr>
@@ -123,6 +126,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                    </div>
                 @else
                     <div style="color:#6b7280;">No hay productos recientes para este local.</div>
                 @endif

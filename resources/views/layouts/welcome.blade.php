@@ -15,6 +15,7 @@
     
     <!-- CSS Personalizado La Comarca -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/responsive.css') }}" rel="stylesheet">
     <style>
         body {
             background: #ffffff;
@@ -25,7 +26,7 @@
          .logo-img {
             max-width: 273px;
                 height: auto;
-                margin: -105px;
+                margin: -105px auto -80px auto;
         }
         
         .welcome-container {
@@ -39,9 +40,10 @@
             background: rgb(13, 14, 12);
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(57, 58, 55, 0.3);
-            padding: 43px 103px;
+            padding: 43px 60px;
             text-align: center;
             max-width: 514px;
+            width: 100%;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(26, 24, 24, 0.2);
         }
@@ -110,10 +112,20 @@
             color: #485a1a;
         }
         
+        @media (max-width: 992px) {
+            .welcome-card {
+                padding: 40px 40px;
+            }
+            .logo-img {
+                max-width: 200px;
+                margin: -70px auto -50px auto;
+            }
+        }
+
         @media (max-width: 768px) {
             .welcome-card {
                 margin: 20px;
-                padding: 40px 30px;
+                padding: 35px 24px;
             }
             
             .welcome-title {
@@ -127,6 +139,29 @@
             .btn-gestionar {
                 padding: 12px 30px;
                 font-size: 1.1rem;
+            }
+
+            .logo-img {
+                max-width: 160px;
+                margin: -50px auto -30px auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .welcome-card {
+                margin: 12px;
+                padding: 28px 16px;
+            }
+            .logo-img {
+                max-width: 130px;
+                margin: -35px auto -20px auto;
+            }
+            .welcome-title {
+                font-size: 1.6rem;
+            }
+            .btn-gestionar {
+                padding: 10px 24px;
+                font-size: 1rem;
             }
         }
     </style>

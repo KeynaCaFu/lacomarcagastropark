@@ -6,8 +6,8 @@
 <div style="padding: 0 15px;">
         <!-- Header -->
         <div style="margin-bottom: 1rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                <div style="flex:1;">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 8px;">
+                <div style="flex:1; min-width:200px;">
                     <h2 style="margin: 7px; color: #1f2937; font-weight: 712;">
                         <i class="fas fa-images" style="margin-right:8px;"></i> Galería de Imágenes
                     </h2>
@@ -38,7 +38,7 @@
             </div>
         @endif
 
-        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; @media (max-width: 768px) { grid-template-columns: 1fr; }">
+        <div class="gallery-layout-grid">
             <!-- Panel de carga de imágenes -->
             <div>
                 <div class="card" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
