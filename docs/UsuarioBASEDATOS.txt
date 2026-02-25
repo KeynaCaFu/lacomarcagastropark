@@ -1,0 +1,16 @@
+
+
+
+
+
+db:lacogswb_lacomarca
+user:lacomarca
+password:702810812-402480420
+
+
+User: lacogswb_lacomarca
+Database: lacogswb_lacomarca
+
+
+
+
