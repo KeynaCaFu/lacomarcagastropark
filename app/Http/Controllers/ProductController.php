@@ -236,6 +236,24 @@ class ProductController extends Controller
             return redirect()->route('products.index')->with('error', 'Producto no encontrado');
         }
 
+        // Check if this is a partial update (only status)
+        if ($request->has('status') && $request->only('status') === ['status' => $request->input('status')]) {
+            // Partial update - only validate status
+            $validated = $request->validate([
+                'status' => 'required|string|in:Available,Unavailable'
+            ]);
+
+            $data = ['status' => $validated['status']];
+            $updatedProduct = $this->productData->update($id, $data);
+
+            return response()->json([
+                'success' => true,
+                'message' => '✓ Estado actualizado exitosamente',
+                'product' => $updatedProduct
+            ]);
+        }
+
+        // Full update - validate all fields
         $validated = $request->validate([
             'nombre' => 'required|string|max:255|unique:tbproduct,name,' . $id . ',product_id',
             'descripcion' => 'nullable|string',
