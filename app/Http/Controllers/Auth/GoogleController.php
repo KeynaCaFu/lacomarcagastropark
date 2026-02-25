@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Tbuser;
+use App\Models\User;
 use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
@@ -28,7 +28,7 @@ class GoogleController extends Controller
             $googleUser = Socialite::driver('google')->user();
 
             // Buscar si el usuario ya existe por email o provider_id
-            $user = Tbuser::where('email', $googleUser->getEmail())
+            $user = User::where('email', $googleUser->getEmail())
                 ->orWhere('provider_id', $googleUser->getId())
                 ->first();
 
@@ -50,7 +50,7 @@ class GoogleController extends Controller
                     return redirect('/login')->with('error', 'No se encontró el rol Cliente en la base de datos.');
                 }
 
-                $user = Tbuser::create([
+                $user = User::create([
                     'full_name' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
                     'phone' => null,
