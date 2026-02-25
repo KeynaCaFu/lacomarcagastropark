@@ -340,21 +340,55 @@
         const successMsg = @json(session('success'));
         const errorMsg = @json(session('error'));
         const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
-        if (window.swAlert) {
-            if (successMsg) {
-                swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
-            }
-            if (errorMsg) {
-                swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
-            }
-            if (hasErrors) {
-                swAlert({
-                    icon: 'error',
-                    title: 'Errores de validación',
-                    html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
-                    confirmButtonColor: '#dc2626'
-                });
-            }
+        
+        // Handle success messages with retry logic
+        if (successMsg) {
+            let retries = 0;
+            const checkAndShowToast = () => {
+                if (window.swToast) {
+                    swToast.fire({ 
+                        icon: 'success', 
+                        title: successMsg
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(checkAndShowToast, 100);
+                }
+            };
+            setTimeout(checkAndShowToast, 100);
+        }
+        
+        // Handle error messages with retry logic
+        if (errorMsg) {
+            let retries = 0;
+            const checkAndShowError = () => {
+                if (window.swAlert) {
+                    swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(checkAndShowError, 100);
+                }
+            };
+            setTimeout(checkAndShowError, 100);
+        }
+        
+        // Handle validation errors with retry logic
+        if (hasErrors) {
+            let retries = 0;
+            const checkAndShowErrors = () => {
+                if (window.swAlert) {
+                    swAlert({
+                        icon: 'error',
+                        title: 'Errores de validación',
+                        html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+                        confirmButtonColor: '#dc2626'
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(checkAndShowErrors, 100);
+                }
+            };
+            setTimeout(checkAndShowErrors, 100);
         }
     } catch(e) { /* noop */ }
 })();

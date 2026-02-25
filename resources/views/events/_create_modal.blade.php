@@ -81,25 +81,50 @@
         const successMsg = @json(session('success'));
         const errorMsg = @json(session('error'));
         const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
-        if (window.swAlert) {
-            if (successMsg) swAlert({ 
-                width: '100%',
-                padding: 0,
-                backdrop: `rgba(0,0,0,.40)`,
-                customClass: { popup: 'sw-success-shell' },
-                html: `
-                    <div style="display:flex; align-items:center; justify-content:center; padding:28px 12px;">
-                        <div class="sw-success-panel">
-                            <div class="sw-success-icon">✔</div>
-                            <div class="sw-success-text">` + successMsg + `</div>
-                        </div>
-                    </div>
-                `,
-                showConfirmButton: false,
-                timer: 1700
-            });
-            if (errorMsg) swAlert({ icon: 'error', title: 'Error', text: errorMsg });
-            if (hasErrors) swAlert({ icon: 'error', title: 'Errores de validación', html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>` });
+        
+        // Handle success messages with retry logic
+        if (successMsg) {
+            let retries = 0;
+            const checkAndShowToast = () => {
+                if (window.swToast) {
+                    swToast.fire({ 
+                        icon: 'success',
+                        title: successMsg
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(checkAndShowToast, 100);
+                }
+            };
+            setTimeout(checkAndShowToast, 100);
+        }
+        
+        // Handle error messages with retry logic
+        if (errorMsg) {
+            let retries = 0;
+            const checkAndShowError = () => {
+                if (window.swAlert) {
+                    swAlert({ icon: 'error', title: 'Error', text: errorMsg });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(checkAndShowError, 100);
+                }
+            };
+            setTimeout(checkAndShowError, 100);
+        }
+        
+        // Handle validation errors with retry logic
+        if (hasErrors) {
+            let retries = 0;
+            const checkAndShowErrors = () => {
+                if (window.swAlert) {
+                    swAlert({ icon: 'error', title: 'Errores de validación', html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>` });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(checkAndShowErrors, 100);
+                }
+            };
+            setTimeout(checkAndShowErrors, 100);
         }
     } catch(e) { /* noop */ }
 })();

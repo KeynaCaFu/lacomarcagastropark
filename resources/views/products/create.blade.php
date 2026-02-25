@@ -288,8 +288,21 @@
     // Mostrar alertas de éxito desde sesión (si existen)
     document.addEventListener('DOMContentLoaded', function(){
         const successMsg = @json(session('success'));
-        if (successMsg && window.swAlert) {
-            swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
+        if (successMsg) {
+            // Esperar a que swToast esté disponible
+            let retries = 0;
+            const checkAndShowToast = () => {
+                if (window.swToast) {
+                    swToast.fire({ 
+                        icon: 'success', 
+                        title: successMsg
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(checkAndShowToast, 100);
+                }
+            };
+            setTimeout(checkAndShowToast, 100);
         }
 
         const errorMsg = @json(session('error'));

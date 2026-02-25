@@ -109,20 +109,22 @@
                     </div>
                 </div>
 
-                <!-- Alertas de Bootstrap/Laravel -->
-                @if(session('success'))
+                <!-- Alertas de Bootstrap/Laravel - Comentadas para usar SweetAlert Toasts en su lugar -->
+                {{-- Success messages are now handled by SweetAlert toasts in each view --}}
+                {{-- @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         <i class="fas fa-check-circle"></i> {{ session('success') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                @endif
+                @endif --}}
 
-                @if(session('error'))
+                {{-- Error messages are handled by SweetAlert in each view --}}
+                {{-- @if(session('error'))
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                @endif
+                @endif --}}
 
                 @if($errors->any())
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -193,6 +195,40 @@
                 }
                 return exec();
             };
+
+            // Toast para notificaciones pequeñas en la esquina superior derecha
+            // Esperar a que Swal esté disponible antes de crear el mixin
+            const initSwToast = () => {
+                if (typeof Swal !== 'undefined' && !window.swToast) {
+                    window.swToast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 7000,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer);
+                            toast.addEventListener('mouseleave', Swal.resumeTimer);
+                        }
+                    });
+                }
+            };
+
+            // Intentar inicializar inmediatamente
+            initSwToast();
+
+            // Si falla, intentar en intervalos hasta que Swal esté disponible
+            if (typeof Swal === 'undefined') {
+                const checkInterval = setInterval(() => {
+                    if (typeof Swal !== 'undefined') {
+                        initSwToast();
+                        clearInterval(checkInterval);
+                    }
+                }, 100);
+
+                // Limpiar después de 5 segundos si aún no está disponible
+                setTimeout(() => clearInterval(checkInterval), 5000);
+            }
 
             // Notificación simple reutilizable (éxito/error/info)
             window.showNotification = function(type, message) {

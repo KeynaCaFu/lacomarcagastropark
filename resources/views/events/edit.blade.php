@@ -105,29 +105,50 @@
 
     // Éxito tras actualizar
     @if(session('ok') === 'saved')
-    if (window.swAlert) swAlert({
-      width: '100%',
-      padding: 0,
-      backdrop: `rgba(0,0,0,.40)`,
-      customClass: { popup: 'sw-success-shell' },
-      html: `
-        <div style="display:flex; align-items:center; justify-content:center; padding:28px 12px;">
-          <div class="sw-success-panel">
-            <div class="sw-success-icon">✔</div>
-            <div class="sw-success-text">Evento actualizado con éxito</div>
-          </div>
-        </div>
-      `,
-      showConfirmButton:false,
-      timer:1700
-    });
+    (() => {
+        let retries = 0;
+        const checkAndShowSuccess = () => {
+            if (window.swToast) {
+                swToast.fire({
+                    icon: 'success',
+                    title: 'Evento actualizado con éxito'
+                });
+            } else if (retries < 50) {
+                retries++;
+                setTimeout(checkAndShowSuccess, 100);
+            }
+        };
+        setTimeout(checkAndShowSuccess, 100);
+    })();
     @endif
 
     // Errores desde backend
     @if ($errors->any())
-    if (window.swAlert) swAlert({ title: 'Errores de validación', html: `{!! implode('<br>', $errors->all()) !!}`, icon: 'error', customClass: { popup: 'sw-rounded' } });
+    (() => {
+        let retries = 0;
+        const checkAndShowErrors = () => {
+            if (window.swAlert) {
+                swAlert({ title: 'Errores de validación', html: `{!! implode('<br>', $errors->all()) !!}`, icon: 'error', customClass: { popup: 'sw-rounded' } });
+            } else if (retries < 50) {
+                retries++;
+                setTimeout(checkAndShowErrors, 100);
+            }
+        };
+        setTimeout(checkAndShowErrors, 100);
+    })();
     @elseif (session('error'))
-    if (window.swAlert) swAlert({ title: 'No se pudo actualizar', html: @json(session('error')), icon: 'error', customClass: { popup: 'sw-rounded' } });
+    (() => {
+        let retries = 0;
+        const checkAndShowError = () => {
+            if (window.swAlert) {
+                swAlert({ title: 'No se pudo actualizar', html: @json(session('error')), icon: 'error', customClass: { popup: 'sw-rounded' } });
+            } else if (retries < 50) {
+                retries++;
+                setTimeout(checkAndShowError, 100);
+            }
+        };
+        setTimeout(checkAndShowError, 100);
+    })();
     @endif
   </script>
 @endsection

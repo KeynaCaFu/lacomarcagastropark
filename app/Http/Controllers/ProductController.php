@@ -8,6 +8,7 @@ use App\Data\ProductGalleryData;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -181,7 +182,7 @@ class ProductController extends Controller
             $local = $user->locals()->first();
             if ($local) {
                 // Crear relación en tblocal_product
-                \DB::table('tblocal_product')->insert([
+                DB::table('tblocal_product')->insert([
                     'local_id' => $local->local_id,
                     'product_id' => $product->product_id,
                     'price' => $validated['precio'],
@@ -287,7 +288,7 @@ class ProductController extends Controller
         if ($user->isAdminLocal()) {
             $local = $user->locals()->first();
             if ($local) {
-                \DB::table('tblocal_product')
+                DB::table('tblocal_product')
                     ->where('local_id', $local->local_id)
                     ->where('product_id', $id)
                     ->update([
@@ -305,7 +306,7 @@ class ProductController extends Controller
             ]);
         }
 
-        return redirect()->route('products.show', $id)
+        return redirect()->route('products.index')
             ->with('success', '✓ Producto actualizado exitosamente');
     }
 

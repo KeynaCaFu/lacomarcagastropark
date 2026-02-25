@@ -461,21 +461,55 @@
         const successMsg = @json(session('success'));
         const errorMsg = @json(session('error'));
         const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
-        if (window.swAlert) {
-            if (successMsg) {
-                swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
-            }
-            if (errorMsg) {
-                swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
-            }
-            if (hasErrors) {
-                swAlert({
-                    icon: 'error',
-                    title: 'Errores de validación',
-                    html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
-                    confirmButtonColor: '#dc2626'
-                });
-            }
+        
+        // Handle success messages with retry logic for async loading
+        if (successMsg) {
+            let retries = 0;
+            const checkAndShowToast = () => {
+                if (window.swToast) {
+                    swToast.fire({ 
+                        icon: 'success', 
+                        title: successMsg
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(checkAndShowToast, 100);
+                }
+            };
+            setTimeout(checkAndShowToast, 100);
+        }
+        
+        // Handle error messages with retry logic
+        if (errorMsg) {
+            let retries = 0;
+            const checkAndShowAlert = () => {
+                if (window.swAlert) {
+                    swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(checkAndShowAlert, 100);
+                }
+            };
+            setTimeout(checkAndShowAlert, 100);
+        }
+        
+        // Handle validation errors with retry logic
+        if (hasErrors) {
+            let retries = 0;
+            const checkAndShowErrors = () => {
+                if (window.swAlert) {
+                    swAlert({
+                        icon: 'error',
+                        title: 'Errores de validación',
+                        html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+                        confirmButtonColor: '#dc2626'
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(checkAndShowErrors, 100);
+                }
+            };
+            setTimeout(checkAndShowErrors, 100);
         }
     });
 </script>
@@ -578,7 +612,10 @@
                                             throw new Error(msg);
                                         }
                                         await loadUsers(currentPage);
-                                        swAlert({ icon: 'success', title: 'Éxito', text: 'Usuario eliminado correctamente' });
+                                        swToast.fire({ 
+                                            icon: 'success', 
+                                            title: 'Usuario eliminado correctamente'
+                                        });
                                     } catch(err) {
                                         swAlert({ icon: 'error', title: 'Error', text: err.message || 'No se pudo eliminar el usuario', confirmButtonColor: '#dc2626' });
                                     }
@@ -731,9 +768,20 @@
                     
                     window.userModals.closeModal('userCreateModal');
                     loadUsers(1);
-                    if (window.swAlert) {
-                        swAlert({ icon: 'success', title: 'Éxito', text: 'Usuario creado correctamente' });
-                    }
+                    // Show success toast with retry logic
+                    let retries = 0;
+                    const checkAndShowSuccess = () => {
+                        if (window.swToast) {
+                            swToast.fire({ 
+                                icon: 'success', 
+                                title: 'Usuario creado correctamente'
+                            });
+                        } else if (retries < 50) {
+                            retries++;
+                            setTimeout(checkAndShowSuccess, 100);
+                        }
+                    };
+                    setTimeout(checkAndShowSuccess, 100);
                 } catch(error) {
                     window.userModals.handleValidationErrors(error, this);
                     submitBtn.disabled = false;
@@ -793,9 +841,20 @@
                         }
                         window.userModals.closeModal('userEditModal');
                         await loadUsers(currentPage);
-                        if (window.swAlert) {
-                            swAlert({ icon: 'success', title: 'Éxito', text: 'Usuario actualizado correctamente' });
-                        }
+                        // Show success toast with retry logic
+                        let retries = 0;
+                        const checkAndShowSuccess = () => {
+                            if (window.swToast) {
+                                swToast.fire({ 
+                                    icon: 'success', 
+                                    title: 'Usuario actualizado correctamente'
+                                });
+                            } else if (retries < 50) {
+                                retries++;
+                                setTimeout(checkAndShowSuccess, 100);
+                            }
+                        };
+                        setTimeout(checkAndShowSuccess, 100);
                     } catch(error) {
                         // Mostrar errores de validación en el formulario
                         window.userModals && window.userModals.handleValidationErrors && window.userModals.handleValidationErrors(error, this);

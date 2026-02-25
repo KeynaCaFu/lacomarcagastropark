@@ -148,21 +148,24 @@
       }
     }
 
-    return swAlert({
-      width: '100%',
-      padding: 0,
-      backdrop: `rgba(0,0,0,.40)`,
-      customClass: { popup: 'sw-success-shell' },
-      html: `
-        <div style="display:flex; align-items:center; justify-content:center; padding:28px 12px;">
-          <div class="sw-success-panel">
-            <div class="sw-success-icon">✔</div>
-            <div class="sw-success-text">Evento registrado exitosamente</div>
-          </div>
-        </div>
-      `,
-      showConfirmButton:false,
-      timer: 1600
+    // Use retry logic to ensure swToast is available
+    return new Promise((resolve) => {
+      let retries = 0;
+      const checkAndShowToast = () => {
+        if (window.swToast) {
+          swToast.fire({
+            icon: 'success',
+            title: 'Evento registrado exitosamente'
+          });
+          resolve();
+        } else if (retries < 50) {
+          retries++;
+          setTimeout(checkAndShowToast, 100);
+        } else {
+          resolve(); // Give up after 5 seconds
+        }
+      };
+      setTimeout(checkAndShowToast, 100);
     });
   }
 
@@ -211,23 +214,38 @@
     if (typeof window.showNotification === 'function'){
       try{ window.showNotification('success', 'Evento eliminado exitosamente'); return Promise.resolve(); }catch(e){}
     }
-    if (window.swAlert) return swAlert({
-      width: '100%',
-      padding: 0,
-      backdrop: `rgba(0,0,0,.40)`,
-      customClass: { popup: 'sw-success-shell' },
-      html: `
-        <div style="display:flex; align-items:center; justify-content:center; padding:28px 12px;">
-          <div class="sw-success-panel">
-            <div class="sw-success-icon">✔</div>
-            <div class="sw-success-text">Evento eliminado exitosamente</div>
-          </div>
-        </div>
-      `,
-      showConfirmButton:false,
-      timer: 1600
+    
+    // Use retry logic to ensure swAlert is available
+    return new Promise((resolve) => {
+      let retries = 0;
+      const checkAndShowAlert = () => {
+        if (window.swAlert) {
+          swAlert({
+            width: '100%',
+            padding: 0,
+            backdrop: `rgba(0,0,0,.40)`,
+            customClass: { popup: 'sw-success-shell' },
+            html: `
+              <div style="display:flex; align-items:center; justify-content:center; padding:28px 12px;">
+                <div class="sw-success-panel">
+                  <div class="sw-success-icon">✔</div>
+                  <div class="sw-success-text">Evento eliminado exitosamente</div>
+                </div>
+              </div>
+            `,
+            showConfirmButton:false,
+            timer: 3000
+          });
+          resolve();
+        } else if (retries < 50) {
+          retries++;
+          setTimeout(checkAndShowAlert, 100);
+        } else {
+          resolve();
+        }
+      };
+      setTimeout(checkAndShowAlert, 100);
     });
-    return Promise.resolve();
   }
 
   // Atar confirmación a cada botón eliminar
@@ -252,14 +270,6 @@
 
 {{-- ========= Mensajes desde el backend ========= --}}
 @if(session('ok') === 'saved' || session('success'))
-  <script> showSuccessSaved(); </script>
-@endif
-
-@if(session('ok') === 'deleted')
-  <script> showDeletedOK(); </script>
-@endif
-
-@if (session('ok') === 'saved' || session('success'))
   <script> showSuccessSaved(); </script>
 @endif
 

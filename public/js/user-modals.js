@@ -137,10 +137,20 @@ class UserModals {
                 
                 // Éxito
                 window.userModals.closeModal('userEditModal');
-                if (window.swAlert) {
-                    await swAlert({ icon: 'success', title: 'Éxito', text: 'Usuario actualizado correctamente' });
-                }
-                window.location.reload();
+                let retries = 0;
+                const checkAndShowSuccess = () => {
+                    if (window.swToast) {
+                        swToast.fire({
+                            icon: 'success',
+                            title: 'Usuario actualizado correctamente'
+                        });
+                        window.location.reload();
+                    } else if (retries < 50) {
+                        retries++;
+                        setTimeout(checkAndShowSuccess, 100);
+                    }
+                };
+                setTimeout(checkAndShowSuccess, 100);
             } catch(error){
                 window.userModals.handleValidationErrors(error, form);
                 submitBtn.disabled = false;

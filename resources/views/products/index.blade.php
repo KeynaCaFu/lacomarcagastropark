@@ -218,8 +218,20 @@
 
         // Mostrar alertas de éxito desde sesión (si existen)
         const successMsg = @json(session('success'));
-        if (successMsg && window.swAlert) {
-            swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
+        if (successMsg) {
+            let retries = 0;
+            const checkAndShowToast = () => {
+                if (window.swToast) {
+                    swToast.fire({ 
+                        icon: 'success', 
+                        title: successMsg
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(checkAndShowToast, 100);
+                }
+            };
+            setTimeout(checkAndShowToast, 100);
         }
 
         // Mostrar alertas de error desde sesión (si existen)
