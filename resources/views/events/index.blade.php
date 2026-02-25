@@ -292,7 +292,6 @@
   </script>
 @endif
 
-{{-- ======= Parche de separación de acciones (solo aquí) ======= --}}
 <style>
   .event-actions{
     display:flex;

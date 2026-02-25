@@ -284,19 +284,3 @@
             window.proveedorFilters.setupCollapseIcon();
         }
     });
-
-
-// Inicializar cuando se carga la página
-document.addEventListener('DOMContentLoaded', function() {
-    // Pequeña espera para asegurar que todo esté cargado
-    setTimeout(() => {
-        window.proveedorFilters = new ProveedorFilters();
-    }, 100);
-});
-
-// Reinicializar al redimensionar ventana para responsive
-window.addEventListener('resize', function() {
-    if (window.proveedorFilters) {
-        window.proveedorFilters.setupCollapseIcon();
-    }
-});

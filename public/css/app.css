@@ -955,3 +955,589 @@ tr:hover {
 .btn-help:active {
     transform: translateY(0);
 }
+
+/* ========================================
+   ESTILOS DEL DASHBOARD (app.blade.php)
+   ======================================== */
+
+#sidebarToggleBtn {
+    color: #ff9900 !important;
+    transition: all 0.3s ease !important;
+    background: #0C0C0E !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    width: 28px !important;
+    height: 28px !important;
+    position: absolute !important;
+    right: -14px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    border-radius: 3px !important;
+    z-index: 1041 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+    font-size: 0.9rem !important;
+}
+
+#sidebarToggleBtn:hover {
+    color: #ffb84d !important;
+    background: #915016 !important;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+#sidebarToggleBtn:focus {
+    outline: none !important;
+    color: #ff9900 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Dashboard Container y Estilos */
+.dash-container {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    padding: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ic-total {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.ic-active {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.ic-inactive {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.ic-upcoming {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.stat-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+}
+
+.stat-number {
+    font-size: 28px;
+    font-weight: 800;
+    color: #111827;
+}
+
+.quick-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+    gap: 12px;
+    margin: 8px 0 20px;
+}
+
+.quick-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-decoration: none;
+    color: #111827;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.quick-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+}
+
+.quick-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qi-users {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.qi-stores {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+
+.qi-events {
+    background: #ffe4e6;
+    color: #be123c;
+}
+
+.qi-new {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.quick-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.quick-title {
+    font-weight: 700;
+}
+
+.quick-hint {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 992px) {
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========================================
+   DRAWER/SIDEBAR STYLES (app.blade.php)
+   ======================================== */
+
+.drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
+    background: #0C0C0E;
+    color: #fff;
+    /* En escritorio/tablet el sidebar está visible por defecto */
+    transform: translateX(0);
+    transition: transform 0.3s ease, width 0.3s ease;
+    z-index: 1100;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.3);
+    padding-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    overflow: visible !important;
+}
+
+.drawer.open {
+    transform: translateX(0);
+}
+
+.drawer.collapsed {
+    width: 100px;
+}
+
+.drawer:not(.collapsed) {
+    width: 320px;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    position: relative;
+    justify-content: center;
+}
+
+.brand-logo {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    transition: all 0.3s ease;
+}
+
+.drawer.collapsed .brand-logo {
+    width: 50px;
+    height: 50px;
+}
+
+.drawer:not(.collapsed) .brand-logo {
+    width: 50px;
+    height: 105px;
+    padding: -21px;
+}
+
+.brand-text {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    transition: opacity 0.3s ease;
+    display: none;
+}
+
+.drawer.collapsed .brand-text {
+    display: none;
+}
+
+.drawer:not(.collapsed) .brand-text {
+    display: inline;
+}
+
+/* Sidebar Menu */
+.sidebar-menu {
+    padding: 1rem;
+    flex: 1;
+    overflow-y: auto;
+    transition: padding 0.3s ease;
+}
+
+.sidebar-menu ul {
+    list-style: none;
+}
+
+.sidebar-menu li {
+    margin-bottom: 17px;
+    transition: margin-bottom 0.3s ease;
+}
+
+.sidebar-menu a {
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 10px 15px;
+    color: #fff;
+    text-decoration: none;
+}
+
+.sidebar-menu a:hover,
+.sidebar-menu a.active {
+    background-color: #915016;
+    border-left: 4px solid #915016;
+}
+
+.sidebar-menu i {
+    margin-right: 10px;
+    transition: all 0.3s ease;
+}
+
+/* Estado colapsado */
+.drawer.collapsed .sidebar-menu a {
+    padding: 15px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.drawer:not(.collapsed) .sidebar-menu a {
+    display: flex;
+    padding: 10px 20px;
+    font-size: inherit;
+}
+
+.drawer.collapsed .sidebar-menu a i {
+    margin-right: 0;
+    font-size: 1.5rem;
+}
+
+/* Tooltips para estado colapsado */
+/* Cuando el sidebar está colapsado, mostramos tooltip naranja a la derecha */
+.drawer.collapsed .sidebar-menu {
+    overflow: visible !important;
+}
+
+.drawer.collapsed .sidebar-menu a::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #ff9900;
+    color: #0C0C0E;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    margin-left: 12px;
+    z-index: 2000;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.drawer.collapsed .sidebar-menu a:hover::after {
+    opacity: 1;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    position: relative;
+    padding: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin-top: auto;
+    transition: padding 0.3s ease;
+    overflow: visible !important;
+}
+
+.drawer.collapsed .sidebar-footer {
+    padding: 1rem 0.5rem;
+    overflow: visible !important;
+}
+
+.drawer:not(.collapsed) .sidebar-footer {
+    padding: 1rem;
+}
+
+/* Admin Info */
+.admin-info {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.admin-info:hover {
+    background-color: rgba(145, 80, 22, 0.5);
+    color: rgba(255, 255, 255, 1);
+}
+
+.admin-info i {
+    color: rgba(255, 255, 255, 0.8);
+    transition: color 0.3s ease;
+    font-size: 1.5rem;
+}
+
+.admin-info:hover i {
+    color: #915016;
+}
+
+.admin-info span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+}
+
+.drawer.collapsed .admin-info {
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem;
+    flex: 1;
+}
+
+.admin-info-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.admin-info-container .admin-info {
+    flex: 1;
+}
+
+.admin-menu-toggle {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ff9900;
+    border-radius: 6px;
+    padding: 0.5rem;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.admin-menu-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffb84d;
+}
+
+.admin-menu-toggle i {
+    transition: transform 0.3s ease;
+    font-size: 0.85rem;
+}
+
+.admin-menu-toggle[aria-expanded="true"] i {
+    transform: rotate(180deg);
+}
+
+.drawer.collapsed .admin-info span {
+    display: none;
+}
+
+.drawer:not(.collapsed) .admin-info span {
+    display: inline;
+}
+
+/* Admin Hover Wrapper */
+.admin-hover-wrapper {
+    position: relative;
+    display: block;
+}
+
+.admin-hover-menu {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: #ffffff;
+    color: #1f2937;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+    border-radius: 10px;
+    padding: 0.75rem 0.5rem;
+    min-width: 180px;
+    display: none !important;
+    z-index: 1051;
+    margin-bottom: 10px;
+}
+
+.drawer.collapsed .admin-hover-menu {
+    position: absolute !important;
+    left: auto !important;
+    right: -220px !important;
+    bottom: 0 !important;
+    top: auto !important;
+    transform: none !important;
+    margin-bottom: 0 !important;
+    min-width: 200px !important;
+}
+
+.admin-hover-menu.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .35rem .5rem;
+    border-radius: 6px;
+    color: #1f2937;
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background: #f3f4f6;
+    outline: none;
+}
+
+/* Main Content */
+#mainContent {
+    width: 100%;
+    position: relative;
+    z-index: 0;
+    transition: margin-left 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Sidebar más estrecho en tablets/móviles hasta 992px */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 180px;
+        min-width: 80px;
+        max-width: 220px;
+        padding: 4px 0;
+        padding-bottom: 4px;
+    }
+}
+
+/* Layout adjustments */
+@media (min-width: 1024px) {
+    #mainContent {
+        margin-left: 320px;
+    }
+    
+    body.sidebar-collapsed #mainContent {
+        margin-left: 100px;
+    }
+}
+
+@media (max-width: 1023.98px) {
+    #mainContent {
+        margin-left: 0;
+    }
+
+    /* En móviles el sidebar actúa como drawer cerrado por defecto */
+    .drawer {
+        transform: translateX(-100%);
+    }
+}
+
+/* Header */
+.header {
+    position: relative;
+    z-index: 1050;
+}
+
+/* Backdrop cuando drawer está abierto */
+@media (max-width: 1023.98px) {
+    body.sidebar-open::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.35);
+        z-index: 1030;
+    }
+}

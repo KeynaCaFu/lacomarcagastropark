@@ -2,67 +2,12 @@
 
 @section('title', 'Editar Producto')
 
+@push('styles')
+    <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
 <div style="padding: 0 15px;">
-<style>
-    .page-wrapper {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        padding: 24px;
-        width: 100%;
-    }
-
-    .form-container {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        width: 100%;
-        max-width: 700px;
-        margin: 0 auto;
-    }
-
-    .form-header {
-        margin-bottom: 24px;
-        text-align: left;
-        margin-left: 0;
-        margin-right: auto;
-    }
-
-    .form-header h2 {
-        margin: 0;
-        color: #1f2937;
-        font-weight: 700;
-        font-size: 17px;
-    }
-
-    .form-header .accent-line {
-        height: 4px;
-        width: 120px;
-        background: #f59e0b;
-        border-radius: 2px;
-        margin-top: 8px;
-    }
-
-    .form-header .subtitle {
-        display: block;
-        margin-top: 4px;
-        color: #6b7280;
-        font-size: 14px;
-    }
-
-    .card-header-custom {
-        background: #f8fafc;
-        border-bottom: 1px solid #e5e7eb;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
-        padding: 16px 20px;
-    }
-
-    .card-body-custom {
-        padding: 24px;
-    }
-</style>
 
 <div class="page-wrapper">
     <!-- Header -->
