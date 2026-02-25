@@ -141,13 +141,20 @@ class EventoModals {
         });
     }
 
-    closeModal(id){ const modal = document.getElementById(id); if(!modal) return; modal.style.display='none'; document.body.style.overflow='auto'; }
+    closeModal(id){ 
+        const modal = document.getElementById(id); 
+        if(!modal) return; 
+        modal.style.display='none'; 
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow='auto'; 
+    }
 
-    
     openCreateModal(){
         const modal = document.getElementById('createModal');
         if(!modal) return;
-    modal.style.display = 'flex';
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
     }
 }

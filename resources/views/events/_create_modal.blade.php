@@ -1,49 +1,56 @@
 
-<div id="createModal" class="custom-modal" style="display:none;">
-    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="createTitle">
-        <div class="modal-header">
-            <h3 id="createTitle"><i class="fas fa-plus"></i> Agregar Nuevo Evento</h3>
-            <button type="button" class="close" aria-label="Cerrar" onclick="closeModal('createModal')">&times;</button>
-        </div>
+<div id="createModal" class="sage-modal" aria-hidden="true" style="z-index:9997;">
+    <div class="modal-backdrop" style="background:rgba(0,0,0,0.5); backdrop-filter: blur(3px); z-index:9997;">
+        <div class="modal-card" style="max-width: 740px; width:90%; z-index:9998; background:#fdfdfc;" role="dialog" aria-modal="true">
+            <div class="modal-header" style="background:#faf9f6;">
+                <h3 class="modal-title"><i class="fas fa-plus"></i> Agregar Nuevo Evento</h3>
+                <a href="javascript:void(0)" class="modal-close" aria-label="Cerrar" onclick="closeModal('createModal')">×</a>
+            </div>
 
-        <div class="modal-body">
             <form id="formCreate" action="{{ route('eventos.guardar') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <div class="form-grid2">
-                    <div>
-                        <label class="label">Nombre del Evento *</label>
-                        <input class="field" name="title" required placeholder="Ej. Noche de Tapas" value="{{ old('title') }}">
 
-                        <label class="label">Fecha *</label>
-                        <input type="date" class="field" name="date" required value="{{ old('date') }}">
+                <div class="modal-body">
+                    <div class="form-grid2">
+                        <div>
+                            <label class="label">Nombre del Evento *</label>
+                            <input class="field" name="title" required placeholder="Ej. Noche de Tapas" value="{{ old('title') }}">
 
-                        <label class="label">Hora *</label>
-                        <input type="time" class="field" name="time" required value="{{ old('time') }}">
+                            <label class="label">Fecha *</label>
+                            <input type="date" class="field" name="date" required value="{{ old('date') }}">
+
+                            <label class="label">Hora *</label>
+                            <input type="time" class="field" name="time" required value="{{ old('time') }}">
+                        </div>
+
+                        <div>
+                            <label class="label">Imagen (archivo opcional)</label>
+                            <input type="file" class="field" name="photo" id="photoInputCreate" accept="image/*">
+                            <div style="color:#6f7a71; font-size:14px; margin-top:6px;">Formatos: JPG, PNG. Máx: 2MB</div>
+
+                            <label class="label" style="margin-top:12px;">Estado *</label>
+                            <select class="field" name="status" required>
+                                <option value="" disabled {{ old('status') ? '' : 'selected' }}>Seleccione un estado</option>
+                                <option value="activo"   {{ old('status')==='activo' ? 'selected':'' }}>Activo</option>
+                                <option value="inactivo" {{ old('status')==='inactivo' ? 'selected':'' }}>Inactivo</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="label">Imagen (archivo opcional)</label>
-                        <input type="file" class="field" name="photo" accept="image/*">
-                        <div style="color:#6f7a71; font-size:14px; margin-top:6px;">Formatos: JPG, PNG. Máx: 2MB</div>
+                    <label class="label" style="margin-top:10px;">Ubicación (opcional)</label>
+                    <input class="field" name="location" placeholder="Ej. Plaza central" value="{{ old('location') }}">
 
-                        <label class="label">Estado *</label>
-                        <select class="field" name="status" required>
-                            <option value="" disabled {{ old('status') ? '' : 'selected' }}>Seleccione un estado</option>
-                            <option value="activo"   {{ old('status')==='activo' ? 'selected':'' }}>Activo</option>
-                            <option value="inactivo" {{ old('status')==='inactivo' ? 'selected':'' }}>Inactivo</option>
-                        </select>
-                    </div>
+                    <label class="label" style="margin-top:10px;">Descripción *</label>
+                    <textarea name="description" class="field" style="min-height:100px; resize:vertical;" required placeholder="Describe el evento...">{{ old('description') }}</textarea>
                 </div>
 
-                <label class="label" style="margin-top:10px;">Ubicación (opcional)</label>
-                <input class="field" name="location" placeholder="Ej. Plaza central" value="{{ old('location') }}">
-
-                <label class="label" style="margin-top:10px;">Descripción *</label>
-                <textarea name="description" class="field textarea" required placeholder="Describe el evento...">{{ old('description') }}</textarea>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('createModal')">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar Evento</button>
+                <div class="modal-footer" style="background:#faf9f6;">
+                    <button type="button" class="btn-modal-cancel" onclick="closeModal('createModal')">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-modal-save">
+                        Guardar Evento
+                    </button>
                 </div>
             </form>
         </div>
@@ -59,11 +66,11 @@
             e.preventDefault();
             if (window.swConfirm) {
                 swConfirm({
-                    html: '<div class="swal-title-like">¿Estas seguro de Guardar el Evento?</div>',
+                    html: '<div class="swal-title-like">¿Estás seguro de guardar el evento?</div>',
                     confirmButtonText: 'Sí, guardar',
                     cancelButtonText: 'Cancelar'
                 }).then(r => { if (r.isConfirmed) form.submit(); });
-            } else if (confirm('¿Estas seguro de Guardar el Evento?')) {
+            } else if (confirm('¿Estás seguro de guardar el evento?')) {
                 form.submit();
             }
         });
@@ -75,9 +82,24 @@
         const errorMsg = @json(session('error'));
         const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
         if (window.swAlert) {
-            if (successMsg) swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
-            if (errorMsg)   swAlert({ icon: 'error', title: 'Error', text: errorMsg });
-            if (hasErrors)  swAlert({ icon: 'error', title: 'Errores de validación', html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>` });
+            if (successMsg) swAlert({ 
+                width: '100%',
+                padding: 0,
+                backdrop: `rgba(0,0,0,.40)`,
+                customClass: { popup: 'sw-success-shell' },
+                html: `
+                    <div style="display:flex; align-items:center; justify-content:center; padding:28px 12px;">
+                        <div class="sw-success-panel">
+                            <div class="sw-success-icon">✔</div>
+                            <div class="sw-success-text">` + successMsg + `</div>
+                        </div>
+                    </div>
+                `,
+                showConfirmButton: false,
+                timer: 1700
+            });
+            if (errorMsg) swAlert({ icon: 'error', title: 'Error', text: errorMsg });
+            if (hasErrors) swAlert({ icon: 'error', title: 'Errores de validación', html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>` });
         }
     } catch(e) { /* noop */ }
 })();

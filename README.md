@@ -1,66 +1,287 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🍽️ LaComarca GastroPark - Sistema de Gestión
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> **Sistema integral de gestión para restaurantes y locales gastronómicos**
 
-## About Laravel
+## 📌 Descripción General
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+LaComarca GastroPark es una plataforma web basada en **Laravel** diseñada para administrar de manera eficiente todos los aspectos de un restaurante o local gastronómico, incluyendo:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- 👥 **Gestión de Usuarios** - Administración de personal con roles diferenciados
+- 📅 **Gestión de Eventos** - Programación y promoción de eventos especiales
+- 📦 **Gestión de Productos** - Catálogo completo con galerías de fotos
+- 📊 **Dashboard Personalizado** - Vistas específicas según el rol del usuario
+- 🔐 **Control de Acceso** - Sistema de autenticación seguro con roles
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 🚀 Inicio Rápido
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Credenciales de Acceso Predeterminadas
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+#### 👨‍💼 Administrador
+- **Email:** `admin@gmail.com`
+- **Contraseña:** `admin`
+- **Acceso:** Completo al sistema
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+#### 🏪 Gerente de Local
+- **Email:** `leskas@gmail.com`
+- **Contraseña:** `local`
+- **Acceso:** Productos, eventos y dashboard del local
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+## 📚 Documentación Completa
 
-### Premium Partners
+Toda la documentación está organizada en la carpeta `/docs`:
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+### Para Comenzar
+1. **[Inicio de Sesión](docs/01-inicio-sesion.md)** - Cómo acceder al sistema
 
-## Contributing
+### Para Administradores
+2. **[Dashboard del Administrador](docs/02-admin-dashboard.md)** - Visión general de controles
+3. **[Gestionar Usuarios](docs/03-gestionar-usuarios.md)** - Crear, editar y eliminar usuarios
+4. **[Gestionar Eventos](docs/04-gestionar-eventos.md)** - Crear y promocionar eventos
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Para Gerentes de Local
+5. **[Dashboard del Gerente](docs/05-gerente-dashboard.md)** - Visión del local
+6. **[Gestionar Productos](docs/06-gestionar-productos.md)** - Catálogo completo con fotos
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 🎯 Funcionalidades Principales
 
-## Security Vulnerabilities
+### 👥 Gestión de Usuarios (Admin)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+✅ **Crear nuevos usuarios** con diferentes roles  
+✅ **Editar información** de usuarios existentes  
+✅ **Eliminar usuarios** de forma segura  
+✅ **Cambiar estado** de usuarios (Activo/Inactivo)  
+✅ **Asignar roles** con permisos específicos  
 
-## License
+### 📅 Gestión de Eventos (Admin)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+✅ **Crear eventos especiales** con imagen, fecha y descripción  
+✅ **Editar eventos** en cualquier momento  
+✅ **Subir fotos** del evento  
+✅ **Cambiar estado** (Activo/Inactivo)  
+✅ **Eliminar eventos** de forma segura  
+✅ **Filtrar por fecha** o nombre  
+
+### 📦 Gestión de Productos (Gerente)
+
+✅ **Registrar productos** con detalles completos  
+✅ **Editar información** de precios y descripciones  
+✅ **Gestionar galería de fotos** (múltiples imágenes)  
+✅ **Establecer foto principal** para cada producto  
+✅ **Cambiar estado** (Disponible/No disponible)  
+✅ **Categorizar productos** automáticamente  
+✅ **Filtrar y buscar** rápidamente  
+
+### 📊 Dashboard Personalizado
+
+✅ **Estadísticas en tiempo real** según el rol  
+✅ **Enlaces rápidos** a funciones principales  
+✅ **Vista general del local**  
+✅ **Información de inventario**  
+
+---
+
+## 🛠️ Stack Tecnológico
+
+- **Backend:** Laravel 11+
+- **Frontend:** Blade, Bootstrap 5.1.3, TailwindCSS
+- **Base de Datos:** MySQL
+- **JavaScript:** Vanilla JS, SweetAlert2
+- **Iconos:** Font Awesome 6.0.0
+
+---
+
+## 📋 Requisitos del Sistema
+
+- PHP 8.1 o superior
+- MySQL 5.7 o superior
+- Composer
+- Node.js (para compilar assets)
+
+---
+
+## ⚙️ Instalación
+
+### 1. Clonar el Repositorio
+```bash
+git clone <url-del-repositorio>
+cd lacomarcagastropark
+```
+
+### 2. Instalar Dependencias
+```bash
+composer install
+npm install
+```
+
+### 3. Configurar Ambiente
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+### 4. Configurar Base de Datos
+```bash
+# Editar .env con tus credenciales MySQL
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=lacomarca_db
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+### 5. Ejecutar Migraciones
+```bash
+php artisan migrate --seed
+```
+
+### 6. Compilar Assets
+```bash
+npm run dev
+```
+
+### 7. Iniciar Servidor
+```bash
+php artisan serve
+```
+
+Accede a `http://localhost:8000`
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+lacomarcagastropark/
+├── app/
+│   ├── Http/Controllers/
+│   ├── Models/
+│   └── Helpers/
+├── database/
+│   ├── migrations/
+│   └── seeders/
+├── public/
+│   ├── css/
+│   ├── js/
+│   └── images/
+├── resources/
+│   ├── views/
+│   │   ├── layouts/
+│   │   ├── events/
+│   │   ├── products/
+│   │   └── users/
+│   ├── js/
+│   └── css/
+├── routes/
+├── docs/          # Documentación
+├── storage/
+└── tests/
+```
+
+---
+
+## 🔐 Seguridad
+
+- ✅ Autenticación con Laravel Sanctum
+- ✅ Validación de datos en frontend y backend
+- ✅ Protección CSRF
+- ✅ Encriptación de contraseñas
+- ✅ Control de acceso basado en roles (RBAC)
+
+---
+
+## 🎓 Guías de Uso
+
+Para más información detallada sobre cómo usar cada módulo, consulta los siguientes documentos:
+
+- **[Guía de Inicio de Sesión](docs/01-inicio-sesion.md)** - Acceso al sistema
+- **[Guía del Admin - Dashboard](docs/02-admin-dashboard.md)** - Panel de control
+- **[Guía del Admin - Usuarios](docs/03-gestionar-usuarios.md)** - Crear y editar usuarios
+- **[Guía del Admin - Eventos](docs/04-gestionar-eventos.md)** - Crear y promocionar eventos
+- **[Guía del Gerente - Dashboard](docs/05-gerente-dashboard.md)** - Panel del gerente
+- **[Guía del Gerente - Productos](docs/06-gestionar-productos.md)** - Gestión completa de productos
+
+---
+
+## 🆘 Solución de Problemas
+
+### El sistema no carga correctamente
+1. Verifica que el servidor esté corriendo: `php artisan serve`
+2. Limpia caché: `php artisan cache:clear`
+3. Recompila assets: `npm run dev`
+
+### No puedo iniciar sesión
+1. Verifica las credenciales (mayúsculas/minúsculas)
+2. Ejecuta los seeders: `php artisan migrate --seed`
+3. Verifica que la base de datos esté activa
+
+### Las fotos no se suben
+1. Verifica permisos de la carpeta `storage/app/` (777)
+2. Verifica el tamaño máximo (2MB)
+3. Verifica formato (JPG, PNG)
+
+### Base de datos no funciona
+1. Verifica conexión MySQL
+2. Verifica credenciales en `.env`
+3. Ejecuta: `php artisan migrate --fresh --seed`
+
+---
+
+## 👥 Roles y Permisos
+
+### Administrador
+| Función | Permiso |
+|---------|---------|
+| Gestionar Usuarios | ✅ Completo |
+| Gestionar Eventos | ✅ Completo |
+| Gestionar Productos | ✅ Completo |
+| Ver Dashboard Global | ✅ |
+| Cambiar Configuración | ✅ |
+
+### Gerente de Local
+| Función | Permiso |
+|---------|---------|
+| Gestionar Usuarios | ❌ No |
+| Gestionar Eventos | 👁️ Solo ver |
+| Gestionar Productos | ✅ Completo |
+| Ver Dashboard Local | ✅ |
+| Cambiar Configuración | ❌ No |
+
+---
+
+## 📝 Notas de Desarrollo
+
+- Patrón MVC implementado en Laravel
+- Validación automática con Form Requests
+- Modelos Eloquent con relaciones
+- API RESTful para modales AJAX
+- Frontend moderno con Bootstrap 5 y Tailwind
+
+---
+
+## 📞 Soporte
+
+Para reportar problemas o sugerencias:
+1. Revisa la documentación en `/docs`
+2. Consulta la [Guía de Troubleshooting](#solución-de-problemas)
+3. Contacta al administrador del sistema
+
+---
+
+## 📄 Licencia
+
+Este proyecto es propietario de LaComarca GastroPark.
+
+---
+
+## 🎉 ¡Bienvenido a LaComarca!
+
+Gracias por usar nuestro sistema de gestión. Para comenzar, accede a la plataforma con tus credenciales y sigue las guías específicas para tu rol.
+
+**Inicio de sesión:** [docs/01-inicio-sesion.md](docs/01-inicio-sesion.md)
