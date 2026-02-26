@@ -36,6 +36,8 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('admin.dashboard');
         } elseif ($user->isAdminLocal()) {
             return redirect()->route('dashboard');
+        } elseif ($user->isClient()) {
+            return redirect()->route('client.welcome');
         }
 
         return redirect()->intended(RouteServiceProvider::HOME);

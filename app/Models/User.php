@@ -99,6 +99,20 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is client
+     */
+    public function isClient()
+    {
+        // Cargar la relación si no está cargada
+        if (!$this->relationLoaded('role')) {
+            $this->load('role');
+        }
+        
+        // Verificar por role_type
+        return $this->role && $this->role->role_type === 'Cliente';
+    }
+
+    /**
      * Check if user is active
      */
     public function isActive()

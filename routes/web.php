@@ -7,6 +7,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LocalDashboardController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\ClienteController;
 use Illuminate\Http\Request;
 
 /*
@@ -24,7 +25,13 @@ use Illuminate\Http\Request;
 // Home: redirige según sesión (login o dashboard correspondiente)
 Route::get('/', function () {
     if (auth()->check()) {
-        return redirect()->route(auth()->user()->isAdminGlobal() ? 'admin.dashboard' : 'dashboard');
+        $user = auth()->user();
+        if ($user->isAdminGlobal()) {
+            return redirect()->route('admin.dashboard');
+        } elseif ($user->isClient()) {
+            return redirect()->route('client.welcome');
+        }
+        return redirect()->route('dashboard');
     }
     return redirect()->route('login');
 })->name('home');
@@ -103,7 +110,12 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
     });
 });
 
-
+// ============================================================================
+// RUTAS PARA CLIENTE
+// ============================================================================
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/client-welcome', [ClienteController::class, 'index'])->name('client.welcome');
+});
 
 // Profile routes (authenticated users)
 Route::middleware('auth')->group(function () {
