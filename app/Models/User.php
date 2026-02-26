@@ -75,7 +75,13 @@ class User extends Authenticatable
      */
     public function isAdminGlobal()
     {
-        return $this->role_id === 1; // Administrator role
+        // Cargar la relación si no está cargada
+        if (!$this->relationLoaded('role')) {
+            $this->load('role');
+        }
+        
+        // Verificar por role_type en lugar de role_id hardcodeado
+        return $this->role && $this->role->role_type === 'Administrador';
     }
 
     /**
@@ -83,7 +89,13 @@ class User extends Authenticatable
      */
     public function isAdminLocal()
     {
-        return $this->role_id === 2; // Manager role
+        // Cargar la relación si no está cargada
+        if (!$this->relationLoaded('role')) {
+            $this->load('role');
+        }
+        
+        // Verificar por role_type en lugar de role_id hardcodeado
+        return $this->role && $this->role->role_type === 'Gerente';
     }
 
     /**

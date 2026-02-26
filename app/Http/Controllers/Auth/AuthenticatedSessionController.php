@@ -33,7 +33,7 @@ class AuthenticatedSessionController extends Controller
         $user = auth()->user();
         
         if ($user->isAdminGlobal()) {
-            return redirect()->route('eventos.index');
+            return redirect()->route('admin.dashboard');
         } elseif ($user->isAdminLocal()) {
             return redirect()->route('dashboard');
         }

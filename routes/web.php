@@ -40,31 +40,20 @@ Route::get('/entrar/admin/global', function () {
 
 // Dashboard - requires authentication
 Route::get('/dashboard', function () {
-    if (auth()->user()->isAdminGlobal()) {
-        return redirect()->route('eventos.index');
-    }
-    // For local managers, show the dashboard
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-
-// Dashboard - requires authentication
-Route::get('/dashboard', function () {
-    if (auth()->user()->isAdminGlobal()) {
+    $user = auth()->user();
+    
+    if ($user->isAdminGlobal()) {
         return redirect()->route('admin.dashboard');
     }
+    
+    // For local managers, show the dashboard
     return app(LocalDashboardController::class)->index(request());
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // RUTAS PARA ADMIN GLOBAL
 Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
     Route::get('/admin', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-    // ... (resto de rutas admin global si las quieres)
-});
-// ============================================================================
-// RUTAS PARA ADMIN GLOBAL (Administrador Principal)
-// ============================================================================
-Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
+
     // Usuarios
     Route::prefix('usuarios')->name('users.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
