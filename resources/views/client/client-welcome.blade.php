@@ -280,8 +280,17 @@
             margin-top: 25px;
         }
 
+        .perfil-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #e18018;
+            margin-bottom: 20px;
+        }
+
         .info-item {
-            padding: 15px;
+            padding: 2px;
             background: #f8f6f4;
             border-radius: 10px;
         }
@@ -491,7 +500,7 @@
     <header class="client-header">
         <div class="header-container">
             <div class="logo-section">
-                <img src="{{ asset('images/iconoblanco.png') }}" alt="La Comarca">
+                <img src="{{ asset('images/logo_comarca.png') }}" alt="La Comarca">
             </div>
             <div class="position-relative">
                 <button class="user-menu-btn" onclick="toggleUserMenu(event)">
@@ -499,7 +508,7 @@
                     {{ $user->full_name }}
                 </button>
                 <div class="user-dropdown" id="userDropdown">
-                    <a href="{{ route('profile.edit') }}">
+                    <a href="{{ route('client.profile.edit') }}">
                         <i class="fas fa-edit"></i> Editar perfil
                     </a>
                     <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
@@ -538,6 +547,10 @@
                     <div class="card-content">
                         <p>Información de tu cuenta</p>
                         
+                        @if($user->avatar)
+                            <img src="{{ $user->avatar }}" alt="Avatar" class="perfil-avatar">
+                        @endif
+                        
                         <div class="perfil-info">
                             <div class="info-item">
                                 <div class="info-label">Nombre</div>
@@ -559,7 +572,7 @@
                             </div>
                         </div>
                         
-                        <a href="{{ route('profile.edit') }}" class="edit-button">
+                        <a href="{{ route('client.profile.edit') }}" class="edit-button">
                             <i class="fas fa-edit"></i> Editar perfil
                         </a>
                     </div>

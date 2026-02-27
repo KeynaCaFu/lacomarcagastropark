@@ -32,6 +32,11 @@ class AuthenticatedSessionController extends Controller
         // Redirect based on user role
         $user = auth()->user();
         
+        // Asegurar que la relación role esté cargada
+        if (!$user->relationLoaded('role')) {
+            $user->load('role');
+        }
+        
         if ($user->isAdminGlobal()) {
             return redirect()->route('admin.dashboard');
         } elseif ($user->isAdminLocal()) {

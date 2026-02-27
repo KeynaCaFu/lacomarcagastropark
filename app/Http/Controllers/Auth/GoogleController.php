@@ -66,8 +66,18 @@ class GoogleController extends Controller
             // Iniciar sesión automáticamente
             Auth::login($user, true); // true para "recordarme"
 
-            // Redirigir al dashboard o home
-            return redirect()->intended(route('dashboard'));
+            // Recargar el usuario para asegurar que la relación role esté cargada
+            $user = $user->fresh();
+            $user->load('role');
+
+            // Redirigir según el rol del usuario
+            if ($user->isAdminGlobal()) {
+                return redirect()->route('admin.dashboard');
+            } elseif ($user->isClient()) {
+                return redirect()->route('client.welcome');
+            }
+
+            return redirect()->route('dashboard');
 
         } catch (Exception $e) {
             return redirect('/login')->with('error', 'Error al autenticarse con Google: ' . $e->getMessage());

@@ -26,6 +26,12 @@ use Illuminate\Http\Request;
 Route::get('/', function () {
     if (auth()->check()) {
         $user = auth()->user();
+        
+        // Asegurar que la relación role esté cargada
+        if (!$user->relationLoaded('role')) {
+            $user->load('role');
+        }
+        
         if ($user->isAdminGlobal()) {
             return redirect()->route('admin.dashboard');
         } elseif ($user->isClient()) {
@@ -49,8 +55,17 @@ Route::get('/entrar/admin/global', function () {
 Route::get('/dashboard', function () {
     $user = auth()->user();
     
+    // Asegurar que la relación role esté cargada
+    if (!$user->relationLoaded('role')) {
+        $user->load('role');
+    }
+    
     if ($user->isAdminGlobal()) {
         return redirect()->route('admin.dashboard');
+    }
+    
+    if ($user->isClient()) {
+        return redirect()->route('client.welcome');
     }
     
     // For local managers, show the dashboard
@@ -115,6 +130,8 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
 // ============================================================================
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/client-welcome', [ClienteController::class, 'index'])->name('client.welcome');
+    Route::get('/client-profile', [ClienteController::class, 'editProfile'])->name('client.profile.edit');
+    Route::patch('/client-profile', [ClienteController::class, 'updateProfile'])->name('client.profile.update');
 });
 
 // Profile routes (authenticated users)
