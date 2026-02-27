@@ -570,7 +570,7 @@
                             id="phone" 
                             name="phone" 
                             value="{{ old('phone', $user->phone) }}"
-                            placeholder="Ej: +34 912 345 678"
+                            placeholder="Ej: +506 8888 7777"
                             class="@error('phone') is-invalid @enderror"
                         >
                         @error('phone')
