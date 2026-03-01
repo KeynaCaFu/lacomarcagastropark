@@ -425,7 +425,7 @@
 
 <!-- Botón de Ayuda para Editar Producto -->
 <div id="helpButtonContainerEdit" style="display: none;">
-    <button id="helpButtonEdit" type="button" class="btn btn-help" onclick="openEditProductHelpModal()">
+    <button id="helpButtonEdit" type="button" class="btn-help" onclick="openEditProductHelpModal()">
         <i class="fas fa-question-circle"></i> Ayuda
     </button>
 </div>

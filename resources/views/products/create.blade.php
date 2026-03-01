@@ -2,6 +2,10 @@
 
 @section('title', 'Crear Producto')
 
+@push('styles')
+    <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
 <div style="padding: 0 15px;">
     <!-- Header -->
@@ -390,7 +394,7 @@
 
 <!-- Botón de Ayuda para Productos -->
 <div id="helpButtonContainerProducts" style="display: none;">
-    <button id="helpButtonProducts" type="button" class="btn btn-help" onclick="openCreateProductHelpModal()">
+    <button id="helpButtonProducts" type="button" class="btn-help" onclick="openCreateProductHelpModal()">
         <i class="fas fa-question-circle"></i> Ayuda
     </button>
 </div>

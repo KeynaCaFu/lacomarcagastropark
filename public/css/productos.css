@@ -74,7 +74,7 @@
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     padding: 24px;
-    margin-top: 0;
+    margin-top: 50px;
 }
 
 .header-section {
@@ -175,7 +175,7 @@
 }
 
 .btn-create {
-    background: linear-gradient(135deg, #915016, #a85e1f);
+    background: linear-gradient(135deg, #e18018, #c9690f);
     color: white;
     padding: 10px 20px;
     border-radius: 8px;
@@ -192,6 +192,34 @@
 .btn-create:hover {
     background-color: #a85e1f;
     color: white;
+}
+
+/* Botón Ayuda */
+.btn-help {
+    background: transparent;
+    color: #e18018;
+    border: 2px solid #e18018;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-help:hover {
+    background: #e18018;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(225, 128, 24, 0.2);
+}
+
+.btn-help:active {
+    transform: translateY(0);
 }
 
 /* Filtros y búsqueda */
@@ -231,11 +259,13 @@
 }
 
 .search-input, .filter-select {
-    padding: 10px 12px;
+    padding: 10px 30px;
     border: 2px solid #e5e7eb;
     border-radius: 8px;
     font-size: 14px;
     transition: border-color 0.3s ease;
+    margin-top: 10px;
+
 }
 
 .search-input:focus, .filter-select:focus {

@@ -2,6 +2,10 @@
 
 @section('title', 'Galería - ' . $product->name)
 
+@push('styles')
+    <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
 <div style="padding: 0 15px;">
         <!-- Header -->
@@ -300,7 +304,7 @@
 
     <!-- Botón de Ayuda para Galería -->
     <div id="helpButtonContainerGallery" style="display: none;">
-        <button id="helpButtonGallery" type="button" class="btn btn-help" onclick="openGalleryHelpModal()">
+        <button id="helpButtonGallery" type="button" class="btn-help" onclick="openGalleryHelpModal()">
             <i class="fas fa-question-circle"></i> Ayuda
         </button>
         </div>

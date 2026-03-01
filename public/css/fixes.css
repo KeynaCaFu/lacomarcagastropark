@@ -356,8 +356,8 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
+    margin: 0;
+    padding: 10px 20px;
 }
 
 .header h1 {

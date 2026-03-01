@@ -53,16 +53,6 @@
         </button>
         <div id="filtrosBody" class="search-filter-group closed" role="region" aria-labelledby="filtersToggle">
             <form method="GET" action="{{ route('products.index') }}" id="filtrosForm" style="display: flex; gap: 12px; flex-wrap: wrap; width: 100%;">
-                <input 
-                    type="text" 
-                    id="buscar"
-                    class="search-input" 
-                    name="buscar"
-                    placeholder="Buscar por nombre..." 
-                    value="{{ request('buscar') }}"
-                    style="flex: 1; min-width: 200px;"
-                />
-
                 <select id="categoria" name="categoria" class="filter-select">
                     <option value="">Todas las categorías</option>
                     @foreach($categories as $category)
@@ -77,10 +67,6 @@
                     <option value="Disponible" {{ request('estado') == 'Disponible' ? 'selected' : '' }}>Disponible</option>
                     <option value="No disponible" {{ request('estado') == 'No disponible' ? 'selected' : '' }}>No disponible</option>
                 </select>
-
-                <button type="submit" id="searchBtn" class="btn-action" style="background: #16a34a; color: white; border: none; padding: 10px 20px;">
-                    <i class="fas fa-search"></i> Buscar
-                </button>
 
                 <a href="javascript:void(0);" id="clearBtn" class="btn-action" style="background: #e5e7eb; color: #374151; padding: 10px 20px; display: none;">
                     <i class="fas fa-redo"></i> Limpiar
@@ -120,7 +106,6 @@
         const filtersToggle = document.getElementById('filtersToggle');
         const filtersBody = document.getElementById('filtrosBody');
         const clearBtn = document.getElementById('clearBtn');
-        const searchBtn = document.getElementById('searchBtn');
         const filtrosForm = document.getElementById('filtrosForm');
         
         // Toggle acordeón de filtros
@@ -141,11 +126,10 @@
 
         // Mostrar botón limpiar si hay filtros activos
         const updateClearButton = () => {
-            const buscar = document.getElementById('buscar').value;
             const categoria = document.getElementById('categoria').value;
             const estado = document.getElementById('estado').value;
             
-            if (buscar || categoria || estado) {
+            if (categoria || estado) {
                 clearBtn.style.display = 'inline-flex';
             } else {
                 clearBtn.style.display = 'none';
@@ -155,26 +139,53 @@
         // Limpiar filtros
         if (clearBtn) {
             clearBtn.addEventListener('click', () => {
-                document.getElementById('buscar').value = '';
                 document.getElementById('categoria').value = '';
                 document.getElementById('estado').value = '';
                 window.location.href = '{{ route('products.index') }}';
             });
         }
 
-        // Cambios en tiempo real
-        document.getElementById('buscar').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') {
-                filtrosForm.submit();
+        // Función para cargar la tabla con filtros
+        const loadFilteredProducts = async () => {
+            const categoria = document.getElementById('categoria').value;
+            const estado = document.getElementById('estado').value;
+            
+            try {
+                const params = new URLSearchParams();
+                if (categoria) params.append('categoria', categoria);
+                if (estado) params.append('estado', estado);
+                
+                const response = await fetch(`{{ route('products.index') }}?${params.toString()}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (response.ok) {
+                    const html = await response.text();
+                    // Extraer solo la tabla del HTML
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newTable = doc.querySelector('#productsTableContainer');
+                    
+                    if (newTable) {
+                        document.getElementById('productsTableContainer').innerHTML = newTable.innerHTML;
+                    }
+                }
+            } catch (error) {
+                console.error('Error al filtrar productos:', error);
             }
-        });
+        };
 
+        // Filtrar automáticamente al cambiar selects
         document.getElementById('categoria').addEventListener('change', () => {
             updateClearButton();
+            loadFilteredProducts();
         });
 
         document.getElementById('estado').addEventListener('change', () => {
             updateClearButton();
+            loadFilteredProducts();
         });
 
         updateClearButton();
@@ -319,7 +330,7 @@
 
 <!-- Botón de Ayuda para Índice de Productos -->
 <div id="helpButtonContainerIndex" style="display: none;">
-    <button id="helpButtonIndex" type="button" class="btn btn-help" onclick="openProductsIndexHelpModal()">
+    <button id="helpButtonIndex" type="button" class="btn-help" onclick="openProductsIndexHelpModal()">
         <i class="fas fa-question-circle"></i> Ayuda
     </button>
 </div>

@@ -16,6 +16,131 @@
     <link href="{{ asset('css/responsive.css') }}" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
+    <style>
+        /* Top Navigation Bar Styles */
+        .top-navbar {
+            position: relative;
+            margin: 0;
+            padding: 12px 20px;
+        }
+        
+        .main-content {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container-fluid {
+            gap: 0;
+        }
+        
+        .top-navbar .admin-menu-top,
+        .top-navbar .user-menu-top {
+            position: relative;
+        }
+        
+        /* Search input focus */
+        #topSearchInput:focus {
+            border-color: #e18018 !important;
+            background: #fff !important;
+            box-shadow: 0 0 0 3px rgba(225, 128, 24, 0.1) !important;
+        }
+        
+        #topSearchInput:hover {
+            border-color: #e5e7eb !important;
+        }
+        
+        /* Clear button hover */
+        #clearSearchBtn:hover {
+            color: #374151 !important;
+        }
+        
+        /* Search button hover and active */
+        #searchBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(225, 128, 24, 0.3);
+        }
+        
+        #searchBtn:active {
+            transform: translateY(0);
+        }
+        
+        /* Menu dropdown animations */
+        .admin-menu-dropdown,
+        .user-menu-dropdown {
+            animation: slideDown 0.2s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Hover effects for menu items */
+        .admin-menu-dropdown a:hover,
+        .user-menu-dropdown a:hover,
+        .user-menu-dropdown button:hover {
+            background-color: #f9fafb;
+        }
+        
+        /* User menu button hover effect */
+        .user-menu-btn:hover {
+            background: #e18018 !important;
+            color: white !important;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 992px) {
+            .top-navbar {
+                flex-wrap: wrap;
+            }
+            
+            .top-navbar > div:first-child {
+                width: 100%;
+                order: 2;
+            }
+            
+            .top-navbar > div:last-child {
+                width: 100%;
+                order: 1;
+                justify-content: space-between;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .top-navbar {
+                padding: 12px 16px !important;
+            }
+            
+            .admin-menu-dropdown,
+            .user-menu-dropdown {
+                right: auto;
+                left: 0;
+            }
+            
+            #topSearchInput {
+                font-size: 16px;
+            }
+            
+            #searchBtn span {
+                display: none;
+            }
+            
+            #searchBtn {
+                padding: 8px 12px !important;
+            }
+            
+            .navbar-toggle {
+                display: inline-block !important;
+            }
+        }
+    </style>
+    
     @stack('styles')
 </head>
 <body>
@@ -66,45 +191,68 @@
                         @endif
                     </ul>
                 </div>
-                
-                <!-- Usuario administrador al final del sidebar -->
-                <div class="sidebar-footer">
-                    <div class="admin-hover-wrapper">
-                        <div class="admin-info-container">
-                            <a href="{{ route('profile.edit') }}" class="admin-info text-decoration-none" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-user-circle fa-2x"></i>
-                                <span>{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
-                            </a>
-                            <button class="admin-menu-toggle" id="adminMenuToggle" aria-haspopup="true" aria-expanded="false" type="button">
-                                <i class="fas fa-chevron-up"></i>
-                            </button>
-                        </div>
-                        <div class="admin-hover-menu" role="menu" aria-label="Acciones de perfil" id="adminMenu">
-                            <a href="{{ route('profile.edit') }}" class="dropdown-item" role="menuitem">
-                                <i class="fas fa-user-edit"></i> Editar perfil
-                            </a>
-                            <form method="POST" action="{{ route('logout') }}" class="mt-1" role="none">
-                                @csrf
-                                <button type="submit" class="dropdown-item text-danger" role="menuitem">
-                                    <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
             </nav>
 
             <!-- Contenido principal -->
             <main class="main-content" id="mainContent">
-                <!-- Header -->
-                <div class="header">
-                    <div class="d-flex align-items-center justify-content-between w-100">
-                        <div class="d-flex align-items-center">
-                            <h1 class="mb-0">@yield('title', 'Dashboard')</h1>
+                <!-- Top Navigation Bar -->
+                <div class="top-navbar" style="background: #fff; border-bottom: 1px solid #e5e7eb; padding: 8px 20px; margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-right: 0px; margin-left: -18px;">
+                    <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 300px;">
+                        <!-- Toggle Sidebar -->
+                        <button class="navbar-toggle" id="navbarToggleBtn" style="background: none; border: none; cursor: pointer; padding: 8px; display: none;">
+                            <i class="fas fa-bars" style="font-size: 20px; color: #374151;"></i>
+                        </button>
+                        
+                        <!-- Search Bar -->
+                        <div style="display: flex; align-items: center; flex: 1; max-width: 400px;">
+                            <div style="position: relative; width: 100%; display: flex; gap: 6px;">
+                                <div style="position: relative; flex: 1;">
+                                    <input type="text" id="topSearchInput" placeholder="Buscar por nombre..." style="width: 100%; padding: 8px 32px 8px 36px; border: 1px solid #e5e7eb; border-radius: 8px 0 0 8px; font-size: 13px; background: #f9fafb; transition: all 0.3s ease;">
+                                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 13px;"></i>
+                                    <button type="button" id="clearSearchBtn" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #9ca3af; cursor: pointer; padding: 4px 8px; display: none; font-size: 14px;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <button type="button" id="searchBtn" style="background: linear-gradient(135deg, #e18018, #c9690f); color: white; border: none; padding: 8px 16px; border-radius: 0 8px 8px 0; cursor: pointer; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease;">
+                                    <i class="fas fa-search"></i>
+                                    <span>Buscar</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <div id="topBackButtonContainer"></div>
-                            <div class="top-help" id="topHelpContainer"></div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <!-- Help Button Container -->
+                        <div id="topHelpContainer"></div>
+
+                        <!-- User Icon Menu -->
+                        <div class="user-menu-top" style="position: relative;">
+                            <button class="user-menu-btn" style="background: none; border: 2px solid #e18018; cursor: pointer; padding: 8px 12px; color: #e18018; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500;">
+                                <i class="fas fa-user-circle" style="font-size: 24px;"></i>
+                                <span style="font-size: 12px; color: #6b7280;">
+                                    @php
+                                        $role = auth()->user()->role?->role_type ?? 'Usuario';
+                                    @endphp
+                                    {{ $role }}
+                                </span>
+                            </button>
+                            <div class="user-menu-dropdown" style="position: absolute; top: 100%; right: 0; margin-top: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 220px; z-index: 1000; display: none;">
+                                <div style="padding: 12px 16px; border-bottom: 1px solid #f3f4f6; font-size: 13px;">
+                                    <div style="font-weight: 600; color: #111827;">{{ auth()->user()->full_name ?? auth()->user()->name }}</div>
+                                    <div style="color: #6b7280; font-size: 12px; margin-top: 4px;">{{ auth()->user()->email }}</div>
+                                </div>
+                                <a href="{{ route('profile.edit') }}" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: #111827; text-decoration: none; border-bottom: 1px solid #f3f4f6;">
+                                    <i class="fas fa-user-edit" style="color: #6b7280; font-size: 14px;"></i>
+                                    <span>Editar perfil</span>
+                                </a>
+                                <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
+                                    @csrf
+                                    <button type="submit" style="width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: #dc2626; text-decoration: none; border: none; background: none; cursor: pointer; font-size: 13px;">
+                                        <i class="fas fa-sign-out-alt" style="font-size: 14px;"></i>
+                                        <span>Cerrar sesión</span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -329,31 +477,6 @@
         })();
     </script>
     <script>
-        // Manejo del menú de admin cuando el sidebar está colapsado
-        document.addEventListener('DOMContentLoaded', function() {
-            const adminMenuToggle = document.getElementById('adminMenuToggle');
-            const adminMenu = document.getElementById('adminMenu');
-            const sidebar = document.getElementById('appSidebar');
-
-            if (adminMenuToggle && adminMenu) {
-                // Alternar menú al hacer click en flecha
-                adminMenuToggle.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    adminMenu.classList.toggle('show');
-                    adminMenuToggle.setAttribute('aria-expanded', adminMenu.classList.contains('show') ? 'true' : 'false');
-                });
-
-                // Cerrar menú al hacer click afuera
-                document.addEventListener('click', (e) => {
-                    if (!e.target.closest('.admin-hover-wrapper') && !e.target.closest('#adminMenuToggle')) {
-                        adminMenu.classList.remove('show');
-                        adminMenuToggle.setAttribute('aria-expanded', 'false');
-                    }
-                });
-            }
-        });
-    </script>
-    <script>
         // Toggle del sidebar - Colapsable en desktop (>=1024px), overlay en móvil/tablet (<1024px)
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('appSidebar');
@@ -416,6 +539,92 @@
             });
         });
     </script>
+    
+    <!-- Top Navbar Functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Admin Menu Dropdown
+            const adminMenuBtn = document.querySelector('.admin-menu-btn');
+            const adminMenuDropdown = document.querySelector('.admin-menu-dropdown');
+            
+            if (adminMenuBtn && adminMenuDropdown) {
+                adminMenuBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    adminMenuDropdown.style.display = adminMenuDropdown.style.display === 'none' ? 'block' : 'none';
+                });
+            }
+            
+            // User Menu Dropdown
+            const userMenuBtn = document.querySelector('.user-menu-btn');
+            const userMenuDropdown = document.querySelector('.user-menu-dropdown');
+            
+            if (userMenuBtn && userMenuDropdown) {
+                userMenuBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    userMenuDropdown.style.display = userMenuDropdown.style.display === 'none' ? 'block' : 'none';
+                });
+            }
+            
+            // Cerrar menús al hacer clic afuera
+            document.addEventListener('click', (e) => {
+                if (adminMenuDropdown && !e.target.closest('.admin-menu-top')) {
+                    adminMenuDropdown.style.display = 'none';
+                }
+                if (userMenuDropdown && !e.target.closest('.user-menu-top')) {
+                    userMenuDropdown.style.display = 'none';
+                }
+            });
+            
+            // Buscador en la barra superior
+            const searchInput = document.getElementById('topSearchInput');
+            const clearBtn = document.getElementById('clearSearchBtn');
+            const searchBtn = document.getElementById('searchBtn');
+            
+            if (searchInput) {
+                // Mostrar/ocultar botón X según si hay texto
+                searchInput.addEventListener('input', () => {
+                    clearBtn.style.display = searchInput.value.trim() ? 'inline-block' : 'none';
+                });
+                
+                // Limpiar búsqueda
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        searchInput.value = '';
+                        clearBtn.style.display = 'none';
+                        searchInput.focus();
+                    });
+                }
+                
+                // Buscar al presionar Enter
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        performSearch();
+                    }
+                });
+                
+                // Buscar al hacer click en el botón
+                if (searchBtn) {
+                    searchBtn.addEventListener('click', performSearch);
+                }
+                
+                // Función para realizar la búsqueda
+                function performSearch() {
+                    const query = searchInput.value.trim();
+                    if (query) {
+                        const currentRoute = window.location.pathname;
+                        if (currentRoute.includes('usuarios')) {
+                            window.location.href = `/usuarios?q=${encodeURIComponent(query)}`;
+                        } else if (currentRoute.includes('eventos')) {
+                            window.location.href = `/eventos?q=${encodeURIComponent(query)}`;
+                        } else if (currentRoute.includes('productos')) {
+                            window.location.href = `/productos?q=${encodeURIComponent(query)}`;
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+    
     @stack('scripts')
 </body>
 </html>

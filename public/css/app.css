@@ -139,7 +139,7 @@ body {
 /* Main Content */
 .main-content {
     flex: 1;
-    padding: 20px;
+    padding: 0 20px 20px 20px;
     overflow-y: auto;
     background-color: #f0f0f0;
     min-width: 0;
@@ -155,15 +155,15 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
+  margin: 0;
+  padding: 10px 20px;
   /* border-bottom: 1px solid #ddd; */
 }
 
 .header h1 {
    color: var(--primary);
   font-size: 1.6rem;
-  padding: 18px;
+  padding: 8px;
   margin-top: 0;
   margin-bottom: 0;
 }

@@ -15,7 +15,7 @@
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         padding: 24px;
-        margin-top: 20px;
+        margin-top: 50px;
     }
 
     .header-section {
@@ -76,7 +76,7 @@
     }
 
     .btn-create {
-        background: linear-gradient(135deg, #915016, #a85e1f);
+        background: linear-gradient(135deg, #e18018, #c9690f);
         color: white;
         padding: 10px 20px;
         border-radius: 8px;
@@ -97,10 +97,10 @@
 
     /* Botón Ayuda colocado arriba del botón verde */
     .btn-help {
-       background: linear-gradient(135deg, #4e6657, #3d5144);
-        color: white;
-        border: none;
-        padding: 10px 16px;
+        background: transparent;
+        color: #e18018;
+        border: 2px solid #e18018;
+        padding: 8px 14px;
         border-radius: 6px;
         font-weight: 600;
         font-size: 13px;
@@ -112,19 +112,22 @@
         white-space: nowrap;
     }
     .btn-help:hover {
+        background: #e18018;
+        color: white;
         transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(13, 94, 42, 0.3);
+        box-shadow: 0 4px 12px rgba(225, 128, 24, 0.2);
     }
     .btn-help:active {
         transform: translateY(0);
     }
 
     .search-input, .filter-select {
-        padding: 10px 12px;
+        padding: 9px 29px;
         border: 2px solid #e5e7eb;
         border-radius: 8px;
         font-size: 14px;
         transition: border-color 0.3s ease;
+        margin-top: 8px;
     }
 
     .search-input:focus, .filter-select:focus {
@@ -362,15 +365,6 @@
             Filtros de usuarios
         </button>
         <div id="filtersBody" class="search-filter-group closed" role="region" aria-labelledby="filtersToggle">
-        <input 
-            type="text" 
-            id="searchInput"
-            class="search-input" 
-            placeholder="Buscar por nombre o email..." 
-            value="{{ request('q') }}"
-            style="flex: 1; min-width: 200px;"
-        />
-
         <select id="roleFilter" class="filter-select">
             <option value="">Todos los roles</option>
             @foreach($roles as $role)
@@ -393,7 +387,7 @@
             <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 por página</option>
         </select>
 
-        <button type="button" id="searchBtn" class="btn-action" style="background: #16a34a; color: white; border: none; padding: 10px 20px;">
+        <button type="button" id="searchBtn" class="btn-action" style="background: #16a34a; color: white; border: none; padding: 10px 20px; display: none;">
             <i class="fas fa-search"></i> Buscar Usuarios
         </button>
 
@@ -551,7 +545,8 @@
     let currentPage = 1;
 
     function loadUsers(page = 1) {
-        const q = document.getElementById('searchInput').value;
+        const urlParams = new URLSearchParams(window.location.search);
+        const q = urlParams.get('q') || '';
         const role = document.getElementById('roleFilter').value;
         const status = document.getElementById('statusFilter').value;
         const per_page = document.getElementById('perPageFilter').value;
@@ -702,7 +697,6 @@
         const filtersToggle = document.getElementById('filtersToggle');
         const filtersBody = document.getElementById('filtersBody');
         const clearBtn = document.getElementById('clearBtn');
-        const searchInput = document.getElementById('searchInput');
         const roleFilter = document.getElementById('roleFilter');
         const statusFilter = document.getElementById('statusFilter');
         const perPageFilter = document.getElementById('perPageFilter');
@@ -725,32 +719,23 @@
         }
 
         // Al hacer clic en Buscar: si los filtros están ocultos, primero abrir acordeón
-        searchBtn.addEventListener('click', () => {
-            if (filtersBody && filtersBody.classList.contains('closed')) {
-                filtersBody.classList.remove('closed');
-                filtersToggle.classList.add('open');
-                filtersToggle.setAttribute('aria-expanded', 'true');
-                return; // no buscar hasta que el usuario vea los filtros
-            }
-            loadUsers(1);
-        });
+        // searchBtn.addEventListener('click', () => {
+        //     if (filtersBody && filtersBody.classList.contains('closed')) {
+        //         filtersBody.classList.remove('closed');
+        //         filtersToggle.classList.add('open');
+        //         filtersToggle.setAttribute('aria-expanded', 'true');
+        //         return; // no buscar hasta que el usuario vea los filtros
+        //     }
+        //     loadUsers(1);
+        // });
         
-        searchInput.addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') {
-                loadUsers(1);
-            }
-        });
-
         roleFilter.addEventListener('change', () => loadUsers(1));
         statusFilter.addEventListener('change', () => loadUsers(1));
         perPageFilter.addEventListener('change', () => loadUsers(1));
 
         clearBtn.addEventListener('click', () => {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('roleFilter').value = '';
-            document.getElementById('statusFilter').value = '';
-            document.getElementById('perPageFilter').value = '5';
-            loadUsers(1);
+            // Limpiar todos los filtros y recargar con URL limpia
+            window.location.href = "{{ route('users.index') }}";
         });
 
         // Manejo de envío de formulario de creación de usuario
