@@ -22,6 +22,11 @@ class EventData
             $query->whereDate('start_at', $filters['date']);
         }
 
+        if (!empty($filters['status'])) {
+            $isActive = $filters['status'] === 'activo';
+            $query->where('is_active', $isActive);
+        }
+
         // Orden por fecha de inicio (más recientes primero)
         return $query->orderBy('start_at', 'desc')
             ->paginate(6)

@@ -23,10 +23,16 @@ class EventController extends Controller
     {
         $filters = [
             'search' => $request->get('q'),
-            'date' => $request->get('fecha')
+            'date' => $request->get('fecha'),
+            'status' => $request->get('estado')
         ];
 
         $events = $this->eventData->all(array_filter($filters));
+
+        // Si es una petición AJAX, devolver solo el HTML de las tarjetas
+        if ($request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->view('events.partials.cards', compact('events'), 200, ['Content-Type' => 'text/html']);
+        }
 
         return view('events.index', compact('events'));
     }

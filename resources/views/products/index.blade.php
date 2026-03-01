@@ -12,7 +12,7 @@
 
 <div class="products-container">
     <div class="header-section">
-        <h2>Gestión de Productos</h2>
+        <h2 style="display: flex; align-items: center; gap: 12px;"><i class="fas fa-boxes" style="color: #c9690f;"></i> Gestión de Productos</h2>
         <div class="header-actions">
             <a href="{{ route('products.create') }}" class="btn-create">
                 <i class="fas fa-plus"></i> Nuevo Producto

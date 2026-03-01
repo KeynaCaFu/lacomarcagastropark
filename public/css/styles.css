@@ -336,3 +336,149 @@ body, input, button, textarea, select{
   margin-left:auto !important;   
 }
 
+/* ===== Acordeón de Filtros (eventos) ===== */
+.search-filter-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.filters-accordion {
+    margin-bottom: 12px;
+}
+
+.filters-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+    color: #111827;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filters-toggle:hover {
+    background: #f0f3f6;
+    border-color: #d1d5db;
+}
+
+.filters-toggle i {
+    transition: transform 0.2s ease;
+}
+
+.filters-toggle.open i {
+    transform: rotate(180deg);
+}
+
+#filtrosBody.closed {
+    display: none;
+}
+
+.filter-select {
+    padding: 10px 17px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+  background: white;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #485a1a;
+}
+
+#fechaInput {
+    padding: 10px 12px !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    background: white !important;
+    cursor: pointer !important;
+    transition: border-color 0.3s ease !important;
+}
+
+#fechaInput:focus {
+    outline: none !important;
+    border-color: #485a1a !important;
+}
+
+#fechaInput::placeholder {
+    color: #9ca3af;
+}
+
+/* Estilos para flatpickr */
+.flatpickr-calendar {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.flatpickr-months {
+    background: #f8fafc !important;
+}
+
+.flatpickr-month {
+    color: #111827 !important;
+}
+
+.flatpickr-weekdays {
+    background: #f0f3f6 !important;
+}
+
+.flatpickr-weekday {
+    color: #6b7280 !important;
+    font-weight: 600;
+}
+
+.flatpickr-day {
+    color: #374151 !important;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+    background: #485a1a !important;
+    border-color: #485a1a !important;
+    color: white !important;
+}
+
+.flatpickr-day:hover,
+.flatpickr-day.prevMonthDay:hover,
+.flatpickr-day.nextMonthDay:hover {
+    background: #f3f4f6 !important;
+    border-color: #e5e7eb !important;
+}
+
+.flatpickr-day.today {
+    border-color: #485a1a !important;
+}
+
+.flatpickr-day.disabled,
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+    color: #d1d5db !important;
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.btn-action:hover {
+    filter: brightness(0.95);
+}
+
