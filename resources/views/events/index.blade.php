@@ -57,7 +57,14 @@
             <span><i class="far fa-calendar"></i> {{ $fmtFecha($ev->start_at) }}</span>
             <span><i class="far fa-clock"></i> {{ $fmtHora($ev->start_at) }}</span>
           </div>
-          <div class="status-badge" style="background:{{ $bg }}; color:{{ $fg }};">{{ $txt }}</div>
+          <div class="status-badge status-toggler" 
+               data-event-id="{{ $ev->event_id }}"
+               data-current-status="{{ $ev->is_active ? 'Active' : 'Inactive' }}"
+               style="cursor: pointer; transition: all 0.3s ease; background:{{ $bg }}; color:{{ $fg }};"
+               title="Haz clic para cambiar el estado"
+               data-status-label="{{ $txt }}">
+            {{ $txt }}
+          </div>
           @if($ev->location)
             <div class="event-location"><i class="fas fa-map-marker-alt"></i> {{ $ev->location }}</div>
           @endif
@@ -266,6 +273,108 @@
       }
     });
   });
+
+  // Toggle event status
+  (function(){
+    document.querySelectorAll('.status-toggler').forEach(badge => {
+      if (badge.dataset._statusBound === 'true') return;
+      badge.dataset._statusBound = 'true';
+      
+      badge.addEventListener('click', async (e) => {
+        e.stopPropagation(); // Prevenir que se abra el modal
+        
+        const eventId = badge.dataset.eventId;
+        const currentStatus = badge.dataset.currentStatus;
+        const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+        const newStatusLabel = newStatus === 'Active' ? 'Activo' : 'Inactivo';
+        const currentStatusLabel = badge.dataset.statusLabel;
+        
+        // Show confirmation
+        if (window.swConfirm) {
+          const result = await swConfirm({
+            title: 'Cambiar estado',
+            html: `¿Cambiar de <b>${currentStatusLabel}</b> a <b>${newStatusLabel}</b>?`,
+            icon: 'question',
+            confirmButtonText: 'Sí, cambiar',
+            cancelButtonText: 'Cancelar'
+          });
+          
+          if (!result.isConfirmed) return;
+        } else {
+          const ok = confirm(`¿Cambiar de ${currentStatusLabel} a ${newStatusLabel}?`);
+          if (!ok) return;
+        }
+        
+        // Disable badge while updating
+        badge.style.opacity = '0.5';
+        badge.style.pointerEvents = 'none';
+        
+        try {
+          const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+          const response = await fetch(`/eventos/${eventId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': csrfToken,
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({ is_active: newStatus === 'Active' })
+          });
+          
+          if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.message || 'Error al actualizar el estado');
+          }
+          
+          // Update badge visually
+          badge.dataset.currentStatus = newStatus;
+          badge.dataset.statusLabel = newStatusLabel;
+          
+          const bgColor = newStatus === 'Active' ? '#eaf4e7' : '#fde2dd';
+          const fgColor = newStatus === 'Active' ? '#1d3320' : '#7a1d12';
+          badge.style.background = bgColor;
+          badge.style.color = fgColor;
+          badge.textContent = newStatusLabel === 'Activo' ? 'Activo' : 'Inactivo';
+          
+          // Restore opacity
+          badge.style.opacity = '1';
+          badge.style.pointerEvents = 'auto';
+          
+          // Show success toast
+          let retries = 0;
+          const checkAndShowSuccess = () => {
+            if (window.swToast) {
+              swToast.fire({
+                icon: 'success',
+                title: `Estado actualizado a ${newStatusLabel}`
+              });
+            } else if (retries < 50) {
+              retries++;
+              setTimeout(checkAndShowSuccess, 100);
+            }
+          };
+          setTimeout(checkAndShowSuccess, 100);
+          
+        } catch (error) {
+          console.error('Error:', error);
+          badge.style.opacity = '1';
+          badge.style.pointerEvents = 'auto';
+          
+          if (window.swAlert) {
+            swAlert({
+              icon: 'error',
+              title: 'Error',
+              text: error.message || 'No se pudo actualizar el estado',
+              confirmButtonColor: '#dc2626'
+            });
+          } else {
+            alert(error.message || 'No se pudo actualizar el estado');
+          }
+        }
+      });
+    });
+  })();
+
 </script>
 
 {{-- ========= Mensajes desde el backend ========= --}}
@@ -342,6 +451,28 @@
   .event-actions .btn-del:hover{
     background: #dc2626 !important;
     color: #fff !important;
+  }
+
+  /* Estilos para el estado clickeable */
+  .status-badge.status-toggler {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    user-select: none;
+    transition: all 0.3s ease;
+  }
+
+  .status-badge.status-toggler:hover {
+    filter: brightness(0.90);
+    transform: scale(1.05);
+  }
+
+  .status-badge.status-toggler:active {
+    transform: scale(0.98);
   }
 </style>
 </div>

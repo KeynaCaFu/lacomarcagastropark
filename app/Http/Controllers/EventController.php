@@ -76,6 +76,24 @@ class EventController extends Controller
     // Actualizar evento
     public function update(Request $request, Event $evento)
     {
+        // Si solo se está actualizando el estado (desde el toggler)
+        if ($request->has('is_active') && !$request->has('title')) {
+            $validated = $request->validate([
+                'is_active' => 'required|boolean',
+            ]);
+            
+            $this->eventData->update($evento->event_id, [
+                'is_active' => $validated['is_active']
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Estado actualizado exitosamente', 'is_active' => $validated['is_active']]);
+            }
+
+            return redirect()->route('eventos.index')->with('ok', 'saved');
+        }
+
+        // Actualización completa del evento (desde el formulario de edición)
         $validated = $request->validate([
             'title'       => 'required|string|max:255',
             'date'        => 'required|date',
