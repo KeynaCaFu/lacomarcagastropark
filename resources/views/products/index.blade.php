@@ -281,6 +281,42 @@
 </script>
 @endpush
 
+@push('styles')
+<style>
+    /* Estilos para el estado clickeable de productos */
+    .status-badge.status-toggler {
+        display: inline-flex !important;
+        align-items: center !important;
+        padding: 6px 12px !important;
+        border-radius: 20px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        user-select: none !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .status-badge.status-toggler.status-available {
+        background: #dcfce7 !important;
+        color: #166534 !important;
+    }
+
+    .status-badge.status-toggler.status-unavailable {
+        background: #fee2e2 !important;
+        color: #991b1b !important;
+    }
+
+    .status-badge.status-toggler:hover {
+        filter: brightness(0.95) !important;
+        transform: scale(1.02) !important;
+    }
+
+    .status-badge.status-toggler:active {
+        transform: scale(0.98) !important;
+    }
+</style>
+@endpush
+
 <!-- Botón de Ayuda para Índice de Productos -->
 <div id="helpButtonContainerIndex" style="display: none;">
     <button id="helpButtonIndex" type="button" class="btn btn-help" onclick="openProductsIndexHelpModal()">

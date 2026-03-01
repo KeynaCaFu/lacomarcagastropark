@@ -45,7 +45,7 @@
                         </a>
                     </td>
                     <td>
-                        <span class="status-badge status-toggler" 
+                        <span class="status-badge status-toggler {{ $product->status === 'Available' ? 'status-available' : 'status-unavailable' }}" 
                               data-product-id="{{ $product->product_id }}"
                               data-current-status="{{ $product->status }}"
                               style="cursor: pointer; transition: all 0.3s ease;"
