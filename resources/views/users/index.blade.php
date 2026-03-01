@@ -181,6 +181,36 @@
         color: #991b1b;
     }
 
+    .status-toggler {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .status-toggler.status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-toggler.status-inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-toggler:hover {
+        filter: brightness(0.95);
+        transform: scale(1.02);
+    }
+
+    .status-text {
+        display: inline-block;
+    }
+
     .role-badge {
         display: inline-block;
         padding: 4px 12px;

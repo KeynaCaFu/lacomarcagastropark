@@ -24,8 +24,23 @@
                         </span>
                     </td>
                     <td>
-                        <span class="status-badge status-{{ strtolower($user->status) }}">
-                            {{ $user->status === 'Active' ? 'Activo' : 'Inactivo' }}
+                        <span class="status-badge status-toggler {{ $user->status === 'Active' ? 'status-active' : 'status-inactive' }}" 
+                              data-user-id="{{ $user->user_id }}"
+                              data-current-status="{{ $user->status }}"
+                              style="cursor: pointer; transition: all 0.3s ease;"
+                              title="Haz clic para cambiar el estado"
+                              @if($user->status === 'Active')
+                                  data-status-label="Activo"
+                              @else
+                                  data-status-label="Inactivo"
+                              @endif>
+                            @if($user->status === 'Active')
+                                <span class="status-text" style="margin-right: 6px;">Activo</span>
+                                <i class="fas fa-check-circle" style="opacity: 0.8;"></i>
+                            @else
+                                <span class="status-text" style="margin-right: 6px;">Inactivo</span>
+                                <i class="fas fa-times-circle" style="opacity: 0.8;"></i>
+                            @endif
                         </span>
                     </td>
                     <td style="text-align: center;">
@@ -71,6 +86,109 @@
 @endif
 
 <script>
+// Toggle user status
+(function(){
+    document.querySelectorAll('.status-toggler').forEach(badge => {
+        if (badge.dataset._statusBound === 'true') return;
+        badge.dataset._statusBound = 'true';
+        
+        badge.addEventListener('click', async (e) => {
+            const userId = badge.dataset.userId;
+            const currentStatus = badge.dataset.currentStatus;
+            const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+            const newStatusLabel = newStatus === 'Active' ? 'Activo' : 'Inactivo';
+            const currentStatusLabel = badge.dataset.statusLabel;
+            
+            // Show confirmation
+            if (window.swConfirm) {
+                const result = await swConfirm({
+                    title: 'Cambiar estado',
+                    html: `¿Cambiar de <b>${currentStatusLabel}</b> a <b>${newStatusLabel}</b>?`,
+                    icon: 'question',
+                    confirmButtonText: 'Sí, cambiar',
+                    cancelButtonText: 'Cancelar'
+                });
+                
+                if (!result.isConfirmed) return;
+            } else {
+                const ok = confirm(`¿Cambiar de ${currentStatusLabel} a ${newStatusLabel}?`);
+                if (!ok) return;
+            }
+            
+            // Disable badge while updating
+            badge.style.opacity = '0.5';
+            badge.style.pointerEvents = 'none';
+            
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+                const response = await fetch(`/usuarios/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || 'Error al actualizar el estado');
+                }
+                
+                // Update badge visually
+                badge.dataset.currentStatus = newStatus;
+                badge.dataset.statusLabel = newStatusLabel;
+                
+                if (newStatus === 'Active') {
+                    badge.classList.remove('status-inactive');
+                    badge.classList.add('status-active');
+                    badge.innerHTML = `<span class="status-text" style="margin-right: 6px;">Activo</span><i class="fas fa-check-circle" style="opacity: 0.8;"></i>`;
+                } else {
+                    badge.classList.remove('status-active');
+                    badge.classList.add('status-inactive');
+                    badge.innerHTML = `<span class="status-text" style="margin-right: 6px;">Inactivo</span><i class="fas fa-times-circle" style="opacity: 0.8;"></i>`;
+                }
+                
+                // Restore opacity
+                badge.style.opacity = '1';
+                badge.style.pointerEvents = 'auto';
+                
+                // Show success toast
+                let retries = 0;
+                const checkAndShowSuccess = () => {
+                    if (window.swToast) {
+                        swToast.fire({
+                            icon: 'success',
+                            title: `Estado actualizado a ${newStatusLabel}`
+                        });
+                    } else if (retries < 50) {
+                        retries++;
+                        setTimeout(checkAndShowSuccess, 100);
+                    }
+                };
+                setTimeout(checkAndShowSuccess, 100);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                badge.style.opacity = '1';
+                badge.style.pointerEvents = 'auto';
+                
+                if (window.swAlert) {
+                    swAlert({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'No se pudo actualizar el estado',
+                        confirmButtonColor: '#dc2626'
+                    });
+                } else {
+                    alert(error.message || 'No se pudo actualizar el estado');
+                }
+            }
+        });
+    });
+})();
+
 // Bind delete with Undo for Users table
 (function(){
     document.querySelectorAll('.btn-delete[data-id]').forEach(btn => {

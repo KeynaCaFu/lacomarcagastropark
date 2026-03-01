@@ -109,6 +109,22 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        // Si solo se está actualizando el estado (desde el toggler)
+        if ($request->has('status') && !$request->has('full_name')) {
+            $validated = $request->validate([
+                'status' => 'required|in:Active,Inactive',
+            ]);
+            $user->update($validated);
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Estado actualizado exitosamente', 'user' => $user]);
+            }
+
+            return redirect()->route('users.index')
+                            ->with('success', 'Estado actualizado exitosamente.');
+        }
+
+        // Actualización completa del usuario (desde el formulario de edición)
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
             'email' => 'required|email|unique:tbuser,email,' . $user->user_id . ',user_id',
