@@ -173,11 +173,11 @@
                                 <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
                             @enderror
 
-                            @if($product->photo)
+                            @if($product->photo_url)
                                 <div class="mt-3">
                                     <small class="text-muted">Foto actual:</small>
                                     <br>
-                                    <img src="{{ $product->photo }}" alt="{{ $product->name }}" 
+                                    <img src="{{ $product->photo_url }}" alt="{{ $product->name }}" 
                                          class="img-thumbnail mt-2" style="max-width: 200px; max-height: 150px; object-fit: cover;">
                                 </div>
                             @endif

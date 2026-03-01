@@ -19,6 +19,25 @@ class ProductGallery extends Model
     ];
 
     /**
+     * Accessor: Obtener URL de imagen usando Storage
+     * Usa image_url si existe, sino devuelve null
+     */
+    public function getImageUrlAttribute($value)
+    {
+        if (!$value) {
+            return null;
+        }
+
+        // Si la ruta ya tiene /storage/, quitarlo
+        $path = $value;
+        if (str_starts_with($path, '/storage/')) {
+            $path = str_replace('/storage/', '', $path);
+        }
+
+        return \Illuminate\Support\Facades\Storage::url($path);
+    }
+
+    /**
      * Relación: Producto al que pertenece esta imagen
      */
     public function product()

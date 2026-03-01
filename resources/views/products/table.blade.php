@@ -15,8 +15,8 @@
             @foreach($products as $product)
                 <tr>
                     <td>
-                        @if($product->photo)
-                            <img src="{{ $product->photo }}" alt="{{ $product->name }}" 
+                        @if($product->photo_url)
+                            <img src="{{ $product->photo_url }}" alt="{{ $product->name }}" 
                                  class="product-thumb" style="width: 50px; height: 50px; object-fit: cover;">
                         @else
                             <span class="badge badge-secondary">Sin foto</span>

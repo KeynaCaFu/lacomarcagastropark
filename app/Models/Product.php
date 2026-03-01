@@ -50,6 +50,25 @@ class Product extends Model
     }
 
     /**
+     * Accessor: Obtener URL de la foto usando Storage
+     * Uso en Blade: {{ $product->photo_url }}
+     */
+    public function getPhotoUrlAttribute()
+    {
+        if (!$this->photo) {
+            return null;
+        }
+
+        // Si la ruta ya tiene /storage/, quitarlo
+        $path = $this->photo;
+        if (str_starts_with($path, '/storage/')) {
+            $path = str_replace('/storage/', '', $path);
+        }
+
+        return \Illuminate\Support\Facades\Storage::url($path);
+    }
+
+    /**
      * Accessor: Obtener estado en español para las vistas
      * Uso en Blade: {{ $product->status_in_spanish }}
      */

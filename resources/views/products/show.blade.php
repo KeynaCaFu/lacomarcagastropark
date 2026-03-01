@@ -24,8 +24,8 @@
         <div>
             <div class="card mb-4" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
                 <div class="card-body text-center" style="padding:20px;">
-                    @if($product->photo)
-                        <img src="{{ $product->photo }}" alt="{{ $product->name }}" 
+                    @if($product->photo_url)
+                        <img src="{{ $product->photo_url }}" alt="{{ $product->name }}" 
                              class="img-fluid mb-3" style="max-height: 300px; object-fit: cover; width: 100%;">
                     @else
                         <div class="bg-light p-5 mb-3">
