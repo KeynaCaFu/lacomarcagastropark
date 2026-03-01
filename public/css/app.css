@@ -27,6 +27,15 @@ body {
     flex-direction: row;
 }
 
+.products-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 24px;
+    margin-top: 51px;
+}
+
+
 /* Sidebar */
 .sidebar {
     width: 246px;
@@ -929,33 +938,31 @@ tr:hover {
 
 /* Botón de Ayuda */
 .btn-help {
-    background: linear-gradient(135deg, #4e6657, #3d5144);
-    color: white;
-    border: none;
-    padding: 10px 16px;
+    background: transparent;
+    color: #e18018;
+    border: 2px solid #e18018;
+    padding: 8px 14px;
     border-radius: 6px;
     font-weight: 600;
     font-size: 13px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
     gap: 6px;
     transition: all 0.3s ease;
     white-space: nowrap;
 }
 
 .btn-help:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(13, 94, 42, 0.3);
+    background: #e18018;
     color: white;
-    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(225, 128, 24, 0.2);
 }
 
 .btn-help:active {
     transform: translateY(0);
 }
-
 /* ========================================
    ESTILOS DEL DASHBOARD (app.blade.php)
    ======================================== */
