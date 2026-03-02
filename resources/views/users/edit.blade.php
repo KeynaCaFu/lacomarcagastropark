@@ -554,10 +554,73 @@ function validateEditPasswordMatch() {
                     });
                 }
                 
-                // Hacer submit después de mostrar el mensaje
-                setTimeout(() => {
-                    form.submit();
-                }, 500);
+                // Enviar por AJAX
+                const formData = new FormData(form);
+                const userId = "{{ $user->user_id }}";
+                
+                try {
+                    const response = await fetch(`/usuarios/${userId}`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw data;
+                    }
+                    
+                    // Éxito
+                    if (window.swToast) {
+                        swToast.fire({
+                            icon: 'success',
+                            title: 'Usuario actualizado correctamente',
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
+                    }
+                    
+                    // Limpiar el formulario
+                    form.reset();
+                    
+                    // Volver atrás sin recargar (solo actualiza la tabla)
+                    setTimeout(() => {
+                        window.history.back();
+                    }, 2200);
+                    
+                } catch (error) {
+                    // Cerrar el loading
+                    swAlert.close();
+                    
+                    // Mostrar errores de validación
+                    if (error.errors) {
+                        const messages = Object.values(error.errors)
+                            .flat()
+                            .map(msg => `• ${msg}`)
+                            .join('<br>');
+                        
+                        if (window.swAlert) {
+                            swAlert({
+                                icon: 'error',
+                                title: 'Error de validación',
+                                html: messages,
+                                confirmButtonColor: '#dc2626'
+                            });
+                        }
+                    } else {
+                        if (window.swAlert) {
+                            swAlert({
+                                icon: 'error',
+                                title: 'Error',
+                                text: error.message || 'Ocurrió un error al guardar',
+                                confirmButtonColor: '#dc2626'
+                            });
+                        }
+                    }
+                }
             });
         }
     }
