@@ -11,6 +11,8 @@
 <div style="padding: 0 15px;">
 
 <div class="products-container">
+    @include('products.partials.breadcrumb', ['crumbs' => []])
+
     <div class="header-section">
         <h2 style="display: flex; align-items: center; gap: 12px;"><i class="fas fa-boxes" style="color: #c9690f;"></i> Gestión de Productos</h2>
         <div class="header-actions">
