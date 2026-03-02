@@ -10,20 +10,20 @@ El dashboard del gerente proporciona una visión específica del local, mostrand
 
 Al iniciar sesión como gerente, verás:
 
-### 📊 Tarjetas de Estadísticas
+### Tarjetas de Estadísticas
 - **Total de Productos:** Cantidad de productos en catálogo
-- **Productos Activos:** Productos disponibles para la venta
-- **Productos Inactivos:** Productos descontinuados o sin stock
+- **Productos Disponibles:** Productos disponibles para la venta
+- **Productos No Disponibles:** Productos descontinuados o sin stock
 - **Categorías:** Total de categorías de productos
 
-### 🔗 Enlaces Rápidos
+### Enlaces Rápidos
 Acceso directo a:
 - Gestionar Productos
 - Ver Galería de Fotos
 - Ver Eventos del Local
 - Reportes de Inventario
 
-### 📦 Información del Local
+### Información del Local
 - Nombre del local
 - Ubicación
 - Información de contacto
@@ -34,38 +34,37 @@ Acceso directo a:
 
 El menú lateral te permite acceder a:
 
-1. **📦 Gestionar Productos** → [Ver guía](06-gestionar-productos.md)
-2. **🖼️ Galería de Fotos**
-3. **📅 Ver Eventos**
-4. **📊 Reportes de Inventario**
+1. **Gestionar Productos** → [Ver guía](06-gestionar-productos.md)
+2. **Galería de Fotos**
+3. **Ver Eventos**
+4. **Reportes de Inventario**
 
 ---
 
 ## Características del Gerente
 
-✅ **Ver dashboard personalizado** del local  
-✅ **Crear y editar productos** (completo control)  
-✅ **Gestionar galerías de fotos** para productos  
-✅ **Cambiar estados** de productos  
-✅ **Crear promociones** y variantes de precios  
-✅ **Ver estadísticas** de ventas  
+**Ver dashboard personalizado** del local  
+**Crear y editar productos** (completo control)  
+**Gestionar galerías de fotos** para productos  
+**Cambiar estados** de productos  
+**Crear promociones** y variantes de precios  
 
 ---
 
-## 📍 Diferencias con el Administrador
+## Diferencias con el Administrador
 
-| Función | Admin | Gerente |
-|---------|-------|---------|
-| Ver Dashboard | ✅ General | ✅ Específico |
-| Gestionar Usuarios | ✅ | ❌ |
-| Gestionar Eventos | ✅ | ❌ (solo ver) |
-| Gestionar Productos | ✅ | ✅ |
-| Galería de Fotos | ✅ | ✅ |
-| Cambiar Roles | ✅ | ❌ |
+|      Función        |   Admin |  Gerente  |
+|---------------------|---------|-----------|
+| Ver Dashboard       | General | Específico|
+| Gestionar Usuarios  |    SI   |     NO    |
+| Gestionar Eventos   |    SI   |     NO    |
+| Gestionar Productos |    SI   |     SI    |
+| Galería de Fotos    |    SI   |     SI    |
+| Cambiar Roles       |    SI   |     NO    |
 
 ---
 
-## 🎯 Tareas Comunes Diarias
+## Tareas Comunes Diarias
 
 ### Mañana
 1. Revisar dashboard para ver productos activos/inactivos

@@ -22,6 +22,7 @@ Cada fila de producto muestra:
 - **Nombre:** Nombre del producto
 - **Categoría:** Categoría a la que pertenece
 - **Precio:** Precio actual
+- **Galeria:** Galeria de fotos
 - **Estado:** Disponible o No disponible
 - **Acciones:** Botones para ver, editar o eliminar
 
@@ -33,14 +34,13 @@ Cada fila de producto muestra:
 
 ### Ordenamiento
 - Puedes hacer clic en los encabezados de columna para ordenar
-- Orden ascendente o descendente según el campo
 
 ---
 
-## ➕ Registrar Nuevo Producto
+## Registrar Nuevo Producto
 
 ### Paso 1: Abrir Formulario de Crear
-1. Haz clic en el botón **"➕ Nuevo Producto"** en la parte superior
+1. Haz clic en el botón **"Nuevo Producto"** en la parte superior derecha
 2. Se abrirá un **modal o formulario con los campos** para crear el producto
 
 ### Paso 2: Completar Información Básica
@@ -49,15 +49,13 @@ Cada fila de producto muestra:
 
 - **Nombre del Producto:** Nombre descriptivo
   - Ej: "Filete Mignon Premium" o "Ceviche Peruano"
-  - 💡 Usa nombres claros que describan el plato
+  -  Usa nombres claros que describan el plato
   
 - **Categoría:** Selecciona la categoría del producto
   - Opciones: Entradas, Platos Principales, Postres, Bebidas, etc.
-  - Ej: "Platos Principales"
   
 - **Precio:** Precio de venta unitario
-  - Ej: 25.50
-  - 💡 Usa formato: número.decimales (Ej: 15.99)
+  - Ej: ₡ 2500
   
 - **Estado:** Selecciona la disponibilidad
   - **Disponible:** El producto se puede vender
@@ -67,7 +65,7 @@ Cada fila de producto muestra:
 
 - **Descripción:** Detalles del producto
   - Ej: "Filete de res de 250g, jugoso y tierno, acompañado de verduras frescas y salsa de champiñones"
-  - 💡 Describe ingredientes, preparación, tamaño, etc.
+  - Describe ingredientes, preparación, tamaño, etc.
   
 - **Ingredientes:** Componentes principales
   - Ej: "Res, champiñones, crema, ajo, sal, pimienta"
@@ -79,7 +77,7 @@ Cada fila de producto muestra:
   - Ej: "PROD-001" o "FILETE-PREM-250"
 
 ### Paso 3: Subir Foto Principal
-1. Haz clic en **"Seleccionar imagen"** o arrastra una imagen
+1. Haz clic en **"Examinar"**
 2. Elige una foto clara y atractiva del producto
 3. Formatos: JPG, PNG
 4. Tamaño máximo: 2MB
@@ -87,18 +85,18 @@ Cada fila de producto muestra:
 
 ### Paso 4: Guardar Producto
 1. Revisa que todos los datos sean correctos
-2. Haz clic en **"✔️ Crear Producto"** o **"Guardar"**
+2. Haz clic en **" Crear Producto"**
 3. Se pedirá confirmación
 4. Verás un mensaje: **"Producto registrado exitosamente"**
 5. El producto aparecerá en la lista
 
 ---
 
-## ✏️ Editar Producto
+##  Editar Producto
 
 ### Paso 1: Abrir Formulario de Edición
 1. Busca el producto en la lista
-2. Haz clic en el botón **"✏️ Editar"** (lápiz)
+2. Haz clic en el botón **"Editar"** (lápiz)
 
 ### Paso 2: Modificar Información
 - Todos los campos se pueden editar
@@ -109,29 +107,28 @@ Cada fila de producto muestra:
 - Categoría
 - Precio
 - Descripción
-- Ingredientes
-- Alergias
-- Código
+- Etiqueta
+- Tipo de Producto
 - Estado (Disponible/No disponible)
 - Foto principal
 
 ### Paso 3: Actualizar Foto
-1. Para cambiar la foto, haz clic en **"Cambiar imagen"**
+1. Para cambiar la foto, haz clic en **"Examinar"**
 2. Elige una nueva foto
 3. La imagen se actualizará automáticamente
 
 ### Paso 4: Guardar Cambios
 1. Revisa que todos los datos sean correctos
-2. Haz clic en **"✔️ Guardar Cambios"**
+2. Haz clic en **"Guardar Cambios"**
 3. Los cambios se aplicarán inmediatamente
 
 ---
 
-## 🗑️ Eliminar Producto
+## Eliminar Producto
 
 ### Paso 1: Seleccionar Producto
 1. Busca el producto en la lista
-2. Haz clic en el botón **"🗑️ Eliminar"** (icono rojo de basura)
+2. Haz clic en el botón **"Eliminar"** (icono rojo de basura)
 
 ### Paso 2: Confirmar Eliminación
 1. Aparecerá un **diálogo de confirmación**
@@ -140,20 +137,19 @@ Cada fila de producto muestra:
 
 ### Paso 3: Completar la Eliminación
 1. Ingresa el **nombre del producto** para confirmar
-2. Haz clic en **"✔️ Sí, eliminar"**
+2. Haz clic en **"Sí, eliminar"**
 3. El producto será eliminado del sistema
 
-**⚠️ Nota:** Esta acción es permanente y no se puede deshacer. Se eliminarán también todas sus galerías de fotos.
+**Nota:** Esta acción es permanente y no se puede deshacer durante 10 segundos. Se eliminarán también todas sus galerías de fotos.
 
 ---
 
-## 📸 Gestionar Galería de Fotos
+## Gestionar Galería de Fotos
 
 La galería permite agregar múltiples fotos a cada producto para mostrar detalles, presentación, ingredientes, etc.
 
 ### Paso 1: Acceder a la Galería
-1. En el listado de productos, haz clic en **"📸 Galería"** o en el nombre del producto
-2. O abre el producto en modo edición y busca la sección "Galería de Fotos"
+1. En el listado de productos, haz clic en **"Galería"** 
 
 ### Paso 2: Ver Fotos Existentes
 - Se mostrarán todas las fotos agregadas al producto
@@ -169,7 +165,7 @@ La galería permite agregar múltiples fotos a cada producto para mostrar detall
 3. La foto se cargará automáticamente
 
 #### Opción B: Hacer Clic para Seleccionar
-1. Haz clic en **"Seleccionar fotos"** o **"➕ Agregar Fotos"**
+1. Haz clic en **"Seleccionar fotos"** o **"Agregar Fotos"**
 2. Se abrirá un explorador de archivos
 3. Selecciona una o más fotos
 4. Haz clic en abrir
@@ -181,12 +177,12 @@ La galería permite agregar múltiples fotos a cada producto para mostrar detall
 
 ### Paso 4: Establecer Foto Principal
 1. En la galería, busca la foto que deseas como principal
-2. Haz clic en **"⭐ Establecer como principal"**
+2. Haz clic en **"Establecer como principal"**
 3. Esta foto será la que se muestre en el listado de productos
 
 ### Paso 5: Eliminar Foto
 1. Busca la foto que deseas eliminar en la galería
-2. Haz clic en **"🗑️ Eliminar"** (icono rojo de basura)
+2. Haz clic en **"Eliminar"** (icono rojo de basura)
 3. Se pedirá confirmación
 4. Haz clic en **"Sí, eliminar"**
 5. La foto será eliminada de la galería
@@ -206,71 +202,65 @@ Los productos pueden tener dos estados:
 2. En el campo **"Estado"**, selecciona:
    - Disponible
    - No disponible
-3. Haz clic en **"✔️ Guardar Cambios"**
+3. Haz clic en **"Guardar Cambios"**
 
-**✨ Ventaja:** Cambiar estado es más rápido que eliminar y recuperar el producto.
+**Ventaja:** Cambiar estado es más rápido que eliminar y recuperar el producto.
 
 ---
 
-## 💰 Actualizar Precios
+## Actualizar Precios
 
 ### Cambiar Precio Individual
 1. Haz clic en **"Editar"** en el producto
 2. En el campo **"Precio"**, ingresa el nuevo precio
-3. Haz clic en **"✔️ Guardar Cambios"**
+3. Haz clic en **"Guardar Cambios"**
 
-### Consejos de Precios
-✅ **Formato:** Usa punto (.) para decimales. Ej: 25.50  
-✅ **Actualización Regular:** Revisa precios según temporada  
-✅ **Redondeo:** Considera usar precios terminados en .50 o .99  
-✅ **Promociones:** Nota cambios temporales con descripción  
+### Consejos de Precios 
+**Actualización Regular:** Revisa precios según temporada 
+**Promociones:** Nota cambios temporales con descripción  
 
 ---
 
-## 📋 Mejores Prácticas
+## Mejores Prácticas
 
 ### Nombres de Productos
-✅ Sé descriptivo y específico  
-✅ Incluye tamaño o peso (Ej: "Pasta Carbonara 300g")  
-✅ Usa mayúscula inicial  
-❌ Evita abreviaturas confusas  
+Sé descriptivo y específico  
+Incluye tamaño o peso (Ej: "Pasta Carbonara 300g")  
+Usa mayúscula inicial  
+Evita abreviaturas confusas  
 
 ### Fotos
-✅ Imágenes claras con buena iluminación  
-✅ Presentación atractiva del producto  
-✅ Mínimo 800x600 píxeles de resolución  
-✅ Varias ángulos diferentes en la galería  
-❌ Fotos pixeladas o de mala calidad  
+Imágenes claras con buena iluminación  
+ Presentación atractiva del producto  
+Mínimo 800x600 píxeles de resolución  
+Varias ángulos diferentes en la galería  
+Evitar fotos pixeladas o de mala calidad  
 
 ### Descripciones
-✅ Describe ingredientes principales  
-✅ Menciona alergias y restricciones  
-✅ Incluye tamaño o peso  
-✅ Destaca características especiales  
-❌ No escribas textos muy largos  
+Describe ingredientes principales  
+Menciona alergias y restricciones  
+Incluye tamaño o peso  
+Destaca características especiales  
+No escribas textos muy largos  
 
 ### Categorización
-✅ Usa categorías estándar y claras  
-✅ Agrupa productos similares  
-✅ Facilita la búsqueda de clientes  
+Usa categorías estándar y claras  
+Agrupa productos similares  
+Facilita la búsqueda de clientes  
 
 ---
 
-## 📊 Ejemplo de Producto Completo
+##  Ejemplo de Producto Completo
 
 **Nombre:** Tacos al Pastor Premium  
 **Categoría:** Platos Principales  
-**Precio:** 14.99  
+**Precio:** ₡ 1400 
 **Estado:** Disponible  
 
 **Descripción:**
-> "Tres tacos de tortilla de maíz casera rellenos de carne de cerdo marinada con especias tradicionales, piña caramelizada, cebolla morada y cilantro fresco. Acompañados con salsa verde, salsa roja y lima."
+  "Tres tacos de tortilla de maíz casera rellenos de carne de cerdo marinada con especias tradicionales, piña caramelizada, cebolla morada y cilantro fresco. Acompañados con salsa verde, salsa roja y lima."
 
 **Ingredientes:** Cerdo, piña, cebolla, cilantro, tortillas de maíz, especias variadas, limón  
-
-**Alergias:** Contiene gluten (tortillas pueden contener trazas)  
-
-**Código:** TACOS-PASTOR-001  
 
 **Fotos:**
 - Presentación completa del plato
@@ -280,7 +270,7 @@ Los productos pueden tener dos estados:
 
 ---
 
-## 🆘 Solución de Problemas
+## Solución de Problemas
 
 ### La foto no se carga
 - Verifica el tamaño (máximo 2MB)
@@ -294,8 +284,7 @@ Los productos pueden tener dos estados:
 
 ### No puedo editar el precio
 - Asegúrate de que el campo tenga solo números y punto
-- Ej correcto: 25.50
-- Ej incorrecto: $25,50 o 25.50$
+- Ej correcto: ₡ 2550
 
 ---
 

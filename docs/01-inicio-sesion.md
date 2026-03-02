@@ -8,7 +8,7 @@ La Comarca GastroPark cuenta con un sistema de autenticación robusto que permit
 
 ## Credenciales de Acceso
 
-### 👨‍💼 Administrador
+###  Administrador
 
 **Email:** `admin@gmail.com`  
 **Contraseña:** `admin`
@@ -20,9 +20,18 @@ La Comarca GastroPark cuenta con un sistema de autenticación robusto que permit
 
 ---
 
-### 🏪 Gerente de Local
+### Gerente de Local
 
 **Email:** `gerente.leskas@gmail.com`  
+**Contraseña:** `local`
+
+**Email:** `gerente.cevichito@gmail.com`  
+**Contraseña:** `local`
+
+**Email:** `gerente.donchente@gmail.com`  
+**Contraseña:** `local`
+
+**Email:** `gerente.muu@gmail.com`  
 **Contraseña:** `local`
 
 **Permisos:**
@@ -35,7 +44,7 @@ La Comarca GastroPark cuenta con un sistema de autenticación robusto que permit
 
 ## Pasos para Iniciar Sesión
 
-1. **Abre el navegador** y ve a la URL del proyecto http://127.0.0.1:8000
+1. **Abre el navegador** y ve a la URL del proyecto https://lacomarcagastropark.com/login
 2. **Verás la pantalla de login** con campos para:
    - Correo electrónico
    - Contraseña
@@ -44,15 +53,17 @@ La Comarca GastroPark cuenta con un sistema de autenticación robusto que permit
 4. **Haz clic en "Iniciar Sesión"**
 5. **Serás redirigido al dashboard** correspondiente a tu rol
 
+**Nota:** Si inicias seccion con el logo de google, ingresaras como cliente y mostrara una vista con los datos del usuario cliente que podra actualizar datos y tambien que porximamente habra otra vita con menus, realizar pedidos y eventos. 
+
 ---
 
 ## Características de Seguridad
 
-✅ **Validación de credenciales**  
-✅ **Contraseño encriptado**  
-✅ **Sesiones seguras**  
-✅ **Control de acceso basado en roles**  
-✅ **Opción "Recuérdame"** para mantener sesión abierta  
+**Validación de credenciales**  
+**Contraseño encriptado**  
+**Sesiones seguras**  
+**Control de acceso basado en roles**  
+**Opción "Recuérdame"** para mantener sesión abierta  
 
 ---
 

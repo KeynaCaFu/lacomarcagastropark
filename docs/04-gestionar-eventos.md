@@ -8,8 +8,8 @@ El módulo de gestión de eventos permite programar, editar y eliminar eventos d
 
 ## Acceder al Módulo de Eventos
 
-1. **En el Dashboard**, haz clic en **"Gestionar Eventos"** en el menú lateral
-2. Verás la **lista de todos los eventos** registrados
+1. **En el Dashboard**, haz clic en **"Eventos"** en el menú lateral
+2. Verás la **todos los eventos en cuadricula** registrados
 3. Cada evento se muestra como una **tarjeta** con su información
 
 ---
@@ -28,15 +28,15 @@ Cada tarjeta de evento muestra:
 
 ### Filtros y Búsqueda
 - **Barra de búsqueda:** Busca eventos por nombre
-- **Filtro por fecha:** Busca eventos en una fecha específica
-- **Botón "Limpiar":** Elimina los filtros aplicados
+- **Filtro por fecha:** Busca eventos en una fecha específica en un calendario
+- **Todos los estados:**  Toda los Estados, Activo, Inactivo
 
 ---
 
-## ➕ Crear Nuevo Evento
+## Crear Nuevo Evento
 
 ### Paso 1: Abrir Formulario de Crear
-1. Haz clic en el botón **"➕ Nuevo Evento"** en la parte superior
+1. Haz clic en el botón **"Nuevo Evento"** en la parte superior derecha
 2. Se abrirá un **modal con el formulario de creación**
 
 ### Paso 2: Completar los Datos
@@ -44,13 +44,13 @@ Cada tarjeta de evento muestra:
 **Campos Obligatorios (marcados con *):**
 
 - **Nombre del Evento:** Ej: "Noche de Tapas Españolas"
-  - 💡 Usa un nombre descriptivo y atractivo
+  - Usa un nombre descriptivo y atractivo
   
 - **Fecha:** Selecciona la fecha del evento
   - Ej: 15 de marzo de 2025
   
 - **Hora:** Selecciona la hora de inicio
-  - Ej: 19:30
+  - Ej: 07:30 pm
   
 - **Estado:** Selecciona el estado del evento
   - **Activo:** El evento se mostrará públicamente
@@ -71,14 +71,14 @@ Cada tarjeta de evento muestra:
   - Puede incluir información sobre el menú, promociones, etc.
 
 ### Paso 3: Subir Imagen (Opcional)
-1. Haz clic en **"Seleccionar imagen"**
+1. Haz clic en **"Examinar"**
 2. Elige una foto desde tu computadora
 3. La imagen se previsualiza en el formulario
 4. Asegúrate de que sea clara y atractiva
 
 ### Paso 4: Guardar
 1. Revisa que todos los datos sean correctos
-2. Haz clic en **"✔️ Guardar Evento"**
+2. Haz clic en **"Guardar Evento"**
 3. Se pedirá confirmación: "¿Estás seguro de guardar el evento?"
 4. Haz clic en **"Sí, guardar"**
 5. Verás un mensaje: **"Evento registrado exitosamente"**
@@ -86,11 +86,11 @@ Cada tarjeta de evento muestra:
 
 ---
 
-## ✏️ Editar Evento
+##  Editar Evento
 
 ### Paso 1: Abrir Formulario de Edición
 1. Busca el evento en la lista
-2. Haz clic en el botón **"✏️ Editar"** (en la tarjeta del evento)
+2. Haz clic en el botón **"Editar"** (en la tarjeta del evento)
 
 ### Paso 2: Modificar Datos
 - Todos los campos se pueden editar
@@ -106,13 +106,13 @@ Cada tarjeta de evento muestra:
 - Estado (Activo/Inactivo)
 
 ### Paso 3: Actualizar Imagen
-1. Para cambiar la imagen, haz clic en **"Seleccionar imagen"**
+1. Para cambiar la imagen, haz clic en **"Examinar"**
 2. Elige una nueva foto
 3. La imagen se actualizará automáticamente
 
 ### Paso 4: Guardar Cambios
 1. Revisa que todos los datos sean correctos
-2. Haz clic en **"✔️ Guardar Cambios"**
+2. Haz clic en **"Guardar Cambios"**
 3. Se pedirá confirmación: "¿Estás seguro de actualizar el Evento?"
 4. Haz clic en **"Sí, actualizar"**
 5. Los cambios se aplicarán inmediatamente
@@ -123,7 +123,7 @@ Cada tarjeta de evento muestra:
 
 ### Paso 1: Seleccionar Evento
 1. Busca el evento en la lista
-2. Haz clic en el botón **"🗑️ Eliminar"** (icono rojo de basura)
+2. Haz clic en el botón **"Eliminar"** (icono rojo de basura)
 
 ### Paso 2: Confirmar Eliminación
 1. Aparecerá un **diálogo de confirmación**
@@ -132,10 +132,10 @@ Cada tarjeta de evento muestra:
 
 ### Paso 3: Completar la Eliminación
 1. Ingresa el **nombre del evento** para confirmar
-2. Haz clic en **"✔️ Sí, eliminar"**
+2. Haz clic en **"Sí, eliminar"**
 3. El evento será eliminado del sistema
 
-**⚠️ Nota:** Esta acción es permanente y no se puede deshacer.
+**Nota:** Esta acción es permanente y no se puede deshacer despues de 10 segundos.
 
 ---
 
@@ -152,29 +152,28 @@ Los eventos pueden estar **Activos** o **Inactivos**:
 2. En el campo **"Estado"**, selecciona:
    - Activo
    - Inactivo
-3. Haz clic en **"✔️ Guardar Cambios"**
+3. Haz clic en **"Guardar Cambios"**
 
 ---
 
-## 📋 Mejores Prácticas
+##  Mejores Prácticas
 
-✅ **Descripción Atractiva:** Escribe descripciones que generen interés  
-✅ **Imágenes de Calidad:** Las fotos deben ser claras y profesionales  
-✅ **Información Completa:** Incluye fecha, hora y ubicación específicas  
-✅ **Eventos Vigentes:** Desactiva eventos pasados en lugar de eliminar  
-✅ **Detalles Útiles:** Incluye información sobre menú, precio, duración  
+**Descripción Atractiva:** Escribe descripciones que generen interés  
+**Imágenes de Calidad:** Las fotos deben ser claras y profesionales  
+**Información Completa:** Incluye fecha, hora y ubicación específicas  
+**Eventos Vigentes:** Desactiva eventos pasados en lugar de eliminar
 
 ---
 
-## 💡 Ejemplo de Evento Completo
+## Ejemplo de Evento Completo
 
 **Nombre:** Cata de Vinos Ibéricos  
 **Fecha:** 22 de marzo de 2025  
-**Hora:** 19:00  
+**Hora:** 07:00 pm
 **Ubicación:** Salón principal - Primera planta  
 **Estado:** Activo  
 **Descripción:** 
-> "Disfruta de una experiencia única categorizando los mejores vinos de La Rioja y Ribera del Duero. Acompañados con tabla de quesos y jamón ibérico. Máximo 30 personas. Reservación obligatoria. Precio: $35 por persona (incluye cata y degustación de 6 vinos premium)."
+  "Disfruta de una experiencia única categorizando los mejores vinos de La Rioja y Ribera del Duero. Acompañados con tabla de quesos y jamón ibérico. Máximo 30 personas. Reservación obligatoria. Precio: ₡ 3500 por persona (incluye cata y degustación de 6 vinos premium)."
 
 ---
 
