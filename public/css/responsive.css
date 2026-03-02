@@ -564,44 +564,237 @@ img, video, iframe {
 /* ==========================================================================
    10. MODALS RESPONSIVE
    ========================================================================== */
+
+/* MOBILE PEQUEÑO (< 576px) */
 @media (max-width: 575.98px) {
     .custom-modal {
-        padding: 5px !important;
+        padding: 10px !important;
     }
 
     .modal-content {
-        width: 100% !important;
-        max-height: 98vh !important;
-        border-radius: 8px !important;
-        margin: 0 !important;
+        width: calc(100% - 20px) !important;
+        max-width: 100% !important;
+        max-height: 95vh !important;
+        border-radius: 12px !important;
+        margin: auto !important;
     }
 
     .modal-header {
-        padding: 10px 12px !important;
+        padding: 12px 15px !important;
     }
 
     .modal-header h3 {
-        font-size: 0.95rem !important;
+        font-size: 1rem !important;
+    }
+
+    .modal-header h3 i {
+        font-size: 1rem !important;
+    }
+
+    .close {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 24px !important;
     }
 
     .modal-body {
-        padding: 10px 12px 5px !important;
+        padding: 15px !important;
+        font-size: 0.95rem !important;
+    }
+
+    .modal-body .row {
+        margin-bottom: 10px !important;
+    }
+
+    .modal-body .mb-3 {
+        margin-bottom: 12px !important;
+    }
+
+    .modal-body .form-label {
+        font-size: 0.9rem !important;
+        margin-bottom: 5px !important;
+    }
+
+    .modal-body .form-control,
+    .modal-body .form-select {
+        font-size: 0.9rem !important;
+        padding: 8px 10px !important;
+    }
+
+    .modal-body img {
+        max-height: 120px !important;
     }
 
     .modal-actions {
-        flex-direction: column !important;
-        gap: 8px;
+        flex-direction: column-reverse !important;
+        gap: 10px !important;
+        padding: 12px 15px !important;
+        background: #faf9f6 !important;
     }
 
     .modal-actions .btn {
-        width: 100%;
+        width: 100% !important;
+        padding: 10px 12px !important;
+        font-size: 0.95rem !important;
     }
 
     /* SweetAlert modals */
     .sage-modal .modal-card {
-        width: 98% !important;
+        width: 100% !important;
+        max-width: calc(100vw - 20px) !important;
+        margin: 10px !important;
+        max-height: 95vh !important;
+    }
+}
+
+/* TABLET PEQUEÑO (576px - 767px) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .custom-modal {
+        padding: 15px !important;
+    }
+
+    .modal-content {
+        width: calc(100% - 30px) !important;
         max-width: 100% !important;
-        margin: 0 4px !important;
+        max-height: 95vh !important;
+        border-radius: 12px !important;
+        margin: auto !important;
+    }
+
+    .modal-header {
+        padding: 15px 18px !important;
+    }
+
+    .modal-header h3 {
+        font-size: 1.1rem !important;
+    }
+
+    .modal-body {
+        padding: 18px !important;
+        font-size: 0.96rem !important;
+    }
+
+    .modal-body .form-control,
+    .modal-body .form-select {
+        font-size: 0.96rem !important;
+        padding: 9px 11px !important;
+    }
+
+    .modal-body img {
+        max-height: 150px !important;
+    }
+
+    .modal-actions {
+        flex-direction: row !important;
+        gap: 10px !important;
+        padding: 15px 18px !important;
+    }
+
+    .modal-actions .btn {
+        flex: 1 !important;
+        padding: 10px 12px !important;
+    }
+
+    .sage-modal .modal-card {
+        width: calc(100% - 30px) !important;
+        max-height: 95vh !important;
+    }
+}
+
+/* TABLET (768px - 991px) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .custom-modal {
+        padding: 20px !important;
+    }
+
+    .modal-content {
+        width: 90% !important;
+        max-width: 750px !important;
+        max-height: 94vh !important;
+        border-radius: 12px !important;
+        margin: auto !important;
+    }
+
+    .modal-header {
+        padding: 16px 20px !important;
+    }
+
+    .modal-header h3 {
+        font-size: 1.15rem !important;
+    }
+
+    .modal-body {
+        padding: 20px !important;
+    }
+
+    .modal-body .form-control,
+    .modal-body .form-select {
+        padding: 10px 12px !important;
+    }
+
+    .modal-body img {
+        max-height: 180px !important;
+    }
+
+    .modal-actions {
+        flex-direction: row !important;
+        gap: 12px !important;
+        padding: 16px 20px !important;
+    }
+
+    .modal-actions .btn {
+        flex: 1 !important;
+    }
+
+    .sage-modal .modal-card {
+        width: 90% !important;
+        max-width: 750px !important;
+    }
+}
+
+/* DESKTOP PEQUEÑO (992px - 1199px) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .custom-modal {
+        padding: 25px !important;
+    }
+
+    .modal-content {
+        width: 85% !important;
+        max-width: 850px !important;
+        max-height: 93vh !important;
+        margin: auto !important;
+    }
+
+    .modal-actions {
+        gap: 15px !important;
+    }
+
+    .sage-modal .modal-card {
+        width: 85% !important;
+        max-width: 850px !important;
+    }
+}
+
+/* DESKTOP GRANDE (>= 1200px) */
+@media (min-width: 1200px) {
+    .custom-modal {
+        padding: 30px !important;
+    }
+
+    .modal-content {
+        width: 80% !important;
+        max-width: 900px !important;
+        max-height: 92vh !important;
+        margin: auto !important;
+    }
+
+    .modal-actions {
+        gap: 15px !important;
+    }
+
+    .sage-modal .modal-card {
+        width: 80% !important;
+        max-width: 900px !important;
     }
 }
 
