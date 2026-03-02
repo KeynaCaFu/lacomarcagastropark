@@ -1,36 +1,50 @@
-# 🍽️ LaComarca GastroPark - Sistema de Gestión
+# LaComarca GastroPark - Sistema de Gestión
 
-> **Sistema integral de gestión para restaurantes y locales gastronómicos**
+**Sistema integral de gestión para restaurantes y locales gastronómicos**
 
-## 📌 Descripción General
+## Descripción General
 
 LaComarca GastroPark es una plataforma web basada en **Laravel** diseñada para administrar de manera eficiente todos los aspectos de un restaurante o local gastronómico, incluyendo:
 
-- 👥 **Gestión de Usuarios** - Administración de personal con roles diferenciados
-- 📅 **Gestión de Eventos** - Programación y promoción de eventos especiales
-- 📦 **Gestión de Productos** - Catálogo completo con galerías de fotos
-- 📊 **Dashboard Personalizado** - Vistas específicas según el rol del usuario
-- 🔐 **Control de Acceso** - Sistema de autenticación seguro con roles
+-  **Gestión de Usuarios** - Administración de personal con roles diferenciados
+- **Gestión de Eventos** - Programación y promoción de eventos especiales
+- **Gestión de Productos** - Catálogo completo con galerías de fotos
+- **Dashboard Personalizado** - Vistas específicas según el rol del usuario
+- **Control de Acceso** - Sistema de autenticación seguro con roles
 
 ---
 
-## 🚀 Inicio Rápido
+## Inicio Rápido
 
 ### Credenciales de Acceso Predeterminadas
 
-#### 👨‍💼 Administrador
+####  Administrador
+
 - **Email:** `admin@gmail.com`
 - **Contraseña:** `admin`
 - **Acceso:** Completo al sistema
 
-#### 🏪 Gerente de Local
+#### Gerente de Local
 - **Email:** `leskas@gmail.com`
 - **Contraseña:** `local`
-- **Acceso:** Productos, eventos y dashboard del local
+
+**Email:** `gerente.leskas@gmail.com`  
+**Contraseña:** `local`
+
+**Email:** `gerente.cevichito@gmail.com`  
+**Contraseña:** `local`
+
+**Email:** `gerente.donchente@gmail.com`  
+**Contraseña:** `local`
+
+**Email:** `gerente.muu@gmail.com`  
+**Contraseña:** `local`
+
+- **Acceso:** Productos y dashboard del local
 
 ---
 
-## 📚 Documentación Completa
+## Documentación Completa
 
 Toda la documentación está organizada en la carpeta `/docs`:
 
@@ -48,45 +62,45 @@ Toda la documentación está organizada en la carpeta `/docs`:
 
 ---
 
-## 🎯 Funcionalidades Principales
+## Funcionalidades Principales
 
-### 👥 Gestión de Usuarios (Admin)
+### Gestión de Usuarios (Admin)
 
-✅ **Crear nuevos usuarios** con diferentes roles  
-✅ **Editar información** de usuarios existentes  
-✅ **Eliminar usuarios** de forma segura  
-✅ **Cambiar estado** de usuarios (Activo/Inactivo)  
-✅ **Asignar roles** con permisos específicos  
+**Crear nuevos usuarios** con diferentes roles  
+**Editar información** de usuarios existentes  
+**Eliminar usuarios** de forma segura  
+**Cambiar estado** de usuarios (Activo/Inactivo)  
+**Asignar roles** con permisos específicos  
 
-### 📅 Gestión de Eventos (Admin)
+###  Gestión de Eventos (Admin)
 
-✅ **Crear eventos especiales** con imagen, fecha y descripción  
-✅ **Editar eventos** en cualquier momento  
-✅ **Subir fotos** del evento  
-✅ **Cambiar estado** (Activo/Inactivo)  
-✅ **Eliminar eventos** de forma segura  
-✅ **Filtrar por fecha** o nombre  
+**Crear eventos especiales** con imagen, fecha y descripción  
+**Editar eventos** en cualquier momento  
+**Subir fotos** del evento  
+**Cambiar estado** (Activo/Inactivo)  
+**Eliminar eventos** de forma segura  
+**Filtrar por fecha** o nombre  
 
-### 📦 Gestión de Productos (Gerente)
+###  Gestión de Productos (Gerente)
 
-✅ **Registrar productos** con detalles completos  
-✅ **Editar información** de precios y descripciones  
-✅ **Gestionar galería de fotos** (múltiples imágenes)  
-✅ **Establecer foto principal** para cada producto  
-✅ **Cambiar estado** (Disponible/No disponible)  
-✅ **Categorizar productos** automáticamente  
-✅ **Filtrar y buscar** rápidamente  
+**Registrar productos** con detalles completos  
+**Editar información** de precios y descripciones  
+**Gestionar galería de fotos** (múltiples imágenes)  
+**Establecer foto principal** para cada producto  
+**Cambiar estado** (Disponible/No disponible)  
+**Categorizar productos** automáticamente  
+**Filtrar y buscar** rápidamente  
 
-### 📊 Dashboard Personalizado
+###  Dashboard Personalizado
 
-✅ **Estadísticas en tiempo real** según el rol  
-✅ **Enlaces rápidos** a funciones principales  
-✅ **Vista general del local**  
-✅ **Información de inventario**  
+**Estadísticas en tiempo real** según el rol  
+**Enlaces rápidos** a funciones principales  
+**Vista general del local**  
+**Información de inventario**  
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Stack Tecnológico
 
 - **Backend:** Laravel 11+
 - **Frontend:** Blade, Bootstrap 5.1.3, TailwindCSS
@@ -96,7 +110,7 @@ Toda la documentación está organizada en la carpeta `/docs`:
 
 ---
 
-## 📋 Requisitos del Sistema
+## Requisitos del Sistema
 
 - PHP 8.1 o superior
 - MySQL 5.7 o superior
@@ -105,7 +119,7 @@ Toda la documentación está organizada en la carpeta `/docs`:
 
 ---
 
-## ⚙️ Instalación
+## Instalación
 
 ### 1. Clonar el Repositorio
 ```bash
@@ -127,13 +141,13 @@ php artisan key:generate
 
 ### 4. Configurar Base de Datos
 ```bash
-# Editar .env con tus credenciales MySQL
+# Editar .env con credenciales MySQL
 DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
+DB_HOST=localhost
 DB_PORT=3306
-DB_DATABASE=lacomarca_db
-DB_USERNAME=root
-DB_PASSWORD=
+DB_DATABASE=lacogswb_lacomarca
+DB_USERNAME=lacogswb_lacomarca
+DB_PASSWORD=702810812-402480420
 ```
 
 ### 5. Ejecutar Migraciones
@@ -151,11 +165,11 @@ npm run dev
 php artisan serve
 ```
 
-Accede a `http://localhost:8000`
+Accede a ` https://lacomarcagastropark.com/login`
 
 ---
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 lacomarcagastropark/
@@ -186,13 +200,13 @@ lacomarcagastropark/
 
 ---
 
-## 🔐 Seguridad
+## Seguridad
 
-- ✅ Autenticación con Laravel Sanctum
-- ✅ Validación de datos en frontend y backend
-- ✅ Protección CSRF
-- ✅ Encriptación de contraseñas
-- ✅ Control de acceso basado en roles (RBAC)
+- Autenticación con Laravel Sanctum
+- Validación de datos en frontend y backend
+- Protección CSRF
+- Encriptación de contraseñas
+- Control de acceso basado en roles (RBAC)
 
 ---
 
@@ -209,7 +223,7 @@ Para más información detallada sobre cómo usar cada módulo, consulta los sig
 
 ---
 
-## 🆘 Solución de Problemas
+##  Solución de Problemas
 
 ### El sistema no carga correctamente
 1. Verifica que el servidor esté corriendo: `php artisan serve`
@@ -233,29 +247,29 @@ Para más información detallada sobre cómo usar cada módulo, consulta los sig
 
 ---
 
-## 👥 Roles y Permisos
+##  Roles y Permisos
 
 ### Administrador
-| Función | Permiso |
-|---------|---------|
-| Gestionar Usuarios | ✅ Completo |
-| Gestionar Eventos | ✅ Completo |
-| Gestionar Productos | ✅ Completo |
-| Ver Dashboard Global | ✅ |
-| Cambiar Configuración | ✅ |
+| Función                | Permiso |
+|------------------------|---------|
+| Gestionar Usuarios     |    SI   |
+| Gestionar Eventos      |    SI   |
+| Gestionar Productos    |    SI   |
+| Ver Dashboard Global   |    SI   |
+| Cambiar Configuración  |    SI   |
 
 ### Gerente de Local
-| Función | Permiso |
-|---------|---------|
-| Gestionar Usuarios | ❌ No |
-| Gestionar Eventos | 👁️ Solo ver |
-| Gestionar Productos | ✅ Completo |
-| Ver Dashboard Local | ✅ |
-| Cambiar Configuración | ❌ No |
+|         Función       | Permiso |
+|-----------------------|---------|
+| Gestionar Usuarios    |    NO   |
+| Gestionar Eventos     |    VER  |
+| Gestionar Productos   |    SI   |
+| Ver Dashboard Local   |    SI   |
+| Cambiar Configuración |    NO   |
 
 ---
 
-## 📝 Notas de Desarrollo
+##  Notas de Desarrollo
 
 - Patrón MVC implementado en Laravel
 - Validación automática con Form Requests
@@ -265,22 +279,13 @@ Para más información detallada sobre cómo usar cada módulo, consulta los sig
 
 ---
 
-## 📞 Soporte
-
-Para reportar problemas o sugerencias:
-1. Revisa la documentación en `/docs`
-2. Consulta la [Guía de Troubleshooting](#solución-de-problemas)
-3. Contacta al administrador del sistema
-
----
-
-## 📄 Licencia
+## Licencia
 
 Este proyecto es propietario de LaComarca GastroPark.
 
 ---
 
-## 🎉 ¡Bienvenido a LaComarca!
+##  ¡Bienvenido a LaComarca!
 
 Gracias por usar nuestro sistema de gestión. Para comenzar, accede a la plataforma con tus credenciales y sigue las guías específicas para tu rol.
 
