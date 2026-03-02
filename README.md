@@ -24,10 +24,6 @@ LaComarca GastroPark es una plataforma web basada en **Laravel** diseñada para 
 - **Contraseña:** `admin`
 - **Acceso:** Completo al sistema
 
-#### Gerente de Local
-- **Email:** `leskas@gmail.com`
-- **Contraseña:** `local`
-
 **Email:** `gerente.leskas@gmail.com`  
 **Contraseña:** `local`
 
