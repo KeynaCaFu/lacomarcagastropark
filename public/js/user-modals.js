@@ -135,9 +135,14 @@ class UserModals {
                     if (window.swToast) {
                         swToast.fire({
                             icon: 'success',
-                            title: 'Usuario actualizado correctamente'
+                            title: 'Usuario actualizado correctamente',
+                            timer: 2000,
+                            timerProgressBar: true
                         });
-                        window.location.reload();
+                        // Recargar después de que se muestre el toast
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2500);
                     } else if (retries < 50) {
                         retries++;
                         setTimeout(checkAndShowSuccess, 100);

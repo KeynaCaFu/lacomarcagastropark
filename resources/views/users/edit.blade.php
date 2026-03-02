@@ -540,7 +540,24 @@ function validateEditPasswordMatch() {
                     });
                     if (!res.isConfirmed) return;
                 }
-                form.submit();
+                
+                // Mostrar notificación de guardando
+                if (window.swAlert) {
+                    swAlert({
+                        title: 'Guardando cambios...',
+                        icon: 'info',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            swAlert.showLoading();
+                        }
+                    });
+                }
+                
+                // Hacer submit después de mostrar el mensaje
+                setTimeout(() => {
+                    form.submit();
+                }, 500);
             });
         }
     }
