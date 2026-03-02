@@ -827,7 +827,11 @@
                     if (!res.isConfirmed) return;
                 }
                 
-                const submitBtn = this.querySelector('button[type="submit"]');
+                let submitBtn = this.querySelector('button[type="submit"]');
+                if(!submitBtn) {
+                    submitBtn = document.querySelector('button[type="submit"][form="createUserForm"]');
+                }
+                if(!submitBtn) return;
                 if(submitBtn.disabled) return;
                 
                 const originalText = submitBtn.innerHTML;
@@ -869,8 +873,10 @@
                     setTimeout(checkAndShowSuccess, 100);
                 } catch(error) {
                     window.userModals.handleValidationErrors(error, this);
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
                     if (window.swAlert) {
                         swAlert({ icon: 'error', title: 'Error', text: 'No se pudo crear el usuario', confirmButtonColor: '#dc2626' });
                     }

@@ -338,24 +338,8 @@ function validatePasswordMatch(passwordId, confirmId, feedbackId) {
     // Setup password validation
     setupPasswordValidation('createPassword', 'createPasswordConfirm', 'createStrengthFill', 'createStrengthText', 'createMatchFeedback');
 
-    const form = document.getElementById('createUserForm');
-    if (form && !form.dataset._createConfirmBound) {
-        form.dataset._createConfirmBound = 'true';
-        form.addEventListener('submit', async function(e){
-            e.preventDefault();
-            if (window.Swal) {
-                const res = await (window.swConfirm ? swConfirm({
-                    title: 'Crear usuario',
-                    text: '¿Desea crear este nuevo usuario?',
-                    icon: 'question',
-                    confirmButtonText: 'Sí, crear',
-                    cancelButtonText: 'Cancelar'
-                }) : Promise.resolve({ isConfirmed: true }));
-                if (!res.isConfirmed) return;
-            }
-            form.submit();
-        });
-    }
+    // Note: submit handler is in users/index.blade.php (AJAX-based)
+    // Do not add duplicate handler here
 
     // Session success/error and validation SweetAlerts (in case rendered server-side)
     try {
