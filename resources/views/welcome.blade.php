@@ -4,6 +4,29 @@
 ')
 
 @section('content')
+
+@if(session('logged_out'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let retries = 0;
+        const checkAndShowLogout = () => {
+            if (window.swToast) {
+                swToast.fire({
+                    icon: 'success',
+                    title: '{{ session('logged_out') }}',
+                    timer: 3000,
+                    timerProgressBar: true,
+                    position: 'top-end'
+                });
+            } else if (retries < 50) {
+                retries++;
+                setTimeout(checkAndShowLogout, 100);
+            }
+        };
+        setTimeout(checkAndShowLogout, 100);
+    });
+</script>
+@endif
 <style>
     .welcome-card{
         max-width: 640px; /* antes 760px */
