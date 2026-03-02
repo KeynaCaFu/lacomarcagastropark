@@ -70,7 +70,56 @@
 
   @include('events._create_modal')
 
-  {{-- Contenedores para modales AJAX (show / edit) --}}
+  {{-- Modal de Ayuda --}}
+  <div id="helpModal" class="custom-modal">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <div class="modal-header">
+            <h3 id="helpTitle"><i class="fas fa-question-circle"></i> Ayuda de Eventos</h3>
+            <button type="button" class="close" aria-label="Cerrar" onclick="closeHelpModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="detail-section">
+                <h5>¿Cómo buscar eventos?</h5>
+                <p>
+                    Usa el acordeón de filtros para buscar por fecha o estado. Selecciona una fecha en el calendario o 
+                    elige un estado en el dropdown. La tabla se actualiza automáticamente sin recargar la página.
+                </p>
+            </div>
+            <div class="detail-section">
+                <h5>¿Cómo crear, ver, editar y eliminar eventos?</h5>
+                <p>
+                    - "Nuevo Evento" abre el formulario de creación.<br>
+                    - El ícono de ojo permite ver los detalles de un evento.<br>
+                    - El ícono de lápiz permite editar un evento.<br>
+                    - El ícono de papelera elimina el evento tras confirmar (puedes deshacer en 10 segundos).
+                </p>
+            </div>
+            <div class="detail-section">
+                <h5>¿Cómo cambiar el estado?</h5>
+                <p>
+                    Haz clic directamente en la etiqueta "Activo" o "Inactivo" en cada tarjeta para cambiar el estado 
+                    del evento. Se actualiza automáticamente sin necesidad de editar.
+                </p>
+            </div>
+            <div class="detail-section">
+                <h5>Paginación</h5>
+                <p>
+                    Los números de página están centrados bajo las tarjetas. Al hacer clic se actualiza la lista.
+                </p>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeHelpModal()">Cerrar</button>
+        </div>
+    </div>
+  </div>
+
+  {{-- Botón de Ayuda --}}
+  <div id="helpButtonContainerEvent" style="display: none;">
+      <button id="helpButtonEvent" type="button" class="btn-help">
+          <i class="fas fa-question-circle"></i> Ayuda
+      </button>
+  </div>
   <div id="showModal" class="custom-modal">
     <div class="modal-content" id="showModalContent"></div>
   </div>
@@ -85,6 +134,87 @@
 
   {{-- SweetAlert2 se carga globalmente desde el layout --}}
   <script>
+    // Estilos para el botón de ayuda
+    const style = document.createElement('style');
+    style.textContent = `
+      .btn-help {
+        background: transparent;
+        color: #e18018;
+        border: 2px solid #e18018;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+      }
+      .btn-help:hover {
+        background: #e18018;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(225, 128, 24, 0.2);
+      }
+      .btn-help:active {
+        transform: translateY(0);
+      }
+      .detail-section {
+        margin: 0 0 20px 0;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .detail-section:last-child {
+        border-bottom: none;
+      }
+      .detail-section h5 {
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 8px 0;
+      }
+      .detail-section p {
+        color: #6b7280;
+        margin: 0;
+        line-height: 1.6;
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Mover el botón de ayuda al header
+    document.addEventListener('DOMContentLoaded', function() {
+      const helpContainer = document.getElementById('topHelpEventContainer');
+      const helpButtonContainer = document.getElementById('helpButtonContainerEvent');
+      const helpButton = document.getElementById('helpButtonEvent');
+      
+      if (helpContainer && helpButtonContainer && helpButton) {
+        helpContainer.appendChild(helpButton);
+        helpButtonContainer.style.display = 'none';
+      }
+
+      // Vincular el botón al modal
+      if (helpButton) {
+        helpButton.addEventListener('click', openHelpModal);
+      }
+    });
+
+    function openHelpModal() {
+      const modal = document.getElementById('helpModal');
+      if (modal) {
+        modal.classList.add('open');
+        modal.style.display = 'flex';
+      }
+    }
+
+    function closeHelpModal() {
+      const modal = document.getElementById('helpModal');
+      if (modal) {
+        modal.classList.remove('open');
+        modal.style.display = 'none';
+      }
+    }
+    
     // ===== DEFINIR reattachEventListeners PRIMERO =====
     function reattachEventListeners() {
       // Re-vincular listeners de eliminación

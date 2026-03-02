@@ -237,8 +237,11 @@
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 16px;">
-                        <!-- Help Button Container -->
+                        <!-- Help Button Container (Usuarios) -->
                         <div id="topHelpContainer"></div>
+                        
+                        <!-- Help Button Container (Eventos) -->
+                        <div id="topHelpEventContainer"></div>
 
                         <!-- User Icon Menu -->
                         <div class="user-menu-top" style="position: relative;">
