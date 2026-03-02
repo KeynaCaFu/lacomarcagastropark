@@ -578,18 +578,17 @@ function validateEditPasswordMatch() {
                         swToast.fire({
                             icon: 'success',
                             title: 'Usuario actualizado correctamente',
-                            timer: 2000,
-                            timerProgressBar: true
+                            timer: 1500,
+                            timerProgressBar: true,
+                            didClose: () => {
+                                // Volver a usuarios cuando se cierre el toast
+                                window.location.href = '{{ route("users.index") }}';
+                            }
                         });
                     }
                     
                     // Limpiar el formulario
                     form.reset();
-                    
-                    // Volver atrás sin recargar (solo actualiza la tabla)
-                    setTimeout(() => {
-                        window.history.back();
-                    }, 2200);
                     
                 } catch (error) {
                     // Cerrar el loading
