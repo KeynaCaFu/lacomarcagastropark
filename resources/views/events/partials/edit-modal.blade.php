@@ -66,7 +66,17 @@
       </div>
     </div>
 
+    <div class="modal-footer" style="background:#faf9f6; padding: 15px 20px; border-top: 1px solid #e5e5e5; display: flex; justify-content: flex-end; gap: 12px;">
+      <button type="button" class="btn-modal-cancel" onclick="closeModal('editModal')">
+        Cancelar
+      </button>
+      <button type="submit" class="btn-modal-save">
+        Actualizar Evento
+      </button>
     </div>
+
+  </form>
+</div>
 
 <script>
 // Manejar vista previa de foto de evento
