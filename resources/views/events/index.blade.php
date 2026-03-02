@@ -71,11 +71,11 @@
   @include('events._create_modal')
 
   {{-- Contenedores para modales AJAX (show / edit) --}}
-  <div id="showModal" class="custom-modal" style="display:none;">
+  <div id="showModal" class="custom-modal">
     <div class="modal-content" id="showModalContent"></div>
   </div>
 
-  <div id="editModal" class="custom-modal" style="display:none;">
+  <div id="editModal" class="custom-modal">
     <div class="modal-content" id="editModalContent"></div>
   </div>
 
@@ -574,6 +574,31 @@
 
   .status-badge.status-toggler:active {
     transform: scale(0.98);
+  }
+
+  /* Estilos para modales overlay */
+  .custom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9997;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(3px);
+  }
+
+  .custom-modal.open {
+    display: flex;
+  }
+
+  .custom-modal .modal-content {
+    background: #fdfdfc;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
   }
 </style>
 </div>

@@ -139,6 +139,21 @@
                 display: inline-block !important;
             }
         }
+
+    /* Estilo personalizado para botón de confirmación SweetAlert2 */
+        .swal2-confirm {
+            background: linear-gradient(135deg, #e18018, #c9690f) !important;
+            color: white !important;
+            border: none !important;
+        }
+        
+        .swal2-confirm:hover {
+            background: linear-gradient(135deg, #d97c13, #b85f0d) !important;
+        }
+        
+        .swal2-confirm:active {
+            background: linear-gradient(135deg, #c9690f, #a84f0a) !important;
+        }
     </style>
     
     @stack('styles')
@@ -422,7 +437,7 @@
                 let remainingMs = typeof delayMs === 'number' ? delayMs : 10000;
                 let remaining = Math.floor(remainingMs / 1000);
                 const baseMessage = message || 'Se eliminará el registro';
-                text.textContent = `${baseMessage} en ${remaining}s`;
+                text.textContent = baseMessage;
 
                 const btnUndo = document.createElement('button');
                 btnUndo.textContent = 'Deshacer';
@@ -444,11 +459,10 @@
                 panel.appendChild(countdown);
                 container.appendChild(panel);
 
-                countdown.textContent = remaining + 's';
+                countdown.textContent = 'en ' + remaining + 's';
                 const interval = setInterval(() => {
                     remaining -= 1;
-                    countdown.textContent = remaining + 's';
-                    text.textContent = `${baseMessage} en ${Math.max(remaining,0)}s`;
+                    countdown.textContent = 'en ' + Math.max(remaining, 0) + 's';
                 }, 1000);
 
                 const cleanup = () => {
