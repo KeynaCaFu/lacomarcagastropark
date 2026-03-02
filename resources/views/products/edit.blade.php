@@ -8,228 +8,254 @@
 
 @section('content')
 <div style="padding: 0 15px;">
+    @include('products.partials.breadcrumb', ['crumbs' => [
+        ['label' => $product->name, 'url' => route('products.show', $product->product_id)],
+        ['label' => 'Editar']
+    ]])
 
-<div class="page-wrapper">
     <!-- Header -->
-    <div class="form-header">
-        <h2>
-            <i class="fas fa-edit" style="margin-right:8px;"></i> Actualizar Producto
-        </h2>
-        <div class="accent-line"></div>
-        <span class="subtitle">Modifique la información del producto: {{ $product->name }}</span>
+    <div style="margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 8px;">
+            <div style="flex:1; min-width:200px;">
+                <h2 style="margin: 7px; color: #1f2937; font-weight: 712;">
+                    <i class="fas fa-edit" style="margin-right:8px;"></i> Actualizar Producto
+                </h2>
+                <div style="height:4px; width:120px; background:#f59e0b; border-radius:2px; margin-left:7px;"></div>
+                <small class="text-muted">Modifique la información del producto: <strong>{{ $product->name }}</strong></small>
+            </div>
+        </div>
     </div>
 
-    <!-- Formulario -->
-    <div class="form-container">
-        <div class="card-header-custom d-flex align-items-center justify-content-between">
-            <h5 class="mb-0" style="color:#1f2937; font-weight:700; display:flex; align-items:center; gap:8px;">
-                <i class="fas fa-file-alt"></i> Información del Producto
-            </h5>
-        </div>
-        <div class="card-body-custom">
-                    <form action="{{ route('products.update', $product->product_id) }}" method="POST" id="productForm" enctype="multipart/form-data">
-                        @csrf
-                        @method('PUT')
+    <!-- Formulario de Edición -->
+    <div style="width: 100%; max-width: 960px; margin: 0 auto;">
+        <div class="card" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+            <div class="card-header d-flex align-items-center justify-content-between" style="background:#f8fafc; border-bottom:1px solid #e5e7eb; border-top-left-radius:12px; border-top-right-radius:12px;">
+                <h5 class="mb-0" style="color:#1f2937; font-weight:700; display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-file-alt"></i> Información del Producto
+                </h5>
+            </div>
+            <div class="card-body" style="padding:24px;">
+                <form action="{{ route('products.update', $product->product_id) }}" method="POST" id="productForm" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
 
-                        <!-- Nombre -->
-                        <div class="form-group mb-3">
-                            <label for="nombre" class="form-label d-flex align-items-center justify-content-between">
-                                <span><strong>Nombre del Producto *</strong></span>
-                                <span class="ms-2 text-white-50" 
-                                      title="El nombre debe ser único. Si cambia, no debe duplicar otro producto">
-                                    <i class="fas fa-info-circle" aria-label="Ayuda"></i>
-                                </span>
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('nombre') is-invalid @enderror" 
-                                   id="nombre" 
-                                   name="nombre" 
-                                   value="{{ old('nombre', $product->name) }}"
-                                   required
-                                   maxlength="255"
-                                   placeholder="Nombre del producto">
-                            @error('nombre')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <!-- Descripción -->
-                        <div class="form-group mb-3">
-                            <label for="descripcion" class="form-label">
-                                <strong>Descripción</strong>
-                            </label>
-                            <textarea class="form-control @error('descripcion') is-invalid @enderror" 
-                                      id="descripcion" 
-                                      name="descripcion" 
-                                      rows="4"
-                                      placeholder="Descripción detallada del producto">{{ old('descripcion', $product->description) }}</textarea>
-                            @error('descripcion')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <!-- Fila: Categoría y Tipo de Producto -->
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="categoria" class="form-label">
-                                        <strong>Categoría</strong>
-                                    </label>
-                                    <input type="text" 
-                                           class="form-control @error('categoria') is-invalid @enderror" 
-                                           id="categoria" 
-                                           name="categoria" 
-                                           value="{{ old('categoria', $product->category) }}"
-                                           maxlength="100"
-                                           placeholder="ej: Bebidas, Comidas">
-                                    @error('categoria')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
-                                </div>
+                    <div class="create-product-grid">
+                        {{-- ======= COLUMNA IZQUIERDA: Datos principales ======= --}}
+                        <div class="create-product-left">
+                            <!-- Nombre -->
+                            <div class="form-group mb-3">
+                                <label for="nombre" class="form-label d-flex align-items-center justify-content-between">
+                                    <span><strong>Nombre del Producto *</strong></span>
+                                    <span class="ms-2 text-white-50" title="El nombre debe ser único. Si cambia, no debe duplicar otro producto">
+                                        <i class="fas fa-info-circle" aria-label="Ayuda"></i>
+                                    </span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control @error('nombre') is-invalid @enderror" 
+                                       id="nombre" 
+                                       name="nombre" 
+                                       value="{{ old('nombre', $product->name) }}"
+                                       required
+                                       maxlength="255"
+                                       placeholder="Nombre del producto">
+                                @error('nombre')
+                                    <span class="invalid-feedback">{{ $message }}</span>
+                                @enderror
                             </div>
 
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="tipo_producto" class="form-label">
-                                        <strong>Tipo de Producto</strong>
-                                    </label>
-                                    <input type="text" 
-                                           class="form-control @error('tipo_producto') is-invalid @enderror" 
-                                           id="tipo_producto" 
-                                           name="tipo_producto" 
-                                           value="{{ old('tipo_producto', $product->product_type) }}"
-                                           maxlength="50"
-                                           placeholder="ej: Bebida, Entrada">
-                                    @error('tipo_producto')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Fila: Precio y Etiqueta -->
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="precio" class="form-label d-flex align-items-center justify-content-between">
-                                        <span><strong>Precio *</strong></span>
-                                        <span class="ms-2 text-white-50" 
-                                              title="Ingrese un valor ≥ 0. Use punto para decimales (ej: 1500.50)">
-                                            <i class="fas fa-info-circle" aria-label="Ayuda"></i>
-                                        </span>
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text" style="background:#f8fafc; border:1px solid #e5e7eb;">₡</span>
-                                        <input type="number" 
-                                               class="form-control @error('precio') is-invalid @enderror" 
-                                               id="precio" 
-                                               name="precio" 
-                                               value="{{ old('precio', $product->price) }}"
-                                               required
-                                               step="0.01" 
-                                               min="0"
-                                               placeholder="0.00">
+                            <!-- Categoría y Tipo de Producto -->
+                            <div class="form-grid-2col">
+                                <div>
+                                    <div class="form-group mb-3">
+                                        <label for="categoria" class="form-label">
+                                            <strong>Categoría</strong>
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control @error('categoria') is-invalid @enderror" 
+                                               id="categoria" 
+                                               name="categoria" 
+                                               value="{{ old('categoria', $product->category) }}"
+                                               maxlength="100"
+                                               placeholder="ej: Bebidas, Comidas">
+                                        @error('categoria')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
                                     </div>
-                                    @error('precio')
-                                        <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
-                                    @enderror
+                                </div>
+                                <div>
+                                    <div class="form-group mb-3">
+                                        <label for="tipo_producto" class="form-label">
+                                            <strong>Tipo de Producto</strong>
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control @error('tipo_producto') is-invalid @enderror" 
+                                               id="tipo_producto" 
+                                               name="tipo_producto" 
+                                               value="{{ old('tipo_producto', $product->product_type) }}"
+                                               maxlength="50"
+                                               placeholder="ej: Bebida, Entrada">
+                                        @error('tipo_producto')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="etiqueta" class="form-label">
-                                        <strong>Etiqueta</strong>
-                                    </label>
-                                    <input type="text" 
-                                           class="form-control @error('etiqueta') is-invalid @enderror" 
-                                           id="etiqueta" 
-                                           name="etiqueta" 
-                                           value="{{ old('etiqueta', $product->tag) }}"
-                                           maxlength="100"
-                                           placeholder="ej: Especial, Descuento">
-                                    @error('etiqueta')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
+                            <!-- Precio y Etiqueta -->
+                            <div class="form-grid-2col">
+                                <div>
+                                    <div class="form-group mb-3">
+                                        <label for="precio" class="form-label d-flex align-items-center justify-content-between">
+                                            <span><strong>Precio *</strong></span>
+                                            <span class="ms-2 text-white-50" title="Ingrese un valor ≥ 0. Use punto para decimales (ej: 1500.50)">
+                                                <i class="fas fa-info-circle" aria-label="Ayuda"></i>
+                                            </span>
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text" style="background:#f8fafc; border:1px solid #e5e7eb;">₡</span>
+                                            <input type="number" 
+                                                   class="form-control @error('precio') is-invalid @enderror" 
+                                                   id="precio" 
+                                                   name="precio" 
+                                                   value="{{ old('precio', $product->price) }}"
+                                                   required
+                                                   step="0.01" 
+                                                   min="0"
+                                                   placeholder="0.00">
+                                        </div>
+                                        @error('precio')
+                                            <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
+                                        @enderror
+                                    </div>
                                 </div>
+                                <div>
+                                    <div class="form-group mb-3">
+                                        <label for="etiqueta" class="form-label">
+                                            <strong>Etiqueta</strong>
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control @error('etiqueta') is-invalid @enderror" 
+                                               id="etiqueta" 
+                                               name="etiqueta" 
+                                               value="{{ old('etiqueta', $product->tag) }}"
+                                               maxlength="100"
+                                               placeholder="ej: Especial, Descuento">
+                                        @error('etiqueta')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="form-group mb-3">
+                                <label for="descripcion" class="form-label">
+                                    <strong>Descripción</strong>
+                                </label>
+                                <textarea class="form-control @error('descripcion') is-invalid @enderror" 
+                                          id="descripcion" 
+                                          name="descripcion" 
+                                          rows="4"
+                                          style="resize: vertical;"
+                                          placeholder="Descripción detallada del producto">{{ old('descripcion', $product->description) }}</textarea>
+                                @error('descripcion')
+                                    <span class="invalid-feedback">{{ $message }}</span>
+                                @enderror
                             </div>
                         </div>
 
-                        <!-- Foto Principal -->
-                        <div class="form-group mb-3">
-                            <label for="foto" class="form-label">
-                                <strong>Foto Principal</strong>
-                            </label>
-                            <div class="custom-file">
-                                <input type="file" 
-                                       class="custom-file-input @error('foto') is-invalid @enderror" 
-                                       id="foto" 
-                                       name="foto"
-                                       accept="image/*">
-                                <label class="custom-file-label" for="foto">Seleccionar archivo...</label>
-                            </div>
-                            <small class="form-text text-muted d-block mt-2">Formatos aceptados: JPG, PNG, GIF. Tamaño máximo: 2MB</small>
-                            @error('foto')
-                                <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
-                            @enderror
-
-                            @if($product->photo_url)
-                                <div class="mt-3">
-                                    <small class="text-muted">Foto actual:</small>
-                                    <br>
-                                    <img src="{{ $product->photo_url }}" alt="{{ $product->name }}" 
-                                         class="img-thumbnail mt-2" style="max-width: 200px; max-height: 150px; object-fit: cover;">
+                        {{-- ======= COLUMNA DERECHA: Imagen y Estado ======= --}}
+                        <div class="create-product-right">
+                            <!-- Foto Principal -->
+                            <div class="form-group mb-3">
+                                <label for="foto" class="form-label">
+                                    <strong>Foto Principal</strong>
+                                </label>
+                                <div class="custom-file">
+                                    <input type="file" 
+                                           class="custom-file-input @error('foto') is-invalid @enderror" 
+                                           id="foto" 
+                                           name="foto"
+                                           accept="image/*">
+                                    <label class="custom-file-label" for="foto">Seleccionar archivo...</label>
                                 </div>
-                            @endif
-                        </div>
+                                <small class="form-text text-muted d-block mt-2">Formatos: JPG, PNG, GIF. Máx: 2MB</small>
+                                @error('foto')
+                                    <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
+                                @enderror
 
-                        <!-- Estado -->
-                        <div class="form-group mb-4">
-                            <label for="estado" class="form-label d-flex align-items-center justify-content-between">
-                                <span><strong>Estado *</strong></span>
-                                <span class="ms-2 text-white-50" 
-                                      title="Seleccione disponibilidad actual: Disponible o No disponible">
-                                    <i class="fas fa-info-circle" aria-label="Ayuda"></i>
-                                </span>
-                            </label>
-                            <select class="form-control @error('estado') is-invalid @enderror" 
-                                    id="estado" 
-                                    name="estado" 
-                                    required>
-                                <option value="">-- Seleccione un estado --</option>
-                                <option value="Disponible" {{ old('estado', $product->status === 'Available' ? 'Disponible' : $product->status) == 'Disponible' ? 'selected' : '' }}>
-                                    ✓ Disponible
-                                </option>
-                                <option value="No disponible" {{ old('estado', $product->status === 'Unavailable' ? 'No disponible' : $product->status) == 'No disponible' ? 'selected' : '' }}>
-                                    ✗ No disponible
-                                </option>
-                            </select>
-                            @error('estado')
-                                <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
-                            @enderror
-                        </div>
+                                <!-- Preview de imagen (muestra foto actual o nueva selección) -->
+                                <div id="imagePreviewContainer" style="margin-top: 12px; border: 2px {{ $product->photo_url ? 'solid' : 'dashed' }} #e5e7eb; border-radius: 10px; overflow: hidden; background: {{ $product->photo_url ? '#fff' : '#fafafa' }}; display: flex; align-items: center; justify-content: center; min-height: 180px; transition: all 0.3s ease;">
+                                    @if($product->photo_url)
+                                        <img id="imagePreview" src="{{ $product->photo_url }}" alt="{{ $product->name }}" style="width: 100%; max-height: 220px; object-fit: cover;">
+                                        <div id="imagePreviewPlaceholder" style="display: none; text-align: center; padding: 20px; color: #9ca3af;">
+                                            <i class="fas fa-image" style="font-size: 48px; opacity: 0.3; display: block; margin-bottom: 8px;"></i>
+                                            <span style="font-size: 13px;">La vista previa aparecerá aquí</span>
+                                        </div>
+                                    @else
+                                        <div id="imagePreviewPlaceholder" style="text-align: center; padding: 20px; color: #9ca3af;">
+                                            <i class="fas fa-image" style="font-size: 48px; opacity: 0.3; display: block; margin-bottom: 8px;"></i>
+                                            <span style="font-size: 13px;">Sin foto actual</span>
+                                        </div>
+                                        <img id="imagePreview" src="#" alt="Vista previa" style="display: none; width: 100%; max-height: 220px; object-fit: cover;">
+                                    @endif
+                                </div>
+                            </div>
 
-                        <!-- Información de auditoría -->
-                        <div class="alert alert-info alert-sm mb-3">
-                            <small>
+                            <!-- Estado -->
+                            <div class="form-group mb-3">
+                                <label for="estado" class="form-label d-flex align-items-center justify-content-between">
+                                    <span><strong>Estado *</strong></span>
+                                    <span class="ms-2 text-white-50" title="Seleccione disponibilidad actual: Disponible o No disponible">
+                                        <i class="fas fa-info-circle" aria-label="Ayuda"></i>
+                                    </span>
+                                </label>
+                                <select class="form-control @error('estado') is-invalid @enderror" 
+                                        id="estado" 
+                                        name="estado" 
+                                        required>
+                                    <option value="">-- Seleccione un estado --</option>
+                                    <option value="Disponible" {{ old('estado', $product->status === 'Available' ? 'Disponible' : $product->status) == 'Disponible' ? 'selected' : '' }}>
+                                        ✓ Disponible
+                                    </option>
+                                    <option value="No disponible" {{ old('estado', $product->status === 'Unavailable' ? 'No disponible' : $product->status) == 'No disponible' ? 'selected' : '' }}>
+                                        ✗ No disponible
+                                    </option>
+                                </select>
+                                @error('estado')
+                                    <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <!-- Información de auditoría -->
+                            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #1e40af;">
+                                <i class="fas fa-clock" style="margin-right: 6px;"></i>
                                 <strong>Creado:</strong> {{ $product->created_at->format('d/m/Y H:i') }}<br>
+                                <i class="fas fa-sync-alt" style="margin-right: 6px; margin-top: 4px;"></i>
                                 <strong>Última modificación:</strong> {{ $product->updated_at->format('d/m/Y H:i') }}
-                            </small>
-                        </div>
+                            </div>
 
-                        <!-- Botones de acción -->
-                        <div class="form-group" style="display:flex; gap:10px; flex-wrap:wrap;">
-                            <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #e18018, #915016); border:none; font-weight:600;">
-                                <i class="fas fa-save"></i> Guardar Cambios
-                            </button>
-                            <a href="{{ route('products.index') }}" class="btn btn-outline-secondary" style="border-color:#e5e7eb; color:#374151;">
-                                <i class="fas fa-times"></i> Cancelar
-                            </a>
+                            <!-- Tip -->
+                            <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #92400e; margin-top: 12px;">
+                                <i class="fas fa-lightbulb" style="margin-right: 6px;"></i>
+                                <strong>Tip:</strong> Para gestionar las imágenes adicionales, visite la <a href="{{ route('products.gallery', $product->product_id) }}" style="color: #c9690f; font-weight: 600;">galería del producto</a>.
+                            </div>
                         </div>
-                    </form>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                        <a href="{{ route('products.index') }}" class="btn btn-outline-secondary" style="border-color:#e5e7eb; color:#374151;">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #e18018, #915016); border:none; font-weight:600;">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
 <!-- Modal: Confirmar Eliminación -->
 <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -279,10 +305,33 @@
             document.head.appendChild(s);
         }
     })();
-    // Mostrar nombre del archivo seleccionado
+    // Mostrar nombre del archivo seleccionado y vista previa
     document.getElementById('foto').addEventListener('change', function() {
         const fileName = this.files[0] ? this.files[0].name : 'Seleccionar archivo...';
         this.nextElementSibling.textContent = fileName;
+
+        // Vista previa de imagen
+        const preview = document.getElementById('imagePreview');
+        const placeholder = document.getElementById('imagePreviewPlaceholder');
+        const container = document.getElementById('imagePreviewContainer');
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+                container.style.borderColor = '#c9690f';
+                container.style.borderStyle = 'solid';
+                container.style.background = '#fff';
+            };
+            reader.readAsDataURL(this.files[0]);
+        } else {
+            preview.style.display = 'none';
+            if (placeholder) placeholder.style.display = 'block';
+            container.style.borderColor = '#e5e7eb';
+            container.style.borderStyle = 'dashed';
+            container.style.background = '#fafafa';
+        }
     });
 
     // Validación del formulario en el cliente
@@ -404,24 +453,10 @@
             helpButtonContainer.style.display = 'none';
         }
 
-        // Mover botón de volver al header
-        const backButtonContainer = document.getElementById('topBackButtonContainer');
-        const backButtonElement = document.getElementById('editBackButton');
-        
-        if (backButtonContainer && backButtonElement) {
-            backButtonContainer.appendChild(backButtonElement);
-        }
     });
 </script>
 @endpush
 
-
-<!-- Botón de Volver para Editar Producto -->
-<div id="editBackButtonContainer" style="display: none;">
-    <a id="editBackButton" href="{{ route('products.index') }}" class="btn btn-outline-secondary" style="display: inline-flex; align-items: center; gap: 5px; border-color:#e5e7eb; color:#374151;">
-        <i class="fas fa-arrow-left"></i> Volver
-    </a>
-</div>
 
 <!-- Botón de Ayuda para Editar Producto -->
 <div id="helpButtonContainerEdit" style="display: none;">

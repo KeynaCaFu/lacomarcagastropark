@@ -8,6 +8,11 @@
 
 @section('content')
 <div style="padding: 0 15px;">
+    @include('products.partials.breadcrumb', ['crumbs' => [
+        ['label' => $product->name, 'url' => route('products.show', $product->product_id)],
+        ['label' => 'Galería']
+    ]])
+
         <!-- Header -->
         <div style="margin-bottom: 1rem;">
             <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 8px;">
@@ -18,7 +23,7 @@
                     <div style="height:4px; width:120px; background:#f59e0b; border-radius:2px; margin-left:7px;"></div>
                     <small class="text-muted">Gestiona las imágenes del producto: <strong>{{ $product->name }}</strong></small>
                 </div>
-                <div id="topBackButtonContainer" class="top-help" style="gap:8px;"></div>
+
             </div>
         </div>
 
@@ -110,10 +115,6 @@
                                         <div class="card shadow-sm gallery-item" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow:hidden;">
                                             <div class="position-relative gallery-image-container" style="background:#ffffff;">
                                                 <img src="{{ $image->image_url }}" alt="Imagen de galería" class="card-img-top" style="height: 200px; object-fit: cover;">
-                                                <span class="badge badge-primary position-absolute" style="top: 10px; right: 10px;">ID: {{ $image->gallery_id }}</span>
-                                            </div>
-                                            <div class="card-body" style="background:#ffffff;">
-                                                <p class="card-text text-muted small mb-2"><i class="fas fa-image"></i> Imagen de galería</p>
                                             </div>
                                             <div class="card-footer" style="background:#f8fafc;">
                                                 <button type="button" class="btn btn-sm btn-danger btn-block" onclick="confirmDelete({{ $image->gallery_id }})">
@@ -267,11 +268,6 @@
                 helpContainer.appendChild(helpButton);
                 helpButtonContainer.style.display = 'none';
             }
-            const backButtonContainer = document.getElementById('topBackButtonContainer');
-            const backButtonElement = document.getElementById('galleryBackButton');
-            if (backButtonContainer && backButtonElement) {
-                backButtonContainer.appendChild(backButtonElement);
-            }
             // Session alerts (success/error) and validation errors
             const successMsg = @json(session('success'));
             if (successMsg && window.swAlert) {
@@ -294,13 +290,6 @@
         });
     </script>
     @endpush
-
-    <!-- Botón de Volver para Galería -->
-    <div id="galleryBackButtonContainer" style="display: none;">
-        <a id="galleryBackButton" href="{{ route('products.index') }}" class="btn btn-outline-secondary" style="display: inline-flex; align-items: center; gap: 5px; border-color:#e5e7eb; color:#374151;">
-            <i class="fas fa-arrow-left"></i> Volver
-        </a>
-        </div>
 
     <!-- Botón de Ayuda para Galería -->
     <div id="helpButtonContainerGallery" style="display: none;">

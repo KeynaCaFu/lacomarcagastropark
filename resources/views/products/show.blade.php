@@ -2,8 +2,16 @@
 
 @section('title', 'Detalles del Producto')
 
+@push('styles')
+    <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
 <div style="padding: 0 15px;">
+    @include('products.partials.breadcrumb', ['crumbs' => [
+        ['label' => $product->name]
+    ]])
+
     <!-- Header -->
     <div style="margin-bottom: 1rem;">
         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 8px;">
@@ -14,7 +22,7 @@
                 <div style="height:4px; width:120px; background:#f59e0b; border-radius:2px; margin-left:7px;"></div>
                 <small class="text-muted">Detalles y gestión del producto</small>
             </div>
-            <div id="topBackButtonContainer" class="top-help" style="gap:8px;"></div>
+
         </div>
     </div>
 
@@ -255,14 +263,8 @@
         document.head.appendChild(s);
     }
 })();
-// Mover botón Volver al header
+// Session success/error alerts
 document.addEventListener('DOMContentLoaded', function() {
-    const backButtonContainer = document.getElementById('topBackButtonContainer');
-    const backButtonElement = document.getElementById('productShowBackButton');
-    if (backButtonContainer && backButtonElement) {
-        backButtonContainer.appendChild(backButtonElement);
-    }
-    // Session success/error alerts
     const successMsg = @json(session('success'));
     if (successMsg && window.swAlert) {
         swAlert({ icon: 'success', title: 'Éxito', text: successMsg });
@@ -371,10 +373,5 @@ document.addEventListener('DOMContentLoaded', function(){
 </div>
 @endsection
 
-<!-- Botón de Volver oculto para mover al header -->
-<div id="productShowBackButtonContainer" style="display:none;">
-    <a id="productShowBackButton" href="{{ route('products.index') }}" class="btn btn-outline-secondary" style="display:inline-flex; align-items:center; gap:5px; border-color:#e5e7eb; color:#374151;">
-        <i class="fas fa-arrow-left"></i> Volver
-    </a>
-</div>
+
 

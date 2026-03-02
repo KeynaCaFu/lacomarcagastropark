@@ -4,6 +4,115 @@
    ======================================== */
 
 /* ==========================================
+   BREADCRUMB - PRODUCTOS
+   ========================================== */
+
+.product-breadcrumb {
+    padding: 10px 0 6px 0;
+    margin-bottom: 8px;
+}
+
+.product-breadcrumb ol {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+}
+
+.product-breadcrumb li {
+    display: inline-flex;
+    align-items: center;
+    font-size: 13px;
+    line-height: 1;
+}
+
+.product-breadcrumb a {
+    color: #c9690f;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.product-breadcrumb a:hover {
+    color: #915016;
+    text-decoration: underline;
+}
+
+.product-breadcrumb a i {
+    font-size: 12px;
+}
+
+.product-breadcrumb .breadcrumb-separator {
+    font-size: 9px;
+    color: #9ca3af;
+    margin: 0 8px;
+}
+
+.product-breadcrumb .current {
+    color: #6b7280;
+    font-weight: 600;
+}
+
+@media (max-width: 575.98px) {
+    .product-breadcrumb {
+        padding: 8px 0 4px 0;
+    }
+    .product-breadcrumb li {
+        font-size: 12px;
+    }
+    .product-breadcrumb .breadcrumb-separator {
+        margin: 0 5px;
+    }
+}
+
+/* ==========================================
+   PÁGINA: CREAR PRODUCTO - LAYOUT 2 COLUMNAS
+   ========================================== */
+
+.create-product-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 28px;
+    align-items: start;
+}
+
+.create-product-left,
+.create-product-right {
+    display: flex;
+    flex-direction: column;
+}
+
+.create-product-right {
+    position: sticky;
+    top: 20px;
+}
+
+/* Tablet: reducir gap */
+@media (max-width: 991.98px) {
+    .create-product-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+}
+
+/* Mobile: una sola columna */
+@media (max-width: 767.98px) {
+    .create-product-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    .create-product-right {
+        position: static;
+    }
+}
+
+/* ==========================================
    PÁGINA: EDITAR PRODUCTO (edit.blade.php)
    ========================================== */
 
