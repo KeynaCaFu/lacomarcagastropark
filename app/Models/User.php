@@ -88,6 +88,42 @@ class User extends Authenticatable
     }
 
     /**
+     * Accessor: generar URL correcta para avatar
+     */
+    public function getAvatarUrlAttribute()
+    {
+        if (empty($this->attributes['avatar'])) {
+            return null;
+        }
+
+        $avatar = $this->attributes['avatar'];
+
+        // Si es una URL absoluta, retornar como está
+        if (str_starts_with($avatar, 'http')) {
+            return $avatar;
+        }
+
+        // Si comienza con /storage/, usar Storage::url() para backward compatibility
+        if (str_starts_with($avatar, '/storage/')) {
+            $path = str_replace('/storage/', '', $avatar);
+            return \Illuminate\Support\Facades\Storage::url($path);
+        }
+
+        // Si comienza con public/images/, remover el prefijo public/
+        if (str_starts_with($avatar, 'public/')) {
+            $avatar = str_replace('public/', '', $avatar);
+        }
+
+        // Si comienza con images/, usar asset()
+        if (str_starts_with($avatar, 'images/')) {
+            return asset($avatar);
+        }
+
+        // Por defecto, asumir que es una ruta pública
+        return asset($avatar);
+    }
+
+    /**
      * Check if user is manager (local admin)
      */
     public function isAdminLocal()

@@ -7,7 +7,7 @@
 </div>
 
 <div class="modal-body">
-    <form id="editUserForm" method="POST" novalidate data-user-id="{{ $user->user_id }}">
+    <form id="editUserForm" method="POST" novalidate enctype="multipart/form-data" data-user-id="{{ $user->user_id }}">
         @csrf
         @method('PUT')
 
@@ -108,6 +108,26 @@
                     <option value="Inactive" {{ $user->status === 'Inactive' ? 'selected' : '' }}>Inactivo</option>
                 </select>
                 <div class="invalid-feedback"></div>
+            </div>
+        </div>
+
+        <!-- Foto de Perfil -->
+        <div class="row g-3 mt-1">
+            <div class="col-md-12">
+                <label class="form-label">Foto de Perfil (Avatar)</label>
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <div>
+                        <input type="file" name="avatar" class="form-control" accept="image/jpeg,image/png,image/gif,image/jpg" id="avatarInput">
+                        <small class="text-muted d-block mt-1">JPG, PNG o GIF. Máximo 2MB</small>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    @if($user->avatar)
+                    <div style="text-align: center;">
+                        <img id="avatarPreview" src="{{ $user->avatar_url }}" alt="Avatar Actual" style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover; border: 2px solid #e5e7eb;">
+                        <p style="font-size: 12px; margin-top: 5px; color: #666;">Actual</p>
+                    </div>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -279,3 +299,36 @@
         color: #dc2626;
     }
 </style>
+
+<script>
+// Manejar vista previa de avatar
+document.addEventListener('DOMContentLoaded', function(){
+    const avatarInput = document.getElementById('avatarInput');
+    if(avatarInput){
+        avatarInput.addEventListener('change', function(e){
+            if(this.files && this.files[0]){
+                const reader = new FileReader();
+                reader.onload = function(event){
+                    let preview = document.getElementById('avatarPreview');
+                    if(!preview){
+                        const container = avatarInput.closest('.row');
+                        preview = document.createElement('img');
+                        preview.id = 'avatarPreview';
+                        preview.style.cssText = 'width: 80px; height: 80px; border-radius: 8px; object-fit: cover; border: 2px solid #e5e7eb; margin-left: 15px;';
+                        const div = document.createElement('div');
+                        div.style.textAlign = 'center';
+                        div.appendChild(preview);
+                        const p = document.createElement('p');
+                        p.style.cssText = 'font-size: 12px; margin-top: 5px; color: #666;';
+                        p.textContent = 'Nueva';
+                        div.appendChild(p);
+                        container.querySelector('[style*="display: flex"]').appendChild(div);
+                    }
+                    preview.src = event.target.result;
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+});
+</script>

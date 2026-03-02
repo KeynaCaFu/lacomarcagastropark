@@ -19,8 +19,8 @@ class ProductGallery extends Model
     ];
 
     /**
-     * Accessor: Obtener URL de imagen usando Storage
-     * Usa image_url si existe, sino devuelve null
+     * Accessor: Obtener URL de imagen
+     * Convierte rutas relativas en URLs accesibles
      */
     public function getImageUrlAttribute($value)
     {
@@ -28,13 +28,29 @@ class ProductGallery extends Model
             return null;
         }
 
-        // Si la ruta ya tiene /storage/, quitarlo
-        $path = $value;
-        if (str_starts_with($path, '/storage/')) {
-            $path = str_replace('/storage/', '', $path);
+        // Si ya es URL absoluta, devolverla
+        if (str_starts_with($value, 'http')) {
+            return $value;
         }
 
-        return \Illuminate\Support\Facades\Storage::url($path);
+        // Si empieza con /storage/, usar Storage (compatibilidad atrás)
+        if (str_starts_with($value, '/storage/')) {
+            $path = str_replace('/storage/', '', $value);
+            return \Illuminate\Support\Facades\Storage::url($path);
+        }
+
+        // Si comienza con public/images/, remover el prefijo public/
+        if (str_starts_with($value, 'public/')) {
+            $value = str_replace('public/', '', $value);
+        }
+
+        // Si empieza con images/, usar asset()
+        if (str_starts_with($value, 'images/')) {
+            return asset($value);
+        }
+
+        // Por defecto, usar asset
+        return asset($value);
     }
 
     /**

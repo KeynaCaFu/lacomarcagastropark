@@ -7,6 +7,7 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\File;
 
 class UserController extends Controller
 {
@@ -70,9 +71,24 @@ class UserController extends Controller
             'role_id' => 'required|exists:tbrole,role_id',
             'phone' => 'nullable|string|max:20',
             'status' => 'required|in:Active,Inactive',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
+
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            // Crear directorio si no existe
+            $avatarDir = public_path('images/avatars');
+            if (!File::isDirectory($avatarDir)) {
+                File::makeDirectory($avatarDir, 0755, true, true);
+            }
+
+            // Generar nombre único para el avatar
+            $filename = 'avatar_' . time() . '_' . rand(1000, 9999) . '.' . $request->file('avatar')->getClientOriginalExtension();
+            $request->file('avatar')->move($avatarDir, $filename);
+            $validated['avatar'] = 'images/avatars/' . $filename;
+        }
 
         $user = User::create($validated);
 
@@ -141,6 +157,7 @@ class UserController extends Controller
             'role_id' => 'required|exists:tbrole,role_id',
             'phone' => 'nullable|string|max:20',
             'status' => 'required|in:Active,Inactive',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         // Solo actualizar la contraseña si se proporciona
@@ -148,6 +165,28 @@ class UserController extends Controller
             $validated['password'] = Hash::make($validated['password']);
         } else {
             unset($validated['password']);
+        }
+
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            // Eliminar avatar anterior si existe
+            if ($user->avatar) {
+                $oldPath = public_path(str_replace('public/', '', $user->avatar));
+                if (File::exists($oldPath)) {
+                    File::delete($oldPath);
+                }
+            }
+
+            // Crear directorio si no existe
+            $avatarDir = public_path('images/avatars');
+            if (!File::isDirectory($avatarDir)) {
+                File::makeDirectory($avatarDir, 0755, true, true);
+            }
+
+            // Generar nombre único para el avatar
+            $filename = 'avatar_' . $user->user_id . '_' . time() . '.' . $request->file('avatar')->getClientOriginalExtension();
+            $request->file('avatar')->move($avatarDir, $filename);
+            $validated['avatar'] = 'public/images/avatars/' . $filename;
         }
 
         $user->update($validated);

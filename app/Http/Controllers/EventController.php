@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Data\EventData;
 use App\Models\Event;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 
@@ -55,8 +55,16 @@ class EventController extends Controller
 
         $imageUrl = null;
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('events', 'public');
-            $imageUrl = 'storage/' . $path;
+            // Crear directorio si no existe
+            $eventDir = public_path('images/events');
+            if (!File::isDirectory($eventDir)) {
+                File::makeDirectory($eventDir, 0755, true, true);
+            }
+
+            // Generar nombre único para la imagen
+            $filename = 'event_' . time() . '_' . rand(1000, 9999) . '.' . $request->file('photo')->getClientOriginalExtension();
+            $request->file('photo')->move($eventDir, $filename);
+            $imageUrl = 'images/events/' . $filename;
         }
 
         $data = [
@@ -123,16 +131,23 @@ class EventController extends Controller
 
         if ($request->hasFile('photo')) {
             // Eliminar imagen antigua si existe
-            if ($evento->image_url && str_starts_with($evento->image_url, 'storage/')) {
-                $rel = str_replace('storage/', '', $evento->image_url);
-                if (Storage::disk('public')->exists($rel)) {
-                    Storage::disk('public')->delete($rel);
+            if ($evento->image_url) {
+                $oldPath = public_path(str_replace('public/', '', $evento->image_url));
+                if (File::exists($oldPath)) {
+                    File::delete($oldPath);
                 }
             }
             
-            // Guardar nueva imagen en carpeta events
-            $path = $request->file('photo')->store('events', 'public');
-            $data['image_url'] = 'storage/' . $path;
+            // Crear directorio si no existe
+            $eventDir = public_path('images/events');
+            if (!File::isDirectory($eventDir)) {
+                File::makeDirectory($eventDir, 0755, true, true);
+            }
+
+            // Generar nombre único para la imagen
+            $filename = 'event_' . $evento->event_id . '_' . time() . '.' . $request->file('photo')->getClientOriginalExtension();
+            $request->file('photo')->move($eventDir, $filename);
+            $data['image_url'] = 'images/events/' . $filename;
         }
 
         $this->eventData->update($evento->event_id, $data);
@@ -148,10 +163,10 @@ class EventController extends Controller
 
     public function destroy(Event $evento)
     {
-        if ($evento->image_url && str_starts_with($evento->image_url, 'storage/')) {
-            $rel = str_replace('storage/', '', $evento->image_url);
-            if (Storage::disk('public')->exists($rel)) {
-                Storage::disk('public')->delete($rel);
+        if ($evento->image_url) {
+            $oldPath = public_path(str_replace('public/', '', $evento->image_url));
+            if (File::exists($oldPath)) {
+                File::delete($oldPath);
             }
         }
 

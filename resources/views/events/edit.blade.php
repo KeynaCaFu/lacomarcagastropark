@@ -15,9 +15,7 @@
           $fecha   = optional($event->start_at)->format('Y-m-d');
           $hora    = optional($event->start_at)->format('H:i');
           $estado  = $event->is_active ? 'activo' : 'inactivo';
-          $imgActual = $event->image_url
-            ? (str_starts_with($event->image_url,'http') ? $event->image_url : asset($event->image_url))
-            : asset('images/default.jpg');
+          $imgActual = $event->image_url ?? asset('images/default.jpg');
         @endphp
 
         <form id="formEdit" action="{{ route('eventos.actualizar', ['evento' => $event->event_id]) }}" method="POST" enctype="multipart/form-data">

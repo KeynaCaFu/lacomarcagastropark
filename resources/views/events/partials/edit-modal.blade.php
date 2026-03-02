@@ -40,28 +40,18 @@
       <div class="col-lg-4">
         <div class="mb-3">
           <label class="form-label">Imagen (archivo opcional)</label>
-          <input type="file" name="photo" accept="image/*" class="form-control mb-2">
+          <input type="file" name="photo" accept="image/*" class="form-control mb-2" id="eventPhotoInput">
           @php
-            $imgUrl = null;
-            if ($event->image_url) {
-                if (str_starts_with($event->image_url, 'http')) {
-                    $imgUrl = $event->image_url;
-                } elseif (str_starts_with($event->image_url, 'storage/')) {
-                    $imgUrl = asset($event->image_url);
-                } else {
-                    
-                    $imgUrl = asset('storage/' . ltrim($event->image_url, '/'));
-                }
-            }
+            $imgUrl = $event->image_url;
           @endphp
 
           @if($imgUrl)
             <div style="border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 6px 18px rgba(0,0,0,0.06);">
-              <img src="{{ $imgUrl }}" alt="{{ $event->title }}" style="width:100%; height:140px; object-fit:cover; display:block;" onerror="this.style.display='none'">
+              <img id="eventImagePreview" src="{{ $imgUrl }}" alt="{{ $event->title }}" style="width:100%; height:140px; object-fit:cover; display:block;" onerror="this.style.display='none'">
             </div>
             <small class="text-muted d-block mt-2">Actualmente: <a href="{{ $imgUrl }}" target="_blank">Ver imagen</a></small>
           @else
-            <div style="height:140px; background:#f8f8f8; border-radius:8px;"></div>
+            <div id="eventImagePlaceholder" style="height:140px; background:#f8f8f8; border-radius:8px;"></div>
           @endif
         </div>
 
@@ -76,15 +66,44 @@
       </div>
     </div>
 
-    <div class="modal-actions">
-      <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Cancelar</button>
-      <button type="submit" class="btn btn-update">Actualizar Evento</button>
     </div>
-  </form>
-</div>
 
 <script>
-// Inicializar confirmación de actualización de evento para el caso server-rendered.
+// Manejar vista previa de foto de evento
+document.addEventListener('DOMContentLoaded', function(){
+    const photoInput = document.getElementById('eventPhotoInput');
+    if(photoInput){
+        photoInput.addEventListener('change', function(e){
+            if(this.files && this.files[0]){
+                const reader = new FileReader();
+                reader.onload = function(event){
+                    let preview = document.getElementById('eventImagePreview');
+                    if(!preview){
+                        const placeholder = document.getElementById('eventImagePlaceholder');
+                        if(placeholder) placeholder.remove();
+                        const container = photoInput.closest('.mb-3');
+                        preview = document.createElement('img');
+                        preview.id = 'eventImagePreview';
+                        preview.style.cssText = 'width: 100%; height: 140px; object-fit: cover; display: block; border-radius: 8px;';
+                        preview.alt = 'Vista previa';
+                        const div = document.createElement('div');
+                        div.style.cssText = 'border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.06); margin-top: 8px;';
+                        div.appendChild(preview);
+                        container.appendChild(div);
+                    }
+                    preview.src = event.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+});
+</script>
+
+<script>
+// Script original para confirmación y validación
+(function(){
 // Si el partial se carga vía AJAX, la función initEditForm de event-modals.js ya se encargará.
 (function(){
   const formEdit = document.getElementById('editForm');

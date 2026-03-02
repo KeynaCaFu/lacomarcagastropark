@@ -10,7 +10,7 @@
 
   @if($event->image_url)
     <div class="mb-3 text-center">
-      <img src="{{ str_starts_with($event->image_url,'http') ? $event->image_url : asset($event->image_url) }}" alt="{{ $event->title }}" style="max-width:100%; height:auto; border-radius:6px;">
+      <img src="{{ $event->image_url }}" alt="{{ $event->title }}" style="max-width:100%; height:auto; border-radius:6px;">
     </div>
   @endif
 

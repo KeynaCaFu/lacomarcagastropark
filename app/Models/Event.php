@@ -59,6 +59,44 @@ class Event extends Model
     }
 
     /**
+     * Accessor: generar URL correcta para image_url
+     */
+    public function getImageUrlAttribute()
+    {
+        if (empty($this->attributes['image_url'])) {
+            return null;
+        }
+
+        $url = $this->attributes['image_url'];
+
+        // Si es una URL absoluta, limpiarla si tiene /public/ en la ruta
+        if (str_starts_with($url, 'http')) {
+            // Remover /public/ de la URL si está allí (http://.../ public/images -> http://.../images)
+            $url = str_replace('/public/', '/', $url);
+            return $url;
+        }
+
+        // Si comienza con /storage/, usar Storage::url() para backward compatibility
+        if (str_starts_with($url, '/storage/')) {
+            $path = str_replace('/storage/', '', $url);
+            return \Illuminate\Support\Facades\Storage::url($path);
+        }
+
+        // Si comienza con public/images/, remover el prefijo public/
+        if (str_starts_with($url, 'public/')) {
+            $url = str_replace('public/', '', $url);
+        }
+
+        // Si comienza con images/, usar asset()
+        if (str_starts_with($url, 'images/')) {
+            return asset($url);
+        }
+
+        // Por defecto, asumir que es una ruta pública
+        return asset($url);
+    }
+
+    /**
      * Mutator convenience: set start_at from date+time strings 
      */
     public function setStartAtAttribute($value)

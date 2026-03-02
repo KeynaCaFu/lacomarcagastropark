@@ -7,7 +7,7 @@
 </div>
 
 <div class="modal-body">
-    <form id="createUserForm" method="POST" action="{{ route('users.store') }}" novalidate>
+    <form id="createUserForm" method="POST" action="{{ route('users.store') }}" novalidate enctype="multipart/form-data">
         @csrf
 
         <!-- Fila 1 -->
@@ -74,6 +74,16 @@
                     </button>
                 </div>
                 <div class="match-feedback mt-2" id="createMatchFeedback"></div>
+                <div class="invalid-feedback"></div>
+            </div>
+        </div>
+
+        <!-- Avatar -->
+        <div class="row g-3 mt-1">
+            <div class="col-md-6">
+                <label class="form-label">Foto de Perfil (Avatar)</label>
+                <input type="file" name="avatar" class="form-control" accept="image/jpeg,image/png,image/gif,image/jpg">
+                <small class="text-muted d-block mt-1">JPG, PNG o GIF. Máximo 2MB</small>
                 <div class="invalid-feedback"></div>
             </div>
         </div>

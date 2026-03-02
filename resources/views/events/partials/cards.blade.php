@@ -1,6 +1,6 @@
 @php
 use Carbon\Carbon;
-$imgSrc = fn($e) => $e->image_url ? (str_starts_with($e->image_url,'http') ? $e->image_url : asset($e->image_url)) : asset('images/default.jpg');
+$imgSrc = fn($e) => $e->image_url ?? asset('images/default.jpg');
 $fmtFecha = fn($d) => $d ? Carbon::parse($d)->locale('es')->isoFormat('D [de] MMMM [de] YYYY') : '—';
 $fmtHora  = fn($d) => $d ? Carbon::parse($d)->format('h:i A') : '—';
 @endphp

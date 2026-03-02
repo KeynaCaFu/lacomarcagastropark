@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class ClienteController extends Controller
 {
@@ -48,12 +48,22 @@ class ClienteController extends Controller
         if ($request->hasFile('avatar')) {
             // Eliminar avatar anterior si existe
             if ($user->avatar) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $user->avatar));
+                $oldPath = public_path(str_replace(url('/'), '', $user->avatar));
+                if (File::exists($oldPath)) {
+                    File::delete($oldPath);
+                }
+            }
+
+            // Crear directorio si no existe
+            $avatarDir = public_path('images/avatars');
+            if (!File::isDirectory($avatarDir)) {
+                File::makeDirectory($avatarDir, 0755, true, true);
             }
 
             // Guardar nuevo avatar
-            $path = $request->file('avatar')->store('avatars/clients', 'public');
-            $validated['avatar'] = '/storage/' . $path;
+            $filename = 'avatar_' . $user->user_id . '_' . time() . '.' . $request->file('avatar')->getClientOriginalExtension();
+            $request->file('avatar')->move($avatarDir, $filename);
+            $validated['avatar'] = 'images/avatars/' . $filename;
         }
 
         $user->update($validated);

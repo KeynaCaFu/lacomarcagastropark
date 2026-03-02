@@ -50,7 +50,7 @@ class Product extends Model
     }
 
     /**
-     * Accessor: Obtener URL de la foto usando Storage
+     * Accessor: Obtener URL de la foto
      * Uso en Blade: {{ $product->photo_url }}
      */
     public function getPhotoUrlAttribute()
@@ -59,13 +59,30 @@ class Product extends Model
             return null;
         }
 
-        // Si la ruta ya tiene /storage/, quitarlo
-        $path = $this->photo;
-        if (str_starts_with($path, '/storage/')) {
-            $path = str_replace('/storage/', '', $path);
+        // Si ya es URL absoluta, devolverla
+        if (str_starts_with($this->photo, 'http')) {
+            return $this->photo;
         }
 
-        return \Illuminate\Support\Facades\Storage::url($path);
+        // Si empieza con /storage/, usar Storage (compatibilidad atrás)
+        if (str_starts_with($this->photo, '/storage/')) {
+            $path = str_replace('/storage/', '', $this->photo);
+            return \Illuminate\Support\Facades\Storage::url($path);
+        }
+
+        // Si comienza con public/images/, remover el prefijo public/
+        if (str_starts_with($this->photo, 'public/')) {
+            $photo = str_replace('public/', '', $this->photo);
+            return asset($photo);
+        }
+
+        // Si empieza con images/, usar asset()
+        if (str_starts_with($this->photo, 'images/')) {
+            return asset($this->photo);
+        }
+
+        // Por defecto, usar asset
+        return asset($this->photo);
     }
 
     /**

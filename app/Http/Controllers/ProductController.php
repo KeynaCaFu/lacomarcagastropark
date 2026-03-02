@@ -7,7 +7,7 @@ use App\Data\ProductData;
 use App\Data\ProductGalleryData;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -158,9 +158,16 @@ class ProductController extends Controller
         // Procesar la foto si se envía
         $photoPath = null;
         if ($request->hasFile('foto')) {
+            // Crear directorio si no existe
+            $productDir = public_path('images/products');
+            if (!File::isDirectory($productDir)) {
+                File::makeDirectory($productDir, 0755, true, true);
+            }
+
             $file = $request->file('foto');
             $filename = Str::slug($validated['nombre']) . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $photoPath = $file->storeAs('products', $filename, 'public');
+            $file->move($productDir, $filename);
+            $photoPath = 'images/products/' . $filename;
         }
 
         $data = [
@@ -170,7 +177,7 @@ class ProductController extends Controller
             'tag' => $validated['etiqueta'] ?? null,
             'product_type' => $validated['tipo_producto'] ?? null,
             'price' => $validated['precio'],
-            'photo' => $photoPath ? '/storage/' . $photoPath : null,
+            'photo' => $photoPath,
             'status' => $this->mapStatusToEnglish($validated['estado'])
         ];
 
@@ -279,13 +286,23 @@ class ProductController extends Controller
         $photoPath = $product->photo; // Mantener la foto actual por defecto
         if ($request->hasFile('foto')) {
             // Eliminar foto anterior si existe
-            if ($product->photo && Storage::disk('public')->exists(str_replace('/storage/', '', $product->photo))) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $product->photo));
+            if ($product->photo) {
+                $oldPath = public_path(str_replace('public/', '', $product->photo));
+                if (File::exists($oldPath)) {
+                    File::delete($oldPath);
+                }
             }
             
+            // Crear directorio si no existe
+            $productDir = public_path('images/products');
+            if (!File::isDirectory($productDir)) {
+                File::makeDirectory($productDir, 0755, true, true);
+            }
+
             $file = $request->file('foto');
             $filename = Str::slug($validated['nombre']) . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $photoPath = '/storage/' . $file->storeAs('products', $filename, 'public');
+            $file->move($productDir, $filename);
+            $photoPath = 'images/products/' . $filename;
         }
 
         $data = [
@@ -349,8 +366,23 @@ class ProductController extends Controller
             return redirect()->route('products.index')->with('error', 'Producto no encontrado');
         }
 
-        // Eliminar también la galería de imágenes
+        // Eliminar también la galería de imágenes (elimina archivos también)
+        $gallery = $this->galleryData->getByProductId($id);
+        foreach ($gallery as $item) {
+            $oldPath = public_path(str_replace('public/', '', $item->image_url));
+            if (File::exists($oldPath)) {
+                File::delete($oldPath);
+            }
+        }
         $this->galleryData->deleteByProductId($id);
+
+        // Eliminar foto principal si existe
+        if ($product->photo) {
+            $oldPath = public_path(str_replace('public/', '', $product->photo));
+            if (File::exists($oldPath)) {
+                File::delete($oldPath);
+            }
+        }
         
         // Eliminar el producto
         $this->productData->delete($id);
@@ -395,9 +427,16 @@ class ProductController extends Controller
         try {
             // Procesar la imagen
             if ($request->hasFile('image')) {
+                // Crear directorio si no existe
+                $galleryDir = public_path('images/products/gallery');
+                if (!File::isDirectory($galleryDir)) {
+                    File::makeDirectory($galleryDir, 0755, true, true);
+                }
+
                 $file = $request->file('image');
-                $filename = 'gallery_' . Str::slug($product->name) . '_' . time() . '.' . $file->getClientOriginalExtension();
-                $imagePath = '/storage/' . $file->storeAs('products/gallery', $filename, 'public');
+                $filename = 'gallery_' . Str::slug($product->name) . '_' . time() . '_' . rand(1000, 9999) . '.' . $file->getClientOriginalExtension();
+                $file->move($galleryDir, $filename);
+                $imagePath = 'images/products/gallery/' . $filename;
                 
                 // Agregar a la galería
                 $this->galleryData->add($id, $imagePath);
@@ -417,6 +456,16 @@ class ProductController extends Controller
     public function removeGalleryImage(Request $request, $galleryId)
     {
         try {
+            // Obtener la imagen antes de eliminarla
+            $galleryItem = \App\Models\ProductGallery::find($galleryId);
+            
+            if ($galleryItem && $galleryItem->image_url) {
+                $oldPath = public_path(str_replace('public/', '', $galleryItem->image_url));
+                if (File::exists($oldPath)) {
+                    File::delete($oldPath);
+                }
+            }
+
             $deleted = $this->galleryData->delete($galleryId);
 
             if (!$deleted) {
