@@ -7,7 +7,7 @@
 @endpush
 
 @section('content')
-<div style="padding: 0 15px;">
+<div class="page-wrapper">
 <style>
    
     .users-container {
@@ -311,9 +311,29 @@
         border-color: #16a34a;
     }
 
+    @media (max-width: 991.98px) {
+        .users-container {
+            margin-top: 10px;
+            padding: 16px;
+        }
+    }
+
     @media (max-width: 768px) {
+        .users-container {
+            padding: 12px;
+            border-radius: 8px;
+        }
+
         .header-section {
             flex-direction: column;
+            align-items: stretch;
+        }
+
+        .header-section h2 {
+            font-size: 22px !important;
+        }
+
+        .header-actions {
             align-items: stretch;
         }
 
@@ -323,14 +343,21 @@
 
         .search-input, .filter-select, .btn-create {
             width: 100%;
+            font-size: 15px;
+        }
+
+        .table-wrapper {
+            margin: 0 -12px;
+            padding: 0 4px;
         }
 
         table {
-            font-size: 13px;
+            font-size: 14px;
         }
 
         th, td {
-            padding: 8px;
+            padding: 10px 8px;
+            line-height: 1.5;
         }
 
         .actions {
@@ -339,6 +366,49 @@
 
         .btn-action {
             justify-content: center;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .filters-toggle {
+            font-size: 15px;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .users-container {
+            margin-top: 4px;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .header-section h2 {
+            font-size: 18px !important;
+        }
+
+        table {
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 8px 6px;
+            line-height: 1.4;
+        }
+
+        .role-badge, .status-badge, .status-toggler {
+            font-size: 12px;
+            padding: 4px 10px;
+        }
+
+        .page-link {
+            padding: 6px 8px;
+            font-size: 12px;
+            min-width: 30px;
+        }
+
+        .btn-action {
+            font-size: 13px;
+            padding: 6px 12px;
         }
     }
 </style>

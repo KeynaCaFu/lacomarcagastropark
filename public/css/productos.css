@@ -59,12 +59,24 @@
     font-weight: 600;
 }
 
+@media (max-width: 767.98px) {
+    .product-breadcrumb li {
+        font-size: 14px;
+    }
+    .product-breadcrumb a {
+        font-weight: 600;
+    }
+    .product-breadcrumb .current {
+        font-weight: 700;
+    }
+}
+
 @media (max-width: 575.98px) {
     .product-breadcrumb {
         padding: 8px 0 4px 0;
     }
     .product-breadcrumb li {
-        font-size: 12px;
+        font-size: 13px;
     }
     .product-breadcrumb .breadcrumb-separator {
         margin: 0 5px;
@@ -556,10 +568,35 @@ tr:hover {
    RESPONSIVE
    ======================================== */
 
+@media (max-width: 991.98px) {
+    .products-container {
+        margin-top: 20px;
+        padding: 16px;
+    }
+
+    .header-section h2 {
+        font-size: 24px !important;
+    }
+
+    .stat-number {
+        font-size: 24px;
+    }
+}
+
 @media (max-width: 768px) {
+    .products-container {
+        margin-top: 10px;
+        padding: 12px;
+        border-radius: 8px;
+    }
+
     .header-section {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .header-section h2 {
+        font-size: 20px !important;
     }
 
     .search-filter-group {
@@ -568,14 +605,16 @@ tr:hover {
 
     .search-input, .filter-select, .btn-create {
         width: 100%;
+        font-size: 15px;
     }
 
     table {
-        font-size: 13px;
+        font-size: 14px;
     }
 
     th, td {
-        padding: 8px;
+        padding: 10px 8px;
+        line-height: 1.5;
     }
 
     .actions {
@@ -584,6 +623,7 @@ tr:hover {
 
     .btn-action {
         justify-content: center;
+        width: 100%;
     }
 
     .stat-card {
@@ -596,6 +636,12 @@ tr:hover {
 }
 
 @media (max-width: 576px) {
+    .products-container {
+        margin-top: 4px;
+        padding: 8px;
+        border-radius: 6px;
+    }
+
     .form-container {
         max-width: 100%;
         margin: 0;
@@ -610,12 +656,13 @@ tr:hover {
     }
 
     .header-section h2 {
-        font-size: 20px !important;
+        font-size: 18px !important;
     }
 
     .stat-card {
-        flex-direction: column;
-        text-align: center;
+        flex-direction: row;
+        text-align: left;
+        padding: 10px 12px;
     }
 
     .stat-icon {
@@ -624,6 +671,240 @@ tr:hover {
     }
 
     .stat-number {
-        font-size: 16px;
+        font-size: 18px;
+    }
+
+    .stat-label {
+        font-size: 11px;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    table {
+        font-size: 13px;
+    }
+
+    th, td {
+        padding: 8px 6px;
+        line-height: 1.4;
+    }
+
+    .btn-action span,
+    .btn-action .btn-text {
+        display: none;
+    }
+}
+
+/* ========================================
+   PRODUCT SHOW PAGE - RESPONSIVE
+   ======================================== */
+
+@media (max-width: 767.98px) {
+    .product-detail-grid .card-body img.img-fluid {
+        max-height: 200px !important;
+    }
+}
+
+/* ========================================
+   GALLERY PAGE - RESPONSIVE
+   ======================================== */
+
+@media (max-width: 767.98px) {
+    .gallery-item {
+        margin-bottom: 0;
+    }
+
+    .gallery-item .card-footer .btn {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+}
+
+/* ========================================
+   CREATE/EDIT FORM CARD - RESPONSIVE  
+   ======================================== */
+
+@media (max-width: 575.98px) {
+    /* Tip box and audit info boxes */
+    [style*="background: #fffbeb"],
+    [style*="background: #eff6ff"] {
+        font-size: 12px !important;
+        padding: 10px 12px !important;
+    }
+
+    /* Image preview container */
+    #imagePreviewContainer {
+        min-height: 140px !important;
+    }
+}
+
+/* ========================================
+   UTILITY CLASSES FOR PRODUCT PAGE LAYOUTS
+   ======================================== */
+
+/* Page-level wrapper (replaces inline style="padding: 0 15px") */
+.product-page-wrapper {
+    padding: 0 15px;
+}
+
+/* Header block for product pages */
+.product-page-header {
+    margin-bottom: 1rem;
+}
+
+.product-page-header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.product-page-header-title {
+    flex: 1;
+    min-width: 200px;
+}
+
+.product-page-header-title h2 {
+    margin: 7px;
+    color: #1f2937;
+    font-weight: 712;
+    font-size: 1.5rem;
+}
+
+.product-page-header-title h2 i {
+    margin-right: 8px;
+}
+
+.product-page-header-title .accent-bar {
+    height: 4px;
+    width: 120px;
+    background: #f59e0b;
+    border-radius: 2px;
+    margin-left: 7px;
+}
+
+/* Form container (replaces inline max-width: 960px) */
+.product-form-container {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+/* Standard card styling */
+.product-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.product-card-header {
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e7eb;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.product-card-header h5,
+.product-card-header h6 {
+    color: #1f2937;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ========================================
+   RESPONSIVE FOR UTILITY CLASSES
+   ======================================== */
+
+@media (max-width: 767.98px) {
+    .product-page-wrapper {
+        padding: 0 8px;
+    }
+
+    .product-page-header-title {
+        min-width: 0;
+    }
+
+    .product-page-header-title h2 {
+        font-size: 1.25rem;
+    }
+
+    .product-page-header-title small {
+        font-size: 14px;
+    }
+
+    .product-form-container {
+        max-width: 100%;
+    }
+
+    .product-card-header h5,
+    .product-card-header h6 {
+        font-size: 15px;
+    }
+
+    /* Form labels more readable on mobile */
+    .product-card .form-label,
+    .product-card label {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .product-card .form-control,
+    .product-card .form-select,
+    .product-card textarea {
+        font-size: 15px;
+    }
+
+    .product-card .card-body {
+        padding: 16px !important;
+    }
+
+    .product-card .text-muted {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .product-page-wrapper {
+        padding: 0 4px;
+    }
+
+    .product-page-header-title h2 {
+        font-size: 1.1rem;
+        margin: 4px;
+    }
+
+    .product-page-header-title small {
+        font-size: 13px;
+    }
+
+    .product-page-header-title .accent-bar {
+        width: 80px;
+        height: 3px;
+        margin-left: 4px;
+    }
+
+    .product-card-header h5,
+    .product-card-header h6 {
+        font-size: 14px;
+    }
+
+    .product-card .form-label,
+    .product-card label {
+        font-size: 13px;
+    }
+
+    .product-card .form-control,
+    .product-card .form-select,
+    .product-card textarea {
+        font-size: 14px;
+        padding: 10px 12px;
     }
 }

@@ -87,6 +87,54 @@
         .user-menu-dropdown button:hover {
             background-color: #f9fafb;
         }
+
+        /* ===== Mobile Navigation Links (inside user menu) ===== */
+        .mobile-nav-links {
+            display: none;
+        }
+
+        @media (max-width: 575.98px) {
+            .mobile-nav-links {
+                display: block;
+                border-bottom: 2px solid #f3f4f6;
+                padding: 6px 0;
+            }
+
+            .mobile-nav-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 11px 16px;
+                color: #374151;
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 600;
+                transition: background 0.15s ease;
+            }
+
+            .mobile-nav-item:hover {
+                background: #fff7ed;
+                color: #c9690f;
+            }
+
+            .mobile-nav-item.active {
+                background: #fff7ed;
+                color: #e18018;
+                border-left: 3px solid #e18018;
+            }
+
+            .mobile-nav-item i {
+                width: 20px;
+                text-align: center;
+                font-size: 15px;
+                color: #9ca3af;
+            }
+
+            .mobile-nav-item.active i,
+            .mobile-nav-item:hover i {
+                color: #e18018;
+            }
+        }
         
         /* User menu button hover effect */
         .user-menu-btn:hover {
@@ -112,31 +160,117 @@
             }
         }
         
-        @media (max-width: 768px) {
+        @media (max-width: 575.98px) {
             .top-navbar {
-                padding: 12px 16px !important;
+                padding: 8px 12px !important;
+                gap: 8px !important;
+                margin-left: 0 !important;
             }
-            
-            .admin-menu-dropdown,
-            .user-menu-dropdown {
-                right: auto;
-                left: 0;
+
+            .top-navbar-left {
+                min-width: 0 !important;
+                gap: 8px !important;
             }
-            
+
+            .top-search-bar {
+                max-width: none !important;
+                flex: 1 !important;
+            }
+
             #topSearchInput {
-                font-size: 16px;
+                font-size: 14px !important;
+                padding: 8px 28px 8px 32px !important;
             }
-            
+
             #searchBtn span {
                 display: none;
             }
-            
+
             #searchBtn {
                 padding: 8px 12px !important;
             }
-            
+
+            .top-navbar-right {
+                gap: 8px !important;
+            }
+
+            .user-menu-btn span {
+                font-size: 11px !important;
+                color: #374151 !important;
+            }
+
+            .user-menu-btn {
+                padding: 6px 10px !important;
+            }
+
+            .user-menu-btn i {
+                font-size: 18px !important;
+            }
+
+            .admin-menu-dropdown,
+            .user-menu-dropdown {
+                right: 0 !important;
+                left: auto !important;
+                min-width: 200px !important;
+            }
+
+            /* Ocultar hamburguesa en phone para todos */
             .navbar-toggle {
-                display: inline-block !important;
+                display: none !important;
+            }
+
+            /* Ayuda button: mantener visible con texto */
+            .btn-help {
+                padding: 7px 12px !important;
+                font-size: 12px !important;
+                border-width: 2px !important;
+                border-color: #e18018 !important;
+                color: #e18018 !important;
+                background: #fff8f0 !important;
+                font-weight: 700 !important;
+                white-space: nowrap;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .top-navbar {
+                padding: 6px 8px !important;
+                gap: 6px !important;
+            }
+
+            .top-search-bar {
+                min-width: 0 !important;
+            }
+
+            #topSearchInput {
+                font-size: 16px !important;
+            }
+
+            .top-navbar-right {
+                gap: 6px !important;
+            }
+
+            .user-menu-btn span {
+                font-size: 10px !important;
+            }
+
+            .user-menu-btn {
+                padding: 5px 8px !important;
+            }
+
+            /* Ayuda: icon-only en pantallas muy pequeñas */
+            .btn-help {
+                padding: 7px 10px !important;
+                font-size: 14px !important;
+                background: #e18018 !important;
+                color: #fff !important;
+                border-color: #e18018 !important;
+                border-radius: 8px !important;
+            }
+
+            .btn-help span,
+            .btn-help .btn-help-text {
+                display: none;
             }
         }
 
@@ -158,7 +292,7 @@
     
     @stack('styles')
 </head>
-<body>
+<body class="{{ (auth()->check() && !auth()->user()->isAdminGlobal()) ? 'gerente-mode' : '' }}">
     <!-- Container principal con diseño La Comarca -->
     <div class="container-fluid">
         <div class="row">
@@ -168,7 +302,7 @@
                     <a href="{{ (auth()->check() && auth()->user()->isAdminGlobal()) ? route('admin.dashboard') : route('dashboard') }}" class="brand text-decoration-none" title="La Comarca">
                         <img src="{{ asset('images/iconoblanco.png') }}" alt="La Comarca" class="brand-logo">
                     </a>
-                    <button class="sidebar-toggle-btn d-lg-none" id="sidebarToggleBtn" aria-controls="appSidebar" aria-expanded="false">
+                    <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-controls="appSidebar" aria-expanded="false">
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
@@ -211,15 +345,15 @@
             <!-- Contenido principal -->
             <main class="main-content" id="mainContent">
                 <!-- Top Navigation Bar -->
-                <div class="top-navbar" style="background: #fff; border-bottom: 1px solid #e5e7eb; padding: 8px 20px; margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-right: 0px; margin-left: -18px;">
-                    <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 300px;">
+                <div class="top-navbar" style="background: #fff;  padding: 8px 20px; margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-right: 0px; margin-left: -18px;">
+                    <div class="top-navbar-left" style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
                         <!-- Toggle Sidebar -->
                         <button class="navbar-toggle" id="navbarToggleBtn" style="background: none; border: none; cursor: pointer; padding: 8px; display: none;">
                             <i class="fas fa-bars" style="font-size: 20px; color: #374151;"></i>
                         </button>
                         
                         <!-- Search Bar -->
-                        <div style="display: flex; align-items: center; flex: 1; max-width: 400px;">
+                        <div class="top-search-bar" style="display: flex; align-items: center; flex: 1; max-width: 400px;">
                             <div style="position: relative; width: 100%; display: flex; gap: 6px;">
                                 <div style="position: relative; flex: 1;">
                                     <input type="text" id="topSearchInput" placeholder="Buscar por nombre..." style="width: 100%; padding: 8px 32px 8px 36px; border: 1px solid #e5e7eb; border-radius: 8px 0 0 8px; font-size: 13px; background: #f9fafb; transition: all 0.3s ease;">
@@ -236,7 +370,7 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; align-items: center; gap: 16px;">
+                    <div class="top-navbar-right" style="display: flex; align-items: center; gap: 16px;">
                         <!-- Help Button Container (Usuarios) -->
                         <div id="topHelpContainer"></div>
                         
@@ -247,7 +381,7 @@
                         <div class="user-menu-top" style="position: relative;">
                             <button class="user-menu-btn" style="background: none; border: 2px solid #e18018; cursor: pointer; padding: 8px 12px; color: #e18018; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500;">
                                 <i class="fas fa-user-circle" style="font-size: 24px;"></i>
-                                <span style="font-size: 12px; color: #6b7280;">
+                                <span class="user-role-label" style="font-size: 13px; color: #374151; font-weight: 600;">
                                     @php
                                         $role = auth()->user()->role?->role_type ?? 'Usuario';
                                     @endphp
@@ -259,6 +393,29 @@
                                     <div style="font-weight: 600; color: #111827;">{{ auth()->user()->full_name ?? auth()->user()->name }}</div>
                                     <div style="color: #6b7280; font-size: 12px; margin-top: 4px;">{{ auth()->user()->email }}</div>
                                 </div>
+
+                                {{-- Navegación mobile (visible solo ≤991px) --}}
+                                <div class="mobile-nav-links">
+                                    @if($mode === 'global')
+                                        <a href="{{ route('admin.dashboard') }}" class="mobile-nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                                            <i class="fas fa-home"></i> Dashboard
+                                        </a>
+                                        <a href="{{ route('users.index') }}" class="mobile-nav-item {{ request()->routeIs('users*') ? 'active' : '' }}">
+                                            <i class="fas fa-users"></i> Usuarios
+                                        </a>
+                                        <a href="{{ route('eventos.index') }}" class="mobile-nav-item {{ request()->routeIs('eventos*') ? 'active' : '' }}">
+                                            <i class="fas fa-calendar-days"></i> Eventos
+                                        </a>
+                                    @else
+                                        <a href="{{ route('dashboard') }}" class="mobile-nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                                            <i class="fas fa-home"></i> Dashboard
+                                        </a>
+                                        <a href="{{ route('products.index') }}" class="mobile-nav-item {{ request()->routeIs('products*') ? 'active' : '' }}">
+                                            <i class="fas fa-box"></i> Productos
+                                        </a>
+                                    @endif
+                                </div>
+
                                 <a href="{{ route('profile.edit') }}" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: #111827; text-decoration: none; border-bottom: 1px solid #f3f4f6;">
                                     <i class="fas fa-user-edit" style="color: #6b7280; font-size: 14px;"></i>
                                     <span>Editar perfil</span>
@@ -494,20 +651,20 @@
         })();
     </script>
     <script>
-        // Toggle del sidebar - Colapsable en desktop (>=1024px), overlay en móvil/tablet (<1024px)
+        // Toggle del sidebar - Colapsable en desktop/tablet (>=576px), overlay en móvil (<576px)
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('appSidebar');
             const toggleBtn = document.querySelector('.sidebar-toggle-btn');
             const body = document.body;
 
             const toggleSidebar = () => {
-                if (window.innerWidth >= 1024) {
-                    // Desktop: collapsar/expandir
+                if (window.innerWidth >= 576) {
+                    // Desktop/Tablet: collapsar/expandir
                     sidebar.classList.toggle('collapsed');
                     body.classList.toggle('sidebar-collapsed');
                     if (toggleBtn) toggleBtn.setAttribute('aria-expanded', sidebar.classList.contains('collapsed') ? 'true' : 'false');
                 } else {
-                    // Mobile: abrir/cerrar
+                    // Phone: abrir/cerrar drawer
                     sidebar.classList.toggle('open');
                     body.classList.toggle('sidebar-open');
                     if (toggleBtn) toggleBtn.setAttribute('aria-expanded', sidebar.classList.contains('open') ? 'true' : 'false');
@@ -521,12 +678,12 @@
             };
 
             const applyLayoutByWidth = () => {
-                if (window.innerWidth >= 1024) {
-                    // Modo desktop: sidebar fijo, sin overlay
+                if (window.innerWidth >= 576) {
+                    // Modo desktop/tablet: sidebar fijo, sin overlay
                     sidebar.classList.remove('open');
                     body.classList.remove('sidebar-open');
                 } else {
-                    // Modo móvil/tablet: sidebar como drawer cerrado por defecto
+                    // Modo phone: sidebar como drawer cerrado por defecto
                     sidebar.classList.remove('collapsed');
                     body.classList.remove('sidebar-collapsed');
                 }
@@ -545,12 +702,12 @@
                 });
             }
 
-            // Cerrar al hacer clic fuera en móviles
+            // Cerrar al hacer clic fuera en phones
             document.addEventListener('click', (e) => {
-                if (window.innerWidth < 1024 && !sidebar.classList.contains('open')) return;
+                if (window.innerWidth < 576 && !sidebar.classList.contains('open')) return;
                 const clickInsideSidebar = e.target.closest('#appSidebar');
                 const clickToggle = e.target.closest('.sidebar-toggle-btn');
-                if (!clickInsideSidebar && !clickToggle && window.innerWidth < 1024) {
+                if (!clickInsideSidebar && !clickToggle && window.innerWidth < 576) {
                     closeSidebar();
                 }
             });

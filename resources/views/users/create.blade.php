@@ -3,7 +3,7 @@
 @section('title', 'Crear Nuevo Usuario')
 
 @section('content')
-<div style="padding: 0 15px;">
+<div class="page-wrapper">
 <style>
     .form-container {
         background: white;
@@ -186,9 +186,16 @@
         color: #dc2626;
     }
 
+    @media (max-width: 991.98px) {
+        .form-container {
+            margin-top: 10px;
+        }
+    }
+
     @media (max-width: 768px) {
         .form-container {
             padding: 20px;
+            max-width: 100%;
         }
 
         .form-row {
@@ -201,6 +208,17 @@
 
         .btn-submit, .btn-cancel {
             width: 100%;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .form-container {
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .form-title {
+            font-size: 1.2rem;
         }
     }
 </style>

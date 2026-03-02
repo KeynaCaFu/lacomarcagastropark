@@ -31,6 +31,23 @@ img, video, iframe {
     height: auto;
 }
 
+/* Global page-wrapper padding (used by all view wrappers) */
+.page-wrapper {
+    padding: 0 15px;
+}
+
+@media (max-width: 767.98px) {
+    .page-wrapper {
+        padding: 0 8px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .page-wrapper {
+        padding: 0 4px;
+    }
+}
+
 /* ==========================================================================
    1. BOTÓN HAMBURGUESA MÓVIL (visible cuando sidebar está oculto)
    ========================================================================== */
@@ -59,8 +76,8 @@ img, video, iframe {
     color: #fff;
 }
 
-/* Mostrar hamburguesa solo en mobile/tablet cuando sidebar está oculto */
-@media (max-width: 991.98px) {
+/* Mostrar hamburguesa solo en phone cuando sidebar está oculto */
+@media (max-width: 575.98px) {
     .mobile-hamburger {
         display: flex;
     }
@@ -69,14 +86,37 @@ img, video, iframe {
     body.sidebar-open .mobile-hamburger {
         display: none;
     }
+
+    /* ===== Ocultar sidebar y hamburguesas en PHONE para todos ===== */
+    .drawer {
+        display: none !important;
+    }
+
+    .mobile-hamburger {
+        display: none !important;
+    }
+
+    .sidebar-toggle-btn {
+        display: none !important;
+    }
+
+    #mainContent {
+        margin-left: 0 !important;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .top-navbar {
+        margin-left: 0 !important;
+    }
 }
 
 /* ==========================================================================
    2. SIDEBAR RESPONSIVE
    ========================================================================== */
 
-/* Mobile: sidebar oculto por defecto, desliza desde la izquierda */
-@media (max-width: 991.98px) {
+/* Phone: sidebar oculto por defecto */
+@media (max-width: 575.98px) {
     .drawer {
         position: fixed !important;
         top: 0 !important;
@@ -110,7 +150,9 @@ img, video, iframe {
     #mainContent {
         margin-left: 0 !important;
         width: 100% !important;
-        padding-top: 60px !important;
+        padding-top: 0px !important;
+        padding-left: 8px !important;
+        padding-right: 8px !important;
     }
 
     /* Backdrop oscuro */
@@ -121,6 +163,32 @@ img, video, iframe {
         background: rgba(0,0,0,0.5);
         z-index: 1050;
         animation: fadeInBackdrop 0.3s ease;
+    }
+}
+
+/* Tablet (576-991px): sidebar visible como en desktop */
+@media (min-width: 576px) and (max-width: 991.98px) {
+    .mobile-hamburger {
+        display: none !important;
+    }
+
+    .drawer {
+        position: relative !important;
+        transform: translateX(0) !important;
+        height: auto !important;
+        z-index: 2 !important;
+        overflow: visible !important;
+    }
+
+    .sidebar-toggle-btn {
+        display: flex !important;
+        z-index: 10 !important;
+    }
+
+    #mainContent {
+        padding-top: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
     }
 }
 
@@ -328,6 +396,7 @@ img, video, iframe {
     .form-grid-2col,
     .form-grid2 {
         grid-template-columns: 1fr !important;
+        gap: 0 !important;
     }
 
     /* Bootstrap row con col-md-6 ya colapsa automáticamente */
@@ -344,6 +413,26 @@ img, video, iframe {
     select,
     textarea {
         font-size: 16px !important;
+    }
+
+    /* Custom file input */
+    .custom-file-label {
+        font-size: 14px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Action buttons at bottom of forms */
+    [style*="justify-content: flex-end"][style*="border-top"] {
+        justify-content: stretch !important;
+        flex-direction: column-reverse !important;
+    }
+
+    [style*="justify-content: flex-end"][style*="border-top"] .btn {
+        width: 100% !important;
+        justify-content: center !important;
+        text-align: center !important;
     }
 }
 
@@ -377,16 +466,25 @@ img, video, iframe {
     padding: 16px;
 }
 
+@media (max-width: 991.98px) {
+    .products-container,
+    .users-container {
+        margin-top: 20px !important;
+    }
+}
+
 @media (max-width: 767.98px) {
     .products-container,
     .users-container {
         padding: 12px !important;
         border-radius: 8px !important;
+        margin-top: 10px !important;
     }
 
     .header-section {
         flex-direction: column !important;
         align-items: stretch !important;
+        gap: 10px !important;
     }
 
     .header-section h2 {
@@ -421,11 +519,49 @@ img, video, iframe {
     .products-container,
     .users-container {
         padding: 8px !important;
-        margin-top: 0 !important;
+        margin-top: 4px !important;
+        border-radius: 6px !important;
     }
 
     .header-section h2 {
         font-size: 18px !important;
+    }
+
+    .header-section h2 i {
+        font-size: 16px !important;
+    }
+}
+
+/* ==========================================================================
+   7b. PRODUCT PAGE WRAPPERS (create, edit, show, gallery)
+   ========================================================================== */
+
+/* Outer wrapper padding */
+@media (max-width: 767.98px) {
+    [style*="padding: 0 15px"],
+    [style*="padding:0 15px"] {
+        padding: 0 8px !important;
+    }
+}
+
+/* ==========================================================================
+   7b. PAGE WRAPPER & CARD RESPONSIVE UTILITIES
+   ========================================================================== */
+
+/* Card body padding on small screens */
+@media (max-width: 575.98px) {
+    .card-body[style*="padding:24px"],
+    .card-body[style*="padding: 24px"] {
+        padding: 14px !important;
+    }
+    
+    .card-body[style*="padding:20px"],
+    .card-body[style*="padding: 20px"] {
+        padding: 12px !important;
+    }
+    
+    .card-header[style*="padding"] {
+        padding: 12px 14px !important;
     }
 }
 
@@ -440,9 +576,17 @@ img, video, iframe {
     gap: 1rem;
 }
 
+@media (max-width: 991.98px) {
+    .product-detail-grid {
+        grid-template-columns: 1fr 1.5fr;
+        gap: 0.75rem;
+    }
+}
+
 @media (max-width: 767.98px) {
     .product-detail-grid {
         grid-template-columns: 1fr !important;
+        gap: 1rem;
     }
 }
 
@@ -453,13 +597,27 @@ img, video, iframe {
     gap: 1rem;
 }
 
+@media (max-width: 991.98px) {
+    .gallery-layout-grid {
+        grid-template-columns: 1fr 1.5fr;
+        gap: 0.75rem;
+    }
+}
+
 @media (max-width: 767.98px) {
     .gallery-layout-grid {
         grid-template-columns: 1fr !important;
     }
 }
 
-/* Gallery image grid */
+/* Gallery image cards - responsive columns */
+@media (max-width: 991.98px) {
+    .gallery-layout-grid .col-md-4 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
 @media (max-width: 575.98px) {
     .gallery-layout-grid .col-md-4 {
         flex: 0 0 100%;
@@ -469,6 +627,10 @@ img, video, iframe {
     .gallery-layout-grid .col-md-6 {
         flex: 0 0 100%;
         max-width: 100%;
+    }
+    
+    .gallery-item img.card-img-top {
+        height: 160px !important;
     }
 }
 

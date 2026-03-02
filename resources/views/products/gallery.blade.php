@@ -7,20 +7,20 @@
 @endpush
 
 @section('content')
-<div style="padding: 0 15px;">
+<div class="product-page-wrapper">
     @include('products.partials.breadcrumb', ['crumbs' => [
         ['label' => $product->name, 'url' => route('products.show', $product->product_id)],
         ['label' => 'Galería']
     ]])
 
         <!-- Header -->
-        <div style="margin-bottom: 1rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 8px;">
-                <div style="flex:1; min-width:200px;">
-                    <h2 style="margin: 7px; color: #1f2937; font-weight: 712;">
-                        <i class="fas fa-images" style="margin-right:8px;"></i> Galería de Imágenes
+        <div class="product-page-header">
+            <div class="product-page-header-flex">
+                <div class="product-page-header-title">
+                    <h2>
+                        <i class="fas fa-images"></i> Galería de Imágenes
                     </h2>
-                    <div style="height:4px; width:120px; background:#f59e0b; border-radius:2px; margin-left:7px;"></div>
+                    <div class="accent-bar"></div>
                     <small class="text-muted">Gestiona las imágenes del producto: <strong>{{ $product->name }}</strong></small>
                 </div>
 
@@ -50,9 +50,9 @@
         <div class="gallery-layout-grid">
             <!-- Panel de carga de imágenes -->
             <div>
-                <div class="card" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-                    <div class="card-header" style="background:#f8fafc; border-bottom:1px solid #e5e7eb; border-top-left-radius:12px; border-top-right-radius:12px;">
-                        <h5 class="mb-0" style="color:#1f2937; font-weight:700; display:flex; align-items:center; gap:8px;">
+                <div class="card product-card">
+                    <div class="card-header product-card-header">
+                        <h5 class="mb-0">
                             <i class="fas fa-cloud-upload-alt"></i> Agregar Imagen
                         </h5>
                     </div>
@@ -78,9 +78,9 @@
                 </div>
 
                 <!-- Estadísticas -->
-                <div class="card mt-3" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-                    <div class="card-header" style="background:#f8fafc; border-bottom:1px solid #e5e7eb; border-top-left-radius:12px; border-top-right-radius:12px;">
-                        <h6 class="mb-0" style="color:#1f2937; font-weight:700; display:flex; align-items:center; gap:8px;">
+                <div class="card product-card mt-3">
+                    <div class="card-header product-card-header">
+                        <h6 class="mb-0">
                             <i class="fas fa-chart-bar"></i> Estadísticas
                         </h6>
                     </div>
@@ -101,9 +101,9 @@
 
             <!-- Galería de imágenes -->
             <div>
-                <div class="card" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-                    <div class="card-header" style="background:#f8fafc; border-bottom:1px solid #e5e7eb; border-top-left-radius:12px; border-top-right-radius:12px;">
-                        <h5 class="mb-0" style="color:#1f2937; font-weight:700; display:flex; align-items:center; gap:8px;">
+                <div class="card product-card">
+                    <div class="card-header product-card-header">
+                        <h5 class="mb-0">
                             <i class="fas fa-images"></i> Imágenes del Producto
                         </h5>
                     </div>
@@ -112,7 +112,7 @@
                             <div class="row">
                                 @foreach($gallery as $image)
                                     <div class="col-md-4 mb-4">
-                                        <div class="card shadow-sm gallery-item" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow:hidden;">
+                                        <div class="card shadow-sm gallery-item product-card" style="overflow:hidden;">
                                             <div class="position-relative gallery-image-container" style="background:#ffffff;">
                                                 <img src="{{ $image->image_url }}" alt="Imagen de galería" class="card-img-top" style="height: 200px; object-fit: cover;">
                                             </div>

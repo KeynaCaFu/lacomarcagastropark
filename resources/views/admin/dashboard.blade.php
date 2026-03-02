@@ -4,7 +4,7 @@
 
 @push('styles')
     <style>
-        .dash-container { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.08); padding: 20px; margin-top: 50px;}
+        .dash-container { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.08); padding: 20px; margin-top: 50px; }
         .stats-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:16px; margin-bottom: 20px; }
         .stat-card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; display:flex; align-items:center; gap:12px; }
         .stat-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
@@ -28,7 +28,7 @@
         .cards-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
         @media (max-width: 992px){ .cards-grid{ grid-template-columns: 1fr; } }
         .card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; }
-        .card-header { padding:12px 16px; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; }
+        .card-header { padding:12px 16px; display:flex; align-items:center; justify-content:space-between; }
         .card-title { margin:0; font-weight:700; color:#111827; }
         .card-body { padding:12px 16px; }
         table { width:100%; border-collapse:collapse; }
@@ -37,11 +37,45 @@
         .badge { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700; }
         .bd-active { background:#dcfce7; color:#166534; }
         .bd-inactive { background:#fee2e2; color:#991b1b; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 991.98px) {
+            .dash-container { margin-top: 10px; padding: 14px; }
+            .stat-number { font-size: 22px; }
+        }
+        @media (max-width: 767.98px) {
+            .dash-container { padding: 12px; border-radius: 8px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-card { padding: 14px; }
+            .stat-title { font-size: 13px; }
+            .stat-number { font-size: 22px; }
+            .quick-links { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .quick-link { padding: 12px 14px; }
+            .quick-title { font-size: 15px; }
+            .quick-hint { font-size: 13px; }
+            .card-header { padding: 12px 14px; }
+            .card-title { font-size: 15px; }
+            .card-body { padding: 12px 14px; }
+            th, td { padding: 10px 8px; font-size: 14px; line-height: 1.5; }
+        }
+        @media (max-width: 575.98px) {
+            .dash-container { margin-top: 4px; padding: 10px; border-radius: 6px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .stat-card { padding: 12px; }
+            .stat-title { font-size: 12px; }
+            .stat-number { font-size: 20px; }
+            .quick-links { grid-template-columns: 1fr; gap: 8px; }
+            .quick-title { font-size: 14px; }
+            .quick-hint { font-size: 12px; }
+            .card-title { font-size: 14px; }
+            th, td { padding: 8px 6px; font-size: 13px; line-height: 1.4; }
+            .badge { font-size: 11px; padding: 5px 8px; }
+        }
     </style>
 @endpush
 
 @section('content')
-<div style="padding: 0 15px;">
+<div class="page-wrapper">
 <div class="dash-container">
     <div class="stats-grid">
         <!-- KPIs: Usuarios -->

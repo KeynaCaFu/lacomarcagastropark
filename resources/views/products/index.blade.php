@@ -8,7 +8,7 @@
 @endpush
 
 @section('content')
-<div style="padding: 0 15px;">
+<div class="product-page-wrapper">
 
 <div class="products-container">
     @include('products.partials.breadcrumb', ['crumbs' => []])

@@ -7,30 +7,30 @@
 @endpush
 
 @section('content')
-<div style="padding: 0 15px;">
+<div class="product-page-wrapper">
     @include('products.partials.breadcrumb', ['crumbs' => [
         ['label' => $product->name, 'url' => route('products.show', $product->product_id)],
         ['label' => 'Editar']
     ]])
 
     <!-- Header -->
-    <div style="margin-bottom: 1rem;">
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 8px;">
-            <div style="flex:1; min-width:200px;">
-                <h2 style="margin: 7px; color: #1f2937; font-weight: 712;">
-                    <i class="fas fa-edit" style="margin-right:8px;"></i> Actualizar Producto
+    <div class="product-page-header">
+        <div class="product-page-header-flex">
+            <div class="product-page-header-title">
+                <h2>
+                    <i class="fas fa-edit"></i> Actualizar Producto
                 </h2>
-                <div style="height:4px; width:120px; background:#f59e0b; border-radius:2px; margin-left:7px;"></div>
+                <div class="accent-bar"></div>
                 <small class="text-muted">Modifique la información del producto: <strong>{{ $product->name }}</strong></small>
             </div>
         </div>
     </div>
 
     <!-- Formulario de Edición -->
-    <div style="width: 100%; max-width: 960px; margin: 0 auto;">
-        <div class="card" style="border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-            <div class="card-header d-flex align-items-center justify-content-between" style="background:#f8fafc; border-bottom:1px solid #e5e7eb; border-top-left-radius:12px; border-top-right-radius:12px;">
-                <h5 class="mb-0" style="color:#1f2937; font-weight:700; display:flex; align-items:center; gap:8px;">
+    <div class="product-form-container">
+        <div class="card product-card">
+            <div class="card-header product-card-header d-flex align-items-center justify-content-between">
+                <h5 class="mb-0">
                     <i class="fas fa-file-alt"></i> Información del Producto
                 </h5>
             </div>

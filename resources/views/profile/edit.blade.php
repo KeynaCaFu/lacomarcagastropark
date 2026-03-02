@@ -3,7 +3,7 @@
 @section('title', 'Editar Perfil')
 
 @section('content')
-<div class="profile-container" style="padding: 0 15px;">
+<div class="profile-container page-wrapper">
     {{-- <div style="margin-bottom: 20px;">
         <h2 style="margin: 0; padding: 0;">Actualiza tu Perfil</h2>
     </div> --}}
