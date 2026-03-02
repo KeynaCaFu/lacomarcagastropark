@@ -9,38 +9,38 @@
         background: white;
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        padding: 32px;
-        margin-top: 20px;
+        padding: 24px;
+        margin-top: 15px;
         max-width: 600px;
         margin-left: auto;
         margin-right: auto;
     }
 
     .form-title {
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 700;
         color: #1f2937;
-        margin-bottom: 24px;
+        margin-bottom: 16px;
     }
 
     .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 14px;
     }
 
     .form-label {
         display: block;
         font-weight: 600;
         color: #374151;
-        margin-bottom: 8px;
-        font-size: 14px;
+        margin-bottom: 4px;
+        font-size: 13px;
     }
 
     .form-input, .form-select {
         width: 100%;
-        padding: 12px 14px;
+        padding: 8px 10px;
         border: 2px solid #e5e7eb;
         border-radius: 8px;
-        font-size: 14px;
+        font-size: 13px;
         transition: border-color 0.3s ease, box-shadow 0.3s ease;
         font-family: inherit;
         box-sizing: border-box;
@@ -66,8 +66,8 @@
 
     .form-actions {
         display: flex;
-        gap: 12px;
-        margin-top: 32px;
+        gap: 10px;
+        margin-top: 20px;
     }
 
     .btn-submit {
@@ -116,10 +116,10 @@
     .info-box {
         background: #f0fdf4;
         border-left: 4px solid #16a34a;
-        padding: 12px;
+        padding: 10px;
         border-radius: 4px;
-        margin-bottom: 20px;
-        font-size: 13px;
+        margin-bottom: 15px;
+        font-size: 12px;
         color: #166534;
     }
 
@@ -152,9 +152,10 @@
 
     .password-hint {
         background: #f9fafb;
-        padding: 10px;
+        padding: 8px;
         border-radius: 6px;
         border-left: 3px solid #16a34a;
+        margin-top: 4px !important;
     }
 
     .password-strength {
@@ -324,11 +325,11 @@
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
-                <div class="password-hint mt-2">
-                    <p style="margin: 0 0 8px; font-size: 12px; color: #666;"><strong>Mínimo 8 caracteres recomendado</strong></p>
-                    <p style="margin: 0; font-size: 12px; color: #666;">💡 Usa contraseñas fuertes con mayúsculas, minúsculas y números</p>
+                <div class="password-hint mt-1">
+                    <p style="margin: 0 0 4px; font-size: 11px; color: #666;"><strong>Mínimo 8 caracteres recomendado</strong></p>
+                    <p style="margin: 0; font-size: 11px; color: #666;">💡 Usa contraseñas fuertes con mayúsculas, minúsculas y números</p>
                 </div>
-                <div class="password-strength mt-2">
+                <div class="password-strength mt-1">
                     <div class="strength-bar"><div class="strength-fill" id="strengthFillEdit"></div></div>
                     <p id="strengthTextEdit" style="margin: 4px 0 0; font-size: 12px; color: #999;"></p>
                 </div>
@@ -354,7 +355,7 @@
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
-                <div class="match-feedback mt-2" id="matchFeedbackEdit"></div>
+                <div class="match-feedback mt-1" id="matchFeedbackEdit"></div>
             </div>
         </div>
 

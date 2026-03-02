@@ -1,48 +1,48 @@
 <!-- Modal para Editar Usuario -->
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content modal-elevated">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 600px;">
+        <div class="modal-content modal-elevated" style="display: flex; flex-direction: column; max-height: calc(100vh - 60px); height: auto;">
 
             <!-- Header -->
-            <div class="modal-header modal-header-custom">
-                <h5 class="modal-title">
-                    <i class="fas fa-user-edit"></i> Editar Usuario
+            <div class="modal-header modal-header-custom" style="background: #faf9f6; border-bottom: 3px solid #ff9900; flex-shrink: 0;">
+                <h5 class="modal-title" style="font-weight: 600; color: #1f2937; margin: 0; font-size: 18px;">
+                    <i class="fas fa-user-edit" style="color: #ff9900; margin-right: 10px;"></i>Editar Usuario
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: opacity(0.6); transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'"></button>
             </div>
 
             <!-- Form -->
-            <form id="editUserForm" method="POST" novalidate>
+            <form id="editUserForm" method="POST" novalidate style="display: flex; flex-direction: column; height: 100%; min-height: 0;">
                 @csrf
                 @method('PUT')
 
-                <div class="modal-body">
+                <div class="modal-body" style="padding: 20px; flex: 1; overflow-y: auto; min-height: 0;">
 
-                    <div class="info-alert mb-3">
-                        <i class="fas fa-info-circle"></i>  
+                    <div class="info-alert mb-3" style="background: #fffaf0; border-left: 3px solid #ff9900; padding: 10px; border-radius: 6px; font-size: 12px; color: #92400e; margin-bottom: 15px;">
+                        <i class="fas fa-info-circle" style="color: #ff9900; margin-right: 8px;\"></i>  
                         Deja en blanco los campos de contraseña si deseas mantener la actual.
                     </div>
 
                     <!-- Fila 1 -->
-                    <div class="row g-3">
+                    <div class="row g-2" style="margin-bottom: 6px;">
                         <div class="col-md-6">
                             <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
-                            <input type="text" id="edit_full_name" name="full_name" class="form-control" required>
+                            <input type="text" id="edit_full_name" name="full_name" class="form-control" value="{{ $user->full_name }}" required>
                             <div class="invalid-feedback"></div>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label">Correo Electrónico <span class="text-danger">*</span></label>
-                            <input type="email" id="edit_email" name="email" class="form-control" required>
+                            <input type="email" id="edit_email" name="email" class="form-control" value="{{ $user->email }}" required>
                             <div class="invalid-feedback"></div>
                         </div>
                     </div>
 
                     <!-- Fila 2 -->
-                    <div class="row g-3 mt-1">
+                    <div class="row g-2" style="margin-bottom: 6px; margin-top: 0;">
                         <div class="col-md-6">
                             <label class="form-label">Teléfono</label>
-                            <input type="tel" id="edit_phone" name="phone" class="form-control">
+                            <input type="tel" id="edit_phone" name="phone" class="form-control" value="{{ $user->phone ?? '' }}">
                         </div>
 
                         <div class="col-md-6">
@@ -50,7 +50,7 @@
                             <select id="edit_role_id" name="role_id" class="form-select" required>
                                 <option value="">Selecciona un rol</option>
                                 @foreach($roles as $role)
-                                    <option value="{{ $role->role_id }}">{{ $role->role_name }}</option>
+                                    <option value="{{ $role->role_id }}" {{ $user->role_id == $role->role_id ? 'selected' : '' }}>{{ $role->role_type }}</option>
                                 @endforeach
                             </select>
                             <div class="invalid-feedback"></div>
@@ -58,7 +58,7 @@
                     </div>
 
                     <!-- Fila 3 -->
-                    <div class="row g-3 mt-1">
+                    <div class="row g-2" style="margin-bottom: 6px; margin-top: 0;">
                         <div class="col-md-6">
                             <label class="form-label">Nueva Contraseña</label>
                             <div class="password-field">
@@ -71,14 +71,14 @@
                                     autocomplete="new-password"
                                 >
                                 <button type="button" class="btn-toggle-password" onclick="toggleModalPasswordVisibility('edit_password')">
-                                    <i class="fas fa-eye"></i>
+                                    <i class="fas fa-eye-slash"></i>
                                 </button>
                             </div>
-                            <div class="password-hint mt-2">
-                                <p style="margin: 0 0 8px; font-size: 12px; color: #666;"><strong>Mínimo 8 caracteres recomendado</strong></p>
-                                <p style="margin: 0; font-size: 12px; color: #666;">💡 Usa contraseñas fuertes con mayúsculas, minúsculas y números</p>
+                            <div class="password-hint mt-1">
+                                <p style="margin: 0 0 4px; font-size: 11px; color: #666;"><strong>Mínimo 8 caracteres recomendado</strong></p>
+                                <p style="margin: 0; font-size: 11px; color: #666;">💡 Usa contraseñas fuertes con mayúsculas, minúsculas y números</p>
                             </div>
-                            <div class="password-strength mt-2">
+                            <div class="password-strength mt-1">
                                 <div class="strength-bar"><div class="strength-fill" id="editStrengthFill"></div></div>
                                 <p id="editStrengthText" style="margin: 4px 0 0; font-size: 12px; color: #999;"></p>
                             </div>
@@ -93,25 +93,33 @@
                                     id="edit_password_confirmation" 
                                     name="password_confirmation" 
                                     class="form-control password-input"
+                                    placeholder="Repite la nueva contraseña"
                                     autocomplete="new-password"
                                 >
                                 <button type="button" class="btn-toggle-password" onclick="toggleModalPasswordVisibility('edit_password_confirmation')">
-                                    <i class="fas fa-eye"></i>
+                                    <i class="fas fa-eye-slash"></i>
                                 </button>
                             </div>
-                            <div class="match-feedback mt-2" id="editMatchFeedback"></div>
+                            <div class="match-feedback mt-1" id="editMatchFeedback"></div>
                         </div>
                     </div>
 
-                    <!-- Fila 4 -->
-                    <div class="row g-3 mt-1">
+                    <!-- Fila 4: Estado y Foto de Perfil -->
+                    <div class="row g-3" style="margin-bottom: 0; margin-top: 0;">
                         <div class="col-md-6">
                             <label class="form-label">Estado <span class="text-danger">*</span></label>
                             <select id="edit_status" name="status" class="form-select" required>
                                 <option value="">Selecciona un estado</option>
-                                <option value="Active">Activo</option>
-                                <option value="Inactive">Inactivo</option>
+                                <option value="Active" {{ $user->status === 'Active' ? 'selected' : '' }}>Activo</option>
+                                <option value="Inactive" {{ $user->status === 'Inactive' ? 'selected' : '' }}>Inactivo</option>
                             </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Foto de Perfil (Avatar)</label>
+                            <input type="file" id="edit_avatar" name="avatar" class="form-control" accept="image/jpeg,image/png,image/gif,image/jpg">
+                            <small class="text-muted d-block mt-1">JPG, PNG o GIF. Máximo 2MB</small>
                             <div class="invalid-feedback"></div>
                         </div>
                     </div>
@@ -119,12 +127,12 @@
                 </div>
 
                 <!-- Footer -->
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancelar
+                <div class="modal-footer" style="background: #fafafa; border-top: 1px solid #e5e7eb; padding: 12px 20px; flex-shrink: 0; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background: #e5e7eb; color: #374151; border: none; border-radius: 6px; padding: 8px 16px; transition: background 0.2s; font-size: 14px;" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='#e5e7eb'">
+                        <i class="fas fa-times" style="margin-right: 6px;"></i> Cancelar
                     </button>
-                    <button type="submit" class="btn btn-primary btn-gradient">
-                        <i class="fas fa-save"></i> Guardar Cambios
+                    <button type="submit" class="btn btn-primary btn-gradient" style="padding: 0px 0px; background: linear-gradient(135deg, #ff9900, #ff7700); color: white; border: none; border-radius: 6px; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(255,153,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow=''">
+                        <i class="fas fa-save" style="margin-right: 6px;"></i> Guardar Cambios
                     </button>
                 </div>
 
@@ -133,7 +141,7 @@
     </div>
 </div>
 
-        <script>
+<script>
             // SweetAlert2 CDN guard
             (function(){
                 const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
@@ -264,37 +272,83 @@
         </script>
 
 <style>
+    /* Responsive para pantallas pequeñas */
+    @media (max-width: 768px) {
+        .modal-dialog {
+            margin: 10px !important;
+        }
+        .modal-content {
+            max-height: calc(100vh - 20px) !important;
+        }
+        .col-md-6 {
+            width: 100% !important;
+        }
+        .modal-body {
+            padding: 16px !important;
+        }
+        .modal-header, .modal-footer {
+            padding: 12px 16px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .form-label {
+            font-size: 12px !important;
+        }
+        .form-control, .form-select {
+            padding: 8px 10px !important;
+            font-size: 13px !important;
+        }
+        .password-hint {
+            padding: 10px !important;
+        }
+        .modal-title {
+            font-size: 16px !important;
+        }
+    }
+
     /* Asegurar superposición correcta */
     #editUserModal { z-index: 9999 !important; }
     .modal-backdrop.show { z-index: 9998 !important; }
 
     /* Card del modal */
     .modal-elevated {
-        border-radius: 14px;
+        border-radius: 12px;
         border: none;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
     }
 
     /* Header elegante */
     .modal-header-custom {
-        background: linear-gradient(135deg, #f8f9fa, #ffffff);
-        border-bottom: 1px solid #e5e7eb;
-        border-radius: 14px 14px 0 0;
+        border-radius: 12px 12px 0 0;
     }
 
     /* Inputs */
     .form-control,
     .form-select {
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 10px 12px;
-        transition: 0.25s ease;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 8px 10px;
+        transition: all 0.25s ease;
+        font-size: 13px;
     }
 
     .form-control:focus,
     .form-select:focus {
-        border-color: #16a34a;
-        box-shadow: 0 0 0 3px rgba(22,163,74,0.2);
+        border-color: #ff9900;
+        box-shadow: 0 0 0 3px rgba(255,153,0,0.15);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+        font-size: 13px;
+        margin-bottom: 4px;
+        display: block;
+    }
+
+    .text-danger {
+        color: #ef4444;
     }
 
     .password-field {
@@ -321,14 +375,15 @@
     }
 
     .btn-toggle-password:hover {
-        color: #666;
+        color: #ff9900;
     }
 
     .password-hint {
-        background: #f9fafb;
-        padding: 10px;
+        background: #fffaf0;
+        padding: 8px;
         border-radius: 6px;
-        border-left: 3px solid #16a34a;
+        border-left: 3px solid #ff9900;
+        margin-top: 4px !important;
     }
 
     .password-strength {
@@ -372,23 +427,23 @@
 
     /* Botón degradado */
     .btn-gradient {
-        background: linear-gradient(135deg, #485a1a, #0d5e2a) !important;
+        background: linear-gradient(135deg, #ff9900, #ff7700) !important;
         border: none;
     }
 
     .btn-gradient:hover {
-        background: linear-gradient(135deg, #3e5018, #093e1c) !important;
+        background: linear-gradient(135deg, #ff8800, #ff6600) !important;
         transform: translateY(-2px);
-        box-shadow: 0 8px 18px rgba(10,94,42,0.35);
+        box-shadow: 0 8px 18px rgba(255,153,0,0.35);
     }
 
     /* Alerta */
     .info-alert {
-        background: #f0fdf4;
-        border-left: 4px solid #16a34a;
+        background: #fffaf0;
+        border-left: 3px solid #ff9900;
         padding: 12px;
         border-radius: 6px;
         font-size: 13px;
-        color: #166534;
+        color: #92400e;
     }
 </style>
