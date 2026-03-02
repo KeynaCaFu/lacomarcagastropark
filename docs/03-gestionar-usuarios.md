@@ -20,7 +20,7 @@ Como administrador, tienes control total sobre la gestión de usuarios del siste
 - **Nombre:** Nombre completo del usuario
 - **Email:** Correo electrónico registrado
 - **Teléfono:** Teléfono registrado
-- **Rol:** Categoria de acceso (Administrador, Gerente, etc.)
+- **Rol:** Categoria de acceso (Administrador, Gerente, Cliente)
 - **Estado:** Activo o Inactivo
 - **Acciones:** Botones para editar o eliminar
 
@@ -28,13 +28,14 @@ Como administrador, tienes control total sobre la gestión de usuarios del siste
 - **Barra de búsqueda:** Busca usuarios por nombre o email
 - **Filtro por rol:** Filtra usuarios por su rol
 - **Filtro por estado:** Muestra usuarios activos o inactivos
+- **Paginado:** Cantidad de ususarios visibles en la vista
 
 ---
 
-## ➕ Crear Nuevo Usuario
+## Crear Nuevo Usuario
 
 ### Paso 1: Abrir Formulario de Crear
-1. Haz clic en el botón **"➕ Nuevo Usuario"** en la parte superior
+1. Haz clic en el botón **"Nuevo Usuario"** en la parte superior derecha
 2. Se abrirá un **modal con el formulario de creación**
 
 ### Paso 2: Completar los Datos
@@ -43,12 +44,12 @@ Como administrador, tienes control total sobre la gestión de usuarios del siste
 
 - **Nombre Completo:** Ej: "Juan Pérez"
 - **Correo Electrónico:** Correo electrónico único. Ej: "juan@ejemplo.com"
-  - ⚠️ El email debe ser válido y no estar registrado
+  - El email debe ser válido y no estar registrado
 - **Rol:** Selecciona el rol del usuario
   - Admin: Acceso completo
   - Gerente: Acceso limitado a productos
 - **Contraseña:** Mínimo 8 caracteres recomendado
-  - 💡 Usa contraseñas fuertes con mayúsculas, minúsculas y números
+  -  Usa contraseñas fuertes con mayúsculas, minúsculas y números
 - **Confirmar Contraseña:** Repite la contraseña
 - **Estado:** Activo o Inactivo, si coloca inactivo no lograra iniciar sesion.
 
@@ -58,17 +59,17 @@ Como administrador, tienes control total sobre la gestión de usuarios del siste
 
 ### Paso 3: Guardar
 1. Revisa que todos los datos sean correctos
-2. Haz clic en **"✔️ Crear Usuario"**
+2. Haz clic en **"Crear Usuario"**
 3. Verás un mensaje de confirmación: **"Usuario registrado exitosamente"**
 4. El nuevo usuario aparecerá en la lista
 
 ---
 
-## ✏️ Editar Usuario
+##  Editar Usuario
 
 ### Paso 1: Abrir Formulario de Edición
 1. Busca el usuario en la lista
-2. Haz clic en el botón **"✏️ Editar"** (en la fila del usuario)
+2. Haz clic en el botón **"Lapiz"** (en la fila del usuario)
 
 ### Paso 2: Modificar Datos
 - Puedes cambiar cualquier
@@ -76,60 +77,60 @@ Como administrador, tienes control total sobre la gestión de usuarios del siste
 
 **Campos que puedes editar:**
 - Nombre completo
--correo electrónico
+- correo electrónico
 - Contraseña (dejar en blanco si no deseas cambiar)
 - Rol
 - Teléfono
 - Estado (Activo/Inactivo)
 
 ### Paso 3: Guardar Cambios
-1. Haz clic en **"✔️ Guardar Cambios"**
+1. Haz clic en **"Guardar Cambios"**
 2. Si cambias la contraseña, aparecerá una confirmación
 3. Los cambios se aplicarán inmediatamente
 
 ---
 
-## 🗑️ Eliminar Usuario
+## Eliminar Usuario
 
 ### Paso 1: Seleccionar Usuario
 1. Busca el usuario en la lista
-2. Haz clic en el botón **"🗑️ Eliminar"** (icono rojo de basura)
+2. Haz clic en el botón **"Basurero"** (icono rojo de basura)
 
 ### Paso 2: Confirmar Eliminación
-1. Aparecerá un **diálogo de confirmación** preguntando si estás seguro
+1. Aparecerá un **diálogo de confirmación** preguntando si estás seguro de elinar a tal usuario
 2. Verás el nombre del usuario que vas a eliminar
 3. Este nombre debe coincidir
 
 ### Paso 3: Completar la Eliminación
-1. Ingresa el **nombre del usuario** para confirmar
-2. Haz clic en **"✔️ Sí, eliminar"**
+1. Soi el nombre esta correcto **nombre del usuario** para confirmar
+2. Haz clic en **"Sí, eliminar"**
 3. El usuario será eliminado del sistema
 
-**⚠️ Nota:** Esta acción se permite darle deshacer cambios si se elimino por error
+**Nota:** Esta acción se permite darle deshacer cambios si se elimino por error durante 10 segundos
 
 ---
 
-## 🔍 Cambiar Estado de Usuario
+## Cambiar Estado de Usuario
 
 ### Activar/Desactivar Usuario
 1. En la lista, busca el usuario
-2. Haz clic en **"Editar"**
+2. Haz clic en **"Editar"** o en la palabra  **"Activo o Inactivo"**
 3. Cambia el estado a:
    - **Activo:** El usuario puede acceder al sistema
    - **Inactivo:** El usuario no puede acceder al sistema
 4. Haz clic en **"Guardar Cambios"**
 
-**✨ Ventaja:** Desactivar usuario es más seguro que eliminar, ya que preserva su información.
+**Ventaja:** Desactivar usuario es más seguro que eliminar, ya que preserva su información.
 
 ---
 
-## 💡 Consejos Útiles
+## Consejos Útiles
 
-✅ **Contraseñas Seguras:** Usa combinaciones de letras, números y caracteres especiales  
-✅ **Correos electrónicos Válidos:** Asegúrate de ingresar correctamente el email  
-✅ **Roles Apropiados:** Asigna roles según las responsabilidades del usuario  
-✅ **Backup de Datos:** Ante de eliminar, considera desactivar primero  
-✅ **Búsqueda Rápida:** Usa la barra de búsqueda para encontrar usuarios fácilmente  
+**Contraseñas Seguras:** Usa combinaciones de letras, números y caracteres especiales  
+**Correos electrónicos Válidos:** Asegúrate de ingresar correctamente el email  
+**Roles Apropiados:** Asigna roles según las responsabilidades del usuario  
+**Backup de Datos:** Antes de eliminar, considera desactivar primero  
+**Búsqueda Rápida:** Usa la barra de búsqueda para encontrar usuarios fácilmente  
 
 ---
 
