@@ -71,7 +71,7 @@
     @if($users->hasPages())
         <div class="pagination-wrapper" style="margin-top: 16px; display: flex; justify-content: center;">
             <div class="pagination-container">
-                {{ $users->onEachSide(1)->links() }}
+                {{ $users->onEachSide(1)->links('pagination::bootstrap-4') }}
             </div>
         </div>
         <div style="text-align:center; color:#6b7280; font-size: 13px; margin-top:8px;">

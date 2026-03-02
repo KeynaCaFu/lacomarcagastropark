@@ -91,7 +91,7 @@
     @if(method_exists($products, 'hasPages') ? $products->hasPages() : method_exists($products, 'links'))
         <div class="pagination-wrapper" style="margin-top: 16px; display: flex; justify-content: center;">
             <div class="pagination-container">
-                {{ $products->onEachSide(1)->links() }}
+                {{ $products->onEachSide(3)->links('pagination::bootstrap-4') }}
             </div>
         </div>
         @if(method_exists($products, 'total'))

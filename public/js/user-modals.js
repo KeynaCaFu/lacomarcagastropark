@@ -52,18 +52,8 @@ class UserModals {
         
         try{
             const csrf = document.querySelector('meta[name="csrf-token"]').content;
-            const res = await fetch(`/usuarios/${userId}`, {
-                headers: {
-                    'X-CSRF-TOKEN': csrf,
-                    'Accept': 'application/json'
-                }
-            });
             
-            if(!res.ok) throw new Error('HTTP ' + res.status);
-            
-            const user = await res.json();
-            
-            // Cargar partial con formulario
+            // Cargar partial con formulario (sin obtener usuario con contraseña)
             const partialRes = await fetch(`/usuarios/${userId}/edit-modal`, {
                 headers: {
                     'X-CSRF-TOKEN': csrf,
@@ -91,6 +81,9 @@ class UserModals {
         // Evitar duplicar listeners
         if(form.dataset._editBound === 'true') return;
         form.dataset._editBound = 'true';
+
+        // Inicializar validación de contraseña para modal
+        this.initPasswordValidation(container);
 
         form.addEventListener('submit', async function(e){
             e.preventDefault();
@@ -189,6 +182,71 @@ class UserModals {
         if(!modal) return; 
         modal.style.display = 'none'; 
         document.body.style.overflow = 'auto';
+    }
+
+    initPasswordValidation(container){
+        const passwordField = container.querySelector('#edit_modal_password');
+        const confirmField = container.querySelector('#edit_modal_password_confirmation');
+        const strengthFill = container.querySelector('#editModalStrengthFill');
+        const strengthText = container.querySelector('#editModalStrengthText');
+        const matchFeedback = container.querySelector('#editModalMatchFeedback');
+        
+        if (!passwordField || !confirmField || !strengthFill || !strengthText || !matchFeedback) {
+            return;
+        }
+
+        const validatePasswordStrength = (password) => {
+            let strength = 0;
+            if (password.length >= 8) strength += 25;
+            if (/[a-z]/.test(password)) strength += 25;
+            if (/[A-Z]/.test(password)) strength += 25;
+            if (/[0-9]/.test(password)) strength += 25;
+            
+            return {
+                strength,
+                text: strength === 0 ? '' : strength === 25 ? 'Muy débil' : strength === 50 ? 'Débil' : strength === 75 ? 'Buena' : 'Fuerte',
+                color: strength === 0 ? '' : strength <= 25 ? '#dc2626' : strength <= 50 ? '#f97316' : strength <= 75 ? '#eab308' : '#16a34a'
+            };
+        };
+
+        const updatePasswordStrength = () => {
+            const result = validatePasswordStrength(passwordField.value);
+            const strengthContainer = passwordField.closest('.col-md-6').querySelector('.password-strength');
+            
+            if (passwordField.value.length > 0) {
+                strengthContainer.classList.add('active');
+                strengthFill.style.width = result.strength + '%';
+                strengthFill.style.backgroundColor = result.color;
+                strengthText.textContent = result.text;
+                strengthText.style.color = result.color;
+            } else {
+                strengthContainer.classList.remove('active');
+            }
+        };
+
+        const updatePasswordMatch = () => {
+            if (!confirmField.value) {
+                matchFeedback.classList.remove('show');
+                return;
+            }
+            
+            if (passwordField.value === confirmField.value) {
+                matchFeedback.classList.add('show', 'success');
+                matchFeedback.classList.remove('error');
+                matchFeedback.innerHTML = '<i class="fas fa-check-circle"></i> Las contraseñas coinciden';
+            } else {
+                matchFeedback.classList.add('show', 'error');
+                matchFeedback.classList.remove('success');
+                matchFeedback.innerHTML = '<i class="fas fa-exclamation-circle"></i> Las contraseñas no coinciden';
+            }
+        };
+
+        passwordField.addEventListener('input', () => {
+            updatePasswordStrength();
+            if (confirmField.value) updatePasswordMatch();
+        });
+
+        confirmField.addEventListener('input', updatePasswordMatch);
     }
 }
 

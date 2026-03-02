@@ -123,6 +123,79 @@
         color: #166534;
     }
 
+    .password-field {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .password-field .form-input {
+        padding-right: 40px;
+    }
+
+    .btn-toggle-password {
+        position: absolute;
+        right: 12px;
+        background: none;
+        border: none;
+        color: #999;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 5px;
+        transition: color 0.2s ease;
+        width: auto;
+    }
+
+    .btn-toggle-password:hover {
+        color: #666;
+    }
+
+    .password-hint {
+        background: #f9fafb;
+        padding: 10px;
+        border-radius: 6px;
+        border-left: 3px solid #16a34a;
+    }
+
+    .password-strength {
+        display: none;
+    }
+
+    .password-strength.active {
+        display: block;
+    }
+
+    .strength-bar {
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .strength-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 3px;
+        transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .match-feedback {
+        font-size: 12px;
+        display: none;
+    }
+
+    .match-feedback.show {
+        display: block;
+    }
+
+    .match-feedback.success {
+        color: #16a34a;
+    }
+
+    .match-feedback.error {
+        color: #dc2626;
+    }
+
     @media (max-width: 768px) {
         .form-container {
             padding: 20px;
@@ -238,13 +311,27 @@
                 <label for="password" class="form-label">
                     Nueva Contraseña
                 </label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    class="form-input {{ $errors->has('password') ? 'is-invalid' : '' }}"
-                    placeholder="Mínimo 8 caracteres (dejar en blanco para no cambiar)"
-                />
+                <div class="password-field">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input {{ $errors->has('password') ? 'is-invalid' : '' }}"
+                        placeholder="Mínimo 8 caracteres (dejar en blanco para no cambiar)"
+                        autocomplete="new-password"
+                    />
+                    <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibilityEdit('password')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div class="password-hint mt-2">
+                    <p style="margin: 0 0 8px; font-size: 12px; color: #666;"><strong>Mínimo 8 caracteres recomendado</strong></p>
+                    <p style="margin: 0; font-size: 12px; color: #666;">💡 Usa contraseñas fuertes con mayúsculas, minúsculas y números</p>
+                </div>
+                <div class="password-strength mt-2">
+                    <div class="strength-bar"><div class="strength-fill" id="strengthFillEdit"></div></div>
+                    <p id="strengthTextEdit" style="margin: 4px 0 0; font-size: 12px; color: #999;"></p>
+                </div>
                 @error('password')
                     <div class="error-message">{{ $message }}</div>
                 @enderror
@@ -254,13 +341,20 @@
                 <label for="password_confirmation" class="form-label">
                     Confirmar Nueva Contraseña
                 </label>
-                <input 
-                    type="password" 
-                    id="password_confirmation" 
-                    name="password_confirmation" 
-                    class="form-input"
-                    placeholder="Repite la contraseña"
-                />
+                <div class="password-field">
+                    <input 
+                        type="password" 
+                        id="password_confirmation" 
+                        name="password_confirmation" 
+                        class="form-input"
+                        placeholder="Repite la contraseña"
+                        autocomplete="new-password"
+                    />
+                    <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibilityEdit('password_confirmation')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div class="match-feedback mt-2" id="matchFeedbackEdit"></div>
             </div>
         </div>
 
@@ -296,6 +390,107 @@
     </form>
 </div>
 <script>
+// SweetAlert2 CDN guard
+if (typeof Swal === 'undefined') {
+    const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+    if (!existing) {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+        document.head.appendChild(s);
+    }
+}
+
+function togglePasswordVisibilityEdit(fieldId) {
+    const field = document.getElementById(fieldId);
+    const isPassword = field.type === 'password';
+    field.type = isPassword ? 'text' : 'password';
+    
+    const button = event.target.closest('.btn-toggle-password');
+    const icon = button.querySelector('i');
+    icon.classList.toggle('fa-eye');
+    icon.classList.toggle('fa-eye-slash');
+}
+
+function validateEditPasswordStrength(password) {
+    let strength = 0;
+    
+    if (password.length >= 8) strength += 25;
+    if (/[a-z]/.test(password)) strength += 25;
+    if (/[A-Z]/.test(password)) strength += 25;
+    if (/[0-9]/.test(password)) strength += 25;
+    
+    if (strength === 0) return { strength: 0, text: '', color: '' };
+    if (strength <= 25) return { strength: 25, text: 'Muy débil', color: '#dc2626' };
+    if (strength <= 50) return { strength: 50, text: 'Débil', color: '#f97316' };
+    if (strength <= 75) return { strength: 75, text: 'Buena', color: '#eab308' };
+    return { strength: 100, text: 'Fuerte', color: '#16a34a' };
+}
+
+function setupEditPasswordValidation() {
+    const passwordField = document.getElementById('password');
+    const confirmField = document.getElementById('password_confirmation');
+    const strengthFill = document.getElementById('strengthFillEdit');
+    const strengthText = document.getElementById('strengthTextEdit');
+    const matchFeedback = document.getElementById('matchFeedbackEdit');
+    
+    if (!passwordField || !confirmField || !strengthFill || !strengthText || !matchFeedback) {
+        return;
+    }
+    
+    // Prevenir duplicar listeners
+    if (passwordField.dataset._editValidationBound === 'true') return;
+    passwordField.dataset._editValidationBound = 'true';
+    
+    passwordField.addEventListener('input', function() {
+        const value = this.value;
+        const result = validateEditPasswordStrength(value);
+        const strengthContainer = this.closest('.form-group').querySelector('.password-strength');
+        
+        if (value.length > 0) {
+            strengthContainer.classList.add('active');
+            strengthFill.style.width = result.strength + '%';
+            strengthFill.style.backgroundColor = result.color;
+            strengthText.textContent = result.text;
+            strengthText.style.color = result.color;
+        } else {
+            strengthContainer.classList.remove('active');
+        }
+        
+        // Validar coincidencia
+        if (confirmField && confirmField.value) {
+            validateEditPasswordMatch();
+        }
+    });
+    
+    if (confirmField) {
+        confirmField.addEventListener('input', function() {
+            if (this.value || passwordField.value) {
+                validateEditPasswordMatch();
+            } else {
+                matchFeedback.classList.remove('show');
+            }
+        });
+    }
+}
+
+function validateEditPasswordMatch() {
+    const passwordField = document.getElementById('password');
+    const confirmField = document.getElementById('password_confirmation');
+    const matchFeedback = document.getElementById('matchFeedbackEdit');
+    
+    if (passwordField.value === confirmField.value && confirmField.value) {
+        matchFeedback.classList.add('show', 'success');
+        matchFeedback.classList.remove('error');
+        matchFeedback.innerHTML = '<i class="fas fa-check-circle"></i> Las contraseñas coinciden';
+    } else if (confirmField.value) {
+        matchFeedback.classList.add('show', 'error');
+        matchFeedback.classList.remove('success');
+        matchFeedback.innerHTML = '<i class="fas fa-exclamation-circle"></i> Las contraseñas no coinciden';
+    } else {
+        matchFeedback.classList.remove('show');
+    }
+}
+
 (function(){
     // SweetAlert2 CDN guard
     if (typeof Swal === 'undefined') {
@@ -306,6 +501,9 @@
             document.head.appendChild(s);
         }
     }
+
+    // Setup password validation
+    setTimeout(() => setupEditPasswordValidation(), 100);
 
     function bindEditConfirm() {
         const form = document.getElementById('editUserFormPage');

@@ -77,7 +77,10 @@ class UserController extends Controller
         $user = User::create($validated);
 
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'Usuario creado exitosamente', 'user' => $user], 201);
+            // Nunca devolver la contraseña en respuestas JSON por seguridad
+            $userData = $user->toArray();
+            unset($userData['password']);
+            return response()->json(['message' => 'Usuario creado exitosamente', 'user' => $userData], 201);
         }
 
         return redirect()->route('users.index')
@@ -90,7 +93,10 @@ class UserController extends Controller
     public function show(User $user)
     {
         if (request()->expectsJson()) {
-            return response()->json($user);
+            // Nunca devolver la contraseña en respuestas JSON por seguridad
+            $userData = $user->toArray();
+            unset($userData['password']);
+            return response()->json($userData);
         }
         return view('users.show', compact('user'));
     }
@@ -117,7 +123,10 @@ class UserController extends Controller
             $user->update($validated);
 
             if ($request->expectsJson()) {
-                return response()->json(['message' => 'Estado actualizado exitosamente', 'user' => $user]);
+                // Nunca devolver la contraseña en respuestas JSON por seguridad
+                $userData = $user->fresh()->toArray();
+                unset($userData['password']);
+                return response()->json(['message' => 'Estado actualizado exitosamente', 'user' => $userData]);
             }
 
             return redirect()->route('users.index')
@@ -144,7 +153,10 @@ class UserController extends Controller
         $user->update($validated);
 
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'Usuario actualizado exitosamente', 'user' => $user]);
+            // Nunca devolver la contraseña en respuestas JSON por seguridad
+            $userData = $user->fresh()->toArray();
+            unset($userData['password']);
+            return response()->json(['message' => 'Usuario actualizado exitosamente', 'user' => $userData]);
         }
 
         return redirect()->route('users.index')

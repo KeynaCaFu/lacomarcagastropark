@@ -56,22 +56,45 @@
         <div class="row g-3 mt-1">
             <div class="col-md-6">
                 <label class="form-label">Nueva Contraseña</label>
-                <input 
-                    type="password" 
-                    name="password" 
-                    class="form-control"
-                    placeholder="Dejar en blanco para mantener la actual"
-                >
+                <div class="password-field">
+                    <input 
+                        type="password" 
+                        id="edit_modal_password" 
+                        name="password" 
+                        class="form-control password-input"
+                        placeholder="Dejar en blanco para mantener la actual"
+                        autocomplete="new-password"
+                    >
+                    <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('edit_modal_password')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div class="password-hint mt-2">
+                    <p style="margin: 0 0 8px; font-size: 12px; color: #666;"><strong>Mínimo 8 caracteres recomendado</strong></p>
+                    <p style="margin: 0; font-size: 12px; color: #666;">💡 Usa contraseñas fuertes con mayúsculas, minúsculas y números</p>
+                </div>
+                <div class="password-strength mt-2">
+                    <div class="strength-bar"><div class="strength-fill" id="editModalStrengthFill"></div></div>
+                    <p id="editModalStrengthText" style="margin: 4px 0 0; font-size: 12px; color: #999;"></p>
+                </div>
                 <div class="invalid-feedback"></div>
             </div>
 
             <div class="col-md-6">
                 <label class="form-label">Confirmar Nueva Contraseña</label>
-                <input 
-                    type="password" 
-                    name="password_confirmation" 
-                    class="form-control"
-                >
+                <div class="password-field">
+                    <input 
+                        type="password" 
+                        id="edit_modal_password_confirmation" 
+                        name="password_confirmation" 
+                        class="form-control password-input"
+                        autocomplete="new-password"
+                    >
+                    <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('edit_modal_password_confirmation')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div class="match-feedback mt-2" id="editModalMatchFeedback"></div>
             </div>
         </div>
 
@@ -103,38 +126,14 @@
 
 <script>
 (function(){
-    // SweetAlert2 CDN guard + bind after load (for AJAX partials)
-    function bindEditConfirm() {
-        const form = document.getElementById('editUserForm');
-        if (form && !form.dataset._editConfirmBound) {
-            form.dataset._editConfirmBound = 'true';
-            form.addEventListener('submit', async function(e){
-                e.preventDefault();
-                if (window.Swal) {
-                    const res = await (window.swConfirm ? swConfirm({
-                        title: 'Editar usuario',
-                        text: '¿Desea guardar los cambios de este usuario?',
-                        icon: 'question',
-                        confirmButtonText: 'Sí, actualizar',
-                        cancelButtonText: 'Cancelar'
-                    }) : Promise.resolve({ isConfirmed: true }));
-                    if (!res.isConfirmed) return;
-                }
-                form.submit();
-            });
-        }
-    }
-
+    // SweetAlert2 CDN guard (partial may be loaded via AJAX)
     if (typeof Swal === 'undefined') {
-        let existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+        const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
         if (!existing) {
-            existing = document.createElement('script');
-            existing.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
-            document.head.appendChild(existing);
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+            document.head.appendChild(s);
         }
-        existing.addEventListener('load', bindEditConfirm);
-    } else {
-        bindEditConfirm();
     }
 
     // Session success/error and validation SweetAlerts (in case rendered server-side)
@@ -205,5 +204,78 @@
         border-radius: 6px;
         font-size: 13px;
         color: #166534;
+    }
+
+    .password-field {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .password-field .form-control {
+        padding-right: 40px;
+    }
+
+    .btn-toggle-password {
+        position: absolute;
+        right: 12px;
+        background: none;
+        border: none;
+        color: #999;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 5px;
+        transition: color 0.2s ease;
+        width: auto;
+    }
+
+    .btn-toggle-password:hover {
+        color: #666;
+    }
+
+    .password-hint {
+        background: #f9fafb;
+        padding: 10px;
+        border-radius: 6px;
+        border-left: 3px solid #16a34a;
+    }
+
+    .password-strength {
+        display: none;
+    }
+
+    .password-strength.active {
+        display: block;
+    }
+
+    .strength-bar {
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .strength-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 3px;
+        transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .match-feedback {
+        font-size: 12px;
+        display: none;
+    }
+
+    .match-feedback.show {
+        display: block;
+    }
+
+    .match-feedback.success {
+        color: #16a34a;
+    }
+
+    .match-feedback.error {
+        color: #dc2626;
     }
 </style>

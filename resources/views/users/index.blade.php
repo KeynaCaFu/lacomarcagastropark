@@ -442,7 +442,7 @@
             <div class="detail-section">
                 <h5>Paginación</h5>
                 <p>
-                    Los números de página están centrados bajo la tabla. Al hacer clic se actualiza la lista vía AJAX.
+                    Los números de página están centrados bajo la tabla. Al hacer clic se actualiza la lista .
                 </p>
             </div>
         </div>
