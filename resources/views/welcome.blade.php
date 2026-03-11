@@ -235,7 +235,6 @@
         box-shadow: 0 10px 22px rgba(22, 163, 74, .30);
         filter: saturate(1.05);
     }
-
     @auth
     .auth-buttons {
         display: flex;
