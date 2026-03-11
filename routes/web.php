@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LocalDashboardController;
@@ -122,6 +123,13 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
         // Modales (AJAX)
         Route::get('/{id}/show-modal', [ProductController::class, 'showModal'])->name('show.modal');
         Route::get('/{id}/edit-modal', [ProductController::class, 'editModal'])->name('edit.modal');
+    });
+
+    // Proveedores
+    Route::prefix('proveedores')->name('suppliers.')->group(function () {
+        Route::get('/', [SupplierController::class, 'index'])->name('index');
+        Route::get('/create', [SupplierController::class, 'create'])->name('create');
+        Route::post('/', [SupplierController::class, 'store'])->name('store');
     });
 });
 

@@ -33,4 +33,13 @@ class Local extends Model
     {
         return $this->belongsToMany(User::class, 'tbuser_local', 'local_id', 'user_id');
     }
+
+    /**
+     * Relación: Proveedores de este local
+     */
+    public function suppliers()
+    {
+        return $this->belongsToMany(Supplier::class, 'tb_local_supplier', 'local_id', 'supplier_id')
+            ->withTimestamps();
+    }
 }
