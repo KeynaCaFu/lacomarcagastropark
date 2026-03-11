@@ -40,10 +40,12 @@ class LocalController extends Controller
             'image_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Si hay una nueva imagen, guardarla
+        // Si hay una nueva imagen, guardarla en public/images/locals
         if ($request->hasFile('image_logo')) {
-            $path = $request->file('image_logo')->store('locales', 'public');
-            $validated['image_logo'] = $path;
+            $file = $request->file('image_logo');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('images/locals'), $filename);
+            $validated['image_logo'] = 'images/locals/' . $filename;
         }
 
         // Actualizar el local
