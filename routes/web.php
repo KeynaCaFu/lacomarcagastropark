@@ -106,6 +106,15 @@ Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
 // RUTAS PARA ADMIN LOCAL (Gerentes)
 // ============================================================================
 Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
+
+    // Mi Local
+    Route::prefix('mi-local')->name('local.')->group(function () {
+        Route::get('/editar', [\App\Http\Controllers\LocalController::class, 'edit'])->name('edit');
+        Route::put('/actualizar', [\App\Http\Controllers\LocalController::class, 'update'])->name('update');
+        Route::get('/galeria', [\App\Http\Controllers\LocalController::class, 'gallery'])->name('gallery');
+        Route::get('/horario', [\App\Http\Controllers\LocalController::class, 'schedule'])->name('schedule');
+    });
+
     // Productos
     Route::prefix('productos')->name('products.')->group(function () {
         Route::get('/', [ProductController::class, 'index'])->name('index');
