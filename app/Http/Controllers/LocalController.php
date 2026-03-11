@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Local;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 
 class LocalController extends Controller
@@ -43,8 +44,18 @@ class LocalController extends Controller
         // Si hay una nueva imagen, guardarla en public/images/locals
         if ($request->hasFile('image_logo')) {
             $file = $request->file('image_logo');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('images/locals'), $filename);
+            // Generar nombre único: nombrearchivo_codigoaleatorio.extensión
+            $extension = $file->getClientOriginalExtension();
+            $filename = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '_' . Str::random(20) . '.' . $extension;
+            
+            // Asegurar que el directorio existe
+            $destinationPath = public_path('images/locals');
+            if (!is_dir($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            
+            // Mover el archivo a la ruta correcta
+            $file->move($destinationPath, $filename);
             $validated['image_logo'] = 'images/locals/' . $filename;
         }
 
