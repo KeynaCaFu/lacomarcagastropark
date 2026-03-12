@@ -184,7 +184,6 @@ class LocalController extends Controller
         return redirect()->route('local.gallery')
             ->with('success', '✓ Imagen eliminada correctamente.');
     }
-
     /**
      * Mostrar índice de todos los locales (para admin global)
      */
@@ -195,7 +194,33 @@ class LocalController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return view('admin.locales.index', compact('locales'));
+        // Obtener todos los usuarios con rol Gerente para el modal de creación
+        $gerentes = \App\Models\User::where('role_id', 2)
+            ->orderBy('full_name')
+            ->get(['user_id', 'full_name', 'email']);
+
+        return view('admin.locales.index', compact('locales', 'gerentes'));
+    }
+
+    /**
+     * Crear un nuevo local con nombre y gerente asignado
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name'       => 'required|string|max:255',
+            'manager_id' => 'required|exists:tbuser,user_id',
+        ]);
+
+        $local = Local::create([
+            'name'   => $validated['name'],
+            'status' => 'Inactive',
+        ]);
+
+        $local->users()->attach($validated['manager_id']);
+
+        return redirect()->route('locales.index')
+            ->with('success', '✓ Local creado y gerente asignado correctamente.');
     }
 
     /**
@@ -221,6 +246,5 @@ class LocalController extends Controller
         return redirect()->route('locales.index')
             ->with('success', 'Estado del local actualizado correctamente.');
     }
-
 
 }

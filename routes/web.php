@@ -104,6 +104,7 @@ Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
     // Locales
     Route::prefix('locales')->name('locales.')->group(function () {
         Route::get('/', [\App\Http\Controllers\LocalController::class, 'indexAdmin'])->name('index');
+        Route::post('/', [\App\Http\Controllers\LocalController::class, 'store'])->name('store');
         Route::put('/{localId}/status', [\App\Http\Controllers\LocalController::class, 'updateStatus'])->name('update.status');
     });
 });

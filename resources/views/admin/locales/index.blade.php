@@ -275,6 +275,10 @@
                 <h1><i class="fas fa-store" style="color: #e18018; margin-right: 10px;"></i>Gestionar Locales</h1>
                 <p>Visualiza y administra todos los locales registrados en el sistema</p>
             </div>
+            <button type="button" id="btnOpenCreateLocal"
+                style="display:inline-flex;align-items:center;gap:8px;background:#e18018;color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s;">
+                <i class="fas fa-plus"></i> Nuevo Local
+            </button>
         </div>
         
         <!-- Statistics Summary -->
@@ -378,7 +382,23 @@
     </div>
 </div>
 
+@include('admin.locales.modal.modal')
+
 <script>
+// ===== MODAL CREAR LOCAL =====
+document.getElementById('btnOpenCreateLocal').addEventListener('click', function(){
+    document.getElementById('modalCrearLocal').style.display = 'flex';
+});
+document.getElementById('btnCloseCreateLocal').addEventListener('click', function(){
+    document.getElementById('modalCrearLocal').style.display = 'none';
+});
+document.getElementById('btnCloseCreateLocal2').addEventListener('click', function(){
+    document.getElementById('modalCrearLocal').style.display = 'none';
+});
+document.getElementById('modalCrearLocal').addEventListener('click', function(e){
+    if (e.target === this) this.style.display = 'none';
+});
+
 // ===== MANEJADOR DE CAMBIO DE ESTADO =====
 function reattachEventListeners() {
     document.querySelectorAll('.status-toggler').forEach(badge => {
