@@ -33,4 +33,12 @@ class Local extends Model
     {
         return $this->belongsToMany(User::class, 'tbuser_local', 'local_id', 'user_id');
     }
+
+    /**
+     * Relación: Galería de imágenes del local
+     */
+    public function gallery()
+    {
+        return $this->hasMany(LocalGallery::class, 'local_id', 'local_id');
+    }
 }
