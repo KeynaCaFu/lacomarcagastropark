@@ -351,7 +351,7 @@
             <!-- Contenido principal -->
             <main class="main-content" id="mainContent">
                 <!-- Top Navigation Bar -->
-                <div class="top-navbar" style="background: #fff;  padding: 8px 20px; margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-right: 0px; margin-left: -18px;">
+                <div class="top-navbar" style="background: #fff;  padding: 8px 20px; margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-right: -14px; margin-left: -18px;">
                     <div class="top-navbar-left" style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
                         <!-- Toggle Sidebar -->
                         <button class="navbar-toggle" id="navbarToggleBtn" style="background: none; border: none; cursor: pointer; padding: 8px; display: none;">
