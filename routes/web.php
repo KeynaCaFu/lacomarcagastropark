@@ -109,6 +109,7 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
 
     // Mi Local
     Route::prefix('mi-local')->name('local.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\LocalController::class, 'index'])->name('index');
         Route::get('/editar', [\App\Http\Controllers\LocalController::class, 'edit'])->name('edit');
         Route::put('/actualizar', [\App\Http\Controllers\LocalController::class, 'update'])->name('update');
         Route::get('/galeria', [\App\Http\Controllers\LocalController::class, 'gallery'])->name('gallery');

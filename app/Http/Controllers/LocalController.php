@@ -8,6 +8,19 @@ use Illuminate\Http\Request;
 
 class LocalController extends Controller
 {
+     //Mostrar el índice de opciones del local del gerente
+    public function index(Request $request){
+        $user = $request->user();
+        $local = $user->locals()->first(); 
+
+        if(!$local){
+            return redirect()->route('dashboard')
+            ->with('error', 'No tienes un local asignado.');
+        }
+
+        return view('local.index', compact('local'));
+    }
+    
     //Mostrar el formulario de edicion del local del gerente
     public function edit(Request $request){
         $user = $request->user();

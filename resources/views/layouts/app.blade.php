@@ -334,7 +334,7 @@
                             </li>
     
                             <li>
-                                <a href="{{ route('local.edit') }}" class="{{ request()->routeIs('local*') ? 'active' : '' }}" data-tooltip="Mi Local">
+                                <a href="{{ route('local.index') }}" class="{{ request()->routeIs('local*') ? 'active' : '' }}" data-tooltip="Mi Local">
                                     <i class="fas fa-store"></i> Mi Local
                                 </a>
                             </li>
