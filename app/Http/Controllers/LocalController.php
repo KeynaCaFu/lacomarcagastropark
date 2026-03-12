@@ -185,5 +185,42 @@ class LocalController extends Controller
             ->with('success', '✓ Imagen eliminada correctamente.');
     }
 
+    /**
+     * Mostrar índice de todos los locales (para admin global)
+     */
+    public function indexAdmin(Request $request)
+    {
+        // Obtener todos los locales con sus gerentes asociados
+        $locales = Local::with(['users' => function($q){ $q->where('role_id', 2); }])
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('admin.locales.index', compact('locales'));
+    }
+
+    /**
+     * Actualizar solo el estado de un local (para admin global)
+     */
+    public function updateStatus(Request $request, $localId)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:Active,Inactive',
+        ]);
+
+        $local = Local::findOrFail($localId);
+        $local->update(['status' => $validated['status']]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Estado del local actualizado correctamente.',
+                'status' => $local->status,
+            ]);
+        }
+
+        return redirect()->route('locales.index')
+            ->with('success', 'Estado del local actualizado correctamente.');
+    }
+
 
 }

@@ -100,6 +100,12 @@ Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
         Route::put('/{evento}', [EventController::class, 'update'])->name('actualizar');
         Route::delete('/{evento}', [EventController::class, 'destroy'])->name('eliminar');
     });
+
+    // Locales
+    Route::prefix('locales')->name('locales.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\LocalController::class, 'indexAdmin'])->name('index');
+        Route::put('/{localId}/status', [\App\Http\Controllers\LocalController::class, 'updateStatus'])->name('update.status');
+    });
 });
 
 // ============================================================================
