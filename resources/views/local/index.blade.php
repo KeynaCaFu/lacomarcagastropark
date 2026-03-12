@@ -95,15 +95,6 @@
                     </a>
                 </div>
             </div>
-
-            <!-- Botón Volver -->
-            <div class="mt-4">
-                <a href="{{ route('dashboard') }}" 
-                   class="btn btn-secondary" 
-                   style="padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid #d1d5db; background: #f9fafb; color: #374151; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease;">
-                    <i class="fas fa-arrow-left"></i> Volver al Panel
-                </a>
-            </div>
         </div>
     </div>
 </div>
@@ -119,5 +110,43 @@
         border-color: #9ca3af;
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mostrar mensajes de éxito con SweetAlert Toast
+    const successMsg = @json(session('success'));
+    if (successMsg) {
+        let retries = 0;
+        const checkAndShowToast = () => {
+            if (window.swToast) {
+                swToast.fire({
+                    icon: 'success',
+                    title: successMsg
+                });
+            } else if (retries < 50) {
+                retries++;
+                setTimeout(checkAndShowToast, 100);
+            }
+        };
+        checkAndShowToast();
+    }
+
+    // Mostrar mensajes de error con SweetAlert
+    const errorMsg = @json(session('error'));
+    if (errorMsg && window.swAlert) {
+        swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+    }
+    @if ($errors->any())
+    if (window.swAlert) {
+        swAlert({
+            icon: 'error',
+            title: 'Errores de validación',
+            html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+            confirmButtonColor: '#dc2626'
+        });
+    }
+    @endif
+});
+</script>
 
 @endsection

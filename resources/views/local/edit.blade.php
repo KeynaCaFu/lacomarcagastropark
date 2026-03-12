@@ -7,12 +7,16 @@
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
+            <!-- Breadcrumb -->
+            @include('local.partials.breadcrumb')
             <!-- Header -->
-            <div class="mb-4">
-                <h1 class="h3 mb-1" style="color: #111827; font-weight: 700; margin-top: 14px;">
-                    <i class="fas fa-store" style="color: #e18018; margin-right: 8px;"></i>Mi Local
-                </h1>
-                <p class="text-muted mb-0">Edita la información general de{{ $local ? ' ' . $local->name : ' tu local' }}</p>
+            <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+                <div>
+                    <h1 class="h3 mb-2" style="color: #111827; font-weight: 700;">
+                        <i class="fas fa-edit" style="color: #e18018; margin-right: 8px;"></i>Editar Local
+                    </h1>
+                    <p class="text-muted mb-0">Actualiza la información general de {{ $local ? $local->name : 'tu local' }}</p>
+                </div>
             </div>
 
             <!-- Formulario Principal -->
@@ -150,7 +154,7 @@
 
                     <!-- Botones de Acción -->
                     <div class="d-flex gap-3 justify-content-end">
-                        <a href="{{ route('dashboard') }}" 
+                        <a href="{{ route('local.index') }}" 
                            class="btn btn-secondary" 
                            style="padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid #d1d5db; background: #f9fafb; color: #374151; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease;">
                             <i class="fas fa-times"></i> Cancelar
@@ -169,6 +173,40 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Mostrar mensajes de éxito con SweetAlert Toast
+    const successMsg = @json(session('success'));
+    if (successMsg) {
+        let retries = 0;
+        const checkAndShowToast = () => {
+            if (window.swToast) {
+                swToast.fire({
+                    icon: 'success',
+                    title: successMsg
+                });
+            } else if (retries < 50) {
+                retries++;
+                setTimeout(checkAndShowToast, 100);
+            }
+        };
+        checkAndShowToast();
+    }
+
+    // Mostrar mensajes de error con SweetAlert
+    const errorMsg = @json(session('error'));
+    if (errorMsg && window.swAlert) {
+        swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+    }
+    @if ($errors->any())
+    if (window.swAlert) {
+        swAlert({
+            icon: 'error',
+            title: 'Errores de validación',
+            html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+            confirmButtonColor: '#dc2626'
+        });
+    }
+    @endif
+
     // Validación del formulario
     const form = document.getElementById('localForm');
     
@@ -176,6 +214,22 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!form.checkValidity()) {
             e.preventDefault();
             e.stopPropagation();
+        } else if (e.target === form) {
+            // Si el formulario es válido y se va a enviar, pedimos confirmación
+            if (window.swConfirm) {
+                e.preventDefault();
+                swConfirm({
+                    title: 'Guardar cambios',
+                    text: '¿Desea guardar los cambios del local?',
+                    icon: 'question',
+                    confirmButtonText: 'Sí, guardar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            }
         }
         form.classList.add('was-validated');
     });
@@ -186,9 +240,32 @@ document.addEventListener('DOMContentLoaded', function() {
         imageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
+                // Validar tipo de archivo
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    if (window.swAlert) {
+                        swAlert({ icon: 'warning', title: 'Formato no válido', text: 'Solo se aceptan imágenes JPG, PNG o GIF' });
+                    } else {
+                        alert('Solo se aceptan imágenes JPG, PNG o GIF');
+                    }
+                    imageInput.value = '';
+                    return;
+                }
+
+                // Validar tamaño
+                const maxSize = 2 * 1024 * 1024; // 2MB
+                if (file.size > maxSize) {
+                    if (window.swAlert) {
+                        swAlert({ icon: 'warning', title: 'Archivo muy grande', text: 'La imagen no puede ser mayor a 2MB' });
+                    } else {
+                        alert('La imagen no puede ser mayor a 2MB');
+                    }
+                    imageInput.value = '';
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    // Podrías agregar una vista previa aquí
                     console.log('Imagen seleccionada:', file.name);
                 };
                 reader.readAsDataURL(file);
@@ -266,6 +343,61 @@ document.addEventListener('DOMContentLoaded', function() {
     .btn-secondary:hover {
         background: #f3f4f6 !important;
         border-color: #9ca3af;
+    }
+
+    /* Breadcrumb Styles */
+    .local-breadcrumb {
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .local-breadcrumb ol {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+    }
+
+    .local-breadcrumb li {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .local-breadcrumb a {
+        color: #3b82f6;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.2s ease;
+    }
+
+    .local-breadcrumb a.breadcrumb-home {
+        color: #e18018;
+        font-weight: 600;
+    }
+
+    .local-breadcrumb a.breadcrumb-home:hover {
+        color: #c9690f;
+    }
+
+    .local-breadcrumb a:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+    }
+
+    .local-breadcrumb .breadcrumb-separator {
+        color: #d1d5db;
+        margin: 0 4px;
+        font-size: 12px;
+    }
+
+    .local-breadcrumb .current {
+        color: #6b7280;
+        font-weight: 500;
     }
 </style>
 @endsection

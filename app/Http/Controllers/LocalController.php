@@ -32,7 +32,12 @@ class LocalController extends Controller
             ->with('error', 'No tienes un local asignado.');
         }
 
-        return view('local.edit', compact('local'));
+        // Preparar breadcrumbs
+        $crumbs = [
+            ['label' => 'Editar Local', 'url' => null]
+        ];
+
+        return view('local.edit', compact('local', 'crumbs'));
     }
 
     //Actualizar la informacion del local del gerente
