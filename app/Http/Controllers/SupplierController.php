@@ -21,7 +21,8 @@ class SupplierController extends Controller
     public function index(Request $request)
     {
         $filters = [
-            'search' => $request->input('buscar')
+            'search' => $request->input('buscar'),
+            'sort_by' => $request->input('sort_by', 'recent')
         ];
 
         // Si el usuario es gerente, filtrar por su local
@@ -44,7 +45,8 @@ class SupplierController extends Controller
             $totals = $this->supplierData->countTotals();
         }
 
-        return view('suppliers.index', compact('suppliers', 'totals'));
+        $currentSort = $request->input('sort_by', 'recent');
+        return view('suppliers.index', compact('suppliers', 'totals', 'currentSort'));
     }
 
     /**

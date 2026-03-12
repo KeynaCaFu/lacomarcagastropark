@@ -26,8 +26,26 @@ class SupplierData
             $query->byLocal($filters['local_id']);
         }
 
+        // Ordenamiento
+        $sortBy = $filters['sort_by'] ?? 'recent';
+        switch ($sortBy) {
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('name', 'desc');
+                break;
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'recent':
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+
         // Paginación de 10 por página
-        return $query->orderBy('supplier_id', 'desc')->paginate(10)->withQueryString();
+        return $query->paginate(10)->withQueryString();
     }
 
     /**
