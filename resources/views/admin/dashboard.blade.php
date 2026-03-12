@@ -115,13 +115,13 @@
                 <div class="quick-hint">Alt+U</div>
             </div>
         </a>
-        <div class="quick-link" style="opacity: 0.6; cursor: not-allowed;" title="Se realizará pronto">
+        <a class="quick-link" href="{{ route('locales.index') }}" title="Gestionar locales (Alt+L)">
             <div class="quick-icon qi-stores"><i class="fas fa-store"></i></div>
             <div class="quick-text">
                 <div class="quick-title">Locales</div>
-                <div class="quick-hint">Próximamente</div>
+                <div class="quick-hint">Alt+L</div>
             </div>
-        </div>
+        </a>
         <a class="quick-link" href="{{ route('eventos.index') }}" title="Gestionar eventos (Alt+E)">
             <div class="quick-icon qi-events"><i class="fas fa-calendar-days"></i></div>
             <div class="quick-text">
@@ -178,6 +178,7 @@ document.addEventListener('keydown', function(e){
     if (!e.altKey) return;
     const key = (e.key || '').toLowerCase();
     if (key === 'u') { e.preventDefault(); window.location.href = @json(route('users.index')); }
+    if (key === 'l') { e.preventDefault(); window.location.href = @json(route('locales.index')); }
     if (key === 'e') { e.preventDefault(); window.location.href = @json(route('eventos.index')); }
     if (key === 'n') { e.preventDefault(); window.location.href = @json(route('eventos.create')); }
 });

@@ -322,6 +322,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('locales.index') }}" class="{{ request()->routeIs('locales*') ? 'active' : '' }}" data-tooltip="Locales">
+                                    <i class="fas fa-store"></i> Locales
+                                </a>
+                            </li>
+
+                            <li>
                                 <a href="{{ route('eventos.index') }}" class="{{ request()->routeIs('eventos*') ? 'active' : '' }}" data-tooltip="Eventos">
                                     <i class="fas fa-calendar-days"></i> Eventos
                                 </a>
@@ -409,6 +415,10 @@
                                         <a href="{{ route('users.index') }}" class="mobile-nav-item {{ request()->routeIs('users*') ? 'active' : '' }}">
                                             <i class="fas fa-users"></i> Usuarios
                                         </a>
+                                        <a href="{{ route('locales.index') }}" class="mobile-nav-item {{ request()->routeIs('locales*') ? 'active' : '' }}">
+                                            <i class="fas fa-store"></i> Locales
+                                        </a>
+
                                         <a href="{{ route('eventos.index') }}" class="mobile-nav-item {{ request()->routeIs('eventos*') ? 'active' : '' }}">
                                             <i class="fas fa-calendar-days"></i> Eventos
                                         </a>
@@ -419,6 +429,7 @@
                                         <a href="{{ route('products.index') }}" class="mobile-nav-item {{ request()->routeIs('products*') ? 'active' : '' }}">
                                             <i class="fas fa-box"></i> Productos
                                         </a>
+                                        
                                     @endif
                                 </div>
 
