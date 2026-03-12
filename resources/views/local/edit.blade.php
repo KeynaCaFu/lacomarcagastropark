@@ -90,11 +90,15 @@
                                   rows="3"
                                   class="form-control @error('description') is-invalid @enderror"
                                   placeholder="Describe tu local, ubicación, ambiente..."
+                                  maxlength="600"
                                   style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; resize: vertical;">{{ old('description', $local->description ?? '') }}</textarea>
                         @error('description')
                             <div class="invalid-feedback d-block" style="font-size: 13px;">{{ $message }}</div>
                         @enderror
-                        <small class="text-muted d-block mt-2" style="font-size: 13px;">Máximo 1000 caracteres</small>
+                        <div class="d-flex justify-content-between align-items-center" style="margin-top: 8px;">
+                            <small class="text-muted" style="font-size: 13px;">Máximo 600 caracteres</small>
+                            <small id="charCountDisplay" class="text-muted" style="font-size: 13px;"><span id="charCount">0</span>/600</small>
+                        </div>
                     </div>
 
                     <!-- Contacto y Estado en columnas -->
@@ -108,11 +112,15 @@
                                    name="contact" 
                                    class="form-control @error('contact') is-invalid @enderror" 
                                    value="{{ old('contact', $local->contact ?? '') }}"
-                                   placeholder="+34 123 456 789"
+                                   placeholder="0000-0000"
+                                   pattern="\d{4}-\d{4}"
                                    style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
                             @error('contact')
                                 <div class="invalid-feedback d-block" style="font-size: 13px;">{{ $message }}</div>
                             @enderror
+                            <small class="text-muted d-block mt-2" style="font-size: 13px;">
+                                Formato: 0000-0000
+                            </small>
                         </div>
 
                         <div class="col-md-6">
@@ -186,6 +194,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 reader.readAsDataURL(file);
             }
         });
+    }
+
+    // Formateo automático del contacto (0000-0000)
+    const contactInput = document.getElementById('contact');
+    if (contactInput) {
+        contactInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // Elimina caracteres no numéricos
+            
+            if (value.length >= 4) {
+                value = value.substring(0, 8); // Limita a 8 dígitos
+                if (value.length > 4) {
+                    value = value.substring(0, 4) + '-' + value.substring(4);
+                }
+            }
+            
+            e.target.value = value;
+        });
+    }
+
+    // Contador de caracteres para descripción
+    const descriptionInput = document.getElementById('description');
+    const charCount = document.getElementById('charCount');
+    const charCountDisplay = document.getElementById('charCountDisplay');
+    if (descriptionInput) {
+        // Actualizar contador al cargar la página
+        charCount.textContent = descriptionInput.value.length;
+        updateCharCountStyle();
+        
+        descriptionInput.addEventListener('input', function(e) {
+            charCount.textContent = e.target.value.length;
+            updateCharCountStyle();
+        });
+    }
+
+    function updateCharCountStyle() {
+        const currentLength = parseInt(charCount.textContent);
+        const maxLength = 600;
+        
+        if (currentLength >= maxLength) {
+            charCountDisplay.style.color = '#dc2626';
+            charCountDisplay.style.fontWeight = '600';
+            charCountDisplay.innerHTML = `<i class="fas fa-exclamation-circle" style="margin-right: 4px; color: #dc2626;"></i><span id="charCount" style="color: #dc2626;">${currentLength}</span><span style="color: #dc2626;">/600 (Máximo alcanzado)</span>`;
+        } else {
+            charCountDisplay.style.color = '#6b7280';
+            charCountDisplay.style.fontWeight = 'normal';
+            charCountDisplay.innerHTML = `<span id="charCount">${currentLength}</span>/600`;
+        }
     }
 });
 </script>
