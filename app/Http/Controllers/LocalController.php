@@ -223,6 +223,28 @@ class LocalController extends Controller
     }
 
     /**
+     * Editar nombre y gerente de un local (para admin global)
+     */
+    public function updateAdmin(Request $request, $localId)
+    {
+        $validated = $request->validate([
+            'name'       => 'required|string|max:255',
+            'manager_id' => 'required|exists:tbuser,user_id',
+        ]);
+
+        $local = Local::findOrFail($localId);
+        $local->update([
+            'name' => $validated['name'],
+        ]);
+
+        // Se mantiene un único gerente asignado por local en este flujo.
+        $local->users()->sync([$validated['manager_id']]);
+
+        return redirect()->route('locales.index')
+            ->with('success', '✓ Local actualizado correctamente.');
+    }
+
+    /**
      * Actualizar solo el estado de un local (para admin global)
      */
     public function updateStatus(Request $request, $localId)
@@ -245,4 +267,37 @@ class LocalController extends Controller
         return redirect()->route('locales.index')
             ->with('success', 'Estado del local actualizado correctamente.');
     }
+
+    /**
+     * Eliminar un local (para admin global)
+     */
+    public function destroy($localId)
+    {
+        $local = Local::findOrFail($localId);
+
+        // Eliminar imágenes físicas de la galería del local
+        foreach ($local->gallery as $image) {
+            $filePath = public_path($image->image_url);
+            if (file_exists($filePath)) {
+                @unlink($filePath);
+            }
+        }
+
+        // Eliminar logo físico del local si existe
+        if (!empty($local->image_logo)) {
+            $logoPath = public_path($local->image_logo);
+            if (file_exists($logoPath)) {
+                @unlink($logoPath);
+            }
+        }
+
+        // Limpiar relaciones y registros asociados
+        $local->users()->detach();
+        $local->gallery()->delete();
+        $local->delete();
+
+        return redirect()->route('locales.index')
+            ->with('success', '✓ Local eliminado correctamente.');
+    }
+
 }

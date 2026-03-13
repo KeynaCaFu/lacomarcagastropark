@@ -157,6 +157,62 @@
             margin: 0 0 8px 0;
             line-height: 1.4;
         }
+
+        .local-card-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .local-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .icon-action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            border: 2px solid #d1d5db;
+            background: transparent;
+            color: #374151;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .icon-action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+        }
+
+        .icon-action-btn.delete {
+            color: #dc2626;
+            border-color: #dc2626;
+            background: transparent;
+        }
+
+        .icon-action-btn.delete:hover {
+            background: #dc2626;
+            color: #ffffff;
+        }
+
+        .icon-action-btn.edit {
+            color: #3e3d3a;
+            border-color: #43423f;
+            background: transparent;
+        }
+
+        .icon-action-btn.edit:hover {
+            background: #848380ec;
+            color: #000000;
+        }
         
         .local-card-description {
             font-size: 13px;
@@ -321,7 +377,27 @@
                         
                         <!-- Card Body -->
                         <div class="local-card-body">
-                            <h3 class="local-card-name" title="{{ $local->name }}">{{ $local->name }}</h3>
+                            <div class="local-card-head">
+                                <h3 class="local-card-name" title="{{ $local->name }}">{{ $local->name }}</h3>
+                                <div class="local-actions">
+                                    <button type="button"
+                                            class="icon-action-btn edit btn-edit-local"
+                                            data-id="{{ $local->local_id }}"
+                                            data-name="{{ $local->name }}"
+                                            data-manager-id="{{ optional($local->users->first())->user_id }}"
+                                            data-update-url="{{ route('locales.update', $local->local_id) }}"
+                                            title="Editar local">
+                                        <i class="fas fa-pen-to-square"></i>
+                                    </button>
+                                    <form id="del-local-{{ $local->local_id }}" method="POST" action="{{ route('locales.destroy', $local->local_id) }}" style="display:inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" class="icon-action-btn delete btn-delete" data-id="{{ $local->local_id }}" data-name="{{ $local->name }}" title="Eliminar local">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                             
                             <!-- Status Badge -->
                             <div class="local-card-status status-toggler {{ $local->status === 'Active' ? 'status-active' : 'status-inactive' }}" 
@@ -383,6 +459,7 @@
 </div>
 
 @include('admin.locales.modal.modal')
+@include('admin.locales.modal.edit-modal')
 
 <script>
 // ===== MODAL CREAR LOCAL =====
@@ -398,6 +475,98 @@ document.getElementById('btnCloseCreateLocal2').addEventListener('click', functi
 document.getElementById('modalCrearLocal').addEventListener('click', function(e){
     if (e.target === this) this.style.display = 'none';
 });
+
+// Confirmar antes de crear local
+(function(){
+    const formCrearLocal = document.querySelector('#modalCrearLocal form');
+    if (formCrearLocal && !formCrearLocal.dataset._createBound) {
+        formCrearLocal.dataset._createBound = 'true';
+        formCrearLocal.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (window.swConfirm) {
+                const res = await swConfirm({
+                    title: 'Crear local',
+                    text: '¿Desea guardar este nuevo local?',
+                    icon: 'question',
+                    confirmButtonText: 'Sí, guardar',
+                    cancelButtonText: 'Cancelar'
+                });
+                if (!res.isConfirmed) return;
+            }
+            this.submit();
+        });
+    }
+})();
+
+// ===== MODAL EDITAR LOCAL =====
+const modalEditarLocal = document.getElementById('modalEditarLocal');
+const formEditarLocal = document.getElementById('formEditarLocal');
+const inputEditName = document.getElementById('edit_local_name');
+const inputEditManager = document.getElementById('edit_manager_id');
+
+document.querySelectorAll('.btn-edit-local').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const localName = btn.dataset.name || '';
+        const managerId = btn.dataset.managerId || '';
+        const updateUrl = btn.dataset.updateUrl || '#';
+
+        formEditarLocal.action = updateUrl;
+        inputEditName.value = localName;
+        inputEditManager.value = managerId;
+        modalEditarLocal.style.display = 'flex';
+    });
+});
+
+document.getElementById('btnCloseEditLocal').addEventListener('click', function(){
+    modalEditarLocal.style.display = 'none';
+});
+document.getElementById('btnCloseEditLocal2').addEventListener('click', function(){
+    modalEditarLocal.style.display = 'none';
+});
+modalEditarLocal.addEventListener('click', function(e){
+    if (e.target === modalEditarLocal) modalEditarLocal.style.display = 'none';
+});
+
+// Confirmar antes de guardar cambios del local
+formEditarLocal.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (window.Swal) {
+        const res = await Swal.fire({
+            title: 'Editar local',
+            text: '¿Desea guardar los cambios de este local?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#16a34a',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, actualizar',
+            cancelButtonText: 'Cancelar'
+        });
+        if (!res.isConfirmed) return;
+    }
+    this.submit();
+});
+
+// ===== MANEJADOR DE ELIMINAR LOCAL =====
+(function(){
+    document.querySelectorAll('.btn-delete[data-id]').forEach(btn => {
+        if (btn.dataset._undoBound === 'true') return;
+        btn.dataset._undoBound = 'true';
+        btn.addEventListener('click', (e) => {
+            const id = btn.dataset.id;
+            const name = btn.dataset.name || 'este local';
+            const formId = 'del-local-' + id;
+            const submitAction = () => { const f = document.getElementById(formId); if (f) f.submit(); };
+            if (typeof window.confirmWithUndo === 'function') {
+                const ask = window.swConfirm ? swConfirm({ title: 'Eliminar local', text: `¿Desea eliminar "${name}"?`, icon: 'warning', confirmButtonColor: '#dc2626', confirmButtonText: 'Sí, eliminar' }) : Promise.resolve({ isConfirmed: confirm(`¿Desea eliminar "${name}"?`) });
+                ask.then(r => { if (r.isConfirmed) window.confirmWithUndo({ message: `Se eliminará: ${name}`, delayMs: 10000, onConfirm: submitAction, onUndo: function(){} }); });
+            } else if (window.swConfirm) {
+                swConfirm({ title: 'Eliminar local', text: `¿Desea eliminar "${name}"?`, icon: 'warning', confirmButtonColor: '#dc2626', confirmButtonText: 'Sí, eliminar' }).then(r => { if (r.isConfirmed) submitAction(); });
+            } else if (confirm('¿Seguro que deseas eliminar este local?')) {
+                submitAction();
+            }
+        });
+    });
+})();
 
 // ===== MANEJADOR DE CAMBIO DE ESTADO =====
 function reattachEventListeners() {
@@ -505,21 +674,31 @@ document.addEventListener('DOMContentLoaded', function() {
     reattachEventListeners();
     
     const successMsg = @json(session('success'));
-    if (successMsg && window.swToast) {
-        swToast.fire({
-            icon: 'success',
-            title: successMsg
-        });
+    if (successMsg) {
+        let retries = 0;
+        const checkAndShowSuccess = () => {
+            if (window.swToast) {
+                swToast.fire({ icon: 'success', title: successMsg });
+            } else if (retries < 50) {
+                retries++;
+                setTimeout(checkAndShowSuccess, 100);
+            }
+        };
+        setTimeout(checkAndShowSuccess, 100);
     }
-    
+
     const errorMsg = @json(session('error'));
-    if (errorMsg && window.swAlert) {
-        swAlert({ 
-            icon: 'error', 
-            title: 'Error', 
-            text: errorMsg, 
-            confirmButtonColor: '#dc2626' 
-        });
+    if (errorMsg) {
+        let retries = 0;
+        const checkAndShowError = () => {
+            if (window.swAlert) {
+                swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+            } else if (retries < 50) {
+                retries++;
+                setTimeout(checkAndShowError, 100);
+            }
+        };
+        setTimeout(checkAndShowError, 100);
     }
 });
 </script>
