@@ -130,6 +130,7 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
         Route::get('/', [SupplierController::class, 'index'])->name('index');
         Route::get('/create', [SupplierController::class, 'create'])->name('create');
         Route::post('/', [SupplierController::class, 'store'])->name('store');
+        Route::get('/{id}', [SupplierController::class, 'show'])->name('show');
     });
 });
 
