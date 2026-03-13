@@ -9,7 +9,8 @@ class SupplierGallery extends Model
 {
     use HasFactory;
 
-    protected $table = 'tb_supplier_gallery';
+    
+    protected $table = 'tbsupplier_gallery';
     protected $primaryKey = 'gallery_id';
     public $timestamps = true;
 

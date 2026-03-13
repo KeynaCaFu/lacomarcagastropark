@@ -63,9 +63,9 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombre' => 'required|string|max:255|unique:tb_supplier,name',
+            'nombre' => 'required|string|max:255|unique:tbsupplier,name',
             'telefono' => 'required|string|max:20',
-            'email' => 'required|email|max:255|unique:tb_supplier,email',
+            'email' => 'required|email|max:255|unique:tbsupplier,email',
             'imagenes' => 'required|array|min:1',
             'imagenes.*' => 'required|file|mimes:jpeg,png,jpg,pdf|max:5120'
         ], [
@@ -103,7 +103,9 @@ class SupplierController extends Controller
                 $file->move($uploadDir, $filename);
 
                 // Guardar en bd
-                DB::table('tb_supplier_gallery')->insert([
+                
+                DB::table('tbsupplier_gallery')->insert([
+
                     'supplier_id' => $supplier->supplier_id,
                     'image_path' => 'proveedor/' . $filename,
                     'description' => $file->getClientOriginalName(),
@@ -119,7 +121,7 @@ class SupplierController extends Controller
             $local = $user->locals()->first();
             if ($local) {
                 // Crear relación en tb_local_supplier
-                DB::table('tb_local_supplier')->insert([
+                DB::table('tblocal_supplier')->insert([
                     'local_id' => $local->local_id,
                     'supplier_id' => $supplier->supplier_id,
                     'created_at' => now(),
@@ -169,7 +171,7 @@ class SupplierController extends Controller
         if ($user->isAdminLocal()) {
             $local = $user->locals()->first();
             if ($local) {
-                return DB::table('tb_local_supplier')
+                return DB::table('tblocal_supplier')
                     ->where('local_id', $local->local_id)
                     ->where('supplier_id', $supplierId)
                     ->exists();

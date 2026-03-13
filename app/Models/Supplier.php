@@ -9,7 +9,7 @@ class Supplier extends Model
 {
     use HasFactory;
 
-    protected $table = 'tb_supplier';
+    protected $table = 'tbsupplier';
     protected $primaryKey = 'supplier_id';
     public $timestamps = true;
 
@@ -35,7 +35,7 @@ class Supplier extends Model
      */
     public function locals()
     {
-        return $this->belongsToMany(Local::class, 'tb_local_supplier', 'supplier_id', 'local_id')
+        return $this->belongsToMany(Local::class, 'tblocal_supplier', 'supplier_id', 'local_id')
             ->withTimestamps();
     }
 
@@ -59,7 +59,7 @@ class Supplier extends Model
     {
         if (!empty($localId)) {
             return $query->whereHas('locals', function ($q) use ($localId) {
-                $q->where('tb_local_supplier.local_id', $localId);
+                $q->where('tblocal_supplier.local_id', $localId);
             });
         }
         return $query;

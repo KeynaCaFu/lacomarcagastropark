@@ -6,16 +6,16 @@ use App\Models\Supplier;
 
 class SupplierData
 {
-    protected $table = 'tb_supplier';
+   
+    protected $table = 'tbsupplier';
 
     /**
      * Obtener todos los Proveedores con filtros opcionales
      */
     public function all(array $filters = [])
     {
-        $query = Supplier::select('tb_supplier.*')
-            ->selectRaw('(select count(*) from `tb_supplier_gallery` where `tb_supplier`.`supplier_id` = `tb_supplier_gallery`.`supplier_id`) as `gallery_count`');
-
+        $query = Supplier::select('tbsupplier.*')
+        ->selectRaw('(select count(*) from `tbsupplier_gallery` where `tbsupplier`.`supplier_id` = `tbsupplier_gallery`.`supplier_id`) as `gallery_count`');
         // Filtro de búsqueda
         if (!empty($filters['search'])) {
             $query->search($filters['search']);
