@@ -419,6 +419,9 @@
                                         <a href="{{ route('products.index') }}" class="mobile-nav-item {{ request()->routeIs('products*') ? 'active' : '' }}">
                                             <i class="fas fa-box"></i> Productos
                                         </a>
+                                        <a href="{{ route('suppliers.index') }}" class="mobile-nav-item {{ request()->routeIs('suppliers*') ? 'active' : '' }}">
+                                            <i class="fas fa-truck"></i> Proveedores
+                                        </a>
                                     @endif
                                 </div>
 
