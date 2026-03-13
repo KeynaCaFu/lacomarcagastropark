@@ -337,6 +337,12 @@
                                     <i class="fas fa-box"></i> Productos
                                 </a>
                             </li>
+
+                            <li>
+                                <a href="{{ route('suppliers.index') }}" class="{{ request()->routeIs('suppliers*') ? 'active' : '' }}" data-tooltip="Proveedores">
+                                     <i class="fas fa-truck"></i> Proveedores
+                                    </a>
+                            </li>
                         @endif
                     </ul>
                 </div>
