@@ -9,7 +9,6 @@ class SupplierGallery extends Model
 {
     use HasFactory;
 
-    
     protected $table = 'tbsupplier_gallery';
     protected $primaryKey = 'gallery_id';
     public $timestamps = true;
@@ -34,7 +33,7 @@ class SupplierGallery extends Model
     /**
      * Accessor: Obtener URL de la imagen
      * Convierte rutas relativas en URLs accesibles
-     * Ruta base: /public/proveedor/
+     * Ruta base: /public/images/proveedores/
      */
     public function getImageUrlAttribute($value)
     {
@@ -58,7 +57,12 @@ class SupplierGallery extends Model
             $value = str_replace('public/', '', $value);
         }
 
-        // Si empieza con proveedor/, usar asset()
+        // Si empieza con images/proveedores/, usar asset()
+        if (str_starts_with($value, 'images/proveedores/')) {
+            return asset($value);
+        }
+
+        // Compatibilidad con imágenes antiguas guardadas en proveedor/
         if (str_starts_with($value, 'proveedor/')) {
             return asset($value);
         }

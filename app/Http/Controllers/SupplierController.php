@@ -92,7 +92,7 @@ class SupplierController extends Controller
 
         // Procesar imágenes/archivos
         if ($request->hasFile('imagenes')) {
-            $uploadDir = public_path('proveedor');
+            $uploadDir = public_path('images/proveedores');
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
