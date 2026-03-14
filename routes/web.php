@@ -131,6 +131,10 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
         Route::get('/create', [SupplierController::class, 'create'])->name('create');
         Route::post('/', [SupplierController::class, 'store'])->name('store');
         Route::get('/{id}', [SupplierController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [SupplierController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [SupplierController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SupplierController::class, 'destroy'])->name('destroy');
+        
     });
 });
 
