@@ -274,7 +274,7 @@
             }
         }
 
-    /* Estilo personalizado para botón de confirmación SweetAlert2 */
+        /* Estilo personalizado para botón de confirmación SweetAlert2 */
         .swal2-confirm {
             background: linear-gradient(135deg, #e18018, #c9690f) !important;
             color: white !important;
@@ -341,7 +341,7 @@
                             <li>
                                 <a href="{{ route('suppliers.index') }}" class="{{ request()->routeIs('suppliers*') ? 'active' : '' }}" data-tooltip="Proveedores">
                                      <i class="fas fa-truck"></i> Proveedores
-                                    </a>
+                                </a>
                             </li>
                         @endif
                     </ul>
@@ -479,6 +479,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <!-- SweetAlert2 global (carga perezosa si falta) y helpers de estilo -->
     <script>
         (function(){
@@ -529,7 +530,6 @@
             };
 
             // Toast para notificaciones pequeñas en la esquina superior derecha
-            // Esperar a que Swal esté disponible antes de crear el mixin
             const initSwToast = () => {
                 if (typeof Swal !== 'undefined' && !window.swToast) {
                     window.swToast = Swal.mixin({
@@ -546,10 +546,8 @@
                 }
             };
 
-            // Intentar inicializar inmediatamente
             initSwToast();
 
-            // Si falla, intentar en intervalos hasta que Swal esté disponible
             if (typeof Swal === 'undefined') {
                 const checkInterval = setInterval(() => {
                     if (typeof Swal !== 'undefined') {
@@ -558,11 +556,9 @@
                     }
                 }, 100);
 
-                // Limpiar después de 5 segundos si aún no está disponible
                 setTimeout(() => clearInterval(checkInterval), 5000);
             }
 
-            // Notificación simple reutilizable (éxito/error/info)
             window.showNotification = function(type, message) {
                 const iconMap = { success: 'success', error: 'error', info: 'info', warning: 'warning' };
                 const icon = iconMap[type] || 'info';
@@ -570,7 +566,6 @@
                 return Promise.resolve();
             };
 
-            // Confirmación con opción de deshacer
             window.confirmWithUndo = function({ message, delayMs = 10000, onConfirm, onUndo }){
                 const containerId = 'undo-toast-container';
                 let container = document.getElementById(containerId);
@@ -659,6 +654,84 @@
             };
         })();
     </script>
+
+    {{-- SweetAlert para mensajes de sesión --}}
+    @if(session('success'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.swToast) {
+                window.swToast.fire({
+                    icon: 'success',
+                    title: @json(session('success'))
+                });
+            } else if (window.swAlert) {
+                window.swAlert({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: @json(session('success'))
+                });
+            }
+        });
+    </script>
+    @endif
+
+    @if(session('error'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.swToast) {
+                window.swToast.fire({
+                    icon: 'error',
+                    title: @json(session('error'))
+                });
+            } else if (window.swAlert) {
+                window.swAlert({
+                    icon: 'error',
+                    title: 'Error',
+                    text: @json(session('error'))
+                });
+            }
+        });
+    </script>
+    @endif
+
+    @if(session('warning'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.swToast) {
+                window.swToast.fire({
+                    icon: 'warning',
+                    title: @json(session('warning'))
+                });
+            } else if (window.swAlert) {
+                window.swAlert({
+                    icon: 'warning',
+                    title: 'Advertencia',
+                    text: @json(session('warning'))
+                });
+            }
+        });
+    </script>
+    @endif
+
+    @if(session('info'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.swToast) {
+                window.swToast.fire({
+                    icon: 'info',
+                    title: @json(session('info'))
+                });
+            } else if (window.swAlert) {
+                window.swAlert({
+                    icon: 'info',
+                    title: 'Información',
+                    text: @json(session('info'))
+                });
+            }
+        });
+    </script>
+    @endif
+
     <script>
         // Toggle del sidebar - Colapsable en desktop/tablet (>=576px), overlay en móvil (<576px)
         document.addEventListener('DOMContentLoaded', function() {
@@ -698,10 +771,7 @@
                 }
             };
 
-            // Aplicar estado inicial según ancho actual
             applyLayoutByWidth();
-
-            // Escuchar cambios de tamaño de ventana
             window.addEventListener('resize', applyLayoutByWidth);
 
             if (toggleBtn) {
@@ -711,7 +781,6 @@
                 });
             }
 
-            // Cerrar al hacer clic fuera en phones
             document.addEventListener('click', (e) => {
                 if (window.innerWidth < 576 && !sidebar.classList.contains('open')) return;
                 const clickInsideSidebar = e.target.closest('#appSidebar');
@@ -801,6 +870,8 @@
                             window.location.href = `/eventos?q=${encodeURIComponent(query)}`;
                         } else if (currentRoute.includes('productos')) {
                             window.location.href = `/productos?q=${encodeURIComponent(query)}`;
+                        } else if (currentRoute.includes('proveedores')) {
+                            window.location.href = `/proveedores?buscar=${encodeURIComponent(query)}`;
                         }
                     }
                 }
