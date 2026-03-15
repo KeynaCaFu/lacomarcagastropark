@@ -322,6 +322,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('locales.index') }}" class="{{ request()->routeIs('locales*') ? 'active' : '' }}" data-tooltip="Locales">
+                                    <i class="fas fa-store"></i> Locales
+                                </a>
+                            </li>
+
+                            <li>
                                 <a href="{{ route('eventos.index') }}" class="{{ request()->routeIs('eventos*') ? 'active' : '' }}" data-tooltip="Eventos">
                                     <i class="fas fa-calendar-days"></i> Eventos
                                 </a>
@@ -330,6 +336,12 @@
                             <li>
                                 <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" data-tooltip="Dashboard">
                                     <i class="fas fa-home"></i> Dashboard
+                                </a>
+                            </li>
+    
+                            <li>
+                                <a href="{{ route('local.index') }}" class="{{ request()->routeIs('local*') ? 'active' : '' }}" data-tooltip="Mi Local">
+                                    <i class="fas fa-store"></i> Mi Local
                                 </a>
                             </li>
                             <li>
@@ -345,7 +357,7 @@
             <!-- Contenido principal -->
             <main class="main-content" id="mainContent">
                 <!-- Top Navigation Bar -->
-                <div class="top-navbar" style="background: #fff;  padding: 8px 20px; margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-right: 0px; margin-left: -18px;">
+                <div class="top-navbar" style="background: #fff;  padding: 8px 20px; margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-right: -14px; margin-left: -18px;">
                     <div class="top-navbar-left" style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
                         <!-- Toggle Sidebar -->
                         <button class="navbar-toggle" id="navbarToggleBtn" style="background: none; border: none; cursor: pointer; padding: 8px; display: none;">
@@ -403,6 +415,10 @@
                                         <a href="{{ route('users.index') }}" class="mobile-nav-item {{ request()->routeIs('users*') ? 'active' : '' }}">
                                             <i class="fas fa-users"></i> Usuarios
                                         </a>
+                                        <a href="{{ route('locales.index') }}" class="mobile-nav-item {{ request()->routeIs('locales*') ? 'active' : '' }}">
+                                            <i class="fas fa-store"></i> Locales
+                                        </a>
+
                                         <a href="{{ route('eventos.index') }}" class="mobile-nav-item {{ request()->routeIs('eventos*') ? 'active' : '' }}">
                                             <i class="fas fa-calendar-days"></i> Eventos
                                         </a>
@@ -413,6 +429,7 @@
                                         <a href="{{ route('products.index') }}" class="mobile-nav-item {{ request()->routeIs('products*') ? 'active' : '' }}">
                                             <i class="fas fa-box"></i> Productos
                                         </a>
+                                        
                                     @endif
                                 </div>
 
