@@ -39,7 +39,7 @@ body {
 }
 
 .drawer:not(.collapsed) {
-    width: 280px;
+    width: 237px;
 }
 
 /* En desktop: visible siempre y relative al flujo */
