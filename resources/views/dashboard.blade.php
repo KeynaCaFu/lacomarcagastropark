@@ -36,109 +36,209 @@
                 <div class="stat-number">{{ isset($categories) ? $categories->count() : 0 }}</div>
             </div>
         </div>
+        <div class="stat-card">
+    <div class="stat-icon qi-stores"><i class="fas fa-truck"></i></div>
+    <div>
+        <div class="stat-title">Proveedores</div>
+        <div class="stat-number">{{ $supplierTotals['total'] ?? 0 }}</div>
+    </div>
+</div>
     </div>
 
     <!-- Accesos rápidos con el mismo estilo -->
     <div class="quick-links">
-        <a class="quick-link" href="{{ route('products.index') }}" title="Ver productos">
-            <div class="quick-icon qi-events"><i class="fas fa-box"></i></div>
-            <div class="quick-text">
-                <div class="quick-title">Productos</div>
-                <div class="quick-hint">Gestiona tu catálogo</div>
-            </div>
-        </a>
-        <a class="quick-link" href="{{ route('products.create') }}" title="Nuevo producto">
-            <div class="quick-icon qi-new"><i class="fas fa-plus"></i></div>
-            <div class="quick-text">
-                <div class="quick-title">Nuevo Producto</div>
-                <div class="quick-hint">Agregar al local</div>
-            </div>
-        </a>
-    </div>
-
-    <div class="cards-grid">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title"><i class="fas fa-store"></i> Mi Local</h4>
-            </div>
-            <div class="card-body">
-                @if(isset($local) && $local)
-                    <div style="overflow-x: auto;">
-                    <table>
-                        <tbody>
-                            <tr>
-                                <th style="width:180px;">Nombre</th>
-                                <td>{{ $local->name }}</td>
-                            </tr>
-                            <tr>
-                                <th>Estado</th>
-                                <td>
-                                    @if(($local->status ?? '') === 'Active')
-                                        <span class="badge bd-active"><i class="fas fa-check"></i> Activo</span>
-                                    @else
-                                        <span class="badge bd-inactive"><i class="fas fa-minus-circle"></i> Inactivo</span>
-                                    @endif
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Categorías</th>
-                                <td>{{ isset($categories) ? $categories->implode(', ') : '-' }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    </div>
-                @else
-                    <div style="color:#6b7280;">Sin local asignado.</div>
-                @endif
-            </div>
+    <a class="quick-link" href="{{ route('products.index') }}" title="Ver productos">
+        <div class="quick-icon qi-events"><i class="fas fa-box"></i></div>
+        <div class="quick-text">
+            <div class="quick-title">Productos</div>
+            <div class="quick-hint">Gestiona tu catálogo</div>
         </div>
+    </a>
 
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title"><i class="fas fa-clock"></i> Productos Recientes</h4>
-            </div>
-            <div class="card-body">
-                @if(isset($recentProducts) && $recentProducts->count())
-                    <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Producto</th>
-                                <th>Categoría</th>
-                                <th style="width:120px;">Precio</th>
-                                <th style="width:140px;">Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($recentProducts as $p)
-                                <tr>
-                                    <td>{{ $p->name }}</td>
-                                    <td>{{ $p->category ?? '-' }}</td>
-                                    <td>{{ number_format($p->price ?? 0, 2) }}</td>
-                                    <td>
-                                        @if(($p->status ?? '') === 'Available')
-                                            <span class="badge bd-active"><i class="fas fa-check"></i> Disponible</span>
-                                        @else
-                                            <span class="badge bd-inactive"><i class="fas fa-minus-circle"></i> No disponible</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                    </div>
-                @else
-                    <div style="color:#6b7280;">No hay productos recientes para este local.</div>
-                @endif
-            </div>
+    <a class="quick-link" href="{{ route('products.create') }}" title="Nuevo producto">
+        <div class="quick-icon qi-new"><i class="fas fa-plus"></i></div>
+        <div class="quick-text">
+            <div class="quick-title">Nuevo Producto</div>
+            <div class="quick-hint">Agregar al local</div>
         </div>
-    </div>
+    </a>
+
+    <a class="quick-link" href="{{ route('suppliers.index') }}" title="Ver proveedores">
+        <div class="quick-icon qi-stores"><i class="fas fa-truck"></i></div>
+        <div class="quick-text">
+            <div class="quick-title">Proveedores</div>
+            <div class="quick-hint">Gestiona tus proveedores</div>
+        </div>
+    </a>
+
+    <a class="quick-link" href="{{ route('suppliers.create') }}" title="Nuevo proveedor">
+        <div class="quick-icon qi-new"><i class="fas fa-plus"></i></div>
+        <div class="quick-text">
+            <div class="quick-title">Nuevo Proveedor</div>
+            <div class="quick-hint">Agregar al local</div>
+        </div>
+    </a>
 </div>
-@endsection
+
+<div class="cards-grid">
+
+    <!-- MI LOCAL -->
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-title"><i class="fas fa-store"></i> Mi Local</h4>
+        </div>
+
+        <div class="card-body">
+            @if(isset($local) && $local)
+                <div style="overflow-x: auto;">
+                <table>
+                    <tbody>
+                        <tr>
+                            <th style="width:180px;">Nombre</th>
+                            <td>{{ $local->name }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Estado</th>
+                            <td>
+                                @if(($local->status ?? '') === 'Active')
+                                    <span class="badge bd-active">
+                                        <i class="fas fa-check"></i> Activo
+                                    </span>
+                                @else
+                                    <span class="badge bd-inactive">
+                                        <i class="fas fa-minus-circle"></i> Inactivo
+                                    </span>
+                                @endif
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Categorías</th>
+                            <td>{{ isset($categories) ? $categories->implode(', ') : '-' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            @else
+                <div style="color:#6b7280;">Sin local asignado.</div>
+            @endif
+        </div>
+    </div>
+
+
+    <!-- PRODUCTOS RECIENTES -->
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-title">
+                <i class="fas fa-clock"></i> Productos Recientes
+            </h4>
+        </div>
+
+        <div class="card-body">
+            @if(isset($recentProducts) && $recentProducts->count())
+
+                <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th style="width:120px;">Precio</th>
+                            <th style="width:140px;">Estado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach($recentProducts as $p)
+                        <tr>
+                            <td>{{ $p->name }}</td>
+                            <td>{{ $p->category ?? '-' }}</td>
+                            <td>{{ number_format($p->price ?? 0, 2) }}</td>
+                            <td>
+                                @if(($p->status ?? '') === 'Available')
+                                    <span class="badge bd-active">
+                                        <i class="fas fa-check"></i> Disponible
+                                    </span>
+                                @else
+                                    <span class="badge bd-inactive">
+                                        <i class="fas fa-minus-circle"></i> No disponible
+                                    </span>
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+
+                </table>
+                </div>
+
+            @else
+                <div style="color:#6b7280;">
+                    No hay productos recientes para este local.
+                </div>
+            @endif
+        </div>
+    </div>
+
+
+    <!-- PROVEEDORES RECIENTES -->
+    <div class="card">
+
+        <div class="card-header">
+            <h4 class="card-title">
+                <i class="fas fa-truck"></i> Proveedores Recientes
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            @if(isset($recentSuppliers) && $recentSuppliers->count())
+
+                <div style="overflow-x: auto;">
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Proveedor</th>
+                            <th>Teléfono</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach($recentSuppliers as $supplier)
+
+                        <tr>
+                            <td>{{ $supplier->name }}</td>
+                            <td>{{ $supplier->phone ?? '-' }}</td>
+                            <td>{{ $supplier->email ?? '-' }}</td>
+                        </tr>
+
+                        @endforeach
+                    </tbody>
+
+                </table>
+                </div>
+
+            @else
+
+                <div style="color:#6b7280;">
+                    No hay proveedores recientes para este local.
+                </div>
+
+            @endif
+
+        </div>
+    </div>
+
+</div> <!-- cards-grid -->
+</div> <!-- dash-container -->
+</div> <!-- page-wrapper -->
+
 
 @push('styles')
 <style>
-    /* Reutilizamos el mismo set de estilos del dashboard del admin */
     .dash-container { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.08); padding: 20px; margin-top: 50px; }
     .stats-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:16px; margin-bottom: 20px; }
     .stat-card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; display:flex; align-items:center; gap:12px; }
@@ -172,46 +272,11 @@
     .badge { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700; }
     .bd-active { background:#dcfce7; color:#166534; }
     .bd-inactive { background:#fee2e2; color:#991b1b; }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 991.98px) {
-        .dash-container { margin-top: 10px; padding: 14px; }
-        .stat-number { font-size: 22px; }
-    }
-    @media (max-width: 767.98px) {
-        .dash-container { padding: 12px; border-radius: 8px; }
-        .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-        .stat-card { padding: 14px; }
-        .stat-title { font-size: 13px; }
-        .stat-number { font-size: 22px; }
-        .quick-links { grid-template-columns: 1fr 1fr; gap: 10px; }
-        .quick-link { padding: 12px 14px; }
-        .quick-title { font-size: 15px; }
-        .quick-hint { font-size: 13px; }
-        .card-header { padding: 12px 14px; }
-        .card-title { font-size: 15px; }
-        .card-body { padding: 12px 14px; }
-        th, td { padding: 10px 8px; font-size: 14px; line-height: 1.5; }
-    }
-    @media (max-width: 575.98px) {
-        .dash-container { margin-top: 4px; padding: 10px; border-radius: 6px; }
-        .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-        .stat-card { padding: 12px; }
-        .stat-title { font-size: 12px; }
-        .stat-number { font-size: 20px; }
-        .quick-links { grid-template-columns: 1fr; gap: 8px; }
-        .quick-title { font-size: 14px; }
-        .quick-hint { font-size: 12px; }
-        .card-title { font-size: 14px; }
-        th, td { padding: 8px 6px; font-size: 13px; line-height: 1.4; }
-        .badge { font-size: 11px; padding: 5px 8px; }
-    }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-// Atajos opcionales para el gerente
 document.addEventListener('keydown', function(e){
     if (!e.altKey) return;
     const key = (e.key || '').toLowerCase();
@@ -220,4 +285,5 @@ document.addEventListener('keydown', function(e){
 });
 </script>
 @endpush
-</div>
+
+@endsection
