@@ -101,12 +101,33 @@ Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
         Route::put('/{evento}', [EventController::class, 'update'])->name('actualizar');
         Route::delete('/{evento}', [EventController::class, 'destroy'])->name('eliminar');
     });
+
+    // Locales
+    Route::prefix('locales')->name('locales.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\LocalController::class, 'indexAdmin'])->name('index');
+        Route::post('/', [\App\Http\Controllers\LocalController::class, 'store'])->name('store');
+        Route::put('/{localId}', [\App\Http\Controllers\LocalController::class, 'updateAdmin'])->name('update');
+        Route::put('/{localId}/status', [\App\Http\Controllers\LocalController::class, 'updateStatus'])->name('update.status');
+        Route::delete('/{localId}', [\App\Http\Controllers\LocalController::class, 'destroy'])->name('destroy');
+    });
 });
 
 // ============================================================================
 // RUTAS PARA ADMIN LOCAL (Gerentes)
 // ============================================================================
 Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
+
+    // Mi Local
+    Route::prefix('mi-local')->name('local.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\LocalController::class, 'index'])->name('index');
+        Route::get('/editar', [\App\Http\Controllers\LocalController::class, 'edit'])->name('edit');
+        Route::put('/actualizar', [\App\Http\Controllers\LocalController::class, 'update'])->name('update');
+        Route::get('/galeria', [\App\Http\Controllers\LocalController::class, 'gallery'])->name('gallery');
+        Route::post('/galeria/subir', [\App\Http\Controllers\LocalController::class, 'galleryUpload'])->name('gallery.upload');
+        Route::delete('/galeria/{id}', [\App\Http\Controllers\LocalController::class, 'galleryDelete'])->name('gallery.delete');
+        Route::get('/horario', [\App\Http\Controllers\LocalController::class, 'schedule'])->name('schedule');
+    });
+
     // Productos
     Route::prefix('productos')->name('products.')->group(function () {
         Route::get('/', [ProductController::class, 'index'])->name('index');
