@@ -41,6 +41,9 @@ class Local extends Model
     {
         return $this->belongsToMany(Supplier::class, 'tb_local_supplier', 'local_id', 'supplier_id')
             ->withTimestamps();
+    }
+
+    /**
      * Relación: Galería de imágenes del local
      */
     public function gallery()
