@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Local;
 use App\Models\LocalGallery;
 use Illuminate\Support\Str;
+use App\Models\Schedule;
 use Illuminate\Http\Request;
 
 class LocalController extends Controller
@@ -301,4 +302,31 @@ class LocalController extends Controller
             ->with('success', '✓ Local eliminado correctamente.');
     }
 
+    /**
+     * Mostrar horario del local ver solo horarios
+     */
+    public function schedule(Request $request)
+    {
+        $user = $request->user();
+        $local = $user->locals()->first();
+
+        if (!$local) {
+            return redirect()->route('dashboard')
+                ->with('error', 'No tienes un local asignado.');
+        }
+
+        // Obtener los horarios del local ordenados por día de la semana
+        $schedules = Schedule::byLocal($local->local_id)->get();
+
+        // Obtener el estado actual del local
+        $isOpen = Schedule::isCurrentlyOpen($local->local_id);
+        $currentStatus = Schedule::getCurrentStatus($local->local_id);
+
+        // Preparar breadcrumbs
+        $crumbs = [
+            ['label' => 'Horario', 'url' => null]
+        ];
+
+        return view('local.schedule', compact('local', 'schedules', 'isOpen', 'currentStatus', 'crumbs'));
+    }
 }
