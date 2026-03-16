@@ -4,6 +4,10 @@
 
 @section('content')
 
+@php
+    $canEditSchedule = auth()->check() && auth()->user()->isAdminLocal();
+@endphp
+
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
@@ -71,7 +75,16 @@
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px;">
                     @foreach($schedules as $schedule)
-                        <div class="schedule-card {{ $schedule->status ? 'schedule-card-open' : 'schedule-card-closed' }}" 
+                        <div class="schedule-card {{ $schedule->status ? 'schedule-card-open' : 'schedule-card-closed' }}"
+                             role="button"
+                             tabindex="0"
+                             data-schedule-id="{{ $schedule->schedule_id }}"
+                             data-day="{{ $schedule->day_of_week }}"
+                             data-is-open="{{ $schedule->status ? '1' : '0' }}"
+                             data-opening="{{ $schedule->opening_time ? \Carbon\Carbon::parse($schedule->opening_time)->format('H:i') : '' }}"
+                             data-closing="{{ $schedule->closing_time ? \Carbon\Carbon::parse($schedule->closing_time)->format('H:i') : '' }}"
+                             data-opening-label="{{ $schedule->opening_time ? \Carbon\Carbon::parse($schedule->opening_time)->format('h:i A') : '--:--' }}"
+                             data-closing-label="{{ $schedule->closing_time ? \Carbon\Carbon::parse($schedule->closing_time)->format('h:i A') : '--:--' }}"
                              style="border-radius: 12px; padding: 20px; border: 2px solid #e5e7eb; background: white; transition: all 0.3s ease; overflow: hidden;">
                             
                             <!-- Encabezado con Día y Estado -->
@@ -123,6 +136,12 @@
                                     </p>
                                 </div>
                             @endif
+
+                            <div style="margin-top: 12px;">
+                                <span style="display: inline-flex; align-items: center; gap: 6px; color: #e18018; font-size: 12px; font-weight: 700;">
+                                    <i class="fas fa-eye"></i> Tocar para visualizar
+                                </span>
+                            </div>
                         </div>
                     @endforeach
                 </div>
@@ -130,6 +149,8 @@
         </div>
     </div>
 </div>
+
+@include('local.partials.schedule-modal')
 
 <style>
     .schedule-card {
@@ -205,6 +226,92 @@
         color: #6b7280;
         font-weight: 500;
     }
+
+    .schedule-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        background: rgba(17, 24, 39, 0.52);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+
+    .schedule-modal-content {
+        width: min(640px, 100%);
+        background: #ffffff;
+        border-radius: 14px;
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
+        overflow: hidden;
+    }
+
+    .schedule-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 24px;
+        background: #faf9f6;
+        border-bottom: 3px solid #ff9900;
+    }
+
+    .schedule-modal-close {
+        border: none;
+        background: transparent;
+        font-size: 28px;
+        line-height: 1;
+        color: #6b7280;
+        cursor: pointer;
+    }
+
+    .schedule-modal-body {
+        padding: 16px;
+    }
+
+    .schedule-info-box {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 12px;
+        background: #ffffff;
+    }
+
+    .schedule-info-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: #9ca3af;
+        font-weight: 700;
+        margin: 0 0 6px 0;
+    }
+
+    .schedule-info-value {
+        margin: 0;
+        color: #111827;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .btn-schedule-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 9px;
+        border: none;
+        padding: 9px 14px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .btn-schedule-edit {
+        background: #e18018;
+        color: #ffffff;
+    }
+
+    .btn-schedule-delete {
+        background: #dc2626;
+        color: #ffffff;
+    }
 </style>
 
 <script>
@@ -236,24 +343,209 @@ document.addEventListener('DOMContentLoaded', function() {
     updateTime();
     setInterval(updateTime, 1000);
 
-    // Mostrar mensajes de éxito con SweetAlert Toast
-    const successMsg = @json(session('success'));
-    if (successMsg && window.swToast) {
-        swToast.fire({
-            icon: 'success',
-            title: successMsg
+    const modal = document.getElementById('scheduleDetailModal');
+    const modalDayName = document.getElementById('modalDayName');
+    const modalScheduleStatus = document.getElementById('modalScheduleStatus');
+    const modalScheduleOpen = document.getElementById('modalScheduleOpen');
+    const modalScheduleClose = document.getElementById('modalScheduleClose');
+    const btnCloseScheduleModal = document.getElementById('btnCloseScheduleModal');
+    const scheduleEditForm = document.getElementById('scheduleEditForm');
+    const scheduleDeleteForm = document.getElementById('scheduleDeleteForm');
+    const btnDeleteSchedule = document.getElementById('btnDeleteSchedule');
+    const statusInput = document.getElementById('edit_schedule_status');
+    const openingInput = document.getElementById('edit_schedule_opening');
+    const closingInput = document.getElementById('edit_schedule_closing');
+    const scheduleInlineError = document.getElementById('scheduleInlineError');
+
+    const updateRouteTemplate = @json(route('local.schedule.update', ['scheduleId' => '__ID__']));
+    const deleteRouteTemplate = @json(route('local.schedule.destroy', ['scheduleId' => '__ID__']));
+
+    function closeScheduleModal() {
+        if (!modal) return;
+        modal.style.display = 'none';
+    }
+
+    function showScheduleInlineError(message) {
+        if (!scheduleInlineError) return;
+        scheduleInlineError.textContent = message;
+        scheduleInlineError.style.display = 'block';
+    }
+
+    function clearScheduleInlineError() {
+        if (!scheduleInlineError) return;
+        scheduleInlineError.textContent = '';
+        scheduleInlineError.style.display = 'none';
+    }
+
+    function updateTimeInputsState() {
+        if (!statusInput || !openingInput || !closingInput) return;
+        const isOpen = statusInput.value === '1';
+        openingInput.disabled = !isOpen;
+        closingInput.disabled = !isOpen;
+        if (!isOpen) {
+            openingInput.value = '';
+            closingInput.value = '';
+        }
+    }
+
+    function openScheduleModalFromCard(card) {
+        if (!modal || !card) return;
+
+        const scheduleId = card.dataset.scheduleId;
+        const day = card.dataset.day || 'Horario';
+        const isOpen = card.dataset.isOpen === '1';
+        const opening = card.dataset.opening || '';
+        const closing = card.dataset.closing || '';
+        const openingLabel = card.dataset.openingLabel || '--:--';
+        const closingLabel = card.dataset.closingLabel || '--:--';
+
+        clearScheduleInlineError();
+
+        modalDayName.textContent = day;
+        modalScheduleStatus.textContent = isOpen ? 'Abierto' : 'Cerrado';
+        modalScheduleStatus.style.color = isOpen ? '#10b981' : '#ef4444';
+        modalScheduleOpen.textContent = openingLabel;
+        modalScheduleClose.textContent = closingLabel;
+
+        if (scheduleEditForm && scheduleDeleteForm) {
+            scheduleEditForm.action = updateRouteTemplate.replace('__ID__', scheduleId);
+            scheduleDeleteForm.action = deleteRouteTemplate.replace('__ID__', scheduleId);
+            statusInput.value = isOpen ? '1' : '0';
+            openingInput.value = opening;
+            closingInput.value = closing;
+            updateTimeInputsState();
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    document.querySelectorAll('.schedule-card').forEach((card) => {
+        card.addEventListener('click', function() {
+            openScheduleModalFromCard(card);
         });
+        card.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openScheduleModalFromCard(card);
+            }
+        });
+    });
+
+    if (btnCloseScheduleModal) {
+        btnCloseScheduleModal.addEventListener('click', closeScheduleModal);
+    }
+
+    if (modal) {
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                closeScheduleModal();
+            }
+        });
+    }
+
+    if (statusInput) {
+        statusInput.addEventListener('change', function() {
+            updateTimeInputsState();
+            clearScheduleInlineError();
+        });
+    }
+
+    if (scheduleEditForm) {
+        scheduleEditForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            clearScheduleInlineError();
+
+            const isOpenDay = statusInput && statusInput.value === '1';
+            const openingValue = openingInput ? openingInput.value : '';
+            const closingValue = closingInput ? closingInput.value : '';
+
+            if (isOpenDay) {
+                if (!openingValue || !closingValue) {
+                    showScheduleInlineError('Debes indicar hora de apertura y cierre para un día abierto.');
+                    return;
+                }
+
+                if (openingValue >= closingValue) {
+                    showScheduleInlineError('La hora de apertura debe ser menor a la hora de cierre.');
+                    return;
+                }
+            }
+
+            if (window.swConfirm) {
+                const result = await swConfirm({
+                    title: 'Actualizar horario',
+                    text: '¿Desea guardar los cambios de este horario?',
+                    icon: 'question',
+                    confirmButtonText: 'Sí, actualizar',
+                    cancelButtonText: 'Cancelar'
+                });
+                if (!result.isConfirmed) return;
+            } else {
+                const ok = confirm('¿Desea guardar los cambios de este horario?');
+                if (!ok) return;
+            }
+
+            const actionMatch = (scheduleEditForm.action || '').match(/\/(\d+)(?:\?.*)?$/);
+            if (actionMatch && actionMatch[1]) {
+                localStorage.setItem('schedule_last_opened_id', actionMatch[1]);
+            }
+
+            closeScheduleModal();
+            scheduleEditForm.submit();
+        });
+    }
+
+    if (btnDeleteSchedule && scheduleDeleteForm) {
+        btnDeleteSchedule.addEventListener('click', async function() {
+            if (window.swConfirm) {
+                const result = await swConfirm({
+                    title: 'Eliminar horario',
+                    text: '¿Deseas eliminar este horario del día?',
+                    icon: 'warning',
+                    confirmButtonColor: '#dc2626',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                });
+                if (!result.isConfirmed) return;
+            } else {
+                const ok = confirm('¿Deseas eliminar este horario del día?');
+                if (!ok) return;
+            }
+            scheduleDeleteForm.submit();
+        });
+    }
+
+    // Mostrar mensajes de éxito igual que usuarios/productos (swToast)
+    const successMsg = @json(session('success'));
+    if (successMsg) {
+        localStorage.removeItem('schedule_last_opened_id');
+        let retries = 0;
+        const checkAndShowSuccess = () => {
+            if (window.swToast) {
+                swToast.fire({
+                    icon: 'success',
+                    title: successMsg
+                });
+            } else if (retries < 50) {
+                retries++;
+                setTimeout(checkAndShowSuccess, 100);
+            }
+        };
+        setTimeout(checkAndShowSuccess, 100);
     }
 
     // Mostrar mensajes de error con SweetAlert
     const errorMsg = @json(session('error'));
-    if (errorMsg && window.swAlert) {
-        swAlert({ 
-            icon: 'error', 
-            title: 'Error', 
-            text: errorMsg, 
-            confirmButtonColor: '#dc2626' 
-        });
+    if (errorMsg) {
+        const lastScheduleId = localStorage.getItem('schedule_last_opened_id');
+        if (lastScheduleId) {
+            const card = document.querySelector(`.schedule-card[data-schedule-id="${lastScheduleId}"]`);
+            if (card) {
+                openScheduleModalFromCard(card);
+                showScheduleInlineError(errorMsg);
+            }
+        }
     }
 });
 </script>
