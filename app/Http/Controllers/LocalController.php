@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Local;
 use App\Models\LocalGallery;
 use Illuminate\Support\Str;
+use App\Models\Schedule;
 use Illuminate\Http\Request;
 
 class LocalController extends Controller
