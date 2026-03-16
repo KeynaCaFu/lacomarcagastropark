@@ -50,4 +50,11 @@ class Local extends Model
     {
         return $this->hasMany(LocalGallery::class, 'local_id', 'local_id');
     }
+
+    /**
+     * Relación: Horarios del local 
+     */
+    public function schedules(){
+        return $this->hasMany(Schedule::class, 'local_id', 'local_id');
+    }
 }
