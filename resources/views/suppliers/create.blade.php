@@ -4,6 +4,84 @@
 
 @push('styles')
     <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
+    <style>
+        .breadcrumb-item a {
+            color: #c9690f;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .breadcrumb-item a:hover {
+            color: #e18018;
+            text-decoration: underline;
+        }
+
+        .breadcrumb-item.active {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        #supplierForm .form-control:focus,
+        #supplierForm .form-select:focus,
+        #supplierForm textarea:focus {
+            border-color: #c9690f !important;
+            box-shadow: 0 0 0 0.2rem rgba(201, 105, 15, 0.15) !important;
+            outline: none !important;
+        }
+
+        #supplierForm .input-group-text {
+            background: #f8fafc !important;
+            border: 1px solid #e5e7eb !important;
+            color: #c9690f !important;
+        }
+
+        .btn-create-supplier {
+            background: linear-gradient(135deg, #e18018, #c9690f);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-create-supplier:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(201, 105, 15, 0.25);
+        }
+
+        .btn-cancel-supplier {
+            background: #f3f4f6;
+            color: #374151;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #d1d5db;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel-supplier:hover {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .supplier-accent-icon {
+            color: #c9690f !important;
+        }
+
+        .supplier-preview-label i {
+            color: #c9690f !important;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -12,7 +90,6 @@
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" style="margin-bottom: 24px;">
         <ol class="breadcrumb" style="padding: 0; background: none;">
-            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
             <li class="breadcrumb-item"><a href="{{ route('suppliers.index') }}">Proveedores</a></li>
             <li class="breadcrumb-item active">Crear Proveedor</li>
         </ol>
@@ -48,8 +125,8 @@
                         <div class="form-group mb-3">
                             <label for="nombre" class="form-label d-flex align-items-center justify-content-between">
                                 <span><strong>Nombre del Proveedor *</strong></span>
-                                <span class="ms-2 text-white-50" title="Nombre completo del proveedor">
-                                    <i class="fas fa-info-circle" aria-label="Ayuda"></i>
+                                <span class="ms-2 text-muted" title="Nombre completo del proveedor">
+                                    <i class="fas fa-info-circle supplier-accent-icon" aria-label="Ayuda"></i>
                                 </span>
                             </label>
                             <input type="text" 
@@ -69,12 +146,12 @@
                         <div class="form-group mb-3">
                             <label for="telefono" class="form-label d-flex align-items-center justify-content-between">
                                 <span><strong>Teléfono *</strong></span>
-                                <span class="ms-2 text-white-50" title="Número de contacto del proveedor">
-                                    <i class="fas fa-info-circle" aria-label="Ayuda"></i>
+                                <span class="ms-2 text-muted" title="Número de contacto del proveedor">
+                                    <i class="fas fa-info-circle supplier-accent-icon" aria-label="Ayuda"></i>
                                 </span>
                             </label>
                             <div class="input-group">
-                                <span class="input-group-text" style="background:#f8fafc; border:1px solid #e5e7eb;">
+                                <span class="input-group-text">
                                     <i class="fas fa-phone"></i>
                                 </span>
                                 <input type="tel" 
@@ -95,12 +172,12 @@
                         <div class="form-group mb-3">
                             <label for="email" class="form-label d-flex align-items-center justify-content-between">
                                 <span><strong>Email *</strong></span>
-                                <span class="ms-2 text-white-50" title="Correo electrónico del proveedor">
-                                    <i class="fas fa-info-circle" aria-label="Ayuda"></i>
+                                <span class="ms-2 text-muted" title="Correo electrónico del proveedor">
+                                    <i class="fas fa-info-circle supplier-accent-icon" aria-label="Ayuda"></i>
                                 </span>
                             </label>
                             <div class="input-group">
-                                <span class="input-group-text" style="background:#f8fafc; border:1px solid #e5e7eb;">
+                                <span class="input-group-text">
                                     <i class="fas fa-envelope"></i>
                                 </span>
                                 <input type="email" 
@@ -121,12 +198,12 @@
                         <div class="form-group mb-4">
                             <label for="imagenes" class="form-label d-flex align-items-center justify-content-between">
                                 <span><strong>Galería de Fotos (Facturas) *</strong></span>
-                                <span class="ms-2 text-white-50" title="Fotos o PDFs de facturas del proveedor">
-                                    <i class="fas fa-info-circle" aria-label="Ayuda"></i>
+                                <span class="ms-2 text-muted" title="Fotos o PDFs de facturas del proveedor">
+                                    <i class="fas fa-info-circle supplier-accent-icon" aria-label="Ayuda"></i>
                                 </span>
                             </label>
                             <div class="input-group">
-                                <span class="input-group-text" style="background:#f8fafc; border:1px solid #e5e7eb;">
+                                <span class="input-group-text">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                 </span>
                                 <input type="file" 
@@ -150,18 +227,18 @@
 
                         <!-- Preview de imágenes -->
                         <div id="imagePreview" class="mb-4" style="display: none;">
-                            <label class="form-label">
-                                <i class="fas fa-check-circle me-2" style="color: #059669;"></i>Archivos seleccionados:
+                            <label class="form-label supplier-preview-label">
+                                <i class="fas fa-check-circle me-2"></i>Archivos seleccionados:
                             </label>
                             <div id="previewContainer" class="row"></div>
                         </div>
 
                         <!-- Botones de Acción -->
                         <div style="display: flex; gap: 12px; margin-top: 32px; justify-content: flex-start;">
-                            <button type="submit" class="btn-primary" style="background: #059669; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.2s;">
+                            <button type="submit" class="btn-create-supplier">
                                 <i class="fas fa-check"></i> Crear Proveedor
                             </button>
-                            <a href="{{ route('suppliers.index') }}" class="btn-secondary" style="background: #e5e7eb; color: #374151; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                            <a href="{{ route('suppliers.index') }}" class="btn-cancel-supplier">
                                 <i class="fas fa-times"></i> Cancelar
                             </a>
                         </div>
