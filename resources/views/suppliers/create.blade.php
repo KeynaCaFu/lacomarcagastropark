@@ -9,8 +9,9 @@
 @section('content')
 <div class="product-page-wrapper">
     @include('products.partials.breadcrumb', ['crumbs' => [
-        ['label' => 'Crear Proveedor']
-    ]])
+    ['label' => 'Proveedores', 'url' => route('suppliers.index')],
+    ['label' => 'Crear Proveedor']
+]])
 
     <!-- Header -->
     <div class="product-page-header">
