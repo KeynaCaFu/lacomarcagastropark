@@ -65,7 +65,7 @@ class SupplierController extends Controller
         $validated = $request->validate([
             'nombre' => 'required|string|max:255|unique:tbsupplier,name',
             'telefono' => 'required|string|max:20',
-            'email' => ['required', 'email', 'max:255', 'unique:tbsupplier,email', 'regex:/^[a-zA-Z0-9._%+\-]+@gmail\.com$/'],,
+            'email' => 'required', 'email', 'max:255', 'unique:tbsupplier,email', 'regex:/^[a-zA-Z0-9._%+\-]+@gmail\.com$/',
             'imagenes' => 'required|array|min:1',
             'imagenes.*' => 'required|file|mimes:jpeg,png,jpg,pdf|max:5120'
         ], [
