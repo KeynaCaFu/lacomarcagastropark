@@ -64,12 +64,15 @@ class SupplierController extends Controller
     {
         $validated = $request->validate([
             'nombre' => 'required|string|max:255|unique:tbsupplier,name',
-            'telefono' => 'required|string|max:20',
+            'nombre' => ['required', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúñÑ ]+$/'],
+            'telefono' => ['required', 'digits:8'],
             'email' => 'required', 'email', 'max:255', 'unique:tbsupplier,email', 'regex:/^[a-zA-Z0-9._%+\-]+@gmail\.com$/',
             'imagenes' => 'required|array|min:1',
             'imagenes.*' => 'required|file|mimes:jpeg,png,jpg,pdf|max:5120'
         ], [
             'nombre.required' => 'El nombre del proveedor es obligatorio',
+            'nombre.regex' => 'El nombre solo puede contener letras',
+              'telefono.digits' => 'El teléfono debe tener exactamente 8 números',
             'nombre.unique' => 'Ya existe un proveedor con este nombre',
             'telefono.required' => 'El teléfono es obligatorio',
             'email.required' => 'El email es obligatorio',
