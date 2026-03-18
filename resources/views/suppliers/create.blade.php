@@ -8,23 +8,25 @@
 
 @section('content')
 <div class="product-page-wrapper">
-    <nav aria-label="breadcrumb" class="supplier-breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item">
-            <a href="{{ route('suppliers.index') }}">
-                <i class="fas fa-truck me-1"></i> Proveedores
-            </a>
-        </li>
-        <li class="breadcrumb-item active">Crear Proveedor</li>
-    </ol>
-</nav>
-   
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="product-breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{{ route('suppliers.index') }}">
+                    <i class="fas fa-truck me-1"></i> Proveedores
+                </a>
+            </li>
+            <li class="breadcrumb-item active">Crear Proveedor</li>
+        </ol>
+    </nav>
+
     <!-- Header -->
     <div class="product-page-header">
         <div class="product-page-header-flex">
             <div class="product-page-header-title">
                 <h2>
-                    <i class="fas fa-plus-circle"></i> Registrar Nuevo Proveedor
+                    <i class="fas fa-user-plus"></i> Registrar Nuevo Proveedor
                 </h2>
                 <div class="accent-bar"></div>
                 <small class="text-muted">Agregue un nuevo proveedor al sistema</small>
@@ -32,7 +34,7 @@
         </div>
     </div>
 
-    <!-- Formulario de Creación -->
+    <!-- Formulario -->
     <div class="product-form-container">
         <div class="card product-card">
             <div class="card-header product-card-header d-flex align-items-center justify-content-between">
@@ -40,13 +42,16 @@
                     <i class="fas fa-file-alt"></i> Información del Proveedor
                 </h5>
             </div>
+
             <div class="card-body" style="padding:24px;">
                 <form action="{{ route('suppliers.store') }}" method="POST" id="supplierForm" enctype="multipart/form-data">
                     @csrf
 
                     <div class="create-product-grid">
-                        {{-- ======= COLUMNA IZQUIERDA: Datos principales ======= --}}
+
+                        {{-- COLUMNA IZQUIERDA --}}
                         <div class="create-product-left">
+
                             <!-- Nombre -->
                             <div class="form-group mb-3">
                                 <label for="nombre" class="form-label d-flex align-items-center justify-content-between">
@@ -55,14 +60,16 @@
                                         <i class="fas fa-info-circle" aria-label="Ayuda"></i>
                                     </span>
                                 </label>
-                                <input type="text" 
-                                       class="form-control @error('nombre') is-invalid @enderror" 
-                                       id="nombre" 
-                                       name="nombre" 
+
+                                <input type="text"
+                                       class="form-control @error('nombre') is-invalid @enderror"
+                                       id="nombre"
+                                       name="nombre"
                                        value="{{ old('nombre') }}"
                                        required
                                        maxlength="255"
                                        placeholder="Nombre del proveedor">
+
                                 @error('nombre')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                 @enderror
@@ -78,19 +85,21 @@
                                                 <i class="fas fa-info-circle" aria-label="Ayuda"></i>
                                             </span>
                                         </label>
+
                                         <div class="input-group">
                                             <span class="input-group-text" style="background:#f8fafc; border:1px solid #e5e7eb;">
                                                 <i class="fas fa-phone"></i>
                                             </span>
-                                            <input type="tel" 
-                                                   class="form-control @error('telefono') is-invalid @enderror" 
-                                                   id="telefono" 
-                                                   name="telefono" 
+                                            <input type="tel"
+                                                   class="form-control @error('telefono') is-invalid @enderror"
+                                                   id="telefono"
+                                                   name="telefono"
                                                    value="{{ old('telefono') }}"
                                                    required
                                                    maxlength="20"
                                                    placeholder="+506 8765-4321">
                                         </div>
+
                                         @error('telefono')
                                             <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
                                         @enderror
@@ -101,23 +110,27 @@
                                     <div class="form-group mb-3">
                                         <label for="email" class="form-label d-flex align-items-center justify-content-between">
                                             <span><strong>Email *</strong></span>
-                                            <span class="ms-2 text-white-50" title="Correo electrónico del proveedor">
+                                            <span class="ms-2 text-white-50" title="El correo debe ser @gmail.com">
                                                 <i class="fas fa-info-circle" aria-label="Ayuda"></i>
                                             </span>
                                         </label>
+
                                         <div class="input-group">
                                             <span class="input-group-text" style="background:#f8fafc; border:1px solid #e5e7eb;">
                                                 <i class="fas fa-envelope"></i>
                                             </span>
-                                            <input type="email" 
-                                                   class="form-control @error('email') is-invalid @enderror" 
-                                                   id="email" 
-                                                   name="email" 
+                                            <input type="email"
+                                                   class="form-control @error('email') is-invalid @enderror"
+                                                   id="email"
+                                                   name="email"
                                                    value="{{ old('email') }}"
                                                    required
                                                    maxlength="255"
-                                                   placeholder="contacto@proveedor.com">
+                                                   pattern="^[a-zA-Z0-9._%+\-]+@gmail\.com$"
+                                                   title="El correo debe ser @gmail.com"
+                                                   placeholder="ej: proveedor@gmail.com">
                                         </div>
+
                                         @error('email')
                                             <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
                                         @enderror
@@ -126,9 +139,10 @@
                             </div>
                         </div>
 
-                        {{-- ======= COLUMNA DERECHA: Facturas / Galería ======= --}}
+                        {{-- COLUMNA DERECHA --}}
                         <div class="create-product-right">
-                            <!-- Galería de Facturas -->
+
+                            <!-- Galería -->
                             <div class="form-group mb-3">
                                 <label for="imagenes" class="form-label d-flex align-items-center justify-content-between">
                                     <span><strong>Galería de Fotos (Facturas) *</strong></span>
@@ -138,10 +152,10 @@
                                 </label>
 
                                 <div class="custom-file">
-                                    <input type="file" 
-                                           class="custom-file-input @error('imagenes') is-invalid @enderror" 
-                                           id="imagenes" 
-                                           name="imagenes[]" 
+                                    <input type="file"
+                                           class="custom-file-input @error('imagenes') is-invalid @enderror"
+                                           id="imagenes"
+                                           name="imagenes[]"
                                            accept="image/*,.pdf"
                                            multiple
                                            onchange="previewFiles(this)">
@@ -155,6 +169,7 @@
                                 @error('imagenes')
                                     <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
                                 @enderror
+
                                 @error('imagenes.*')
                                     <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
                                 @enderror
@@ -169,7 +184,7 @@
                                 </div>
                             </div>
 
-                            <!-- Info rápida -->
+                            <!-- Tip -->
                             <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #92400e;">
                                 <i class="fas fa-lightbulb" style="margin-right: 6px;"></i>
                                 <strong>Tip:</strong> Adjunte al menos una foto o PDF de factura del proveedor.
@@ -177,11 +192,12 @@
                         </div>
                     </div>
 
-                    <!-- Botones de acción -->
+                    <!-- Botones -->
                     <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
                         <a href="{{ route('suppliers.index') }}" class="btn btn-outline-secondary" style="border-color:#e5e7eb; color:#374151;">
                             <i class="fas fa-times"></i> Cancelar
                         </a>
+
                         <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #e18018, #915016); border:none; font-weight:600;">
                             <i class="fas fa-save"></i> Crear Proveedor
                         </button>
