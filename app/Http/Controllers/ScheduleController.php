@@ -101,4 +101,32 @@ class ScheduleController extends Controller
             ->with('success', '✓ Horario actualizado correctamente.');
     }
     
+
+    /**
+     * Eliminar horario de un día del local del gerente
+     */
+    public function destroySchedule(Request $request, $scheduleId)
+    {
+        $user = $request->user();
+        $local = $user->locals()->first();
+
+        if (!$local) {
+            return redirect()->route('dashboard')
+                ->with('error', 'No tienes un local asignado.');
+        }
+
+        $schedule = Schedule::where('schedule_id', $scheduleId)
+            ->where('local_id', $local->local_id)
+            ->first();
+
+        if (!$schedule) {
+            return redirect()->route('local.schedule')
+                ->with('error', 'Horario no encontrado.');
+        }
+
+        $schedule->delete();
+
+        return redirect()->route('local.schedule')
+            ->with('success', '✓ Horario eliminado correctamente.');
+    }
 }
