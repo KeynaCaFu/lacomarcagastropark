@@ -63,29 +63,27 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombre' => 'required|string|max:255|unique:tbsupplier,name',
-            'nombre' => ['required', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúñÑ ]+$/'],
-            'telefono' => ['required', 'digits:8'],
-            'email' => 'required', 'email', 'max:255', 'unique:tbsupplier,email', 'regex:/^[a-zA-Z0-9._%+\-]+@gmail\.com$/',
-            'imagenes' => 'required|array|min:1',
-            'imagenes.*' => 'required|file|mimes:jpeg,png,jpg,pdf|max:5120'
-        ], [
-            'nombre.required' => 'El nombre del proveedor es obligatorio',
-            'nombre.regex' => 'El nombre solo puede contener letras',
-              'telefono.digits' => 'El teléfono debe tener exactamente 8 números y no permite letras',
-            'nombre.unique' => 'Ya existe un proveedor con este nombre',
-            'telefono.required' => 'El teléfono es obligatorio',
-            'email.required' => 'El email es obligatorio',
-            'email.email' => 'El email debe ser válido',
-            'email.unique' => 'Ya existe un proveedor con este email',
-            'email.regex' => 'El correo debe ser @gmail.com',
-            'imagenes.required' => 'Debe adjuntar al menos una imagen o PDF de factura',
-            'imagenes.array' => 'Las imágenes deben ser una lista',
-            'imagenes.min' => 'Debe adjuntar al menos una imagen o PDF',
-            'imagenes.*.mimes' => 'Los archivos deben ser: JPEG, PNG, JPG o PDF',
-            'imagenes.*.max' => 'Cada archivo no debe superar 5MB'
-        ]);
-
+    'nombre' => ['required', 'string', 'max:255', 'unique:tbsupplier,name', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúñÑ ]+$/'],
+    'telefono' => ['required', 'digits:8'],
+    'email' => ['required', 'email', 'max:255', 'unique:tbsupplier,email', 'regex:/^[a-zA-Z0-9._%+\-]+@gmail\.com$/'],
+    'imagenes' => 'required|array|min:1',
+    'imagenes.*' => 'required|file|mimes:jpeg,png,jpg,pdf|max:5120'
+], [
+    'nombre.required' => 'El nombre del proveedor es obligatorio',
+    'nombre.regex' => 'El nombre solo puede contener letras',
+    'nombre.unique' => 'Ya existe un proveedor con este nombre',
+    'telefono.required' => 'El teléfono es obligatorio',
+    'telefono.digits' => 'El teléfono debe tener exactamente 8 números y no permite letras',
+    'email.required' => 'El email es obligatorio',
+    'email.email' => 'El email debe ser válido',
+    'email.unique' => 'Ya existe un proveedor con este email',
+    'email.regex' => 'El correo debe ser @gmail.com',
+    'imagenes.required' => 'Debe adjuntar al menos una imagen o PDF de factura',
+    'imagenes.array' => 'Las imágenes deben ser una lista',
+    'imagenes.min' => 'Debe adjuntar al menos una imagen o PDF',
+    'imagenes.*.mimes' => 'Los archivos deben ser: JPEG, PNG, JPG o PDF',
+    'imagenes.*.max' => 'Cada archivo no debe superar 5MB'
+]);
         $data = [
             'name' => $validated['nombre'],
             'phone' => $validated['telefono'],
@@ -96,29 +94,25 @@ class SupplierController extends Controller
 
         // Procesar imágenes/archivos
         if ($request->hasFile('imagenes')) {
-            $uploadDir = public_path('images/proveedor');
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
+    $uploadDir = public_path('images/proveedor');
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
 
-            foreach ($request->file('imagenes') as $file) {
-                $extension = $file->getClientOriginalExtension();
-                $filename = time() . '_' . uniqid() . '.' . $extension;
-                $file->move($uploadDir, $filename);
+    foreach ($request->file('imagenes') as $file) {
+        $extension = $file->getClientOriginalExtension();
+        $filename = time() . '_' . uniqid() . '.' . $extension;
+        $file->move($uploadDir, $filename);
 
-                // Guardar en bd
-                
-                DB::table('tbsupplier_gallery')->insert([
-
-                    'supplier_id' => $supplier->supplier_id,
-                    'image_path' => 'proveedor/' . $filename,
-                    'description' => $file->getClientOriginalName(),
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
-            }
-        }
-
+        DB::table('tbsupplier_gallery')->insert([
+            'supplier_id' => $supplier->supplier_id,
+            'image_path' => 'images/proveedor/' . $filename,
+            'description' => $file->getClientOriginalName(),
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+    }
+}
         // Si es gerente, crear automáticamente la relación con su local
         $user = auth()->user();
         if ($user->isAdminLocal()) {
