@@ -72,7 +72,7 @@ class SupplierController extends Controller
         ], [
             'nombre.required' => 'El nombre del proveedor es obligatorio',
             'nombre.regex' => 'El nombre solo puede contener letras',
-              'telefono.digits' => 'El teléfono debe tener exactamente 8 números',
+              'telefono.digits' => 'El teléfono debe tener exactamente 8 números y no permite letras',
             'nombre.unique' => 'Ya existe un proveedor con este nombre',
             'telefono.required' => 'El teléfono es obligatorio',
             'email.required' => 'El email es obligatorio',
