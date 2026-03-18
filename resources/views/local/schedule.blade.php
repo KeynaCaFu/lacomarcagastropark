@@ -498,21 +498,59 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (btnDeleteSchedule && scheduleDeleteForm) {
         btnDeleteSchedule.addEventListener('click', async function() {
+            const dayName = (modalDayName && modalDayName.textContent) ? modalDayName.textContent.trim() : 'este día';
+            const submitAction = () => {
+                const actionMatch = (scheduleDeleteForm.action || '').match(/\/(\d+)(?:\?.*)?$/);
+                if (actionMatch && actionMatch[1]) {
+                    localStorage.setItem('schedule_last_opened_id', actionMatch[1]);
+                }
+                closeScheduleModal();
+                scheduleDeleteForm.submit();
+            };
+
+            if (typeof window.confirmWithUndo === 'function') {
+                const ask = window.swConfirm
+                    ? swConfirm({
+                        title: 'Eliminar horario',
+                        text: `¿Deseas eliminar el horario de ${dayName}?`,
+                        icon: 'warning',
+                        confirmButtonColor: '#dc2626',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    })
+                    : Promise.resolve({ isConfirmed: confirm('¿Deseas eliminar este horario del día?') });
+
+                const result = await ask;
+                if (!result.isConfirmed) return;
+
+                closeScheduleModal();
+
+                window.confirmWithUndo({
+                    message: `Se eliminará el horario de ${dayName}`,
+                    delayMs: 10000,
+                    onConfirm: submitAction,
+                    onUndo: function(){}
+                });
+                return;
+            }
+
             if (window.swConfirm) {
                 const result = await swConfirm({
                     title: 'Eliminar horario',
-                    text: '¿Deseas eliminar este horario del día?',
+                    text: `¿Deseas eliminar el horario de ${dayName}?`,
                     icon: 'warning',
                     confirmButtonColor: '#dc2626',
                     confirmButtonText: 'Sí, eliminar',
                     cancelButtonText: 'Cancelar'
                 });
                 if (!result.isConfirmed) return;
-            } else {
-                const ok = confirm('¿Deseas eliminar este horario del día?');
-                if (!ok) return;
+                submitAction();
+                return;
             }
-            scheduleDeleteForm.submit();
+
+            const ok = confirm('¿Deseas eliminar este horario del día?');
+            if (!ok) return;
+            submitAction();
         });
     }
 
