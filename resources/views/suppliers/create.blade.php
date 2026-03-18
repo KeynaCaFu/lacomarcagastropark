@@ -219,7 +219,10 @@
             ? (input.files.length === 1 ? input.files[0].name : `${input.files.length} archivos seleccionados`)
             : 'Seleccionar archivos...';
 
-        input.nextElementSibling.textContent = fileName;
+        const label = input.parentElement.querySelector('.custom-file-label');
+        if (label) {
+            label.textContent = fileName;
+        }
 
         if (input.files && input.files.length > 0) {
             placeholder.style.display = 'none';
@@ -262,6 +265,21 @@
                             </div>
                         </div>
                     `;
+                } else {
+                    col.innerHTML = `
+                        <div class="card" style="border:1px solid #e5e7eb;">
+                            <div style="height:120px; display:flex; align-items:center; justify-content:center; background:#f9fafb; color:#6b7280;">
+                                <div class="text-center">
+                                    <i class="fas fa-file" style="font-size:32px;"></i>
+                                    <div class="small mt-2">Archivo</div>
+                                </div>
+                            </div>
+                            <div class="card-body p-2">
+                                <small class="d-block text-truncate" title="${file.name}">${file.name}</small>
+                                <small class="text-muted">${fileSize} MB</small>
+                            </div>
+                        </div>
+                    `;
                 }
 
                 container.appendChild(col);
@@ -273,14 +291,18 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        const supplierForm = document.querySelector('form[action="{{ route('suppliers.store') }}"]');
+        const supplierForm = document.getElementById('supplierForm');
 
         if (supplierForm) {
             supplierForm.addEventListener('submit', function (e) {
-                const nombre = document.getElementById('name')?.value.trim();
-                const telefono = document.getElementById('phone')?.value.trim();
-                const email = document.getElementById('email')?.value.trim();
-                const imagenes = document.getElementById('imagenes');
+                const nombreInput = document.getElementById('nombre');
+                const telefonoInput = document.getElementById('telefono');
+                const emailInput = document.getElementById('email');
+                const imagenesInput = document.getElementById('imagenes');
+
+                const nombre = nombreInput ? nombreInput.value.trim() : '';
+                const telefono = telefonoInput ? telefonoInput.value.trim() : '';
+                const email = emailInput ? emailInput.value.trim() : '';
 
                 if (!nombre) {
                     e.preventDefault();
@@ -293,7 +315,7 @@
                     } else {
                         alert('El nombre del proveedor es obligatorio');
                     }
-                    document.getElementById('name')?.focus();
+                    nombreInput?.focus();
                     return false;
                 }
 
@@ -308,7 +330,7 @@
                     } else {
                         alert('El teléfono es obligatorio');
                     }
-                    document.getElementById('phone')?.focus();
+                    telefonoInput?.focus();
                     return false;
                 }
 
@@ -323,11 +345,11 @@
                     } else {
                         alert('El correo electrónico es obligatorio');
                     }
-                    document.getElementById('email')?.focus();
+                    emailInput?.focus();
                     return false;
                 }
 
-                if (!imagenes || !imagenes.files || imagenes.files.length === 0) {
+                if (!imagenesInput || !imagenesInput.files || imagenesInput.files.length === 0) {
                     e.preventDefault();
                     if (window.swAlert) {
                         swAlert({
@@ -338,11 +360,10 @@
                     } else {
                         alert('Debe adjuntar al menos una foto o PDF de factura');
                     }
-                    document.getElementById('imagenes')?.focus();
+                    imagenesInput?.focus();
                     return false;
                 }
 
-                // Confirmación antes de guardar, igual a Productos
                 if (window.swConfirm) {
                     e.preventDefault();
                     swConfirm({
@@ -381,7 +402,6 @@
         @endif
     });
 </script>
-
 @endpush
 
 @endsection
