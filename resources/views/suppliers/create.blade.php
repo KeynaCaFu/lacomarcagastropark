@@ -8,11 +8,17 @@
 
 @section('content')
 <div class="product-page-wrapper">
-    @include('products.partials.breadcrumb', ['crumbs' => [
-    ['label' => 'Proveedores', 'url' => route('suppliers.index')],
-    ['label' => 'Crear Proveedor']
-]])
-
+    <nav aria-label="breadcrumb" class="supplier-breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{{ route('suppliers.index') }}">
+                <i class="fas fa-truck me-1"></i> Proveedores
+            </a>
+        </li>
+        <li class="breadcrumb-item active">Crear Proveedor</li>
+    </ol>
+</nav>
+   
     <!-- Header -->
     <div class="product-page-header">
         <div class="product-page-header-flex">
