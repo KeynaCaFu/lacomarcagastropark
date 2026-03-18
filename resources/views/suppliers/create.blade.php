@@ -271,7 +271,117 @@
             container.style.display = 'none';
         }
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const supplierForm = document.querySelector('form[action="{{ route('suppliers.store') }}"]');
+
+        if (supplierForm) {
+            supplierForm.addEventListener('submit', function (e) {
+                const nombre = document.getElementById('name')?.value.trim();
+                const telefono = document.getElementById('phone')?.value.trim();
+                const email = document.getElementById('email')?.value.trim();
+                const imagenes = document.getElementById('imagenes');
+
+                if (!nombre) {
+                    e.preventDefault();
+                    if (window.swAlert) {
+                        swAlert({
+                            icon: 'warning',
+                            title: 'Campo requerido',
+                            text: 'El nombre del proveedor es obligatorio'
+                        });
+                    } else {
+                        alert('El nombre del proveedor es obligatorio');
+                    }
+                    document.getElementById('name')?.focus();
+                    return false;
+                }
+
+                if (!telefono) {
+                    e.preventDefault();
+                    if (window.swAlert) {
+                        swAlert({
+                            icon: 'warning',
+                            title: 'Campo requerido',
+                            text: 'El teléfono es obligatorio'
+                        });
+                    } else {
+                        alert('El teléfono es obligatorio');
+                    }
+                    document.getElementById('phone')?.focus();
+                    return false;
+                }
+
+                if (!email) {
+                    e.preventDefault();
+                    if (window.swAlert) {
+                        swAlert({
+                            icon: 'warning',
+                            title: 'Campo requerido',
+                            text: 'El correo electrónico es obligatorio'
+                        });
+                    } else {
+                        alert('El correo electrónico es obligatorio');
+                    }
+                    document.getElementById('email')?.focus();
+                    return false;
+                }
+
+                if (!imagenes || !imagenes.files || imagenes.files.length === 0) {
+                    e.preventDefault();
+                    if (window.swAlert) {
+                        swAlert({
+                            icon: 'warning',
+                            title: 'Archivo requerido',
+                            text: 'Debe adjuntar al menos una foto o PDF de factura'
+                        });
+                    } else {
+                        alert('Debe adjuntar al menos una foto o PDF de factura');
+                    }
+                    document.getElementById('imagenes')?.focus();
+                    return false;
+                }
+
+                // Confirmación antes de guardar, igual a Productos
+                if (window.swConfirm) {
+                    e.preventDefault();
+                    swConfirm({
+                        title: 'Crear proveedor',
+                        text: '¿Desea guardar este nuevo proveedor?',
+                        icon: 'question',
+                        confirmButtonText: 'Sí, guardar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            supplierForm.submit();
+                        }
+                    });
+                }
+            });
+        }
+
+        const errorMsg = @json(session('error'));
+        if (errorMsg && window.swAlert) {
+            swAlert({
+                icon: 'error',
+                title: 'Error',
+                text: errorMsg,
+                confirmButtonColor: '#dc2626'
+            });
+        }
+
+        @if ($errors->any())
+        if (window.swAlert) {
+            swAlert({
+                icon: 'error',
+                title: 'Errores de validación',
+                html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+                confirmButtonColor: '#dc2626'
+            });
+        }
+        @endif
+    });
 </script>
+
 @endpush
 
 @endsection

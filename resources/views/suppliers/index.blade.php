@@ -125,9 +125,9 @@
                                 <form action="{{ route('suppliers.destroy', $supplier->supplier_id) }}" method="POST" style="display: inline;">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" title="Eliminar" class="btn-action-small" style="background: #fee2e2; color: #dc2626; padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; font-size: 12px;" onclick="return confirm('¿Estás seguro de que deseas eliminar este proveedor?');">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <button type="submit" title="Eliminar" class="btn-action-small" style="background: #fee2e2; color: #dc2626; padding: 6px 12px; border-radius: 10px; border: none; cursor: pointer; font-size: 12px;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                 </form>
                             </div>
                         </td>
@@ -156,28 +156,104 @@
 </div>
 
 @push('scripts')
+
 <script>
-    // Toggle para filtros
-    document.addEventListener('DOMContentLoaded', function() {
-        const filtersToggle = document.getElementById('filtersToggle');
-        const filtersBody = document.getElementById('filtrosBody');
-        
-        if (filtersToggle && filtersBody) {
-            filtersToggle.addEventListener('click', () => {
-                const isClosed = filtersBody.classList.contains('closed');
-                if (isClosed) {
-                    filtersBody.classList.remove('closed');
-                    filtersToggle.classList.add('open');
-                    filtersToggle.setAttribute('aria-expanded', 'true');
+document.addEventListener('DOMContentLoaded', function () {
+    const filtersToggle = document.getElementById('filtersToggle');
+    const filtersBody = document.getElementById('filtrosBody');
+
+    if (filtersToggle && filtersBody) {
+        filtersToggle.addEventListener('click', () => {
+            const isClosed = filtersBody.classList.contains('closed');
+
+            if (isClosed) {
+                filtersBody.classList.remove('closed');
+                filtersToggle.classList.add('open');
+                filtersToggle.setAttribute('aria-expanded', 'true');
+            } else {
+                filtersBody.classList.add('closed');
+                filtersToggle.classList.remove('open');
+                filtersToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    // Confirmación de eliminación igual al patrón de Productos
+    document.querySelectorAll('form[action*="proveedores/"][method="POST"], form[action*="suppliers/"][method="POST"]').forEach(function(form) {
+        const deleteMethod = form.querySelector('input[name="_method"][value="DELETE"]');
+
+        if (deleteMethod) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const supplierName =
+                    form.closest('tr')?.querySelector('td:nth-child(1) strong')?.textContent?.trim() || 'este proveedor';
+
+                if (window.swConfirm) {
+                    swConfirm({
+                        title: 'Eliminar proveedor',
+                        text: `¿Desea eliminar "${supplierName}"?`,
+                        icon: 'warning',
+                        confirmButtonColor: '#dc2626',
+                        confirmButtonText: 'Sí, eliminar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
                 } else {
-                    filtersBody.classList.add('closed');
-                    filtersToggle.classList.remove('open');
-                    filtersToggle.setAttribute('aria-expanded', 'false');
+                    const ok = confirm(`¿Desea eliminar "${supplierName}"?`);
+                    if (ok) form.submit();
                 }
             });
         }
     });
+
+    // Toast de éxito igual a Productos
+    const successMsg = @json(session('success'));
+    if (successMsg) {
+        let retries = 0;
+
+        const checkAndShowToast = () => {
+            if (window.swToast) {
+                swToast.fire({
+                    icon: 'success',
+                    title: successMsg
+                });
+            } else if (retries < 50) {
+                retries++;
+                setTimeout(checkAndShowToast, 100);
+            }
+        };
+
+        setTimeout(checkAndShowToast, 100);
+    }
+
+    // Error igual a Productos
+    const errorMsg = @json(session('error'));
+    if (errorMsg && window.swAlert) {
+        swAlert({
+            icon: 'error',
+            title: 'Error',
+            text: errorMsg,
+            confirmButtonColor: '#dc2626'
+        });
+    }
+
+    // Errores de validación
+    @if ($errors->any())
+    if (window.swAlert) {
+        swAlert({
+            icon: 'error',
+            title: 'Errores de validación',
+            html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+            confirmButtonColor: '#dc2626'
+        });
+    }
+    @endif
+});
 </script>
 @endpush
+
 
 @endsection
