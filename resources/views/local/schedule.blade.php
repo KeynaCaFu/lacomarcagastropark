@@ -60,7 +60,7 @@
                                 {{ now()->format('H:i:s') }}
                             </h4>
                             <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-                                <i class="fas fa-calendar-alt" style="margin-right: 4px;"></i><span id="current-date">{{ now()->format('l, d \\d\\e F') }}</span>
+                                <i class="fas fa-calendar-alt" style="margin-right: 4px;"></i><span id="current-date">{{ now()->translatedFormat('l, d \\d\\e F Y') }}</span>
                             </p>
                         </div>
                     </div>
@@ -339,6 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
             weekday: 'long',
             day: '2-digit',
             month: 'long',
+            year: 'numeric',
             timeZone: 'America/Costa_Rica'
         });
         
