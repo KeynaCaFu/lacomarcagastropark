@@ -394,7 +394,7 @@
         if (window.swAlert) {
             swAlert({
                 icon: 'error',
-                title: 'Errores de validación',
+                title: 'Error',
                 html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
                 confirmButtonColor: '#dc2626'
             });

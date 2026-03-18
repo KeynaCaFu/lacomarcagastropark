@@ -129,7 +129,7 @@ class SupplierController extends Controller
         }
 
         return redirect()->route('suppliers.index')
-            ->with('success', '✓ Proveedor creado exitosamente con galería de facturas');
+            ->with('success', 'Proveedor creado exitosamente con galería de facturas');
     }
 
     /**
@@ -141,13 +141,13 @@ class SupplierController extends Controller
 
         if (!$supplier) {
             return redirect()->route('suppliers.index')
-                ->with('error', '✗ Proveedor no encontrado');
+                ->with('error', 'Proveedor no encontrado');
         }
 
         // Verificar acceso
         if (!$this->canAccessSupplier($id)) {
             return redirect()->route('suppliers.index')
-                ->with('error', '✗ No tienes acceso a este proveedor');
+                ->with('error', 'No tienes acceso a este proveedor');
         }
 
         return view('suppliers.show', compact('supplier'));
