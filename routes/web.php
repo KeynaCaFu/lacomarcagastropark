@@ -126,6 +126,7 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
         Route::post('/galeria/subir', [\App\Http\Controllers\LocalController::class, 'galleryUpload'])->name('gallery.upload');
         Route::delete('/galeria/{id}', [\App\Http\Controllers\LocalController::class, 'galleryDelete'])->name('gallery.delete');
         Route::get('/horario', [\App\Http\Controllers\ScheduleController::class, 'schedule'])->name('schedule');
+        Route::post('/horario', [\App\Http\Controllers\ScheduleController::class, 'storeSchedule'])->name('schedule.store');
         Route::put('/horario/{scheduleId}', [\App\Http\Controllers\ScheduleController::class, 'updateSchedule'])->name('schedule.update');
         Route::delete('/horario/{scheduleId}', [\App\Http\Controllers\ScheduleController::class, 'destroySchedule'])->name('schedule.destroy');
     });
