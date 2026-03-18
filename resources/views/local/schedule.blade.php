@@ -60,7 +60,7 @@
                                 {{ now()->format('H:i:s') }}
                             </h4>
                             <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-                                <i class="fas fa-calendar-alt" style="margin-right: 4px;"></i><span id="current-date">{{ now()->format('l, d \\d\\e F') }}</span>
+                                <i class="fas fa-calendar-alt" style="margin-right: 4px;"></i><span id="current-date">{{ now()->translatedFormat('l, d \\d\\e F Y') }}</span>
                             </p>
                         </div>
                     </div>
@@ -69,9 +69,16 @@
 
             <!-- Horarios por Día -->
             <div class="card border-0" style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px;">
-                <h5 style="color: #111827; font-weight: 700; margin-bottom: 24px;">
-                    <i class="fas fa-calendar-days" style="color: #e18018; margin-right: 8px;"></i>Horarios de Atención
-                </h5>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                    <h5 style="color: #111827; font-weight: 700; margin: 0;">
+                        <i class="fas fa-calendar-days" style="color: #e18018; margin-right: 8px;"></i>Horarios de Atención
+                    </h5>
+                    @if($canEditSchedule)
+                    <button type="button" id="btnOpenAddScheduleModal" class="btn-schedule-action btn-schedule-edit">
+                        <i class="fas fa-plus"></i> Agregar nuevo horario
+                    </button>
+                    @endif
+                </div>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px;">
                     @foreach($schedules as $schedule)
@@ -151,6 +158,7 @@
 </div>
 
 @include('local.partials.schedule-modal')
+@include('local.partials.add-schedule-modal')
 
 <style>
     .schedule-card {
@@ -331,6 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
             weekday: 'long',
             day: '2-digit',
             month: 'long',
+            year: 'numeric',
             timeZone: 'America/Costa_Rica'
         });
         
