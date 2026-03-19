@@ -1,21 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Crear Proveedor')
+@section('title', 'Editar Proveedor')
 
 @push('styles')
     <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
-    
-    <style>
-        /* Input focus color - Orange instead of Blue */
-        .form-control:focus {
-            border-color: #e18018 !important;
-            box-shadow: 0 0 0 0.2rem rgba(225, 128, 24, 0.25) !important;
-        }
-        
-        .custom-file-input:focus ~ .custom-file-label {
-            border-color: #e18018;
-        }
-    </style>
 @endpush
 
 @section('content')
@@ -29,7 +17,7 @@
                     <i class="fas fa-truck me-1"></i> Proveedores
                 </a>
             </li>
-            <li class="breadcrumb-item active">Crear Proveedor</li>
+            <li class="breadcrumb-item active">Editar Proveedor</li>
         </ol>
     </nav>
 
@@ -38,10 +26,10 @@
         <div class="product-page-header-flex">
             <div class="product-page-header-title">
                 <h2>
-                    <i class="fas fa-user-plus"></i> Registrar Nuevo Proveedor
+                    <i class="fas fa-user-edit"></i> Editar Proveedor
                 </h2>
                 <div class="accent-bar"></div>
-                <small class="text-muted">Agregue un nuevo proveedor al sistema</small>
+                <small class="text-muted">Actualice la información del proveedor</small>
             </div>
         </div>
     </div>
@@ -56,8 +44,9 @@
             </div>
 
             <div class="card-body" style="padding:24px;">
-                <form action="{{ route('suppliers.store') }}" method="POST" id="supplierForm" enctype="multipart/form-data">
+                <form action="{{ route('suppliers.update', $supplier->supplier_id) }}" method="POST" id="supplierEditForm" enctype="multipart/form-data">
                     @csrf
+                    @method('PUT')
 
                     <div class="create-product-grid">
 
@@ -77,7 +66,7 @@
                                        class="form-control @error('nombre') is-invalid @enderror"
                                        id="nombre"
                                        name="nombre"
-                                       value="{{ old('nombre') }}"
+                                       value="{{ old('nombre', $supplier->name) }}"
                                        required
                                        maxlength="255"
                                        placeholder="Nombre del proveedor">
@@ -106,14 +95,14 @@
                                                    class="form-control @error('telefono') is-invalid @enderror"
                                                    id="telefono"
                                                    name="telefono"
-                                                   value="{{ old('telefono') }}"
+                                                   value="{{ old('telefono', $supplier->phone) }}"
                                                    required
                                                    maxlength="20"
                                                    placeholder="+506 8765-4321">
                                         </div>
 
                                         @error('telefono')
-                                            <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
+                                            <span class="invalid-feedback" style="display:block;">{{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
@@ -122,7 +111,7 @@
                                     <div class="form-group mb-3">
                                         <label for="email" class="form-label d-flex align-items-center justify-content-between">
                                             <span><strong>Email *</strong></span>
-                                            <span class="ms-2 text-white-50" title="El correo debe ser @gmail.com">
+                                            <span class="ms-2 text-white-50" title="Correo electrónico del proveedor">
                                                 <i class="fas fa-info-circle" aria-label="Ayuda"></i>
                                             </span>
                                         </label>
@@ -135,20 +124,53 @@
                                                    class="form-control @error('email') is-invalid @enderror"
                                                    id="email"
                                                    name="email"
-                                                   value="{{ old('email') }}"
+                                                   value="{{ old('email', $supplier->email) }}"
                                                    required
                                                    maxlength="255"
-                                                   pattern="^[a-zA-Z0-9._%+\-]+@gmail\.com$"
-                                                   title="El correo debe ser @gmail.com"
                                                    placeholder="ej: proveedor@gmail.com">
                                         </div>
 
                                         @error('email')
-                                            <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
+                                            <span class="invalid-feedback" style="display:block;">{{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
                             </div>
+
+                            @if($supplier->gallery && $supplier->gallery->count() > 0)
+                                <div class="mt-4">
+                                    <h6 style="font-weight:700; color:#374151;">Facturas actuales</h6>
+                                    <div class="row mt-2">
+                                        @foreach($supplier->gallery as $item)
+                                            @php
+                                                $path = $item->image_url ?? asset($item->image_path);
+                                                $fileName = $item->description ?? 'Archivo';
+                                                $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                                                $isPdf = $ext === 'pdf';
+                                            @endphp
+
+                                            <div class="col-md-4 mb-3">
+                                                <div class="card" style="border:1px solid #e5e7eb;">
+                                                    @if($isPdf)
+                                                        <div style="height:120px; display:flex; align-items:center; justify-content:center; background:#fff7ed; color:#c2410c;">
+                                                            <div class="text-center">
+                                                                <i class="fas fa-file-pdf" style="font-size:32px;"></i>
+                                                                <div class="small mt-2">PDF</div>
+                                                            </div>
+                                                        </div>
+                                                    @else
+                                                        <img src="{{ $path }}" class="card-img-top" style="height:120px; object-fit:cover;" alt="Factura">
+                                                    @endif
+
+                                                    <div class="card-body p-2">
+                                                        <small class="d-block text-truncate" title="{{ $fileName }}">{{ $fileName }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
                         </div>
 
                         {{-- COLUMNA DERECHA --}}
@@ -157,7 +179,7 @@
                             <!-- Galería -->
                             <div class="form-group mb-3">
                                 <label for="imagenes" class="form-label d-flex align-items-center justify-content-between">
-                                    <span><strong>Galería de Fotos (Facturas) *</strong></span>
+                                    <span><strong>Agregar nuevas facturas</strong></span>
                                     <span class="ms-2 text-white-50" title="Suba imágenes o PDFs de facturas">
                                         <i class="fas fa-info-circle" aria-label="Ayuda"></i>
                                     </span>
@@ -179,11 +201,11 @@
                                 </small>
 
                                 @error('imagenes')
-                                    <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
+                                    <span class="invalid-feedback" style="display:block;">{{ $message }}</span>
                                 @enderror
 
                                 @error('imagenes.*')
-                                    <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
+                                    <span class="invalid-feedback" style="display:block;">{{ $message }}</span>
                                 @enderror
 
                                 <!-- Preview -->
@@ -199,19 +221,19 @@
                             <!-- Tip -->
                             <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #92400e;">
                                 <i class="fas fa-lightbulb" style="margin-right: 6px;"></i>
-                                <strong>Tip:</strong> Adjunte al menos una foto o PDF de factura del proveedor.
+                                <strong>Tip:</strong> Puede actualizar datos y agregar más facturas aquí.
                             </div>
                         </div>
                     </div>
 
                     <!-- Botones -->
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-                        <a href="{{ route('suppliers.index') }}" class="btn btn-outline-secondary" style="border-color:#e5e7eb; color:#374151;">
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid #e5e7eb;">
+                        <a href="{{ route('suppliers.show', $supplier->supplier_id) }}" class="btn btn-outline-secondary" style="border-color:#e5e7eb; color:#374151;">
                             <i class="fas fa-times"></i> Cancelar
                         </a>
 
                         <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #e18018, #915016); border:none; font-weight:600;">
-                            <i class="fas fa-save"></i> Crear Proveedor
+                            <i class="fas fa-save"></i> Guardar cambios
                         </button>
                     </div>
                 </form>
@@ -277,21 +299,6 @@
                             </div>
                         </div>
                     `;
-                } else {
-                    col.innerHTML = `
-                        <div class="card" style="border:1px solid #e5e7eb;">
-                            <div style="height:120px; display:flex; align-items:center; justify-content:center; background:#f9fafb; color:#6b7280;">
-                                <div class="text-center">
-                                    <i class="fas fa-file" style="font-size:32px;"></i>
-                                    <div class="small mt-2">Archivo</div>
-                                </div>
-                            </div>
-                            <div class="card-body p-2">
-                                <small class="d-block text-truncate" title="${file.name}">${file.name}</small>
-                                <small class="text-muted">${fileSize} MB</small>
-                            </div>
-                        </div>
-                    `;
                 }
 
                 container.appendChild(col);
@@ -303,14 +310,13 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        const supplierForm = document.getElementById('supplierForm');
+        const supplierForm = document.getElementById('supplierEditForm');
 
         if (supplierForm) {
             supplierForm.addEventListener('submit', function (e) {
                 const nombreInput = document.getElementById('nombre');
                 const telefonoInput = document.getElementById('telefono');
                 const emailInput = document.getElementById('email');
-                const imagenesInput = document.getElementById('imagenes');
 
                 const nombre = nombreInput ? nombreInput.value.trim() : '';
                 const telefono = telefonoInput ? telefonoInput.value.trim() : '';
@@ -361,26 +367,11 @@
                     return false;
                 }
 
-                if (!imagenesInput || !imagenesInput.files || imagenesInput.files.length === 0) {
-                    e.preventDefault();
-                    if (window.swAlert) {
-                        swAlert({
-                            icon: 'warning',
-                            title: 'Archivo requerido',
-                            text: 'Debe adjuntar al menos una foto o PDF de factura'
-                        });
-                    } else {
-                        alert('Debe adjuntar al menos una foto o PDF de factura');
-                    }
-                    imagenesInput?.focus();
-                    return false;
-                }
-
                 if (window.swConfirm) {
                     e.preventDefault();
                     swConfirm({
-                        title: 'Crear proveedor',
-                        text: '¿Desea guardar este nuevo proveedor?',
+                        title: 'Actualizar proveedor',
+                        text: '¿Desea guardar los cambios de este proveedor?',
                         icon: 'question',
                         confirmButtonText: 'Sí, guardar'
                     }).then((result) => {
@@ -391,27 +382,6 @@
                 }
             });
         }
-
-        const errorMsg = @json(session('error'));
-        if (errorMsg && window.swAlert) {
-            swAlert({
-                icon: 'error',
-                title: 'Error',
-                text: errorMsg,
-                confirmButtonColor: '#dc2626'
-            });
-        }
-
-        @if ($errors->any())
-        if (window.swAlert) {
-            swAlert({
-                icon: 'error',
-                title: 'Error',
-                html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
-                confirmButtonColor: '#dc2626'
-            });
-        }
-        @endif
     });
 </script>
 @endpush
