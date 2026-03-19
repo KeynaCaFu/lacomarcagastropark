@@ -23,6 +23,8 @@ class SupplierController extends Controller
     {
         $filters = [
             'search' => $request->input('buscar'),
+            'fecha_desde' => $request->input('fecha_desde'),
+            'fecha_hasta' => $request->input('fecha_hasta'),
             'sort_by' => $request->input('sort_by', 'recent')
         ];
 
