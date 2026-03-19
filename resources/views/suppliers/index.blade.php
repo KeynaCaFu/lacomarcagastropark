@@ -301,7 +301,7 @@
                         <th>Email</th>
                         <th>Registrado</th>
                         <th>Última Compra</th>
-                        <th style="text-align: right;">Acciones</th>
+                        <th style="text-align: center;">Acciones</th>
                     </tr>
                 </thead>
 
