@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Data\SupplierData;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class SupplierController extends Controller
 {
@@ -181,4 +182,223 @@ class SupplierController extends Controller
 
         return false;
     }
+
+
+    /**
+ * Mostrar formulario para editar proveedor
+ */
+public function edit($id)
+{
+    $supplier = $this->supplierData->find($id);
+
+    if (!$supplier) {
+        return redirect()->route('suppliers.index')
+            ->with('error', 'Proveedor no encontrado');
+    }
+
+    if (!$this->canAccessSupplier($id)) {
+        return redirect()->route('suppliers.index')
+            ->with('error', 'No tienes acceso a este proveedor');
+    }
+
+    return view('suppliers.edit', compact('supplier'));
 }
+
+/**
+ * Actualizar proveedor
+ */
+public function update(Request $request, $id)
+{
+    $supplier = $this->supplierData->find($id);
+
+    if (!$supplier) {
+        return redirect()->route('suppliers.index')
+            ->with('error', 'Proveedor no encontrado');
+    }
+
+    if (!$this->canAccessSupplier($id)) {
+        return redirect()->route('suppliers.index')
+            ->with('error', 'No tienes acceso a este proveedor');
+    }
+
+    $validated = $request->validate([
+    'nombre' => [
+        'required',
+        'string',
+        'max:255',
+        'regex:/^[A-Za-zÁÉÍÓÚáéíóúñÑ ]+$/',
+        'unique:tbsupplier,name,' . $id . ',supplier_id'
+    ],
+    'telefono' => [
+        'required',
+        'digits:8',
+        'unique:tbsupplier,phone,' . $id . ',supplier_id'
+    ],
+    'email' => [
+        'required',
+        'email',
+        'max:255',
+        'regex:/^[a-zA-Z0-9._%+\-]+@gmail\.com$/',
+        'unique:tbsupplier,email,' . $id . ',supplier_id'
+    ],
+    'imagenes' => ['nullable', 'array'],
+    'imagenes.*' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+], [
+    'nombre.required' => 'El nombre del proveedor es obligatorio',
+    'nombre.regex' => 'El nombre solo puede contener letras y espacios',
+    'nombre.unique' => 'Ya existe un proveedor con ese nombre',
+
+    'telefono.required' => 'El teléfono es obligatorio',
+    'telefono.digits' => 'El teléfono debe tener exactamente 8 números y no permite letras',
+    'telefono.unique' => 'Ya existe un proveedor con ese teléfono',
+
+    'email.required' => 'El correo electrónico es obligatorio',
+    'email.email' => 'El correo electrónico no es válido',
+    'email.regex' => 'El correo debe ser @gmail.com',
+    'email.unique' => 'Ya existe un proveedor con ese correo',
+
+    'imagenes.*.mimes' => 'Los archivos deben ser JPG, JPEG, PNG o PDF',
+    'imagenes.*.max' => 'Cada archivo no debe superar los 5MB',
+]);
+    $data = [
+        'name' => $validated['nombre'],
+        'phone' => $validated['telefono'],
+        'email' => $validated['email'],
+    ];
+
+    $this->supplierData->update($id, $data);
+
+    // Agregar nuevas facturas/archivos si se subieron
+    if ($request->hasFile('imagenes')) {
+        $uploadDir = public_path('images/proveedor');
+
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        foreach ($request->file('imagenes') as $file) {
+            $extension = $file->getClientOriginalExtension();
+            $filename = time() . '_' . uniqid() . '.' . $extension;
+            $file->move($uploadDir, $filename);
+
+            DB::table('tbsupplier_gallery')->insert([
+                'supplier_id' => $supplier->supplier_id,
+                'image_path' => 'images/proveedor/' . $filename,
+                'description' => $file->getClientOriginalName(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+    }
+
+    return redirect()->route('suppliers.show', $id)
+        ->with('success', 'Proveedor actualizado exitosamente');
+}
+
+/**
+ * Eliminar proveedor
+ */
+public function destroy($id)
+{
+    $supplier = $this->supplierData->find($id);
+
+    if (!$supplier) {
+        return redirect()->route('suppliers.index')
+            ->with('error', 'Proveedor no encontrado');
+    }
+
+    if (!$this->canAccessSupplier($id)) {
+        return redirect()->route('suppliers.index')
+            ->with('error', 'No tienes acceso a este proveedor');
+    }
+
+    // Eliminar archivos físicos de la galería
+    if ($supplier->gallery && count($supplier->gallery) > 0) {
+        foreach ($supplier->gallery as $item) {
+            if (!empty($item->image_path)) {
+                $fullPath = public_path($item->image_path);
+                if (File::exists($fullPath)) {
+                    File::delete($fullPath);
+                }
+            }
+        }
+    }
+
+    // Eliminar galería
+    DB::table('tbsupplier_gallery')
+        ->where('supplier_id', $id)
+        ->delete();
+
+    // Eliminar relación con locales si existe
+    DB::table('tblocal_supplier')
+        ->where('supplier_id', $id)
+        ->delete();
+
+    // Eliminar proveedor
+    $this->supplierData->delete($id);
+
+    return redirect()->route('suppliers.index')
+        ->with('success', 'Proveedor eliminado exitosamente');
+}
+
+
+public function storeGallery(Request $request, $id)
+{
+    $supplier = $this->supplierData->find($id);
+
+    if (!$supplier) {
+        return redirect()->route('suppliers.index')
+            ->with('error', 'Proveedor no encontrado');
+    }
+
+    if (!$this->canAccessSupplier($id)) {
+        return redirect()->route('suppliers.index')
+            ->with('error', 'No tienes acceso a este proveedor');
+    }
+
+    $validated = $request->validate([
+        'imagenes' => ['required', 'array', 'min:1'],
+        'imagenes.*' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+    ], [
+        'imagenes.required' => 'Debe adjuntar al menos una imagen o PDF de factura',
+        'imagenes.array' => 'El formato de archivos no es válido',
+        'imagenes.min' => 'Debe adjuntar al menos una imagen o PDF de factura',
+        'imagenes.*.mimes' => 'Los archivos deben ser JPG, JPEG, PNG o PDF',
+        'imagenes.*.max' => 'Cada archivo no debe superar los 5MB',
+    ]);
+
+    $uploadDir = public_path('images/proveedor');
+
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+
+    foreach ($request->file('imagenes') as $file) {
+        $extension = $file->getClientOriginalExtension();
+        $filename = time() . '_' . uniqid() . '.' . $extension;
+        $file->move($uploadDir, $filename);
+
+        DB::table('tbsupplier_gallery')->insert([
+            'supplier_id' => $supplier->supplier_id,
+            'image_path' => 'images/proveedor/' . $filename,
+            'description' => $file->getClientOriginalName(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    return redirect()->route('suppliers.show', $id)
+        ->with('success', 'Facturas agregadas exitosamente');
+}
+    
+
+
+
+
+
+
+
+
+    
+}
+

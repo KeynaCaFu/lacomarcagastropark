@@ -98,7 +98,7 @@
 
         .btn-view:hover {
             background: #0ea5e9;
-            
+            color: white;
         }
 
         .btn-edit {
@@ -109,7 +109,7 @@
 
         .btn-edit:hover {
             background: #848380;
-            
+            color: white;
         }
 
         .btn-delete {
@@ -120,7 +120,7 @@
 
         .btn-delete:hover {
             background: #dc2626;
-            
+            color: white;
         }
 
         .btn-action-small {
@@ -205,7 +205,7 @@
 
         .filter-select {
             padding: 6px 10px;
-           border: 1px solid #db8a21;
+            border: 1px solid #db8a21;
             border-radius: 6px;
             font-size: 13px;
             transition: border-color 0.3s ease;
