@@ -205,4 +205,44 @@
 
 </div>
 </div>
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    document.querySelectorAll('form').forEach(function(form) {
+
+        const methodInput = form.querySelector('input[name="_method"][value="DELETE"]');
+
+        if (methodInput) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                if (window.swConfirm) {
+                    swConfirm({
+                        title: 'Eliminar proveedor',
+                        text: '¿Está seguro de eliminar este proveedor?',
+                        icon: 'warning',
+                        confirmButtonColor: '#dc2626',
+                        confirmButtonText: 'Sí, eliminar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                } else {
+                    if (confirm('¿Está seguro de eliminar este proveedor?')) {
+                        form.submit();
+                    }
+                }
+            });
+        }
+
+    });
+
+});
+</script>
+@endpush
+
+
+
 @endsection

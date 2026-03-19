@@ -288,13 +288,38 @@
         <div class="supplier-card-header">
             <span>Galería de Facturas ({{ $gallery->count() }})</span>
 
-            <a href="{{ route('suppliers.edit', $supplier->supplier_id) }}" class="supplier-btn supplier-btn-add">
-                <i class="fas fa-plus"></i>
-                Agregar facturas
-            </a>
+            <form action="{{ route('suppliers.gallery.store', $supplier->supplier_id) }}"
+                  method="POST"
+                  enctype="multipart/form-data"
+                  id="galleryUploadForm"
+                  style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:0;">
+                @csrf
+
+                <input type="file"
+                       id="imagenesGaleria"
+                       name="imagenes[]"
+                       accept="image/*,.pdf"
+                       multiple
+                       style="display:none;">
+
+                <button type="button" id="selectGalleryFilesBtn" class="supplier-btn supplier-btn-add">
+                    <i class="fas fa-plus"></i>
+                    Agregar facturas
+                </button>
+
+                <button type="submit" id="uploadGalleryBtn" class="supplier-btn supplier-btn-add" style="display:none;">
+                    <i class="fas fa-upload"></i>
+                    Subir
+                </button>
+            </form>
         </div>
 
         <div class="supplier-card-body">
+            <div id="galleryPreviewBox" style="display:none; margin-bottom:18px; padding:14px; border:2px dashed #e5e7eb; border-radius:12px; background:#fafafa;">
+                <div style="font-size:13px; color:#6b7280; margin-bottom:10px;">Archivos seleccionados:</div>
+                <div id="galleryPreviewList" style="display:flex; flex-direction:column; gap:6px;"></div>
+            </div>
+
             @if($gallery->count() > 0)
                 <div class="supplier-gallery-grid">
                     @foreach($gallery as $item)
@@ -335,3 +360,84 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const fileInput = document.getElementById('imagenesGaleria');
+    const selectBtn = document.getElementById('selectGalleryFilesBtn');
+    const uploadBtn = document.getElementById('uploadGalleryBtn');
+    const previewBox = document.getElementById('galleryPreviewBox');
+    const previewList = document.getElementById('galleryPreviewList');
+    const uploadForm = document.getElementById('galleryUploadForm');
+
+    console.log('fileInput:', fileInput);
+    console.log('selectBtn:', selectBtn);
+    console.log('uploadForm:', uploadForm);
+
+    if (selectBtn && fileInput) {
+        selectBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            fileInput.click();
+        });
+    }
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function () {
+            previewList.innerHTML = '';
+
+            if (fileInput.files && fileInput.files.length > 0) {
+                previewBox.style.display = 'block';
+                uploadBtn.style.display = 'inline-flex';
+
+                Array.from(fileInput.files).forEach((file) => {
+                    const item = document.createElement('div');
+                    item.style.fontSize = '13px';
+                    item.style.color = '#374151';
+                    item.textContent = file.name;
+                    previewList.appendChild(item);
+                });
+            } else {
+                previewBox.style.display = 'none';
+                uploadBtn.style.display = 'none';
+            }
+        });
+    }
+
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function (e) {
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                e.preventDefault();
+
+                if (window.swAlert) {
+                    swAlert({
+                        icon: 'warning',
+                        title: 'Archivo requerido',
+                        text: 'Debe seleccionar al menos una imagen o PDF'
+                    });
+                } else {
+                    alert('Debe seleccionar al menos una imagen o PDF');
+                }
+
+                return false;
+            }
+
+            if (window.swConfirm) {
+                e.preventDefault();
+
+                swConfirm({
+                    title: 'Agregar facturas',
+                    text: '¿Desea subir estos archivos a la galería del proveedor?',
+                    icon: 'question',
+                    confirmButtonText: 'Sí, subir'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        uploadForm.submit();
+                    }
+                });
+            }
+        });
+    }
+});
+</script>
+@endpush
