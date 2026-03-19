@@ -90,14 +90,12 @@
 
 <div class="products-container">
     
-    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" style="margin-bottom: 24px;">
         <ol class="breadcrumb" style="padding: 0; background: none;">
             <li class="breadcrumb-item active">Proveedores</li>
         </ol>
     </nav>
 
-    <!-- Header -->
     <div class="header-section">
         <h2 style="display: flex; align-items: center; gap: 12px;">
             <i class="fas fa-users" style="color: #c9690f;"></i> Gestión de Proveedores
@@ -109,7 +107,6 @@
         </div>
     </div>
 
-    <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card total">
             <div class="stat-icon"><i class="fas fa-users"></i></div>
@@ -120,7 +117,6 @@
         </div>
     </div>
 
-    <!-- Filtros -->
     <div class="filters-accordion">
         <button type="button" id="filtersToggle" class="filters-toggle">
             <i class="fas fa-chevron-down"></i>
@@ -135,7 +131,6 @@
         </div>
     </div>
 
-    <!-- TABLA -->
     <div class="table-wrapper" style="margin-top: 24px;">
         @if($suppliers && count($suppliers) > 0)
             <table class="table table-hover suppliers-table">
@@ -145,7 +140,6 @@
                         <th>Teléfono</th>
                         <th>Email</th>
                         <th>Registrado</th>
-                        <th>Última Compra</th>
                         <th style="text-align: right;">Acciones</th>
                     </tr>
                 </thead>
@@ -169,10 +163,6 @@
                         <td>
                             {{ $supplier->created_at ? $supplier->created_at->format('d/m/Y') : 'N/A' }}
                         </td>
-                        <td>
-                            <span class="suppliers-muted">Sin compras registradas</span>
-                        </td>
-
                         <td>
                             <div class="suppliers-actions">
 
@@ -205,6 +195,8 @@
 
 </div>
 </div>
+@endsection
+
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -217,6 +209,18 @@ document.addEventListener('DOMContentLoaded', function () {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
 
+                const ejecutarEliminacion = () => {
+                    if (window.confirmWithUndo) {
+                        confirmWithUndo({
+                            message: 'El proveedor se eliminará',
+                            delayMs: 8000,
+                            onConfirm: () => form.submit()
+                        });
+                    } else {
+                        form.submit();
+                    }
+                };
+
                 if (window.swConfirm) {
                     swConfirm({
                         title: 'Eliminar proveedor',
@@ -226,12 +230,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         confirmButtonText: 'Sí, eliminar'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            form.submit();
+                            ejecutarEliminacion();
                         }
                     });
                 } else {
                     if (confirm('¿Está seguro de eliminar este proveedor?')) {
-                        form.submit();
+                        ejecutarEliminacion();
                     }
                 }
             });
@@ -242,7 +246,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endpush
-
-
-
-@endsection
