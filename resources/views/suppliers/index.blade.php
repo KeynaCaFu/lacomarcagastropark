@@ -7,6 +7,22 @@
     <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
 
     <style>
+        .suppliers-table {
+            width: 100%;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+        }
+
+        .suppliers-table thead tr {
+            background: #c9ccc4 !important;
+        }
+
+        .suppliers-table thead th {
+            background: #c9ccc4 !important;
+            color: #374151 !important;
+            font-weight: 700 !important;
+            padding: 16px !important;
+            border-bottom: 1px solid #9ca3af !important;
         .suppliers-container {
             background: white;
             border-radius: 12px;
@@ -61,6 +77,12 @@
 
         .suppliers-table tbody tr {
             border-bottom: 1px solid #e5e7eb;
+        }
+
+        .suppliers-table tbody td {
+            padding: 16px !important;
+            vertical-align: middle !important;
+            color: #374151;
             background-color: #f4f4f4;
         }
 
@@ -74,6 +96,7 @@
         }
 
         .suppliers-link {
+            color: #374151 !important;
             color: #374151;
             text-decoration: none;
             font-weight: 500;
@@ -91,6 +114,18 @@
         }
 
         .btn-view {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .btn-edit {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-delete {
+            background: #fee2e2;
+            color: #dc2626;
             background: transparent;
             color: #0ea5e9;
             border-color: #0ea5e9;
@@ -125,12 +160,16 @@
 
         .btn-action-small {
             padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 12px;
             border-radius: 6px;
             font-size: 13px;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            border: none;
+            cursor: pointer;
             border: 2px solid;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -272,6 +311,9 @@
         </button>
 
         <div id="filtrosBody" class="search-filter-group closed">
+            <form method="GET" action="{{ route('suppliers.index') }}">
+                <input type="text" name="buscar" class="filter-select" placeholder="Buscar..." value="{{ request('buscar') }}">
+                <button type="submit" class="btn-action">Buscar</button>
             <form method="GET" action="{{ route('suppliers.index') }}" id="filterForm">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <label for="fecha_desde" style="font-size: 12px; font-weight: 500; color: #374151; white-space: nowrap;">Desde:</label>
@@ -301,6 +343,7 @@
                         <th>Email</th>
                         <th>Registrado</th>
                         <th>Última Compra</th>
+                        <th style="text-align: right;">Acciones</th>
                         <th style="text-align: center;">Acciones</th>
                     </tr>
                 </thead>
@@ -332,12 +375,24 @@
                             <div class="suppliers-actions">
 
                                 <a href="{{ route('suppliers.show', $supplier->supplier_id) }}"
+                                   class="btn-action-small btn-view">
                                    class="btn-action-small btn-view"
                                    title="Ver detalles">
                                     <i class="fas fa-eye"></i>
                                 </a>
 
                                 <a href="{{ route('suppliers.edit', $supplier->supplier_id) }}"
+                                   class="btn-action-small btn-edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+
+                                <form action="{{ route('suppliers.destroy', $supplier->supplier_id) }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-action-small btn-delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                                    class="btn-action-small btn-edit"
                                    title="Editar">
                                     <i class="fas fa-edit"></i>
@@ -361,6 +416,47 @@
 
 </div>
 </div>
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    document.querySelectorAll('form').forEach(function(form) {
+
+        const methodInput = form.querySelector('input[name="_method"][value="DELETE"]');
+
+        if (methodInput) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                if (window.swConfirm) {
+                    swConfirm({
+                        title: 'Eliminar proveedor',
+                        text: '¿Está seguro de eliminar este proveedor?',
+                        icon: 'warning',
+                        confirmButtonColor: '#dc2626',
+                        confirmButtonText: 'Sí, eliminar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                } else {
+                    if (confirm('¿Está seguro de eliminar este proveedor?')) {
+                        form.submit();
+                    }
+                }
+            });
+        }
+
+    });
+
+});
+</script>
+@endpush
+
+
+
+@endsection
 @endsection
 
 @push('scripts')
