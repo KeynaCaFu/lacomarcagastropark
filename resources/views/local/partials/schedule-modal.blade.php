@@ -57,7 +57,7 @@
             <form id="scheduleDeleteForm" method="POST" action="#" style="margin-top: 12px;">
                 @csrf
                 @method('DELETE')
-                <button type="button" id="btnDeleteSchedule" class="btn-schedule-action btn-schedule-delete" style="width: 100%; justify-content: center;">
+                <button type="button" id="btnDeleteSchedule" class="btn-schedule-action btn-schedule-delete" style="width: 40%; justify-content: center;">
                     <i class="fas fa-trash"></i> Eliminar horario del día
                 </button>
             </form>

@@ -26,6 +26,16 @@ class SupplierData
             $query->byLocal($filters['local_id']);
         }
 
+        // Filtro por fecha de registro - desde
+        if (!empty($filters['fecha_desde'])) {
+            $query->whereDate('created_at', '>=', $filters['fecha_desde']);
+        }
+
+        // Filtro por fecha de registro - hasta
+        if (!empty($filters['fecha_hasta'])) {
+            $query->whereDate('created_at', '<=', $filters['fecha_hasta']);
+        }
+
         // Ordenamiento
         $sortBy = $filters['sort_by'] ?? 'recent';
         switch ($sortBy) {

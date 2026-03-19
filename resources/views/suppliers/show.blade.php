@@ -347,6 +347,93 @@
                             </div>
                         </div>
                     @endforeach
+
+    {{-- Información General --}}
+    <div class="supplier-main-card">
+        <div class="supplier-card-header">Información General</div>
+        <div class="supplier-card-body">
+            <div class="supplier-info-grid">
+                <div class="supplier-info-item">
+                    <div class="label">Nombre</div>
+                    <div class="value">{{ $supplier->name }}</div>
+                </div>
+
+                <div class="supplier-info-item">
+                    <div class="label">Teléfono</div>
+                    <div class="value">{{ $supplier->phone }}</div>
+                </div>
+
+                <div class="supplier-info-item">
+                    <div class="label">Correo electrónico</div>
+                    <div class="value">{{ $supplier->email }}</div>
+                </div>
+
+                <div class="supplier-info-item">
+                    <div class="label">Estado</div>
+                    <div class="value">
+                        <span class="supplier-status-badge">Activo</span>
+                    </div>
+                </div>
+
+                <div class="supplier-info-item">
+                    <div class="label">Creado</div>
+                    <div class="value">{{ $created }}</div>
+                </div>
+
+                <div class="supplier-info-item">
+                    <div class="label">Última actualización</div>
+                    <div class="value">{{ $updated }}</div>
+                </div>
+
+                <div class="supplier-info-item">
+                    <div class="label">Cantidad de archivos</div>
+                    <div class="value">{{ $gallery->count() }}</div>
+                </div>
+            @else
+                <div style="color:#6b7280;">No hay facturas registradas para este proveedor.</div>
+            @endif
+        </div>
+    </div>
+
+    {{-- Galería --}}
+    <div class="supplier-gallery-card">
+        <div class="supplier-card-header">
+            <span>Galería de Facturas ({{ $gallery->count() }})</span>
+
+            <a href="{{ route('suppliers.edit', $supplier->supplier_id) }}" class="supplier-btn supplier-btn-add">
+                <i class="fas fa-plus"></i>
+                Agregar facturas
+            </a>
+        </div>
+
+        <div class="supplier-card-body">
+            @if($gallery->count() > 0)
+                <div class="supplier-gallery-grid">
+                    @foreach($gallery as $item)
+                        @php
+                            $path = $item->image_url ?? asset($item->image_path);
+                            $fileName = $item->description ?? ($item->image_path ?? 'Archivo');
+                            $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                            $isPdf = $ext === 'pdf';
+                        @endphp
+
+                        <div class="supplier-gallery-item">
+                            @if($isPdf)
+                                <div class="supplier-pdf-box">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>PDF</span>
+                                </div>
+                            @else
+                                <img src="{{ $path }}" alt="Factura">
+                            @endif
+
+                            <div class="supplier-gallery-name">{{ $fileName }}</div>
+
+                            <div class="supplier-file-actions">
+                                <span style="font-size: 12px; color: #6b7280;">Factura registrada</span>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             @else
                 <div style="color:#6b7280;">No hay facturas registradas para este proveedor.</div>
@@ -441,3 +528,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endpush
+@endsection

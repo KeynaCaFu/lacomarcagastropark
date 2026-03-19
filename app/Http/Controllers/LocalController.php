@@ -194,7 +194,6 @@ class LocalController extends Controller
         $locales = Local::with(['users' => function($q){ $q->where('role_id', 2); }])
             ->orderByDesc('created_at')
             ->get();
-
         // Obtener todos los usuarios con rol Gerente para el modal de creación
         $gerentes = \App\Models\User::where('role_id', 2)
             ->orderBy('full_name')
