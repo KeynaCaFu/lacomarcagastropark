@@ -58,7 +58,7 @@ class SupplierGallery extends Model
         }
 
         // Si empieza con images/proveedores/, usar asset()
-        if (str_starts_with($value, 'images/proveedores/')) {
+        if (str_starts_with($value, 'images/proveedor/')) {
             return asset($value);
         }
 

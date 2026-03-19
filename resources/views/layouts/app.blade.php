@@ -374,7 +374,7 @@
                         <div class="top-search-bar" style="display: flex; align-items: center; flex: 1; max-width: 400px;">
                             <div style="position: relative; width: 100%; display: flex; gap: 6px;">
                                 <div style="position: relative; flex: 1;">
-                                    <input type="text" id="topSearchInput" placeholder="Buscar por nombre..." style="width: 100%; padding: 8px 32px 8px 36px; border: 1px solid #e5e7eb; border-radius: 8px 0 0 8px; font-size: 13px; background: #f9fafb; transition: all 0.3s ease;">
+                                    <input type="text" id="topSearchInput" placeholder="Buscar..." style="width: 100%; padding: 8px 32px 8px 36px; border: 1px solid #e5e7eb; border-radius: 8px 0 0 8px; font-size: 13px; background: #f9fafb; transition: all 0.3s ease;">
                                     <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 13px;"></i>
                                     <button type="button" id="clearSearchBtn" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #9ca3af; cursor: pointer; padding: 4px 8px; display: none; font-size: 14px;">
                                         <i class="fas fa-times"></i>
@@ -861,6 +861,12 @@
                         searchInput.value = '';
                         clearBtn.style.display = 'none';
                         searchInput.focus();
+                        
+                        // Si estamos en proveedores, recargar la tabla sin búsqueda
+                        const currentRoute = window.location.pathname;
+                        if (currentRoute.includes('proveedores')) {
+                            loadSuppliersAjax('/proveedores');
+                        }
                     });
                 }
                 
@@ -881,16 +887,56 @@
                     const query = searchInput.value.trim();
                     if (query) {
                         const currentRoute = window.location.pathname;
-                        if (currentRoute.includes('usuarios')) {
+                        if (currentRoute.includes('proveedores')) {
+                            // AJAX para proveedores sin refrescar la página
+                            loadSuppliersAjax(`/proveedores?buscar=${encodeURIComponent(query)}`);
+                        } else if (currentRoute.includes('usuarios')) {
                             window.location.href = `/usuarios?q=${encodeURIComponent(query)}`;
                         } else if (currentRoute.includes('eventos')) {
                             window.location.href = `/eventos?q=${encodeURIComponent(query)}`;
                         } else if (currentRoute.includes('productos')) {
                             window.location.href = `/productos?q=${encodeURIComponent(query)}`;
-                        } else if (currentRoute.includes('proveedores')) {
-                            window.location.href = `/proveedores?buscar=${encodeURIComponent(query)}`;
                         }
                     }
+                }
+
+                // Función AJAX para cargar proveedores sin refrescar
+                function loadSuppliersAjax(url) {
+                    const tableWrapper = document.querySelector('.table-wrapper');
+                    if (tableWrapper) {
+                        tableWrapper.style.opacity = '0.6';
+                        tableWrapper.style.pointerEvents = 'none';
+                    }
+                    
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'text/html',
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        const temp = document.createElement('div');
+                        temp.innerHTML = html;
+                        
+                        const newTable = temp.querySelector('.table-wrapper');
+                        
+                        if (newTable && tableWrapper) {
+                            tableWrapper.innerHTML = newTable.innerHTML;
+                            tableWrapper.style.opacity = '1';
+                            tableWrapper.style.pointerEvents = 'auto';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (tableWrapper) {
+                            tableWrapper.style.opacity = '1';
+                            tableWrapper.style.pointerEvents = 'auto';
+                        }
+                        if (window.swAlert) {
+                            swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al buscar proveedores' });
+                        }
+                    });
                 }
             }
         });

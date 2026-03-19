@@ -5,6 +5,228 @@
 @push('styles')
     <link href="{{ asset('css/modals.css') }}" rel="stylesheet">
     <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
+
+    <style>
+        .suppliers-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 24px;
+            margin-top: 50px;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        .suppliers-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .suppliers-table thead {
+            background: #c9ccc4;
+        }
+
+        .suppliers-table thead th {
+            background: #c9ccc4;
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .suppliers-table tbody td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #6b7280;
+        }
+
+        .suppliers-table tbody tr {
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #f4f4f4;
+        }
+
+        .suppliers-table tbody tr:hover {
+            background: #e8e8e8;
+        }
+
+        .suppliers-name {
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .suppliers-link {
+            color: #374151;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .suppliers-muted {
+            color: #9ca3af;
+        }
+
+        .suppliers-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .btn-view {
+            background: transparent;
+            color: #0ea5e9;
+            border-color: #0ea5e9;
+        }
+
+        .btn-view:hover {
+            background: #0ea5e9;
+            
+        }
+
+        .btn-edit {
+            background: transparent;
+            color: #3e3d3a;
+            border: 2px solid #43423f;
+        }
+
+        .btn-edit:hover {
+            background: #848380;
+            
+        }
+
+        .btn-delete {
+            background: transparent;
+            color: #dc2626;
+            border-color: #dc2626;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+            
+        }
+
+        .btn-action-small {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .filters-accordion {
+            margin-bottom: 12px;
+        }
+
+        .filters-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #e5e7eb;
+            background: #f8fafc;
+            color: #111827;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .filters-toggle i {
+            transition: transform 0.2s ease;
+        }
+
+        .filters-toggle.open i {
+            transform: rotate(180deg);
+        }
+
+        .filters-toggle:hover {
+            background: #f1f5f9;
+        }
+
+        #filtrosBody.closed {
+            display: none;
+        }
+
+        #filtrosBody.open {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .search-filter-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .search-filter-group form {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .filter-select {
+            padding: 6px 10px;
+           border: 1px solid #db8a21;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #dc860e;
+            background: #f0f9ff;
+        }
+
+        .search-filter-group .btn-action {
+            padding: 6px 14px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        .search-filter-group .btn-action:hover {
+            transform: translateY(-1px);
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -15,12 +237,11 @@
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" style="margin-bottom: 24px;">
         <ol class="breadcrumb" style="padding: 0; background: none;">
-            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
             <li class="breadcrumb-item active">Proveedores</li>
         </ol>
     </nav>
 
-    <!-- Header Section -->
+    <!-- Header -->
     <div class="header-section">
         <h2 style="display: flex; align-items: center; gap: 12px;">
             <i class="fas fa-users" style="color: #c9690f;"></i> Gestión de Proveedores
@@ -32,7 +253,7 @@
         </div>
     </div>
 
-    <!-- Tarjeta de estadísticas -->
+    <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card total">
             <div class="stat-icon"><i class="fas fa-users"></i></div>
@@ -43,141 +264,233 @@
         </div>
     </div>
 
-    <!-- Filtros en acordeón -->
+    <!-- Filtros -->
     <div class="filters-accordion">
-        <button type="button" id="filtersToggle" class="filters-toggle" aria-expanded="false" aria-controls="filtrosBody">
+        <button type="button" id="filtersToggle" class="filters-toggle">
             <i class="fas fa-chevron-down"></i>
-            Buscar Proveedores
+            Filtrar por fecha
         </button>
-        <div id="filtrosBody" class="search-filter-group closed" role="region" aria-labelledby="filtersToggle">
-            <form method="GET" action="{{ route('suppliers.index') }}" id="filtrosForm" style="display: flex; gap: 12px; flex-wrap: wrap; width: 100%;">
-                <input type="text" 
-                       name="buscar" 
-                       class="filter-select" 
-                       placeholder="Buscar por nombre, teléfono o email..."
-                       value="{{ request('buscar') }}"
-                       style="flex: 1; min-width: 250px;">
+
+        <div id="filtrosBody" class="search-filter-group closed">
+            <form method="GET" action="{{ route('suppliers.index') }}" id="filterForm">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label for="fecha_desde" style="font-size: 12px; font-weight: 500; color: #374151; white-space: nowrap;">Desde:</label>
+                    <input type="date" id="fecha_desde" name="fecha_desde" class="filter-select" lang="es-ES" value="{{ request('fecha_desde') }}">
+                </div>
                 
-                <select name="sort_by" class="filter-select" style="min-width: 180px;">
-                    <option value="recent" {{ $currentSort === 'recent' ? 'selected' : '' }}>Más Recientes</option>
-                    <option value="oldest" {{ $currentSort === 'oldest' ? 'selected' : '' }}>Más Antiguos</option>
-                    <option value="name_asc" {{ $currentSort === 'name_asc' ? 'selected' : '' }}>Nombre (A-Z)</option>
-                    <option value="name_desc" {{ $currentSort === 'name_desc' ? 'selected' : '' }}>Nombre (Z-A)</option>
-                </select>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label for="fecha_hasta" style="font-size: 12px; font-weight: 500; color: #374151; white-space: nowrap;">Hasta:</label>
+                    <input type="date" id="fecha_hasta" name="fecha_hasta" class="filter-select" lang="es-ES" value="{{ request('fecha_hasta') }}">
+                </div>
                 
-                <button type="submit" class="btn-action" style="background: #0ea5e9; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
-                    <i class="fas fa-search"></i> Buscar
-                </button>
-                
-                @if(request('buscar') || request('sort_by'))
-                <a href="{{ route('suppliers.index') }}" class="btn-action" style="background: #e5e7eb; color: #374151; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                <button type="button" id="clearFilterBtn" class="btn-action" style="color: #374151; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; font-size: 12px; border: none; cursor: pointer;">
                     <i class="fas fa-redo"></i> Limpiar
-                </a>
-                @endif
+                </button>
             </form>
         </div>
     </div>
 
-    <!-- Tabla de Proveedores -->
+    <!-- TABLA -->
     <div class="table-wrapper" style="margin-top: 24px;">
         @if($suppliers && count($suppliers) > 0)
-            <table class="table table-hover" style="margin: 0;">
-                <thead style="background: #f8fafc; border-bottom: 2px solid #e5e7eb;">
+            <table class="table table-hover suppliers-table">
+                <thead>
                     <tr>
-                        <th style="padding: 16px; font-weight: 600; color: #475569;">Nombre</th>
-                        <th style="padding: 16px; font-weight: 600; color: #475569;">Teléfono</th>
-                        <th style="padding: 16px; font-weight: 600; color: #475569;">Email</th>
-                        <th style="padding: 16px; font-weight: 600; color: #475569;">Registrado</th>
-                        <th style="padding: 16px; font-weight: 600; color: #475569;">Última Compra</th>
-                        <th style="padding: 16px; font-weight: 600; color: #475569; text-align: right;">Acciones</th>
+                        <th>Nombre</th>
+                        <th>Teléfono</th>
+                        <th>Email</th>
+                        <th>Registrado</th>
+                        <th>Última Compra</th>
+                        <th style="text-align: center;">Acciones</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     @foreach($suppliers as $supplier)
-                    <tr style="border-bottom: 1px solid #e5e7eb;">
-                        <td style="padding: 16px;">
-                            <strong>{{ $supplier->name }}</strong>
+                    <tr>
+                        <td>
+                            <strong class="suppliers-name">{{ $supplier->name }}</strong>
                         </td>
-                        <td style="padding: 16px;">
-                            <a href="tel:{{ $supplier->phone }}" style="color: #0ea5e9; text-decoration: none;">
+                        <td>
+                            <a href="tel:{{ $supplier->phone }}" class="suppliers-link">
                                 {{ $supplier->phone }}
                             </a>
                         </td>
-                        <td style="padding: 16px;">
-                            <a href="mailto:{{ $supplier->email }}" style="color: #0ea5e9; text-decoration: none;">
+                        <td>
+                            <a href="mailto:{{ $supplier->email }}" class="suppliers-link">
                                 {{ $supplier->email }}
                             </a>
                         </td>
-                        <td style="padding: 16px; font-size: 12px; color: #64748b;">
+                        <td>
                             {{ $supplier->created_at ? $supplier->created_at->format('d/m/Y') : 'N/A' }}
                         </td>
-                        <td style="padding: 16px; font-size: 12px; color: #64748b;">
-                            <span style="color: #94a3b8;">Sin compras registradas</span>
+                        <td>
+                            <span class="suppliers-muted">Sin compras registradas</span>
                         </td>
-                        <td style="padding: 16px; text-align: right;">
-                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                                <a href="{{ route('suppliers.show', $supplier->supplier_id) }}" title="Ver detalles" class="btn-action-small" style="background: #e0f2fe; color: #0284c7; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 12px;">
+
+                        <td>
+                            <div class="suppliers-actions">
+
+                                <a href="{{ route('suppliers.show', $supplier->supplier_id) }}"
+                                   class="btn-action-small btn-view"
+                                   title="Ver detalles">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{{ route('suppliers.edit', $supplier->supplier_id) }}" title="Editar" class="btn-action-small" style="background: #fef3c7; color: #a16207; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 12px;">
+
+                                <a href="{{ route('suppliers.edit', $supplier->supplier_id) }}"
+                                   class="btn-action-small btn-edit"
+                                   title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('suppliers.destroy', $supplier->supplier_id) }}" method="POST" style="display: inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" title="Eliminar" class="btn-action-small" style="background: #fee2e2; color: #dc2626; padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; font-size: 12px;" onclick="return confirm('¿Estás seguro de que deseas eliminar este proveedor?');">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+
+                                <button type="button" 
+                                        class="btn-action-small btn-delete"
+                                        onclick="deleteSupplier({{ $supplier->supplier_id }}, '{{ $supplier->name }}')"
+                                        title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+
                             </div>
                         </td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
-
-            <!-- Paginación -->
-            @if(method_exists($suppliers, 'links'))
-            <div style="margin-top: 20px; display: flex; justify-content: center;">
-                {{ $suppliers->onEachSide(1)->links() }}
-            </div>
-            @endif
-        @else
-            <div style="padding: 40px; text-align: center; color: #94a3b8;">
-                <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 12px; opacity: 0.5;"></i>
-                <p style="font-size: 16px; margin: 0;">No hay proveedores registrados</p>
-                <a href="{{ route('suppliers.create') }}" class="btn-create" style="margin-top: 16px; display: inline-block;">
-                    <i class="fas fa-plus"></i> Crear el primer proveedor
-                </a>
-            </div>
         @endif
     </div>
 
 </div>
+</div>
+@endsection
 
 @push('scripts')
 <script>
-    // Toggle para filtros
-    document.addEventListener('DOMContentLoaded', function() {
-        const filtersToggle = document.getElementById('filtersToggle');
-        const filtersBody = document.getElementById('filtrosBody');
+async function deleteSupplier(supplierId, supplierName) {
+    if (window.swConfirm) {
+        const result = await swConfirm({
+            title: 'Eliminar proveedor',
+            text: `¿Está seguro de que desea eliminar a ${supplierName}?`,
+            icon: 'warning',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#dc2626'
+        });
         
-        if (filtersToggle && filtersBody) {
-            filtersToggle.addEventListener('click', () => {
-                const isClosed = filtersBody.classList.contains('closed');
-                if (isClosed) {
-                    filtersBody.classList.remove('closed');
-                    filtersToggle.classList.add('open');
-                    filtersToggle.setAttribute('aria-expanded', 'true');
-                } else {
-                    filtersBody.classList.add('closed');
-                    filtersToggle.classList.remove('open');
-                    filtersToggle.setAttribute('aria-expanded', 'false');
-                }
-            });
+        if (result.isConfirmed) {
+            // Crear un formulario temporal para enviar
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/proveedores/${supplierId}`;
+            form.innerHTML = `
+                @csrf
+                @method('DELETE')
+            `;
+            document.body.appendChild(form);
+            form.submit();
         }
-    });
+    } else {
+        const ok = confirm(`¿Está seguro de que desea eliminar a ${supplierName}?`);
+        if (ok) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/proveedores/${supplierId}`;
+            form.innerHTML = `
+                @csrf
+                @method('DELETE')
+            `;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+}
+
+// Manejar el acordeón de filtros
+(function() {
+    const toggleBtn = document.getElementById('filtersToggle');
+    const filtrosBody = document.getElementById('filtrosBody');
+
+    if (toggleBtn && filtrosBody) {
+        toggleBtn.addEventListener('click', function() {
+            filtrosBody.classList.toggle('closed');
+            filtrosBody.classList.toggle('open');
+            toggleBtn.classList.toggle('open');
+        });
+    }
+})();
+
+// Manejar el formulario de filtros con AJAX
+(function() {
+    const filterForm = document.getElementById('filterForm');
+    const fechaDesde = document.getElementById('fecha_desde');
+    const fechaHasta = document.getElementById('fecha_hasta');
+    const clearBtn = document.getElementById('clearFilterBtn');
+    
+    function loadSuppliers(url) {
+        // Mostrar indicador de carga
+        const tableWrapper = document.querySelector('.table-wrapper');
+        if (tableWrapper) {
+            tableWrapper.style.opacity = '0.6';
+            tableWrapper.style.pointerEvents = 'none';
+        }
+        
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'text/html',
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Crear un elemento temporal para parsear el HTML
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            
+            // Extraer la tabla nueva
+            const newTable = temp.querySelector('.table-wrapper');
+            
+            if (newTable && tableWrapper) {
+                // Reemplazar la tabla con la nueva
+                tableWrapper.innerHTML = newTable.innerHTML;
+                tableWrapper.style.opacity = '1';
+                tableWrapper.style.pointerEvents = 'auto';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (tableWrapper) {
+                tableWrapper.style.opacity = '1';
+                tableWrapper.style.pointerEvents = 'auto';
+            }
+            if (window.swAlert) {
+                swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al filtrar los proveedores' });
+            }
+        });
+    }
+    
+    function applyFilter() {
+        const formData = new FormData(filterForm);
+        const queryString = new URLSearchParams(formData).toString();
+        loadSuppliers(`{{ route('suppliers.index') }}?${queryString}`);
+    }
+    
+    // Aplicar filtro automáticamente cuando cambien las fechas
+    if (fechaDesde) {
+        fechaDesde.addEventListener('change', applyFilter);
+    }
+    
+    if (fechaHasta) {
+        fechaHasta.addEventListener('change', applyFilter);
+    }
+    
+    // Limpiar filtros
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (fechaDesde) fechaDesde.value = '';
+            if (fechaHasta) fechaHasta.value = '';
+            loadSuppliers('{{ route('suppliers.index') }}');
+        });
+    }
+})();
 </script>
 @endpush
-
-@endsection
