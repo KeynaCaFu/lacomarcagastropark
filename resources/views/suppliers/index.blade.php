@@ -329,15 +329,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!response.ok) return;
 
             const html = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const newTable = doc.querySelector('#suppliersTableContainer');
             const currentTable = document.getElementById('suppliersTableContainer');
 
-            if (newTable && currentTable) {
-                currentTable.innerHTML = newTable.innerHTML;
-                attachDeleteEvents();
-            }
+                if (currentTable) {
+                    currentTable.innerHTML = html;
+                     attachDeleteEvents();
+                    }
         } catch (error) {
             console.error('Error al filtrar proveedores:', error);
         }
@@ -350,11 +347,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (clearDateIcon) {
-        clearDateIcon.addEventListener('click', function () {
-            if (fecha) fecha.value = '';
-            updateClearIcon();
-        });
-    }
+    clearDateIcon.addEventListener('click', function () {
+        if (fecha) fecha.value = '';
+        updateClearIcon();
+        loadFilteredSuppliers();
+    });
+}
 
     if (searchDateBtn) {
         searchDateBtn.addEventListener('click', function () {

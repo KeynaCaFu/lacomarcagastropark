@@ -29,7 +29,7 @@ class SupplierData
 
     // Filtro por una sola fecha
     if (!empty($filters['fecha'])) {
-        $query->whereDate('created_at', '=', $filters['fecha']);
+        $query->whereDate('tbsupplier.created_at', '=', $filters['fecha']);
     }
 
     // Ordenamiento
