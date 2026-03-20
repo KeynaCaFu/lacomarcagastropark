@@ -19,39 +19,39 @@ class SupplierController extends Controller
     /**
      * Mostrar lista de Proveedores con filtros
      */
-    public function index(Request $request)
-    {
-        $filters = [
-            'search' => $request->input('buscar'),
-            'fecha_desde' => $request->input('fecha_desde'),
-            'fecha_hasta' => $request->input('fecha_hasta'),
-            'sort_by' => $request->input('sort_by', 'recent')
-        ];
+   public function index(Request $request)
+{
+    $filters = [
+        'search' => $request->input('buscar'),
+        'fecha' => $request->input('fecha'),
+        'sort_by' => $request->input('sort_by', 'recent')
+    ];
 
-        // Si el usuario es gerente, filtrar por su local
-        $user = auth()->user();
-        if ($user->isAdminLocal()) {
-            // Obtener el primer local del gerente
-            $local = $user->locals()->first();
-            if ($local) {
-                $filters['local_id'] = $local->local_id;
-                $suppliers = $this->supplierData->all($filters);
-                $totals = $this->supplierData->countTotalsByLocal($local->local_id);
-            } else {
-                // Si el gerente no tiene local asignado, retornar vacío
-                $suppliers = [];
-                $totals = ['total' => 0];
-            }
-        } else {
-            // Admin global ve todos los proveedores
+    $user = auth()->user();
+
+    if ($user->isAdminLocal()) {
+        $local = $user->locals()->first();
+
+        if ($local) {
+            $filters['local_id'] = $local->local_id;
             $suppliers = $this->supplierData->all($filters);
-            $totals = $this->supplierData->countTotals();
+            $totals = $this->supplierData->countTotalsByLocal($local->local_id);
+        } else {
+            $suppliers = collect([]);
+            $totals = ['total' => 0];
         }
-
-        $currentSort = $request->input('sort_by', 'recent');
-        return view('suppliers.index', compact('suppliers', 'totals', 'currentSort'));
+    } else {
+        $suppliers = $this->supplierData->all($filters);
+        $totals = $this->supplierData->countTotals();
     }
 
+    if ($request->ajax()) {
+        return view('suppliers.table', compact('suppliers'))->render();
+    }
+
+    $currentSort = $request->input('sort_by', 'recent');
+    return view('suppliers.index', compact('suppliers', 'totals', 'currentSort'));
+}
     /**
      * Mostrar formulario para crear nuevo Proveedor
      */
