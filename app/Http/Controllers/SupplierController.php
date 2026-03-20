@@ -67,7 +67,7 @@ class SupplierController extends Controller
     {
         $validated = $request->validate([
     'nombre' => ['required', 'string', 'max:255', 'unique:tbsupplier,name', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúñÑ ]+$/'],
-    'telefono' => ['required', 'digits:8'],
+   'telefono' => ['required', 'regex:/^\d{4}-\d{4}$/', 'unique:tbsupplier,phone'],
     'email' => ['required', 'email', 'max:255', 'unique:tbsupplier,email', 'regex:/^[a-zA-Z0-9._%+\-]+@gmail\.com$/'],
     'imagenes' => 'required|array|min:1',
     'imagenes.*' => 'required|file|mimes:jpeg,png,jpg,pdf|max:5120'
@@ -76,7 +76,8 @@ class SupplierController extends Controller
     'nombre.regex' => 'El nombre solo puede contener letras',
     'nombre.unique' => 'Ya existe un proveedor con este nombre',
     'telefono.required' => 'El teléfono es obligatorio',
-    'telefono.digits' => 'El teléfono debe tener exactamente 8 números y no permite letras',
+    'telefono.regex' => 'El teléfono debe tener el formato 0000-0000',
+    'telefono.unique' => 'Ya existe un proveedor con ese teléfono',
     'email.required' => 'El email es obligatorio',
     'email.email' => 'El email debe ser válido',
     'email.unique' => 'Ya existe un proveedor con este email',
@@ -231,8 +232,8 @@ public function update(Request $request, $id)
     ],
     'telefono' => [
         'required',
-        'digits:8',
-        'unique:tbsupplier,phone,' . $id . ',supplier_id'
+    'regex:/^\d{4}-\d{4}$/',
+    'unique:tbsupplier,phone,' . $id . ',supplier_id'
     ],
     'email' => [
         'required',
@@ -249,7 +250,7 @@ public function update(Request $request, $id)
     'nombre.unique' => 'Ya existe un proveedor con ese nombre',
 
     'telefono.required' => 'El teléfono es obligatorio',
-    'telefono.digits' => 'El teléfono debe tener exactamente 8 números y no permite letras',
+    'telefono.regex' => 'El teléfono debe tener el formato 0000-0000',
     'telefono.unique' => 'Ya existe un proveedor con ese teléfono',
 
     'email.required' => 'El correo electrónico es obligatorio',

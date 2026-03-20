@@ -95,10 +95,10 @@
                                                    class="form-control @error('telefono') is-invalid @enderror"
                                                    id="telefono"
                                                    name="telefono"
-                                                   value="{{ old('telefono', $supplier->phone) }}"
+                                                   value="{{ old('telefono', isset($supplier) ? $supplier->phone : '') }}"
                                                    required
-                                                   maxlength="20"
-                                                   placeholder="+506 8765-4321">
+                                                   maxlength="9"
+                                                placeholder="8888-8888">
                                         </div>
 
                                         @error('telefono')
@@ -385,5 +385,30 @@
     });
 </script>
 @endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const telefono = document.getElementById('telefono');
+
+    if (telefono) {
+        telefono.addEventListener('input', function () {
+            let valor = this.value.replace(/\D/g, '');
+
+            if (valor.length > 8) {
+                valor = valor.slice(0, 8);
+            }
+
+            if (valor.length > 4) {
+                valor = valor.slice(0, 4) + '-' + valor.slice(4);
+            }
+
+            this.value = valor;
+        });
+    }
+});
+</script>
+@endpush
+
 
 @endsection
