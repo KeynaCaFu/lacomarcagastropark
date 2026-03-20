@@ -12,51 +12,46 @@ class SupplierData
     /**
      * Obtener todos los Proveedores con filtros opcionales
      */
-    public function all(array $filters = [])
-    {
-        $query = Supplier::select('tbsupplier.*')
+   public function all(array $filters = [])
+{
+    $query = Supplier::select('tbsupplier.*')
         ->selectRaw('(select count(*) from `tbsupplier_gallery` where `tbsupplier`.`supplier_id` = `tbsupplier_gallery`.`supplier_id`) as `gallery_count`');
-        // Filtro de búsqueda
-        if (!empty($filters['search'])) {
-            $query->search($filters['search']);
-        }
 
-        // Filtro por local (para gerentes)
-        if (!empty($filters['local_id'])) {
-            $query->byLocal($filters['local_id']);
-        }
-
-        // Filtro por fecha de registro - desde
-        if (!empty($filters['fecha_desde'])) {
-            $query->whereDate('created_at', '>=', $filters['fecha_desde']);
-        }
-
-        // Filtro por fecha de registro - hasta
-        if (!empty($filters['fecha_hasta'])) {
-            $query->whereDate('created_at', '<=', $filters['fecha_hasta']);
-        }
-
-        // Ordenamiento
-        $sortBy = $filters['sort_by'] ?? 'recent';
-        switch ($sortBy) {
-            case 'name_asc':
-                $query->orderBy('name', 'asc');
-                break;
-            case 'name_desc':
-                $query->orderBy('name', 'desc');
-                break;
-            case 'oldest':
-                $query->orderBy('created_at', 'asc');
-                break;
-            case 'recent':
-            default:
-                $query->orderBy('created_at', 'desc');
-                break;
-        }
-
-        // Paginación de 10 por página
-        return $query->paginate(10)->withQueryString();
+    // Filtro de búsqueda
+    if (!empty($filters['search'])) {
+        $query->search($filters['search']);
     }
+
+    // Filtro por local (para gerentes)
+    if (!empty($filters['local_id'])) {
+        $query->byLocal($filters['local_id']);
+    }
+
+    // Filtro por una sola fecha
+    if (!empty($filters['fecha'])) {
+        $query->whereDate('tbsupplier.created_at', '=', $filters['fecha']);
+    }
+
+    // Ordenamiento
+    $sortBy = $filters['sort_by'] ?? 'recent';
+    switch ($sortBy) {
+        case 'name_asc':
+            $query->orderBy('name', 'asc');
+            break;
+        case 'name_desc':
+            $query->orderBy('name', 'desc');
+            break;
+        case 'oldest':
+            $query->orderBy('created_at', 'asc');
+            break;
+        case 'recent':
+        default:
+            $query->orderBy('created_at', 'desc');
+            break;
+    }
+
+    return $query->paginate(10)->withQueryString();
+}
 
     /**
      * Obtener todos los Proveedores sin paginación
@@ -191,4 +186,20 @@ class SupplierData
         }
         return [];
     }
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+    
 }
