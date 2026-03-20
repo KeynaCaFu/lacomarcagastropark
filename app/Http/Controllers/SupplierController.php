@@ -19,39 +19,39 @@ class SupplierController extends Controller
     /**
      * Mostrar lista de Proveedores con filtros
      */
-    public function index(Request $request)
-    {
-        $filters = [
-            'search' => $request->input('buscar'),
-            'fecha_desde' => $request->input('fecha_desde'),
-            'fecha_hasta' => $request->input('fecha_hasta'),
-            'sort_by' => $request->input('sort_by', 'recent')
-        ];
+   public function index(Request $request)
+{
+    $filters = [
+        'search' => $request->input('buscar'),
+        'fecha' => $request->input('fecha'),
+        'sort_by' => $request->input('sort_by', 'recent')
+    ];
 
-        // Si el usuario es gerente, filtrar por su local
-        $user = auth()->user();
-        if ($user->isAdminLocal()) {
-            // Obtener el primer local del gerente
-            $local = $user->locals()->first();
-            if ($local) {
-                $filters['local_id'] = $local->local_id;
-                $suppliers = $this->supplierData->all($filters);
-                $totals = $this->supplierData->countTotalsByLocal($local->local_id);
-            } else {
-                // Si el gerente no tiene local asignado, retornar vacío
-                $suppliers = [];
-                $totals = ['total' => 0];
-            }
-        } else {
-            // Admin global ve todos los proveedores
+    $user = auth()->user();
+
+    if ($user->isAdminLocal()) {
+        $local = $user->locals()->first();
+
+        if ($local) {
+            $filters['local_id'] = $local->local_id;
             $suppliers = $this->supplierData->all($filters);
-            $totals = $this->supplierData->countTotals();
+            $totals = $this->supplierData->countTotalsByLocal($local->local_id);
+        } else {
+            $suppliers = collect([]);
+            $totals = ['total' => 0];
         }
-
-        $currentSort = $request->input('sort_by', 'recent');
-        return view('suppliers.index', compact('suppliers', 'totals', 'currentSort'));
+    } else {
+        $suppliers = $this->supplierData->all($filters);
+        $totals = $this->supplierData->countTotals();
     }
 
+    if ($request->ajax()) {
+        return view('suppliers.table', compact('suppliers'))->render();
+    }
+
+    $currentSort = $request->input('sort_by', 'recent');
+    return view('suppliers.index', compact('suppliers', 'totals', 'currentSort'));
+}
     /**
      * Mostrar formulario para crear nuevo Proveedor
      */
@@ -67,7 +67,7 @@ class SupplierController extends Controller
     {
         $validated = $request->validate([
     'nombre' => ['required', 'string', 'max:255', 'unique:tbsupplier,name', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúñÑ ]+$/'],
-    'telefono' => ['required', 'digits:8'],
+   'telefono' => ['required', 'regex:/^\d{4}-\d{4}$/', 'unique:tbsupplier,phone'],
     'email' => ['required', 'email', 'max:255', 'unique:tbsupplier,email', 'regex:/^[a-zA-Z0-9._%+\-]+@gmail\.com$/'],
     'imagenes' => 'required|array|min:1',
     'imagenes.*' => 'required|file|mimes:jpeg,png,jpg,pdf|max:5120'
@@ -76,7 +76,8 @@ class SupplierController extends Controller
     'nombre.regex' => 'El nombre solo puede contener letras',
     'nombre.unique' => 'Ya existe un proveedor con este nombre',
     'telefono.required' => 'El teléfono es obligatorio',
-    'telefono.digits' => 'El teléfono debe tener exactamente 8 números y no permite letras',
+    'telefono.regex' => 'El teléfono debe tener el formato 0000-0000',
+    'telefono.unique' => 'Ya existe un proveedor con ese teléfono',
     'email.required' => 'El email es obligatorio',
     'email.email' => 'El email debe ser válido',
     'email.unique' => 'Ya existe un proveedor con este email',
@@ -231,8 +232,8 @@ public function update(Request $request, $id)
     ],
     'telefono' => [
         'required',
-        'digits:8',
-        'unique:tbsupplier,phone,' . $id . ',supplier_id'
+    'regex:/^\d{4}-\d{4}$/',
+    'unique:tbsupplier,phone,' . $id . ',supplier_id'
     ],
     'email' => [
         'required',
@@ -249,7 +250,7 @@ public function update(Request $request, $id)
     'nombre.unique' => 'Ya existe un proveedor con ese nombre',
 
     'telefono.required' => 'El teléfono es obligatorio',
-    'telefono.digits' => 'El teléfono debe tener exactamente 8 números y no permite letras',
+    'telefono.regex' => 'El teléfono debe tener el formato 0000-0000',
     'telefono.unique' => 'Ya existe un proveedor con ese teléfono',
 
     'email.required' => 'El correo electrónico es obligatorio',

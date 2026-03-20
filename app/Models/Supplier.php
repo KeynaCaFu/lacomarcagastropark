@@ -43,14 +43,17 @@ class Supplier extends Model
      * Scope: Filtrar por búsqueda (nombre, teléfono, email)
      */
     public function scopeSearch($query, $term)
-    {
-        if (!empty($term)) {
-            return $query->where('name', 'like', "%{$term}%")
-                ->orWhere('phone', 'like', "%{$term}%")
-                ->orWhere('email', 'like', "%{$term}%");
-        }
-        return $query;
+{
+    if (!empty($term)) {
+        return $query->where(function ($q) use ($term) {
+            $q->where('name', 'like', "%{$term}%")
+              ->orWhere('phone', 'like', "%{$term}%")
+              ->orWhere('email', 'like', "%{$term}%");
+        });
     }
+
+    return $query;
+}
 
     /**
      * Scope: Filtrar proveedores de un local específico
