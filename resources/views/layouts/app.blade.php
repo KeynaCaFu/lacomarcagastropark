@@ -590,25 +590,26 @@
                     container = document.createElement('div');
                     container.id = containerId;
                     container.style.position = 'fixed';
-                    container.style.top = '20px';
-                    container.style.right = '20px';
-                    container.style.left = 'auto';
+                    container.style.bottom = '20px';
+                    container.style.left = '20px';
+                    container.style.right = 'auto';
+                    container.style.top = 'auto';
                     container.style.transform = 'none';
                     container.style.zIndex = '1060';
                     container.style.display = 'flex';
                     container.style.flexDirection = 'column';
-                    container.style.alignItems = 'flex-end';
+                    container.style.alignItems = 'flex-start';
                     document.body.appendChild(container);
                 }
 
                 const panel = document.createElement('div');
-                panel.style.background = '#ffffff';
-                panel.style.color = '#065f46';
-                panel.style.border = '1px solid #10b981';
+                panel.style.background = 'linear-gradient(135deg, #e18018, #c9690f)';
+                panel.style.color = '#ffffff';
+                panel.style.border = '1px solid #d97c13';
                 panel.style.borderRadius = '12px';
-                panel.style.boxShadow = '0 10px 24px rgba(0,0,0,0.08)';
+                panel.style.boxShadow = '0 10px 24px rgba(225, 128, 24, 0.15)';
                 panel.style.padding = '14px 16px';
-                panel.style.marginTop = '8px';
+                panel.style.marginBottom = '8px';
                 panel.style.maxWidth = '520px';
                 panel.style.display = 'flex';
                 panel.style.alignItems = 'center';
@@ -619,21 +620,34 @@
                 let remaining = Math.floor(remainingMs / 1000);
                 const baseMessage = message || 'Se eliminará el registro';
                 text.textContent = baseMessage;
+                text.style.fontWeight = '600';
 
                 const btnUndo = document.createElement('button');
                 btnUndo.textContent = 'Deshacer';
-                btnUndo.style.background = '#10b981';
-                btnUndo.style.color = '#ffffff';
+                btnUndo.style.background = '#ffffff';
+                btnUndo.style.color = '#e18018';
                 btnUndo.style.border = 'none';
                 btnUndo.style.borderRadius = '8px';
-                btnUndo.style.padding = '8px 12px';
+                btnUndo.style.padding = '8px 14px';
                 btnUndo.style.cursor = 'pointer';
+                btnUndo.style.fontWeight = '700';
+                btnUndo.style.transition = 'all 0.2s ease';
+                btnUndo.addEventListener('mouseover', () => {
+                    btnUndo.style.background = '#fff8f0';
+                    btnUndo.style.transform = 'translateY(-1px)';
+                });
+                btnUndo.addEventListener('mouseout', () => {
+                    btnUndo.style.background = '#ffffff';
+                    btnUndo.style.transform = 'translateY(0)';
+                });
 
                 const countdown = document.createElement('span');
                 countdown.style.marginLeft = 'auto';
                 countdown.style.fontSize = '12px';
-                countdown.style.color = '#065f46';
-                countdown.style.opacity = '0.8';
+                countdown.style.color = '#ffffff';
+                countdown.style.opacity = '0.9';
+                countdown.style.minWidth = '35px';
+                countdown.style.textAlign = 'right';
 
                 panel.appendChild(text);
                 panel.appendChild(btnUndo);

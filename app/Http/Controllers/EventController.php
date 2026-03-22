@@ -79,7 +79,6 @@ class EventController extends Controller
         try {
             $this->eventData->create($data);
         } catch (\Exception $e) {
-            \Log::error('Error creating event: ' . $e->getMessage());
             return redirect()->route('eventos.index')->with('error', 'Error al crear el evento: ' . $e->getMessage());
         }
 
@@ -158,7 +157,6 @@ class EventController extends Controller
         try {
             $this->eventData->update($evento->event_id, $data);
         } catch (\Exception $e) {
-            \Log::error('Error updating event: ' . $e->getMessage());
             return redirect()->route('eventos.index')->with('error', 'Error al actualizar el evento: ' . $e->getMessage());
         }
 
