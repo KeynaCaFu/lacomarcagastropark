@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LocalDashboardController;
@@ -100,12 +101,36 @@ Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
         Route::put('/{evento}', [EventController::class, 'update'])->name('actualizar');
         Route::delete('/{evento}', [EventController::class, 'destroy'])->name('eliminar');
     });
+
+    // Locales
+    Route::prefix('locales')->name('locales.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\LocalController::class, 'indexAdmin'])->name('index');
+        Route::post('/', [\App\Http\Controllers\LocalController::class, 'store'])->name('store');
+        Route::put('/{localId}', [\App\Http\Controllers\LocalController::class, 'updateAdmin'])->name('update');
+        Route::put('/{localId}/status', [\App\Http\Controllers\LocalController::class, 'updateStatus'])->name('update.status');
+        Route::delete('/{localId}', [\App\Http\Controllers\LocalController::class, 'destroy'])->name('destroy');
+    });
 });
 
 // ============================================================================
 // RUTAS PARA ADMIN LOCAL (Gerentes)
 // ============================================================================
 Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
+
+    // Mi Local
+    Route::prefix('mi-local')->name('local.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\LocalController::class, 'index'])->name('index');
+        Route::get('/editar', [\App\Http\Controllers\LocalController::class, 'edit'])->name('edit');
+        Route::put('/actualizar', [\App\Http\Controllers\LocalController::class, 'update'])->name('update');
+        Route::get('/galeria', [\App\Http\Controllers\LocalController::class, 'gallery'])->name('gallery');
+        Route::post('/galeria/subir', [\App\Http\Controllers\LocalController::class, 'galleryUpload'])->name('gallery.upload');
+        Route::delete('/galeria/{id}', [\App\Http\Controllers\LocalController::class, 'galleryDelete'])->name('gallery.delete');
+        Route::get('/horario', [\App\Http\Controllers\ScheduleController::class, 'schedule'])->name('schedule');
+        Route::post('/horario', [\App\Http\Controllers\ScheduleController::class, 'storeSchedule'])->name('schedule.store');
+        Route::put('/horario/{scheduleId}', [\App\Http\Controllers\ScheduleController::class, 'updateSchedule'])->name('schedule.update');
+        Route::delete('/horario/{scheduleId}', [\App\Http\Controllers\ScheduleController::class, 'destroySchedule'])->name('schedule.destroy');
+    });
+
     // Productos
     Route::prefix('productos')->name('products.')->group(function () {
         Route::get('/', [ProductController::class, 'index'])->name('index');
@@ -123,6 +148,23 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
         Route::get('/{id}/show-modal', [ProductController::class, 'showModal'])->name('show.modal');
         Route::get('/{id}/edit-modal', [ProductController::class, 'editModal'])->name('edit.modal');
     });
+
+    // Proveedores
+    Route::prefix('proveedores')->name('suppliers.')->group(function () {
+
+    Route::get('/', [SupplierController::class, 'index'])->name('index');
+    Route::get('/create', [SupplierController::class, 'create'])->name('create');
+    Route::post('/', [SupplierController::class, 'store'])->name('store');
+
+    Route::get('/{id}', [SupplierController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [SupplierController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [SupplierController::class, 'update'])->name('update');
+    Route::delete('/{id}', [SupplierController::class, 'destroy'])->name('destroy');
+
+    
+    Route::post('/{id}/galeria', [SupplierController::class, 'storeGallery'])->name('gallery.store');
+
+});
 });
 
 // ============================================================================

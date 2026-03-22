@@ -274,7 +274,7 @@
             }
         }
 
-    /* Estilo personalizado para botón de confirmación SweetAlert2 */
+        /* Estilo personalizado para botón de confirmación SweetAlert2 */
         .swal2-confirm {
             background: linear-gradient(135deg, #e18018, #c9690f) !important;
             color: white !important;
@@ -322,6 +322,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('locales.index') }}" class="{{ request()->routeIs('locales*') ? 'active' : '' }}" data-tooltip="Locales">
+                                    <i class="fas fa-store"></i> Locales
+                                </a>
+                            </li>
+
+                            <li>
                                 <a href="{{ route('eventos.index') }}" class="{{ request()->routeIs('eventos*') ? 'active' : '' }}" data-tooltip="Eventos">
                                     <i class="fas fa-calendar-days"></i> Eventos
                                 </a>
@@ -332,9 +338,21 @@
                                     <i class="fas fa-home"></i> Dashboard
                                 </a>
                             </li>
+    
+                            <li>
+                                <a href="{{ route('local.index') }}" class="{{ request()->routeIs('local*') ? 'active' : '' }}" data-tooltip="Mi Local">
+                                    <i class="fas fa-store"></i> Mi Local
+                                </a>
+                            </li>
                             <li>
                                 <a href="{{ route('products.index') }}" class="{{ request()->routeIs('products*') ? 'active' : '' }}" data-tooltip="Productos">
                                     <i class="fas fa-box"></i> Productos
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="{{ route('suppliers.index') }}" class="{{ request()->routeIs('suppliers*') ? 'active' : '' }}" data-tooltip="Proveedores">
+                                     <i class="fas fa-truck"></i> Proveedores
                                 </a>
                             </li>
                         @endif
@@ -345,7 +363,7 @@
             <!-- Contenido principal -->
             <main class="main-content" id="mainContent">
                 <!-- Top Navigation Bar -->
-                <div class="top-navbar" style="background: #fff;  padding: 8px 20px; margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-right: 0px; margin-left: -18px;">
+                <div class="top-navbar" style="background: #fff;  padding: 8px 20px; margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-right: -14px; margin-left: -18px;">
                     <div class="top-navbar-left" style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
                         <!-- Toggle Sidebar -->
                         <button class="navbar-toggle" id="navbarToggleBtn" style="background: none; border: none; cursor: pointer; padding: 8px; display: none;">
@@ -356,7 +374,7 @@
                         <div class="top-search-bar" style="display: flex; align-items: center; flex: 1; max-width: 400px;">
                             <div style="position: relative; width: 100%; display: flex; gap: 6px;">
                                 <div style="position: relative; flex: 1;">
-                                    <input type="text" id="topSearchInput" placeholder="Buscar por nombre..." style="width: 100%; padding: 8px 32px 8px 36px; border: 1px solid #e5e7eb; border-radius: 8px 0 0 8px; font-size: 13px; background: #f9fafb; transition: all 0.3s ease;">
+                                    <input type="text" id="topSearchInput" placeholder="Buscar..." style="width: 100%; padding: 8px 32px 8px 36px; border: 1px solid #e5e7eb; border-radius: 8px 0 0 8px; font-size: 13px; background: #f9fafb; transition: all 0.3s ease;">
                                     <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 13px;"></i>
                                     <button type="button" id="clearSearchBtn" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #9ca3af; cursor: pointer; padding: 4px 8px; display: none; font-size: 14px;">
                                         <i class="fas fa-times"></i>
@@ -403,6 +421,10 @@
                                         <a href="{{ route('users.index') }}" class="mobile-nav-item {{ request()->routeIs('users*') ? 'active' : '' }}">
                                             <i class="fas fa-users"></i> Usuarios
                                         </a>
+                                        <a href="{{ route('locales.index') }}" class="mobile-nav-item {{ request()->routeIs('locales*') ? 'active' : '' }}">
+                                            <i class="fas fa-store"></i> Locales
+                                        </a>
+
                                         <a href="{{ route('eventos.index') }}" class="mobile-nav-item {{ request()->routeIs('eventos*') ? 'active' : '' }}">
                                             <i class="fas fa-calendar-days"></i> Eventos
                                         </a>
@@ -413,6 +435,10 @@
                                         <a href="{{ route('products.index') }}" class="mobile-nav-item {{ request()->routeIs('products*') ? 'active' : '' }}">
                                             <i class="fas fa-box"></i> Productos
                                         </a>
+                                        <a href="{{ route('suppliers.index') }}" class="mobile-nav-item {{ request()->routeIs('suppliers*') ? 'active' : '' }}">
+                                            <i class="fas fa-truck"></i> Proveedores
+                                        </a>
+                                        
                                     @endif
                                 </div>
 
@@ -470,6 +496,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <!-- SweetAlert2 global (carga perezosa si falta) y helpers de estilo -->
     <script>
         (function(){
@@ -520,7 +547,6 @@
             };
 
             // Toast para notificaciones pequeñas en la esquina superior derecha
-            // Esperar a que Swal esté disponible antes de crear el mixin
             const initSwToast = () => {
                 if (typeof Swal !== 'undefined' && !window.swToast) {
                     window.swToast = Swal.mixin({
@@ -537,10 +563,8 @@
                 }
             };
 
-            // Intentar inicializar inmediatamente
             initSwToast();
 
-            // Si falla, intentar en intervalos hasta que Swal esté disponible
             if (typeof Swal === 'undefined') {
                 const checkInterval = setInterval(() => {
                     if (typeof Swal !== 'undefined') {
@@ -549,11 +573,9 @@
                     }
                 }, 100);
 
-                // Limpiar después de 5 segundos si aún no está disponible
                 setTimeout(() => clearInterval(checkInterval), 5000);
             }
 
-            // Notificación simple reutilizable (éxito/error/info)
             window.showNotification = function(type, message) {
                 const iconMap = { success: 'success', error: 'error', info: 'info', warning: 'warning' };
                 const icon = iconMap[type] || 'info';
@@ -561,7 +583,6 @@
                 return Promise.resolve();
             };
 
-            // Confirmación con opción de deshacer
             window.confirmWithUndo = function({ message, delayMs = 10000, onConfirm, onUndo }){
                 const containerId = 'undo-toast-container';
                 let container = document.getElementById(containerId);
@@ -650,6 +671,84 @@
             };
         })();
     </script>
+
+    {{-- SweetAlert para mensajes de sesión --}}
+    @if(session('success'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.swToast) {
+                window.swToast.fire({
+                    icon: 'success',
+                    title: @json(session('success'))
+                });
+            } else if (window.swAlert) {
+                window.swAlert({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: @json(session('success'))
+                });
+            }
+        });
+    </script>
+    @endif
+
+    @if(session('error'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.swToast) {
+                window.swToast.fire({
+                    icon: 'error',
+                    title: @json(session('error'))
+                });
+            } else if (window.swAlert) {
+                window.swAlert({
+                    icon: 'error',
+                    title: 'Error',
+                    text: @json(session('error'))
+                });
+            }
+        });
+    </script>
+    @endif
+
+    @if(session('warning'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.swToast) {
+                window.swToast.fire({
+                    icon: 'warning',
+                    title: @json(session('warning'))
+                });
+            } else if (window.swAlert) {
+                window.swAlert({
+                    icon: 'warning',
+                    title: 'Advertencia',
+                    text: @json(session('warning'))
+                });
+            }
+        });
+    </script>
+    @endif
+
+    @if(session('info'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.swToast) {
+                window.swToast.fire({
+                    icon: 'info',
+                    title: @json(session('info'))
+                });
+            } else if (window.swAlert) {
+                window.swAlert({
+                    icon: 'info',
+                    title: 'Información',
+                    text: @json(session('info'))
+                });
+            }
+        });
+    </script>
+    @endif
+
     <script>
         // Toggle del sidebar - Colapsable en desktop/tablet (>=576px), overlay en móvil (<576px)
         document.addEventListener('DOMContentLoaded', function() {
@@ -689,10 +788,7 @@
                 }
             };
 
-            // Aplicar estado inicial según ancho actual
             applyLayoutByWidth();
-
-            // Escuchar cambios de tamaño de ventana
             window.addEventListener('resize', applyLayoutByWidth);
 
             if (toggleBtn) {
@@ -702,7 +798,6 @@
                 });
             }
 
-            // Cerrar al hacer clic fuera en phones
             document.addEventListener('click', (e) => {
                 if (window.innerWidth < 576 && !sidebar.classList.contains('open')) return;
                 const clickInsideSidebar = e.target.closest('#appSidebar');
@@ -766,6 +861,12 @@
                         searchInput.value = '';
                         clearBtn.style.display = 'none';
                         searchInput.focus();
+                        
+                        // Si estamos en proveedores, recargar la tabla sin búsqueda
+                        const currentRoute = window.location.pathname;
+                        if (currentRoute.includes('proveedores')) {
+                            loadSuppliersAjax('/proveedores');
+                        }
                     });
                 }
                 
@@ -786,7 +887,10 @@
                     const query = searchInput.value.trim();
                     if (query) {
                         const currentRoute = window.location.pathname;
-                        if (currentRoute.includes('usuarios')) {
+                        if (currentRoute.includes('proveedores')) {
+                            // AJAX para proveedores sin refrescar la página
+                            loadSuppliersAjax(`/proveedores?buscar=${encodeURIComponent(query)}`);
+                        } else if (currentRoute.includes('usuarios')) {
                             window.location.href = `/usuarios?q=${encodeURIComponent(query)}`;
                         } else if (currentRoute.includes('eventos')) {
                             window.location.href = `/eventos?q=${encodeURIComponent(query)}`;
@@ -794,6 +898,45 @@
                             window.location.href = `/productos?q=${encodeURIComponent(query)}`;
                         }
                     }
+                }
+
+                // Función AJAX para cargar proveedores sin refrescar
+                function loadSuppliersAjax(url) {
+                    const tableWrapper = document.querySelector('.table-wrapper');
+                    if (tableWrapper) {
+                        tableWrapper.style.opacity = '0.6';
+                        tableWrapper.style.pointerEvents = 'none';
+                    }
+                    
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'text/html',
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        const temp = document.createElement('div');
+                        temp.innerHTML = html;
+                        
+                        const newTable = temp.querySelector('.table-wrapper');
+                        
+                        if (newTable && tableWrapper) {
+                            tableWrapper.innerHTML = newTable.innerHTML;
+                            tableWrapper.style.opacity = '1';
+                            tableWrapper.style.pointerEvents = 'auto';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (tableWrapper) {
+                            tableWrapper.style.opacity = '1';
+                            tableWrapper.style.pointerEvents = 'auto';
+                        }
+                        if (window.swAlert) {
+                            swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al buscar proveedores' });
+                        }
+                    });
                 }
             }
         });

@@ -7,7 +7,7 @@ body {
 
 .container-fluid {
     max-width: 100% !important;
-    padding: 0 !important;
+    padding: -1 !important;
     margin: 0 !important;
     width: 100% !important;
     display: flex !important;
@@ -39,7 +39,7 @@ body {
 }
 
 .drawer:not(.collapsed) {
-    width: 280px;
+    width: 237px;
 }
 
 /* En desktop: visible siempre y relative al flujo */
