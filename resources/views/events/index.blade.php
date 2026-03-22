@@ -474,71 +474,16 @@
 
   {{-- El resto del código JavaScript global (no de filtros) --}}
   <script>
-  async function showConfirmSave(){
-    // Prefer using a lightweight confirm if available from supplies module
-    if (typeof window.confirmWithUndo === 'function'){
-      // confirmWithUndo is intended for deletion/undo flows; for save we use a simple JS confirm-like fallback
-      return confirm('¿Estas seguro de Guardar el Evento?');
-    }
-
-    const res = await swConfirm({
-      title: '',
-      html: `<div class="swal-title-like">¿Estas seguro de Guardar el Evento?</div>`,
-      confirmButtonText: 'Sí, quiero'
-    });
-    return res.isConfirmed === true;
-  }
-
-  function showSuccessSaved(){
-    // If the supplies notification system is available, reuse it for consistent UI
-    if (typeof window.showNotification === 'function'){
-      try{
-        window.showNotification('success', 'Evento registrado exitosamente');
-        return Promise.resolve();
-      }catch(e){
-        // Fall through to Swal if something fails
-      }
-    }
-
-    // Use retry logic to ensure swToast is available
-    return new Promise((resolve) => {
-      let retries = 0;
-      const checkAndShowToast = () => {
-        if (window.swToast) {
-          swToast.fire({
-            icon: 'success',
-            title: 'Evento registrado exitosamente'
-          });
-          resolve();
-        } else if (retries < 50) {
-          retries++;
-          setTimeout(checkAndShowToast, 100);
-        } else {
-          resolve(); // Give up after 5 seconds
-        }
-      };
-      setTimeout(checkAndShowToast, 100);
-    });
-  }
-
-  const formCreate = document.getElementById('formCreate');
-  let submitting = false;
-  formCreate?.addEventListener('submit', async function(e){
-    if (submitting) return;
-    e.preventDefault();
-    const ok = await showConfirmSave();
-    if(ok){
-      submitting = true;
-      this.submit();
-    }
-  });
 
   function confirmDelete(nombre, onConfirmSubmit){
     // If supplies confirmWithUndo is available, use it so the user can undo deletion
     if (typeof window.confirmWithUndo === 'function'){
       // First ask confirmation, then present undo toast
       return swConfirm({
-        html: `<div class="swal-title-like">¿Seguro que deseas eliminar <b>${nombre || 'este evento'}</b>?</div>`,
+        title: 'Eliminar evento',
+        text: `¿Seguro que deseas eliminar "${nombre || 'este evento'}"?`,
+        icon: 'question',
+        confirmButtonColor: '#dc2626',
         confirmButtonText: 'Sí, eliminar'
       }).then(r => {
         if (r.isConfirmed) {
@@ -550,53 +495,12 @@
       });
     }
 
-      return swConfirm({
-      backdrop: true,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      customClass: { popup: 'sw-rounded' },
-      html: `
-        <div class="swal-title-like">¿Seguro que deseas eliminar<br><b>${nombre || 'este evento'}</b>?</div>
-      `,
-       confirmButtonText: 'Sí, eliminar'
-    });
-  }
-
-  function showDeletedOK(){
-    if (typeof window.showNotification === 'function'){
-      try{ window.showNotification('success', 'Evento eliminado exitosamente'); return Promise.resolve(); }catch(e){}
-    }
-    
-    // Use retry logic to ensure swAlert is available
-    return new Promise((resolve) => {
-      let retries = 0;
-      const checkAndShowAlert = () => {
-        if (window.swAlert) {
-          swAlert({
-            width: '100%',
-            padding: 0,
-            backdrop: `rgba(0,0,0,.40)`,
-            customClass: { popup: 'sw-success-shell' },
-            html: `
-              <div style="display:flex; align-items:center; justify-content:center; padding:28px 12px;">
-                <div class="sw-success-panel">
-                  <div class="sw-success-icon">✔</div>
-                  <div class="sw-success-text">Evento eliminado exitosamente</div>
-                </div>
-              </div>
-            `,
-            showConfirmButton:false,
-            timer: 3000
-          });
-          resolve();
-        } else if (retries < 50) {
-          retries++;
-          setTimeout(checkAndShowAlert, 100);
-        } else {
-          resolve();
-        }
-      };
-      setTimeout(checkAndShowAlert, 100);
+    return swConfirm({
+      title: 'Eliminar evento',
+      text: `¿Desea eliminar "${nombre || 'este evento'}"?`,
+      icon: 'warning',
+      confirmButtonColor: '#dc2626',
+      confirmButtonText: 'Sí, eliminar'
     });
   }
 
@@ -608,13 +512,7 @@
 </script>
 
 {{-- ========= Mensajes desde el backend ========= --}}
-@if(session('ok') === 'saved' || session('success'))
-  <script> showSuccessSaved(); </script>
-@endif
-
-@if(session('ok') === 'deleted')
-  <script> showDeletedOK(); </script>
-@endif
+{{-- Los mensajes de éxito y eliminación se manejan en los modales con retry logic --}}
 
 @if ($errors->any() && old('title'))
   <script>

@@ -18,7 +18,7 @@
         <div class="row">
           <div class="col-md-6 mb-3">
             <label class="form-label">Fecha *</label>
-            <input type="date" name="date" class="form-control" value="{{ optional($event->start_at)->format('Y-m-d') }}" required>
+            <input type="date" name="date" class="form-control" value="{{ optional($event->start_at)->format('Y-m-d') }}" required min="{{ date('Y-m-d') }}">
           </div>
           <div class="col-md-6 mb-3">
             <label class="form-label">Hora *</label>
@@ -112,9 +112,7 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 <script>
-// Script original para confirmación y validación
-(function(){
-// Si el partial se carga vía AJAX, la función initEditForm de event-modals.js ya se encargará.
+// Script para confirmación de actualización
 (function(){
   const formEdit = document.getElementById('editForm');
   if (!formEdit) return;
@@ -123,18 +121,21 @@ document.addEventListener('DOMContentLoaded', function(){
 
   formEdit.addEventListener('submit', async function(e){
     e.preventDefault();
+    
+    // Retry logic para esperar a que swConfirm esté disponible
+    let maxRetries = 50;
+    while (typeof window.swConfirm === 'undefined' && maxRetries > 0) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      maxRetries--;
+    }
+    
     let ok = false;
     try{
-      if (window.insumoModals && typeof window.insumoModals.showConfirmDialog === 'function'){
-        ok = await window.insumoModals.showConfirmDialog(
-          '¿Estás seguro de actualizar el Evento?',
-          'Los cambios realizados se guardarán permanentemente.',
-          'Sí, actualizar',
-          'Cancelar'
-        );
-      } else if (window.swConfirm){
+      if (window.swConfirm){
         const res = await swConfirm({
-          html: '<div class="swal-title-like">¿Estás seguro de actualizar el Evento?</div>',
+          title: '¿Actualizar evento?',
+          text: 'Se actualizarán los datos del evento',
+          icon: 'question',
           confirmButtonText: 'Sí, actualizar',
           cancelButtonText: 'Cancelar'
         });
@@ -146,57 +147,5 @@ document.addEventListener('DOMContentLoaded', function(){
 
     if (ok === true) formEdit.submit();
   });
-
-  // Mostrar SweetAlerts para errores/success cuando el partial se renderiza desde servidor
-  try {
-    const successMsg = @json(session('success'));
-    const errorMsg = @json(session('error'));
-    const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
-    
-    // Handle success messages with retry logic
-    if (successMsg) {
-        let retries = 0;
-        const checkAndShowToast = () => {
-            if (window.swToast) {
-                swToast.fire({ 
-                    icon: 'success', 
-                    title: successMsg
-                });
-            } else if (retries < 50) {
-                retries++;
-                setTimeout(checkAndShowToast, 100);
-            }
-        };
-        setTimeout(checkAndShowToast, 100);
-    }
-    
-    // Handle error messages with retry logic
-    if (errorMsg) {
-        let retries = 0;
-        const checkAndShowError = () => {
-            if (window.swAlert) {
-                swAlert({ icon: 'error', title: 'Error', text: errorMsg });
-            } else if (retries < 50) {
-                retries++;
-                setTimeout(checkAndShowError, 100);
-            }
-        };
-        setTimeout(checkAndShowError, 100);
-    }
-    
-    // Handle validation errors with retry logic
-    if (hasErrors) {
-        let retries = 0;
-        const checkAndShowErrors = () => {
-            if (window.swAlert) {
-                swAlert({ icon: 'error', title: 'Errores de validación', html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>` });
-            } else if (retries < 50) {
-                retries++;
-                setTimeout(checkAndShowErrors, 100);
-            }
-        };
-        setTimeout(checkAndShowErrors, 100);
-    }
-  } catch (e) { /* noop */ }
 })();
 </script>

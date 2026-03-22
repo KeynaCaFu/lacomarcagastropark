@@ -676,18 +676,25 @@
     @if(session('success'))
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            if (window.swToast) {
-                window.swToast.fire({
-                    icon: 'success',
-                    title: @json(session('success'))
-                });
-            } else if (window.swAlert) {
-                window.swAlert({
-                    icon: 'success',
-                    title: 'Éxito',
-                    text: @json(session('success'))
-                });
-            }
+            let retries = 0;
+            const showSuccess = () => {
+                if (window.swToast) {
+                    window.swToast.fire({
+                        icon: 'success',
+                        title: @json(session('success'))
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(showSuccess, 100);
+                } else if (window.swAlert) {
+                    window.swAlert({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: @json(session('success'))
+                    });
+                }
+            };
+            showSuccess();
         });
     </script>
     @endif
@@ -695,18 +702,25 @@
     @if(session('error'))
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            if (window.swToast) {
-                window.swToast.fire({
-                    icon: 'error',
-                    title: @json(session('error'))
-                });
-            } else if (window.swAlert) {
-                window.swAlert({
-                    icon: 'error',
-                    title: 'Error',
-                    text: @json(session('error'))
-                });
-            }
+            let retries = 0;
+            const showError = () => {
+                if (window.swToast) {
+                    window.swToast.fire({
+                        icon: 'error',
+                        title: @json(session('error'))
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(showError, 100);
+                } else if (window.swAlert) {
+                    window.swAlert({
+                        icon: 'error',
+                        title: 'Error',
+                        text: @json(session('error'))
+                    });
+                }
+            };
+            showError();
         });
     </script>
     @endif
@@ -714,18 +728,25 @@
     @if(session('warning'))
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            if (window.swToast) {
-                window.swToast.fire({
-                    icon: 'warning',
-                    title: @json(session('warning'))
-                });
-            } else if (window.swAlert) {
-                window.swAlert({
-                    icon: 'warning',
-                    title: 'Advertencia',
-                    text: @json(session('warning'))
-                });
-            }
+            let retries = 0;
+            const showWarning = () => {
+                if (window.swToast) {
+                    window.swToast.fire({
+                        icon: 'warning',
+                        title: @json(session('warning'))
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(showWarning, 100);
+                } else if (window.swAlert) {
+                    window.swAlert({
+                        icon: 'warning',
+                        title: 'Advertencia',
+                        text: @json(session('warning'))
+                    });
+                }
+            };
+            showWarning();
         });
     </script>
     @endif
@@ -733,18 +754,25 @@
     @if(session('info'))
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            if (window.swToast) {
-                window.swToast.fire({
-                    icon: 'info',
-                    title: @json(session('info'))
-                });
-            } else if (window.swAlert) {
-                window.swAlert({
-                    icon: 'info',
-                    title: 'Información',
-                    text: @json(session('info'))
-                });
-            }
+            let retries = 0;
+            const showInfo = () => {
+                if (window.swToast) {
+                    window.swToast.fire({
+                        icon: 'info',
+                        title: @json(session('info'))
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(showInfo, 100);
+                } else if (window.swAlert) {
+                    window.swAlert({
+                        icon: 'info',
+                        title: 'Información',
+                        text: @json(session('info'))
+                    });
+                }
+            };
+            showInfo();
         });
     </script>
     @endif
@@ -862,10 +890,19 @@
                         clearBtn.style.display = 'none';
                         searchInput.focus();
                         
-                        // Si estamos en proveedores, recargar la tabla sin búsqueda
+                        // Limpiar filtro según la ruta actual
                         const currentRoute = window.location.pathname;
                         if (currentRoute.includes('proveedores')) {
                             loadSuppliersAjax('/proveedores');
+                        } else if (currentRoute.includes('eventos')) {
+                            // Recargar eventos sin filtro de búsqueda (AJAX)
+                            loadEventsAjax('/eventos');
+                        } else if (currentRoute.includes('usuarios')) {
+                            // Recargar usuarios sin filtro
+                            window.location.href = '/usuarios';
+                        } else if (currentRoute.includes('productos')) {
+                            // Recargar productos sin filtro
+                            window.location.href = '/productos';
                         }
                     });
                 }
@@ -890,10 +927,11 @@
                         if (currentRoute.includes('proveedores')) {
                             // AJAX para proveedores sin refrescar la página
                             loadSuppliersAjax(`/proveedores?buscar=${encodeURIComponent(query)}`);
+                        } else if (currentRoute.includes('eventos')) {
+                            // AJAX para eventos sin refrescar la página
+                            loadEventsAjax(`/eventos?q=${encodeURIComponent(query)}`);
                         } else if (currentRoute.includes('usuarios')) {
                             window.location.href = `/usuarios?q=${encodeURIComponent(query)}`;
-                        } else if (currentRoute.includes('eventos')) {
-                            window.location.href = `/eventos?q=${encodeURIComponent(query)}`;
                         } else if (currentRoute.includes('productos')) {
                             window.location.href = `/productos?q=${encodeURIComponent(query)}`;
                         }
@@ -935,6 +973,41 @@
                         }
                         if (window.swAlert) {
                             swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al buscar proveedores' });
+                        }
+                    });
+                }
+
+                // Función AJAX para cargar eventos sin refrescar
+                function loadEventsAjax(url) {
+                    const eventsContainer = document.getElementById('eventsContainer');
+                    if (eventsContainer) {
+                        eventsContainer.style.opacity = '0.6';
+                        eventsContainer.style.pointerEvents = 'none';
+                    }
+                    
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html',
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        if (eventsContainer) {
+                            eventsContainer.innerHTML = html;
+                            eventsContainer.style.opacity = '1';
+                            eventsContainer.style.pointerEvents = 'auto';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (eventsContainer) {
+                            eventsContainer.style.opacity = '1';
+                            eventsContainer.style.pointerEvents = 'auto';
+                        }
+                        if (window.swAlert) {
+                            swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al buscar eventos' });
                         }
                     });
                 }
