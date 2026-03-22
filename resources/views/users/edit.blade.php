@@ -541,19 +541,6 @@ function validateEditPasswordMatch() {
                     if (!res.isConfirmed) return;
                 }
                 
-                // Mostrar notificación de guardando
-                if (window.swAlert) {
-                    swAlert({
-                        title: 'Guardando cambios...',
-                        icon: 'info',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        didOpen: () => {
-                            swAlert.showLoading();
-                        }
-                    });
-                }
-                
                 // Enviar por AJAX
                 const formData = new FormData(form);
                 const userId = "{{ $user->user_id }}";
@@ -591,9 +578,6 @@ function validateEditPasswordMatch() {
                     form.reset();
                     
                 } catch (error) {
-                    // Cerrar el loading
-                    swAlert.close();
-                    
                     // Mostrar errores de validación
                     if (error.errors) {
                         const messages = Object.values(error.errors)

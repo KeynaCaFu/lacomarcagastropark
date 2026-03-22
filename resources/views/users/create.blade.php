@@ -278,6 +278,9 @@
                     class="form-input {{ $errors->has('phone') ? 'is-invalid' : '' }}"
                     value="{{ old('phone') }}"
                     placeholder="Ej: 6700-1100"
+                    inputmode="numeric"
+                    maxlength="9"
+                    pattern="\d{4}-\d{4}"
                 />
                 @error('phone')
                     <div class="error-message">{{ $message }}</div>
@@ -483,6 +486,22 @@ function validatePasswordMatch() {
     }
 }
 
+function setupPhoneMask(phoneId) {
+    const phoneField = document.getElementById(phoneId);
+    if (!phoneField || phoneField.dataset._phoneMaskBound === 'true') {
+        return;
+    }
+
+    phoneField.dataset._phoneMaskBound = 'true';
+    phoneField.addEventListener('input', function() {
+        let digits = this.value.replace(/\D/g, '').slice(0, 8);
+        if (digits.length > 4) {
+            digits = digits.slice(0, 4) + '-' + digits.slice(4);
+        }
+        this.value = digits;
+    });
+}
+
 (function(){
     // SweetAlert2 CDN guard
     if (typeof Swal === 'undefined') {
@@ -496,6 +515,7 @@ function validatePasswordMatch() {
 
     // Setup password validation
     setupPasswordValidation();
+    setupPhoneMask('phone');
 
     const form = document.getElementById('createUserFormPage');
     if (form && !form.dataset._createConfirmBound) {

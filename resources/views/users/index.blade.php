@@ -650,6 +650,9 @@
             // Re-bind pagination links
             bindPaginationLinks();
 
+            // Re-bind status togglers for newly loaded rows
+            bindStatusTogglers();
+
             // Bind delete confirmations for newly loaded rows
             bindDeleteConfirmations();
         })
@@ -706,7 +709,7 @@
                                             try { const data = await res.json(); msg = data.message || msg; } catch(_) {}
                                             throw new Error(msg);
                                         }
-                                        await loadUsers(currentPage);
+                                        await loadUsers(1);
                                         swToast.fire({ 
                                             icon: 'success', 
                                             title: 'Usuario eliminado correctamente'
@@ -742,6 +745,101 @@
                     }
                 });
             }
+        });
+    }
+
+    function bindStatusTogglers() {
+        document.querySelectorAll('#usersTableContainer .status-toggler').forEach(badge => {
+            if (badge.dataset._statusBound === 'true') return;
+            badge.dataset._statusBound = 'true';
+
+            badge.addEventListener('click', async () => {
+                const userId = badge.dataset.userId;
+                const currentStatus = badge.dataset.currentStatus;
+                const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+                const newStatusLabel = newStatus === 'Active' ? 'Activo' : 'Inactivo';
+                const currentStatusLabel = badge.dataset.statusLabel;
+
+                if (window.swConfirm) {
+                    const result = await swConfirm({
+                        title: 'Cambiar estado',
+                        html: `¿Cambiar de <b>${currentStatusLabel}</b> a <b>${newStatusLabel}</b>?`,
+                        icon: 'question',
+                        confirmButtonText: 'Sí, cambiar',
+                        cancelButtonText: 'Cancelar'
+                    });
+                    if (!result.isConfirmed) return;
+                } else {
+                    const ok = confirm(`¿Cambiar de ${currentStatusLabel} a ${newStatusLabel}?`);
+                    if (!ok) return;
+                }
+
+                badge.style.opacity = '0.5';
+                badge.style.pointerEvents = 'none';
+
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+                    const response = await fetch(`/usuarios/${userId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    });
+
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(data.message || 'Error al actualizar el estado');
+                    }
+
+                    badge.dataset.currentStatus = newStatus;
+                    badge.dataset.statusLabel = newStatusLabel;
+
+                    if (newStatus === 'Active') {
+                        badge.classList.remove('status-inactive');
+                        badge.classList.add('status-active');
+                        badge.innerHTML = `<span class="status-text" style="margin-right: 6px;">Activo</span><i class="fas fa-check-circle" style="opacity: 0.8;"></i>`;
+                    } else {
+                        badge.classList.remove('status-active');
+                        badge.classList.add('status-inactive');
+                        badge.innerHTML = `<span class="status-text" style="margin-right: 6px;">Inactivo</span><i class="fas fa-times-circle" style="opacity: 0.8;"></i>`;
+                    }
+
+                    badge.style.opacity = '1';
+                    badge.style.pointerEvents = 'auto';
+
+                    let retries = 0;
+                    const checkAndShowSuccess = () => {
+                        if (window.swToast) {
+                            swToast.fire({
+                                icon: 'success',
+                                title: `Estado actualizado a ${newStatusLabel}`
+                            });
+                        } else if (retries < 50) {
+                            retries++;
+                            setTimeout(checkAndShowSuccess, 100);
+                        }
+                    };
+                    setTimeout(checkAndShowSuccess, 100);
+                } catch (error) {
+                    console.error('Error:', error);
+                    badge.style.opacity = '1';
+                    badge.style.pointerEvents = 'auto';
+
+                    if (window.swAlert) {
+                        swAlert({
+                            icon: 'error',
+                            title: 'Error',
+                            text: error.message || 'No se pudo actualizar el estado',
+                            confirmButtonColor: '#dc2626'
+                        });
+                    } else {
+                        alert(error.message || 'No se pudo actualizar el estado');
+                    }
+                }
+            });
         });
     }
 
@@ -836,7 +934,7 @@
                 
                 const originalText = submitBtn.innerHTML;
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+                submitBtn.innerHTML = 'Crear Usuario';
                 
                 const formData = new FormData(this);
                 
@@ -911,7 +1009,7 @@
                     const originalText = submitBtn ? submitBtn.innerHTML : '';
                     if (submitBtn) {
                         submitBtn.disabled = true;
-                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+                        submitBtn.innerHTML = 'Actualizar Usuario';
                     }
 
                     const action = this.getAttribute('action') || (this.dataset.updateUrl || '');
@@ -972,6 +1070,7 @@
         bindEditFormHandler();
 
         bindPaginationLinks();
+        bindStatusTogglers();
         bindDeleteConfirmations();
 
         // Event listener para el botón de ayuda
