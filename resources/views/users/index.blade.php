@@ -682,6 +682,7 @@
                         const row = form.closest('tr');
                         const nameCell = row ? row.querySelector('td:nth-child(2) strong, td:nth-child(2)') : null;
                         const userName = nameCell ? nameCell.textContent.trim() : 'este usuario';
+                        
                         if (window.Swal) {
                             swConfirm({
                                 title: 'Eliminar usuario',
@@ -691,31 +692,22 @@
                                 confirmButtonText: 'Sí, eliminar'
                             }).then(async (result) => {
                                 if (result.isConfirmed) {
-                                    // AJAX delete for smoother UX
-                                    const action = form.getAttribute('action');
-                                    const tokenEl = document.querySelector('meta[name="csrf-token"]');
-                                    const csrfToken = tokenEl ? tokenEl.content : (form.querySelector('input[name="_token"]')?.value || '');
-                                    const formData = new FormData(form);
-                                    // Ensure _method DELETE is present
-                                    if (!formData.get('_method')) formData.append('_method', 'DELETE');
-                                    try {
-                                        const res = await fetch(action, {
-                                            method: 'POST',
-                                            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                                            body: formData
+                                    // Mostrar confirmWithUndo cuando se confirma
+                                    if (typeof window.confirmWithUndo === 'function') {
+                                        window.confirmWithUndo({
+                                            message: `Se eliminará: ${userName}`,
+                                            delayMs: 10000,
+                                            onConfirm: () => {
+                                                // Ejecutar la eliminación AJAX
+                                                submitDeleteAjax();
+                                            },
+                                            onUndo: () => {
+                                                // No hacer nada si se cancela
+                                            }
                                         });
-                                        if (!res.ok) {
-                                            let msg = 'No se pudo eliminar el usuario';
-                                            try { const data = await res.json(); msg = data.message || msg; } catch(_) {}
-                                            throw new Error(msg);
-                                        }
-                                        await loadUsers(1);
-                                        swToast.fire({ 
-                                            icon: 'success', 
-                                            title: 'Usuario eliminado correctamente'
-                                        });
-                                    } catch(err) {
-                                        swAlert({ icon: 'error', title: 'Error', text: err.message || 'No se pudo eliminar el usuario', confirmButtonColor: '#dc2626' });
+                                    } else {
+                                        // Fallback si confirmWithUndo no existe
+                                        submitDeleteAjax();
                                     }
                                 }
                             });
@@ -725,6 +717,35 @@
                             if (ok) {
                                 // Fallback: submit tradicional
                                 form.submit();
+                            }
+                        }
+
+                        // Función para ejecutar AJAX delete
+                        async function submitDeleteAjax() {
+                            const action = form.getAttribute('action');
+                            const tokenEl = document.querySelector('meta[name="csrf-token"]');
+                            const csrfToken = tokenEl ? tokenEl.content : (form.querySelector('input[name="_token"]')?.value || '');
+                            const formData = new FormData(form);
+                            // Ensure _method DELETE is present
+                            if (!formData.get('_method')) formData.append('_method', 'DELETE');
+                            try {
+                                const res = await fetch(action, {
+                                    method: 'POST',
+                                    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                                    body: formData
+                                });
+                                if (!res.ok) {
+                                    let msg = 'No se pudo eliminar el usuario';
+                                    try { const data = await res.json(); msg = data.message || msg; } catch(_) {}
+                                    throw new Error(msg);
+                                }
+                                await loadUsers(1);
+                                swToast.fire({ 
+                                    icon: 'success', 
+                                    title: 'Usuario eliminado correctamente'
+                                });
+                            } catch(err) {
+                                swAlert({ icon: 'error', title: 'Error', text: err.message || 'No se pudo eliminar el usuario', confirmButtonColor: '#dc2626' });
                             }
                         }
                     };
