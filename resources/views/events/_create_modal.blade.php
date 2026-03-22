@@ -17,7 +17,7 @@
                             <input class="field" name="title" required placeholder="Ej. Noche de Tapas" value="{{ old('title') }}">
 
                             <label class="label">Fecha *</label>
-                            <input type="date" class="field" name="date" required value="{{ old('date') }}">
+                            <input type="date" class="field" name="date" required value="{{ old('date') }}" min="{{ date('Y-m-d') }}">
 
                             <label class="label">Hora *</label>
                             <input type="time" class="field" name="time" required value="{{ old('time') }}">
@@ -64,69 +64,27 @@
         form.dataset._createConfirmBound = 'true';
         form.addEventListener('submit', function(e){
             e.preventDefault();
-            if (window.swConfirm) {
+            
+            // Función con retry logic para asegurar que swConfirm está disponible
+            const showConfirm = () => {
+                if (typeof window.swConfirm === 'undefined') {
+                    // Si aún no está disponible, esperar 100ms y reintentar
+                    setTimeout(showConfirm, 100);
+                    return;
+                }
+                
                 swConfirm({
-                    html: '<div class="swal-title-like">¿Estás seguro de guardar el evento?</div>',
+                    title: '¿Guardar evento?',
+                    text: 'Se guardará el evento con los datos ingresados',
+                    icon: 'question',
                     confirmButtonText: 'Sí, guardar',
                     cancelButtonText: 'Cancelar'
                 }).then(r => { if (r.isConfirmed) form.submit(); });
-            } else if (confirm('¿Estás seguro de guardar el evento?')) {
-                form.submit();
-            }
+            };
+            
+            showConfirm();
         });
     }
-
-    // Session success/error and validation errors
-    try {
-        const successMsg = @json(session('success'));
-        const errorMsg = @json(session('error'));
-        const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
-        
-        // Handle success messages with retry logic
-        if (successMsg) {
-            let retries = 0;
-            const checkAndShowToast = () => {
-                if (window.swToast) {
-                    swToast.fire({ 
-                        icon: 'success',
-                        title: successMsg
-                    });
-                } else if (retries < 50) {
-                    retries++;
-                    setTimeout(checkAndShowToast, 100);
-                }
-            };
-            setTimeout(checkAndShowToast, 100);
-        }
-        
-        // Handle error messages with retry logic
-        if (errorMsg) {
-            let retries = 0;
-            const checkAndShowError = () => {
-                if (window.swAlert) {
-                    swAlert({ icon: 'error', title: 'Error', text: errorMsg });
-                } else if (retries < 50) {
-                    retries++;
-                    setTimeout(checkAndShowError, 100);
-                }
-            };
-            setTimeout(checkAndShowError, 100);
-        }
-        
-        // Handle validation errors with retry logic
-        if (hasErrors) {
-            let retries = 0;
-            const checkAndShowErrors = () => {
-                if (window.swAlert) {
-                    swAlert({ icon: 'error', title: 'Errores de validación', html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>` });
-                } else if (retries < 50) {
-                    retries++;
-                    setTimeout(checkAndShowErrors, 100);
-                }
-            };
-            setTimeout(checkAndShowErrors, 100);
-        }
-    } catch(e) { /* noop */ }
 })();
 </script>
 

@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 class UserController extends Controller
 {
@@ -64,14 +66,51 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $phoneRaw = (string) $request->input('phone', '');
+        $phoneDigits = preg_replace('/\D+/', '', $phoneRaw);
+
+        if (strlen($phoneDigits) === 8) {
+            $request->merge([
+                'phone' => substr($phoneDigits, 0, 4) . '-' . substr($phoneDigits, 4),
+            ]);
+        }
+
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
             'email' => 'required|email|unique:tbuser,email',
             'password' => 'required|min:8|confirmed',
+            'password_confirmation' => 'required',
             'role_id' => 'required|exists:tbrole,role_id',
-            'phone' => 'nullable|string|max:20',
+            'phone' => ['nullable', 'regex:/^\d{4}-\d{4}$/'],
             'status' => 'required|in:Active,Inactive',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ], [
+            'full_name.required' => 'El campo nombre completo es obligatorio.',
+            'full_name.max' => 'El nombre completo no puede superar los 255 caracteres.',
+            'email.required' => 'El campo correo electronico es obligatorio.',
+            'email.email' => 'Debes ingresar un correo electronico valido.',
+            'email.unique' => 'Este correo electronico ya esta registrado.',
+            'password.required' => 'El campo contrasena es obligatorio.',
+            'password.min' => 'La contrasena debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'La confirmacion de la contrasena no coincide.',
+            'password_confirmation.required' => 'Debes confirmar la contrasena.',
+            'role_id.required' => 'El campo rol es obligatorio.',
+            'role_id.exists' => 'El rol seleccionado no es valido.',
+            'phone.regex' => 'El telefono debe tener el formato 8888-8888.',
+            'status.required' => 'El campo estado es obligatorio.',
+            'status.in' => 'El estado seleccionado no es valido.',
+            'avatar.image' => 'El archivo de avatar debe ser una imagen.',
+            'avatar.mimes' => 'El avatar debe ser de tipo: jpeg, png, jpg o gif.',
+            'avatar.max' => 'El avatar no puede ser mayor a 2MB.',
+        ], [
+            'full_name' => 'nombre completo',
+            'email' => 'correo electronico',
+            'password' => 'contrasena',
+            'password_confirmation' => 'confirmacion de contrasena',
+            'role_id' => 'rol',
+            'phone' => 'telefono',
+            'status' => 'estado',
+            'avatar' => 'avatar',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
@@ -207,13 +246,39 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        $currentUser = auth()->user();
+
         // Prevenir que se elimine el usuario actual
-        if (auth()->user()->user_id === $user->user_id) {
+        if ($currentUser && $currentUser->user_id === $user->user_id) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'No puedes eliminar tu propia cuenta.'
+                ], 422);
+            }
+
             return redirect()->route('users.index')
                             ->with('error', 'No puedes eliminar tu propia cuenta.');
         }
 
-        $user->delete();
+        try {
+            DB::transaction(function () use ($user) {
+                // Evita fallos de FK en relaciones N:M (por ejemplo tbuser_local)
+                $user->locals()->detach();
+                $user->delete();
+            });
+        } catch (QueryException $e) {
+            $message = 'No se puede eliminar el usuario porque tiene registros relacionados.';
+
+            if (request()->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return redirect()->route('users.index')->with('error', $message);
+        }
+
+        if (request()->expectsJson()) {
+            return response()->json(['message' => 'Usuario eliminado exitosamente']);
+        }
 
         return redirect()->route('users.index')
                         ->with('success', 'Usuario eliminado exitosamente.');

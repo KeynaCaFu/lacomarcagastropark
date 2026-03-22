@@ -590,25 +590,26 @@
                     container = document.createElement('div');
                     container.id = containerId;
                     container.style.position = 'fixed';
-                    container.style.top = '20px';
-                    container.style.right = '20px';
-                    container.style.left = 'auto';
+                    container.style.bottom = '20px';
+                    container.style.left = '20px';
+                    container.style.right = 'auto';
+                    container.style.top = 'auto';
                     container.style.transform = 'none';
                     container.style.zIndex = '1060';
                     container.style.display = 'flex';
                     container.style.flexDirection = 'column';
-                    container.style.alignItems = 'flex-end';
+                    container.style.alignItems = 'flex-start';
                     document.body.appendChild(container);
                 }
 
                 const panel = document.createElement('div');
-                panel.style.background = '#ffffff';
-                panel.style.color = '#065f46';
-                panel.style.border = '1px solid #10b981';
+                panel.style.background = 'linear-gradient(135deg, #e18018, #c9690f)';
+                panel.style.color = '#ffffff';
+                panel.style.border = '1px solid #d97c13';
                 panel.style.borderRadius = '12px';
-                panel.style.boxShadow = '0 10px 24px rgba(0,0,0,0.08)';
+                panel.style.boxShadow = '0 10px 24px rgba(225, 128, 24, 0.15)';
                 panel.style.padding = '14px 16px';
-                panel.style.marginTop = '8px';
+                panel.style.marginBottom = '8px';
                 panel.style.maxWidth = '520px';
                 panel.style.display = 'flex';
                 panel.style.alignItems = 'center';
@@ -619,21 +620,34 @@
                 let remaining = Math.floor(remainingMs / 1000);
                 const baseMessage = message || 'Se eliminará el registro';
                 text.textContent = baseMessage;
+                text.style.fontWeight = '600';
 
                 const btnUndo = document.createElement('button');
                 btnUndo.textContent = 'Deshacer';
-                btnUndo.style.background = '#10b981';
-                btnUndo.style.color = '#ffffff';
+                btnUndo.style.background = '#ffffff';
+                btnUndo.style.color = '#e18018';
                 btnUndo.style.border = 'none';
                 btnUndo.style.borderRadius = '8px';
-                btnUndo.style.padding = '8px 12px';
+                btnUndo.style.padding = '8px 14px';
                 btnUndo.style.cursor = 'pointer';
+                btnUndo.style.fontWeight = '700';
+                btnUndo.style.transition = 'all 0.2s ease';
+                btnUndo.addEventListener('mouseover', () => {
+                    btnUndo.style.background = '#fff8f0';
+                    btnUndo.style.transform = 'translateY(-1px)';
+                });
+                btnUndo.addEventListener('mouseout', () => {
+                    btnUndo.style.background = '#ffffff';
+                    btnUndo.style.transform = 'translateY(0)';
+                });
 
                 const countdown = document.createElement('span');
                 countdown.style.marginLeft = 'auto';
                 countdown.style.fontSize = '12px';
-                countdown.style.color = '#065f46';
-                countdown.style.opacity = '0.8';
+                countdown.style.color = '#ffffff';
+                countdown.style.opacity = '0.9';
+                countdown.style.minWidth = '35px';
+                countdown.style.textAlign = 'right';
 
                 panel.appendChild(text);
                 panel.appendChild(btnUndo);
@@ -676,18 +690,25 @@
     @if(session('success'))
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            if (window.swToast) {
-                window.swToast.fire({
-                    icon: 'success',
-                    title: @json(session('success'))
-                });
-            } else if (window.swAlert) {
-                window.swAlert({
-                    icon: 'success',
-                    title: 'Éxito',
-                    text: @json(session('success'))
-                });
-            }
+            let retries = 0;
+            const showSuccess = () => {
+                if (window.swToast) {
+                    window.swToast.fire({
+                        icon: 'success',
+                        title: @json(session('success'))
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(showSuccess, 100);
+                } else if (window.swAlert) {
+                    window.swAlert({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: @json(session('success'))
+                    });
+                }
+            };
+            showSuccess();
         });
     </script>
     @endif
@@ -695,18 +716,25 @@
     @if(session('error'))
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            if (window.swToast) {
-                window.swToast.fire({
-                    icon: 'error',
-                    title: @json(session('error'))
-                });
-            } else if (window.swAlert) {
-                window.swAlert({
-                    icon: 'error',
-                    title: 'Error',
-                    text: @json(session('error'))
-                });
-            }
+            let retries = 0;
+            const showError = () => {
+                if (window.swToast) {
+                    window.swToast.fire({
+                        icon: 'error',
+                        title: @json(session('error'))
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(showError, 100);
+                } else if (window.swAlert) {
+                    window.swAlert({
+                        icon: 'error',
+                        title: 'Error',
+                        text: @json(session('error'))
+                    });
+                }
+            };
+            showError();
         });
     </script>
     @endif
@@ -714,18 +742,25 @@
     @if(session('warning'))
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            if (window.swToast) {
-                window.swToast.fire({
-                    icon: 'warning',
-                    title: @json(session('warning'))
-                });
-            } else if (window.swAlert) {
-                window.swAlert({
-                    icon: 'warning',
-                    title: 'Advertencia',
-                    text: @json(session('warning'))
-                });
-            }
+            let retries = 0;
+            const showWarning = () => {
+                if (window.swToast) {
+                    window.swToast.fire({
+                        icon: 'warning',
+                        title: @json(session('warning'))
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(showWarning, 100);
+                } else if (window.swAlert) {
+                    window.swAlert({
+                        icon: 'warning',
+                        title: 'Advertencia',
+                        text: @json(session('warning'))
+                    });
+                }
+            };
+            showWarning();
         });
     </script>
     @endif
@@ -733,18 +768,25 @@
     @if(session('info'))
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            if (window.swToast) {
-                window.swToast.fire({
-                    icon: 'info',
-                    title: @json(session('info'))
-                });
-            } else if (window.swAlert) {
-                window.swAlert({
-                    icon: 'info',
-                    title: 'Información',
-                    text: @json(session('info'))
-                });
-            }
+            let retries = 0;
+            const showInfo = () => {
+                if (window.swToast) {
+                    window.swToast.fire({
+                        icon: 'info',
+                        title: @json(session('info'))
+                    });
+                } else if (retries < 50) {
+                    retries++;
+                    setTimeout(showInfo, 100);
+                } else if (window.swAlert) {
+                    window.swAlert({
+                        icon: 'info',
+                        title: 'Información',
+                        text: @json(session('info'))
+                    });
+                }
+            };
+            showInfo();
         });
     </script>
     @endif
@@ -862,10 +904,19 @@
                         clearBtn.style.display = 'none';
                         searchInput.focus();
                         
-                        // Si estamos en proveedores, recargar la tabla sin búsqueda
+                        // Limpiar filtro según la ruta actual
                         const currentRoute = window.location.pathname;
                         if (currentRoute.includes('proveedores')) {
                             loadSuppliersAjax('/proveedores');
+                        } else if (currentRoute.includes('eventos')) {
+                            // Recargar eventos sin filtro de búsqueda (AJAX)
+                            loadEventsAjax('/eventos');
+                        } else if (currentRoute.includes('usuarios')) {
+                            // Recargar usuarios sin filtro
+                            window.location.href = '/usuarios';
+                        } else if (currentRoute.includes('productos')) {
+                            // Recargar productos sin filtro
+                            window.location.href = '/productos';
                         }
                     });
                 }
@@ -890,10 +941,11 @@
                         if (currentRoute.includes('proveedores')) {
                             // AJAX para proveedores sin refrescar la página
                             loadSuppliersAjax(`/proveedores?buscar=${encodeURIComponent(query)}`);
+                        } else if (currentRoute.includes('eventos')) {
+                            // AJAX para eventos sin refrescar la página
+                            loadEventsAjax(`/eventos?q=${encodeURIComponent(query)}`);
                         } else if (currentRoute.includes('usuarios')) {
                             window.location.href = `/usuarios?q=${encodeURIComponent(query)}`;
-                        } else if (currentRoute.includes('eventos')) {
-                            window.location.href = `/eventos?q=${encodeURIComponent(query)}`;
                         } else if (currentRoute.includes('productos')) {
                             window.location.href = `/productos?q=${encodeURIComponent(query)}`;
                         }
@@ -935,6 +987,41 @@
                         }
                         if (window.swAlert) {
                             swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al buscar proveedores' });
+                        }
+                    });
+                }
+
+                // Función AJAX para cargar eventos sin refrescar
+                function loadEventsAjax(url) {
+                    const eventsContainer = document.getElementById('eventsContainer');
+                    if (eventsContainer) {
+                        eventsContainer.style.opacity = '0.6';
+                        eventsContainer.style.pointerEvents = 'none';
+                    }
+                    
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html',
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        if (eventsContainer) {
+                            eventsContainer.innerHTML = html;
+                            eventsContainer.style.opacity = '1';
+                            eventsContainer.style.pointerEvents = 'auto';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (eventsContainer) {
+                            eventsContainer.style.opacity = '1';
+                            eventsContainer.style.pointerEvents = 'auto';
+                        }
+                        if (window.swAlert) {
+                            swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al buscar eventos' });
                         }
                     });
                 }

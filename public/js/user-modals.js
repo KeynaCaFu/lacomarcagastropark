@@ -47,8 +47,6 @@ class UserModals {
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
         
-        // Mostrar loading
-        content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
         
         try{
             const csrf = document.querySelector('meta[name="csrf-token"]').content;
@@ -108,7 +106,7 @@ class UserModals {
             
             const originalText = submitBtn.innerHTML;
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            submitBtn.innerHTML = 'Actualizar Usuario';
             
             const formData = new FormData(form);
             const userId = form.getAttribute('data-user-id');
@@ -162,14 +160,34 @@ class UserModals {
         
         if(error.errors){
             form.querySelectorAll('.is-invalid').forEach(i => i.classList.remove('is-invalid'));
+            form.querySelectorAll('.invalid-feedback').forEach(el => {
+                el.textContent = '';
+                el.classList.remove('d-block');
+                el.style.display = '';
+            });
             
             Object.entries(error.errors).forEach(([field, messages]) => {
                 const input = form.querySelector(`[name="${field}"]`);
                 if(input){
                     input.classList.add('is-invalid');
-                    const feedback = input.nextElementSibling;
+
+                    let feedback = null;
+                    if (input.nextElementSibling && input.nextElementSibling.classList.contains('invalid-feedback')) {
+                        feedback = input.nextElementSibling;
+                    }
+
+                    if (!feedback) {
+                        const container = input.closest('.col-md-6, .form-group');
+                        if (container) {
+                            feedback = container.querySelector('.invalid-feedback');
+                        }
+                    }
+
                     if(feedback && feedback.classList.contains('invalid-feedback')){
                         feedback.textContent = messages[0];
+                        // Forzar visibilidad aunque no sea sibling directo del input
+                        feedback.classList.add('d-block');
+                        feedback.style.display = 'block';
                     }
                 }
             });

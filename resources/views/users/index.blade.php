@@ -650,6 +650,9 @@
             // Re-bind pagination links
             bindPaginationLinks();
 
+            // Re-bind status togglers for newly loaded rows
+            bindStatusTogglers();
+
             // Bind delete confirmations for newly loaded rows
             bindDeleteConfirmations();
         })
@@ -679,6 +682,7 @@
                         const row = form.closest('tr');
                         const nameCell = row ? row.querySelector('td:nth-child(2) strong, td:nth-child(2)') : null;
                         const userName = nameCell ? nameCell.textContent.trim() : 'este usuario';
+                        
                         if (window.Swal) {
                             swConfirm({
                                 title: 'Eliminar usuario',
@@ -688,31 +692,22 @@
                                 confirmButtonText: 'Sí, eliminar'
                             }).then(async (result) => {
                                 if (result.isConfirmed) {
-                                    // AJAX delete for smoother UX
-                                    const action = form.getAttribute('action');
-                                    const tokenEl = document.querySelector('meta[name="csrf-token"]');
-                                    const csrfToken = tokenEl ? tokenEl.content : (form.querySelector('input[name="_token"]')?.value || '');
-                                    const formData = new FormData(form);
-                                    // Ensure _method DELETE is present
-                                    if (!formData.get('_method')) formData.append('_method', 'DELETE');
-                                    try {
-                                        const res = await fetch(action, {
-                                            method: 'POST',
-                                            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                                            body: formData
+                                    // Mostrar confirmWithUndo cuando se confirma
+                                    if (typeof window.confirmWithUndo === 'function') {
+                                        window.confirmWithUndo({
+                                            message: `Se eliminará: ${userName}`,
+                                            delayMs: 10000,
+                                            onConfirm: () => {
+                                                // Ejecutar la eliminación AJAX
+                                                submitDeleteAjax();
+                                            },
+                                            onUndo: () => {
+                                                // No hacer nada si se cancela
+                                            }
                                         });
-                                        if (!res.ok) {
-                                            let msg = 'No se pudo eliminar el usuario';
-                                            try { const data = await res.json(); msg = data.message || msg; } catch(_) {}
-                                            throw new Error(msg);
-                                        }
-                                        await loadUsers(currentPage);
-                                        swToast.fire({ 
-                                            icon: 'success', 
-                                            title: 'Usuario eliminado correctamente'
-                                        });
-                                    } catch(err) {
-                                        swAlert({ icon: 'error', title: 'Error', text: err.message || 'No se pudo eliminar el usuario', confirmButtonColor: '#dc2626' });
+                                    } else {
+                                        // Fallback si confirmWithUndo no existe
+                                        submitDeleteAjax();
                                     }
                                 }
                             });
@@ -722,6 +717,35 @@
                             if (ok) {
                                 // Fallback: submit tradicional
                                 form.submit();
+                            }
+                        }
+
+                        // Función para ejecutar AJAX delete
+                        async function submitDeleteAjax() {
+                            const action = form.getAttribute('action');
+                            const tokenEl = document.querySelector('meta[name="csrf-token"]');
+                            const csrfToken = tokenEl ? tokenEl.content : (form.querySelector('input[name="_token"]')?.value || '');
+                            const formData = new FormData(form);
+                            // Ensure _method DELETE is present
+                            if (!formData.get('_method')) formData.append('_method', 'DELETE');
+                            try {
+                                const res = await fetch(action, {
+                                    method: 'POST',
+                                    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                                    body: formData
+                                });
+                                if (!res.ok) {
+                                    let msg = 'No se pudo eliminar el usuario';
+                                    try { const data = await res.json(); msg = data.message || msg; } catch(_) {}
+                                    throw new Error(msg);
+                                }
+                                await loadUsers(1);
+                                swToast.fire({ 
+                                    icon: 'success', 
+                                    title: 'Usuario eliminado correctamente'
+                                });
+                            } catch(err) {
+                                swAlert({ icon: 'error', title: 'Error', text: err.message || 'No se pudo eliminar el usuario', confirmButtonColor: '#dc2626' });
                             }
                         }
                     };
@@ -742,6 +766,101 @@
                     }
                 });
             }
+        });
+    }
+
+    function bindStatusTogglers() {
+        document.querySelectorAll('#usersTableContainer .status-toggler').forEach(badge => {
+            if (badge.dataset._statusBound === 'true') return;
+            badge.dataset._statusBound = 'true';
+
+            badge.addEventListener('click', async () => {
+                const userId = badge.dataset.userId;
+                const currentStatus = badge.dataset.currentStatus;
+                const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+                const newStatusLabel = newStatus === 'Active' ? 'Activo' : 'Inactivo';
+                const currentStatusLabel = badge.dataset.statusLabel;
+
+                if (window.swConfirm) {
+                    const result = await swConfirm({
+                        title: 'Cambiar estado',
+                        html: `¿Cambiar de <b>${currentStatusLabel}</b> a <b>${newStatusLabel}</b>?`,
+                        icon: 'question',
+                        confirmButtonText: 'Sí, cambiar',
+                        cancelButtonText: 'Cancelar'
+                    });
+                    if (!result.isConfirmed) return;
+                } else {
+                    const ok = confirm(`¿Cambiar de ${currentStatusLabel} a ${newStatusLabel}?`);
+                    if (!ok) return;
+                }
+
+                badge.style.opacity = '0.5';
+                badge.style.pointerEvents = 'none';
+
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+                    const response = await fetch(`/usuarios/${userId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    });
+
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(data.message || 'Error al actualizar el estado');
+                    }
+
+                    badge.dataset.currentStatus = newStatus;
+                    badge.dataset.statusLabel = newStatusLabel;
+
+                    if (newStatus === 'Active') {
+                        badge.classList.remove('status-inactive');
+                        badge.classList.add('status-active');
+                        badge.innerHTML = `<span class="status-text" style="margin-right: 6px;">Activo</span><i class="fas fa-check-circle" style="opacity: 0.8;"></i>`;
+                    } else {
+                        badge.classList.remove('status-active');
+                        badge.classList.add('status-inactive');
+                        badge.innerHTML = `<span class="status-text" style="margin-right: 6px;">Inactivo</span><i class="fas fa-times-circle" style="opacity: 0.8;"></i>`;
+                    }
+
+                    badge.style.opacity = '1';
+                    badge.style.pointerEvents = 'auto';
+
+                    let retries = 0;
+                    const checkAndShowSuccess = () => {
+                        if (window.swToast) {
+                            swToast.fire({
+                                icon: 'success',
+                                title: `Estado actualizado a ${newStatusLabel}`
+                            });
+                        } else if (retries < 50) {
+                            retries++;
+                            setTimeout(checkAndShowSuccess, 100);
+                        }
+                    };
+                    setTimeout(checkAndShowSuccess, 100);
+                } catch (error) {
+                    console.error('Error:', error);
+                    badge.style.opacity = '1';
+                    badge.style.pointerEvents = 'auto';
+
+                    if (window.swAlert) {
+                        swAlert({
+                            icon: 'error',
+                            title: 'Error',
+                            text: error.message || 'No se pudo actualizar el estado',
+                            confirmButtonColor: '#dc2626'
+                        });
+                    } else {
+                        alert(error.message || 'No se pudo actualizar el estado');
+                    }
+                }
+            });
         });
     }
 
@@ -836,7 +955,7 @@
                 
                 const originalText = submitBtn.innerHTML;
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+                submitBtn.innerHTML = 'Crear Usuario';
                 
                 const formData = new FormData(this);
                 
@@ -911,7 +1030,7 @@
                     const originalText = submitBtn ? submitBtn.innerHTML : '';
                     if (submitBtn) {
                         submitBtn.disabled = true;
-                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+                        submitBtn.innerHTML = 'Actualizar Usuario';
                     }
 
                     const action = this.getAttribute('action') || (this.dataset.updateUrl || '');
@@ -972,6 +1091,7 @@
         bindEditFormHandler();
 
         bindPaginationLinks();
+        bindStatusTogglers();
         bindDeleteConfirmations();
 
         // Event listener para el botón de ayuda
