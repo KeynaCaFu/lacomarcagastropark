@@ -76,9 +76,13 @@ class EventController extends Controller
             'image_url' => $imageUrl
         ];
 
-        $this->eventData->create($data);
+        try {
+            $this->eventData->create($data);
+        } catch (\Exception $e) {
+            return redirect()->route('eventos.index')->with('error', 'Error al crear el evento: ' . $e->getMessage());
+        }
 
-        return redirect()->route('eventos.index')->with('ok', 'saved');
+        return redirect()->route('eventos.index')->with('success', 'Evento guardado exitosamente');
     }
 
     // Editar (form)
@@ -104,7 +108,7 @@ class EventController extends Controller
                 return response()->json(['message' => 'Estado actualizado exitosamente', 'is_active' => $validated['is_active']]);
             }
 
-            return redirect()->route('eventos.index')->with('ok', 'saved');
+            return redirect()->route('eventos.index')->with('success', 'Estado actualizado exitosamente');
         }
 
         // Actualización completa del evento (desde el formulario de edición)
@@ -150,9 +154,13 @@ class EventController extends Controller
             $data['image_url'] = 'images/events/' . $filename;
         }
 
-        $this->eventData->update($evento->event_id, $data);
+        try {
+            $this->eventData->update($evento->event_id, $data);
+        } catch (\Exception $e) {
+            return redirect()->route('eventos.index')->with('error', 'Error al actualizar el evento: ' . $e->getMessage());
+        }
 
-        return redirect()->route('eventos.index')->with('ok', 'saved');
+        return redirect()->route('eventos.index')->with('success', 'Evento actualizado exitosamente');
     }
 
     // Mostrar un evento individual
@@ -172,7 +180,7 @@ class EventController extends Controller
 
         $this->eventData->delete($evento->event_id);
 
-        return redirect()->route('eventos.index')->with('ok', 'deleted');
+        return redirect()->route('eventos.index')->with('success', 'Evento eliminado exitosamente');
     }
 
     // Cargar partial con detalles (AJAX)

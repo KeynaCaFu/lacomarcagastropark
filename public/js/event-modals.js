@@ -212,23 +212,25 @@ class EventoModals {
         form.addEventListener('submit', async function(e){
             console.log('[editForm submit] Iniciado');
             e.preventDefault();
+            
+            // Retry logic para esperar a que swConfirm esté disponible
+            let maxRetries = 50;
+            while (typeof window.swConfirm === 'undefined' && maxRetries > 0) {
+                console.log('[editForm submit] Esperando swConfirm... retries:', maxRetries);
+                await new Promise(resolve => setTimeout(resolve, 100));
+                maxRetries--;
+            }
+            
             let ok = false;
             try{
-                // Reutilizar las confirmaciones ya implementadas para Insumos si están disponibles
-                if (window.insumoModals && typeof window.insumoModals.showConfirmDialog === 'function'){
-                    console.log('[editForm submit] Usando insumoModals');
-                    ok = await window.insumoModals.showConfirmDialog(
-                        '¿Estás seguro de actualizar el Evento?',
-                        'Los cambios realizados se guardarán permanentemente.',
-                        'Sí, actualizar',
-                        'Cancelar'
-                    );
-                } else if (typeof window.swConfirm !== 'undefined'){
+                if (typeof window.swConfirm !== 'undefined'){
                     console.log('[editForm submit] Usando swConfirm');
                     const res = await swConfirm({
-                        title: '',
-                        html: `<div class="swal-title-like">¿Estás seguro de actualizar el Evento?</div>`,
-                        confirmButtonText: 'Sí, actualizar'
+                        title: '¿Actualizar evento?',
+                        text: 'Se actualizarán los datos del evento',
+                        icon: 'question',
+                        confirmButtonText: 'Sí, actualizar',
+                        cancelButtonText: 'Cancelar'
                     });
                     ok = res.isConfirmed === true;
                 } else {

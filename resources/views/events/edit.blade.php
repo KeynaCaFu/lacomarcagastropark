@@ -28,7 +28,7 @@
                 <input type="text" class="field" name="title" required value="{{ old('title', $event->title) }}">
 
                 <label class="label">Fecha *</label>
-                <input type="date" class="field" name="date" required value="{{ old('date', $fecha) }}">
+                <input type="date" class="field" name="date" required value="{{ old('date', $fecha) }}" min="{{ date('Y-m-d') }}">
 
                 <label class="label">Hora *</label>
                 <input type="time" class="field" name="time" required value="{{ old('time', $hora) }}">
@@ -90,63 +90,23 @@
     const formEdit = document.getElementById('formEdit');
     formEdit?.addEventListener('submit', function(e){
       e.preventDefault();
-      if (window.swConfirm) {
+      
+      const showConfirm = () => {
+        if (typeof window.swConfirm === 'undefined') {
+          setTimeout(showConfirm, 100);
+          return;
+        }
+        
         swConfirm({
-          html: '<div class="swal-title-like">¿Deseas actualizar este evento?</div>',
+          title: '¿Actualizar evento?',
+          text: 'Se actualizarán los datos del evento',
+          icon: 'question',
           confirmButtonText: 'Sí, actualizar',
           cancelButtonText: 'Cancelar'
-        }).then(r => { if(r.isConfirmed) this.submit(); });
-      } else if (confirm('¿Deseas actualizar este evento?')) {
-        this.submit();
-      }
+        }).then(r => { if(r.isConfirmed) formEdit.submit(); });
+      };
+      
+      showConfirm();
     });
-
-    // Éxito tras actualizar
-    @if(session('ok') === 'saved')
-    (() => {
-        let retries = 0;
-        const checkAndShowSuccess = () => {
-            if (window.swToast) {
-                swToast.fire({
-                    icon: 'success',
-                    title: 'Evento actualizado con éxito'
-                });
-            } else if (retries < 50) {
-                retries++;
-                setTimeout(checkAndShowSuccess, 100);
-            }
-        };
-        setTimeout(checkAndShowSuccess, 100);
-    })();
-    @endif
-
-    // Errores desde backend
-    @if ($errors->any())
-    (() => {
-        let retries = 0;
-        const checkAndShowErrors = () => {
-            if (window.swAlert) {
-                swAlert({ title: 'Errores de validación', html: `{!! implode('<br>', $errors->all()) !!}`, icon: 'error', customClass: { popup: 'sw-rounded' } });
-            } else if (retries < 50) {
-                retries++;
-                setTimeout(checkAndShowErrors, 100);
-            }
-        };
-        setTimeout(checkAndShowErrors, 100);
-    })();
-    @elseif (session('error'))
-    (() => {
-        let retries = 0;
-        const checkAndShowError = () => {
-            if (window.swAlert) {
-                swAlert({ title: 'No se pudo actualizar', html: @json(session('error')), icon: 'error', customClass: { popup: 'sw-rounded' } });
-            } else if (retries < 50) {
-                retries++;
-                setTimeout(checkAndShowError, 100);
-            }
-        };
-        setTimeout(checkAndShowError, 100);
-    })();
-    @endif
   </script>
 @endsection
