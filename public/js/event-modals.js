@@ -113,8 +113,6 @@ class EventoModals {
                 return; 
             }
             
-            console.log('[openShowModal] Mostrando indicador de carga');
-            content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
             
             console.log('[openShowModal] Obteniendo contenido del servidor');
             const html = await this.fetchModalContent('show', id);
@@ -162,8 +160,7 @@ class EventoModals {
                 return;
             }
             
-            console.log('[openEditModal] Mostrando indicador de carga');
-            content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
+          
             
             console.log('[openEditModal] Obteniendo contenido del servidor');
             const html = await this.fetchModalContent('edit', id);

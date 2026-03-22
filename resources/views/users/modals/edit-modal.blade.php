@@ -162,7 +162,14 @@
 }
 
 .password-field .form-control {
-    padding-right: 40px;
+    padding-right: 72px;
+}
+
+/* Evita que el icono de validacion se monte sobre el boton de mostrar contrasena */
+.password-field .form-control.is-invalid,
+.password-field .form-control.is-valid {
+    padding-right: 72px;
+    background-position: right 44px center;
 }
 
 .btn-toggle-password {
