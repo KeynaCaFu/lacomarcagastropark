@@ -432,6 +432,8 @@
                                         <a href="{{ route('dashboard') }}" class="mobile-nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                                             <i class="fas fa-home"></i> Dashboard
                                         </a>
+                                        <a href="{{ route('local.index') }}" class="mobile-nav-item {{ request()->routeIs('local*') ? 'active' : '' }}">
+                                            <i class="fas fa-store"></i> Mi Local   
                                         <a href="{{ route('products.index') }}" class="mobile-nav-item {{ request()->routeIs('products*') ? 'active' : '' }}">
                                             <i class="fas fa-box"></i> Productos
                                         </a>
@@ -457,23 +459,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Alertas de Bootstrap/Laravel - Comentadas para usar SweetAlert Toasts en su lugar -->
-                {{-- Success messages are now handled by SweetAlert toasts in each view --}}
-                {{-- @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="fas fa-check-circle"></i> {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif --}}
-
-                {{-- Error messages are handled by SweetAlert in each view --}}
-                {{-- @if(session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif --}}
 
                 @if($errors->any())
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
