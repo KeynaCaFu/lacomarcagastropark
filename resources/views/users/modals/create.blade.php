@@ -30,7 +30,8 @@
         <div class="row g-3" style="margin-bottom: 8px; margin-top: 0;">
             <div class="col-md-6">
                 <label class="form-label">Teléfono</label>
-                <input type="tel" name="phone" class="form-control" placeholder="Ej: 6700-1100">
+                <input type="tel" id="createPhone" name="phone" class="form-control" placeholder="Ej: 6700-1100" inputmode="numeric" maxlength="9" pattern="\d{4}-\d{4}">
+                <div class="invalid-feedback"></div>
             </div>
 
             <div class="col-md-6">
@@ -148,7 +149,14 @@
 }
 
 .password-field .form-control {
-    padding-right: 40px;
+    padding-right: 72px;
+}
+
+/* Evita que el icono de validacion se monte sobre el boton de mostrar contrasena */
+.password-field .form-control.is-invalid,
+.password-field .form-control.is-valid {
+    padding-right: 72px;
+    background-position: right 44px center;
 }
 
 .btn-toggle-password {
@@ -324,6 +332,20 @@ function validatePasswordMatch(passwordId, confirmId, feedbackId) {
     }
 }
 
+function setupPhoneMask(phoneId) {
+    const phoneField = document.getElementById(phoneId);
+    if (!phoneField || phoneField.dataset._phoneMaskBound === 'true') return;
+
+    phoneField.dataset._phoneMaskBound = 'true';
+    phoneField.addEventListener('input', function() {
+        let digits = this.value.replace(/\D/g, '').slice(0, 8);
+        if (digits.length > 4) {
+            digits = digits.slice(0, 4) + '-' + digits.slice(4);
+        }
+        this.value = digits;
+    });
+}
+
 (function(){
     // SweetAlert2 CDN guard (partial may be loaded via AJAX)
     if (typeof Swal === 'undefined') {
@@ -337,6 +359,7 @@ function validatePasswordMatch(passwordId, confirmId, feedbackId) {
 
     // Setup password validation
     setupPasswordValidation('createPassword', 'createPasswordConfirm', 'createStrengthFill', 'createStrengthText', 'createMatchFeedback');
+    setupPhoneMask('createPhone');
 
     // Note: submit handler is in users/index.blade.php (AJAX-based)
     // Do not add duplicate handler here
