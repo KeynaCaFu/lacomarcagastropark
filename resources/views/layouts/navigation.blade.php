@@ -31,8 +31,14 @@
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                             {{ __('Dashboard') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('local.index')" :active="request()->routeIs('local*')">
+                            {{ __('Mi Local') }}
+                        </x-nav-link>
                         <x-nav-link :href="route('products.index')" :active="request()->routeIs('products*')">
                             {{ __('Productos') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('suppliers.index')" :active="request()->routeIs('suppliers*')">
+                            {{ __('Proveedores') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -105,8 +111,14 @@
                 <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
                 </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('local.index')" :active="request()->routeIs('local*')">
+                    {{ __('Mi Local') }}
+                </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products*')">
                     {{ __('Productos') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('suppliers.index')" :active="request()->routeIs('suppliers*')">
+                    {{ __('Proveedores') }}
                 </x-responsive-nav-link>
             @endif
         </div>
