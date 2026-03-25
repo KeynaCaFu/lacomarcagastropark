@@ -355,6 +355,12 @@
                                      <i class="fas fa-truck"></i> Proveedores
                                 </a>
                             </li>
+
+                            <li>
+                                     <a href="{{ route('reviews.index') }}" class="{{ request()->routeIs('reviews*') ? 'active' : '' }}" data-tooltip="Reseñas">
+                                      <i class="fas fa-star"></i> Reseñas
+                                                    </a>
+                                            </li>
                         @endif
                     </ul>
                 </div>
@@ -440,6 +446,12 @@
                                         <a href="{{ route('suppliers.index') }}" class="mobile-nav-item {{ request()->routeIs('suppliers*') ? 'active' : '' }}">
                                             <i class="fas fa-truck"></i> Proveedores
                                         </a>
+
+                                        <li>
+                                                        <a href="{{ route('reviews.index') }}" class="{{ request()->routeIs('reviews*') ? 'active' : '' }}" data-tooltip="Reseñas">
+                                                            <i class="fas fa-star"></i> Reseñas
+                                                                     </a>
+                                            </li>
                                         
                                     @endif
                                 </div>
