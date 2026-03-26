@@ -25,4 +25,9 @@ class Review extends Model
     {
         return $this->hasOne(LocalReview::class, 'review_id', 'review_id');
     }
+
+    public function productReview()
+    {
+        return $this->hasOne(ProductReview::class, 'review_id', 'review_id');
+    }
 }

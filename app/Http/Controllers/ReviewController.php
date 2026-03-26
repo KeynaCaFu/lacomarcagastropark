@@ -19,22 +19,50 @@ class ReviewController extends Controller
         $user = $request->user();
         $local = $user->locals()->first();
 
-        $reviews = collect();
+        $localReviews = collect();
+        $productReviews = collect();
+
+        $localStats = [
+            'total' => 0,
+            'average' => 0,
+            'month_total' => 0,
+            'distribution' => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0],
+        ];
+
+        $productStats = [
+            'total' => 0,
+            'average' => 0,
+            'month_total' => 0,
+            'distribution' => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0],
+        ];
 
         if ($local) {
-            $reviews = $this->reviewData->getByLocal($local->local_id);
+            $localReviews = $this->reviewData->getLocalReviewsByLocal($local->local_id);
+            $productReviews = $this->reviewData->getProductReviewsByLocal($local->local_id);
+
+            $localStats = $this->reviewData->getStats($localReviews);
+            $productStats = $this->reviewData->getStats($productReviews);
         }
 
-        return view('reviews.index', compact('reviews', 'local'));
+        return view('reviews.index', compact(
+            'local',
+            'localReviews',
+            'productReviews',
+            'localStats',
+            'productStats'
+        ));
     }
 
     public function respond(Request $request, $id)
     {
         $request->validate([
-            'response' => 'required|string|max:1000'
+            'response' => 'required|string|max:1000',
+            'review_type' => 'required|in:local,product'
         ], [
             'response.required' => 'La respuesta es obligatoria.',
-            'response.max' => 'La respuesta no puede tener más de 1000 caracteres.'
+            'response.max' => 'La respuesta no puede tener más de 1000 caracteres.',
+            'review_type.required' => 'El tipo de reseña es obligatorio.',
+            'review_type.in' => 'Tipo de reseña inválido.'
         ]);
 
         $user = $request->user();
@@ -45,15 +73,27 @@ class ReviewController extends Controller
                 ->with('error', 'No tienes un local asignado.');
         }
 
-        $ok = $this->reviewData->respond(
-            $id,
-            $local->local_id,
-            $request->response
-        );
+        $ok = false;
+
+        if ($request->review_type === 'local') {
+            $ok = $this->reviewData->respondToLocalReview(
+                $id,
+                $local->local_id,
+                $request->response
+            );
+        }
+
+        if ($request->review_type === 'product') {
+            $ok = $this->reviewData->respondToProductReview(
+                $id,
+                $local->local_id,
+                $request->response
+            );
+        }
 
         if (!$ok) {
             return redirect()->route('reviews.index')
-                ->with('error', 'La reseña no pertenece a tu local.');
+                ->with('error', 'La reseña no pertenece a tu local o a tus productos.');
         }
 
         return redirect()->route('reviews.index')
