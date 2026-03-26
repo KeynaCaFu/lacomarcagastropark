@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\LocalDashboardController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Http\Request;
 
 /*
@@ -164,8 +165,26 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
     
     Route::post('/{id}/galeria', [SupplierController::class, 'storeGallery'])->name('gallery.store');
 
+
+
+   
 });
+
+// RESEÑAS (GERENTE)
+Route::prefix('resenas')->name('reviews.')->group(function () {
+
+    Route::get('/', [ReviewController::class, 'index'])->name('index');
+
+    Route::post('/{id}/responder', [ReviewController::class, 'respond'])->name('respond');
+
 });
+
+
+
+
+});
+
+
 
 // ============================================================================
 // RUTAS PARA CLIENTE
