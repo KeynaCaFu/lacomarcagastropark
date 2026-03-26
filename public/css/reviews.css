@@ -99,12 +99,13 @@
 .review-stat-card {
     background: linear-gradient(135deg, #ffffff, #f6fbf7);
     border: 1px solid #dceee3;
-    border-left: 6px solid #2e7d32; /* tu verde */
+    border-left: 6px solid var(--secondary); /* TU NARANJA */
     border-radius: 16px;
     padding: 20px;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
 .review-stat-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
