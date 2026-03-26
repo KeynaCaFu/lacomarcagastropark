@@ -357,6 +357,12 @@
                             </li>
 
                             <li>
+                                <a href="{{ route('orders.index') }}" class="{{ request()->routeIs('orders*') ? 'active' : '' }}" data-tooltip="Órdenes">
+                                    <i class="fas fa-shopping-cart"></i> Órdenes
+                                </a>
+                            </li>
+
+                            <li>
                                      <a href="{{ route('reviews.index') }}" class="{{ request()->routeIs('reviews*') ? 'active' : '' }}" data-tooltip="Reseñas">
                                       <i class="fas fa-star"></i> Reseñas
                                                     </a>
@@ -445,6 +451,9 @@
                                         </a>
                                         <a href="{{ route('suppliers.index') }}" class="mobile-nav-item {{ request()->routeIs('suppliers*') ? 'active' : '' }}">
                                             <i class="fas fa-truck"></i> Proveedores
+                                        </a>
+                                        <a href="{{ route('orders.index') }}" class="mobile-nav-item {{ request()->routeIs('orders*') ? 'active' : '' }}">
+                                            <i class="fas fa-shopping-cart"></i> Órdenes
                                         </a>
 
                                         <li>
