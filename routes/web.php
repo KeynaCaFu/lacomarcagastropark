@@ -10,6 +10,7 @@ use App\Http\Controllers\LocalDashboardController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Http\Request;
 
 /*
@@ -179,12 +180,12 @@ Route::prefix('resenas')->name('reviews.')->group(function () {
 
 });
 
-
-
-
+// ÓRDENES (GERENTE) - Ver, filtrar y cambiar estado
+Route::prefix('ordenes')->name('orders.')->group(function () {
+    Route::get('/', [OrderController::class, 'index'])->name('index');
+    Route::get('/{order}', [OrderController::class, 'show'])->name('show');
+    Route::post('/{order}/cambiar-estado', [OrderController::class, 'changeStatus'])->name('change-status');
 });
-
-
 
 // ============================================================================
 // RUTAS PARA CLIENTE
@@ -203,3 +204,5 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+});
