@@ -473,10 +473,92 @@
         .footer {
             background: var(--surface);
             border-top: 1px solid var(--border);
-            padding: 40px 0 20px;
+            padding: 48px 0 20px;
+            color: var(--text);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .footer-section {
+            text-align: left;
+        }
+
+        .footer-section h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-section h3 i {
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .footer-section p {
+            font-size: 0.85rem;
+            color: var(--muted);
+            line-height: 1.8;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-section p i {
+            color: var(--primary);
+            width: 16px;
             text-align: center;
+        }
+
+        .footer-section p:first-of-type {
+            margin-top: 0;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .social-icons a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            background: rgba(212, 119, 58, 0.1);
+            color: var(--primary);
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .social-icons a:hover {
+            background: var(--primary);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .copyright {
+            text-align: center;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
             font-size: 0.8rem;
             color: var(--muted);
+        }
+
+        .copyright p {
+            margin: 0;
         }
 
         /* ========== RESPONSIVE ========== */
@@ -492,6 +574,31 @@
 
             .section-title {
                 font-size: 1.2rem;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .footer-section {
+                text-align: center;
+            }
+
+            .footer-section h3 {
+                justify-content: center;
+            }
+
+            .footer-section p {
+                justify-content: center;
+            }
+
+            .social-icons {
+                justify-content: center;
+            }
+
+            .copyright {
+                text-align: center;
             }
         }
     </style>
@@ -624,7 +731,52 @@
         <!-- FOOTER -->
         <footer class="footer">
             <div class="container">
-                <p>&copy; {{ date('Y') }} La Comarca Gastro Park. Todos los derechos reservados.</p>
+                <div class="footer-content">
+                    <div class="footer-section">
+                        <h3><i class="fas fa-clock"></i> Horario</h3>
+                        <p><strong>Lunes a Viernes</strong></p>
+                        <p>12:00 PM - 12:00 AM</p>
+                        <p style="margin-top: 12px;"><strong>Sábado a Domingo</strong></p>
+                        <p>11:00 AM - 2:00 AM</p>
+                    </div>
+                    <div class="footer-section">
+                        <h3><i class="fas fa-map-marker-alt"></i> Ubicación</h3>
+                        <p><i class="fas fa-location-dot"></i> <a href="https://maps.app.goo.gl/UYkQZhrKbVnTKgWj8?g_st=aw" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline; transition: color 0.2s;" onmouseover="this.style.color='#c06830'" onmouseout="this.style.color='var(--primary)'">La Comarca Gastro Park</a></p>
+                        <p><i class="fas fa-map"></i> <a href="https://maps.app.goo.gl/UYkQZhrKbVnTKgWj8?g_st=aw" target="_blank" rel="noopener noreferrer" style="color: var(--muted); text-decoration: underline; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted)'">Guápiles, Limón, Costa Rica</a></p>
+                        <p style="margin-top: 12px;"><i class="fas fa-phone"></i> +506 8888 8888</p>
+                        <p><i class="fas fa-envelope"></i> info@lacomarcagastropark.com</p>
+                    </div>
+                    <div class="footer-section">
+                        <h3><i class="fas fa-share-alt"></i> Síguenos</h3>
+                        <p style="color: var(--text); margin-bottom: 12px;">Conecta con nosotros en redes sociales</p>
+                        <div class="social-icons">
+                            <a href="https://www.facebook.com/share/1CYem5AGeo/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            title="Facebook"
+                            aria-label="Síguenos en Facebook">
+                                <i class="fab fa-facebook"></i>
+                            </a>
+                            <a href="https://www.instagram.com/la.comarcagastropark?igsh=bW43MHB0OG9yMG8y" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            title="Instagram"
+                            aria-label="Síguenos en Instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="https://www.tiktok.com/@la.comarcagastropark?_t=ZM-8z8TOSBnnGv&_r=1" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            title="TikTok"
+                            aria-label="Síguenos en TikTok">
+                                <i class="fab fa-tiktok"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="copyright">
+                    <p>&copy; 2026 La Comarca Gastro Park. Todos los derechos reservados.</p>
+                </div>
             </div>
         </footer>
     </div>
