@@ -107,12 +107,8 @@
 
     <div class="reviews-tabs-wrapper">
         <div class="reviews-tabs-header">
-            <button class="reviews-tab-btn active" type="button" data-tab="locales">
-                Reseñas de local
-            </button>
-            <button class="reviews-tab-btn" type="button" data-tab="productos">
-                Reseñas de producto
-            </button>
+            <button class="reviews-tab-btn active" type="button" data-tab="locales">Reseñas de local</button>
+            <button class="reviews-tab-btn" type="button" data-tab="productos">Reseñas de producto</button>
         </div>
 
         {{-- TAB LOCALES --}}
@@ -121,33 +117,22 @@
             <div class="reviews-section-top">
                 <div class="review-stat-card">
                     <div class="review-stat-label">PROMEDIO</div>
-                    <div class="review-stat-value">
-                        {{ number_format($localStats['average'], 1) }} <span>★</span>
-                    </div>
+                    <div class="review-stat-value">{{ number_format($localStats['average'], 1) }} <span>★</span></div>
                     <div class="review-stat-text">Sobre 5 estrellas</div>
                 </div>
-
                 <div class="review-stat-card">
                     <div class="review-stat-label">RESEÑAS</div>
                     <div class="review-stat-value">{{ $localStats['total'] }}</div>
                     <div class="review-stat-text">Este mes: {{ $localStats['month_total'] }}</div>
                 </div>
-
                 <div class="review-stat-card">
                     <div class="review-stat-label">DISTRIBUCIÓN</div>
-                    @php
-                        $maxLocal = max($localStats['distribution']) > 0 ? max($localStats['distribution']) : 1;
-                    @endphp
+                    @php $maxLocal = max($localStats['distribution']) > 0 ? max($localStats['distribution']) : 1; @endphp
                     @for($star = 5; $star >= 1; $star--)
-                        @php
-                            $count = $localStats['distribution'][$star];
-                            $width = ($count / $maxLocal) * 100;
-                        @endphp
+                        @php $count = $localStats['distribution'][$star]; $width = ($count / $maxLocal) * 100; @endphp
                         <div class="distribution-row">
                             <span>{{ $star }}</span>
-                            <div class="distribution-bar">
-                                <div class="distribution-fill" style="width: {{ $width }}%;"></div>
-                            </div>
+                            <div class="distribution-bar"><div class="distribution-fill" style="width: {{ $width }}%;"></div></div>
                             <strong>{{ $count }}</strong>
                         </div>
                     @endfor
@@ -162,31 +147,31 @@
                 <div class="reviews-grid">
                     @foreach($localReviews as $item)
                         @php
-                            $nombre = $item->user->full_name ?? 'Cliente';
-                            $rating = $item->review->rating ?? 0;
+                            $nombre     = $item->user->full_name ?? 'Cliente';
+                            $rating     = $item->review->rating ?? 0;
                             $comentario = $item->review->comment ?? 'Sin comentario.';
-                            $fecha = $item->review->date ?? '-';
-                            $respuesta = $item->review->response ?? null;
-
+                            $fecha      = $item->review->date ?? '-';
+                            $respuesta  = $item->review->response ?? null;
                             $partes = explode(' ', trim($nombre));
                             $iniciales = '';
-                            foreach(array_slice($partes, 0, 2) as $parte){
-                                $iniciales .= strtoupper(substr($parte, 0, 1));
-                            }
-
-                            if ($rating >= 4) {
-                                $tipoTexto = 'Positiva';
-                                $tipoClase = 'positive';
-                            } elseif ($rating == 3) {
-                                $tipoTexto = 'Neutra';
-                                $tipoClase = 'neutral';
-                            } else {
-                                $tipoTexto = 'Negativa';
-                                $tipoClase = 'negative';
-                            }
+                            foreach(array_slice($partes, 0, 2) as $p){ $iniciales .= strtoupper(substr($p, 0, 1)); }
+                            if ($rating >= 4)     { $tipoTexto = 'Positiva'; $tipoClase = 'positive'; }
+                            elseif ($rating == 3) { $tipoTexto = 'Neutra';   $tipoClase = 'neutral';  }
+                            else                  { $tipoTexto = 'Negativa'; $tipoClase = 'negative'; }
                         @endphp
 
-                        <div class="review-card">
+                        <div class="review-card review-card-clickable"
+                             data-modal-nombre="{{ $nombre }}"
+                             data-modal-iniciales="{{ $iniciales ?: 'CL' }}"
+                             data-modal-fecha="{{ $fecha }}"
+                             data-modal-rating="{{ $rating }}"
+                             data-modal-comentario="{{ $comentario }}"
+                             data-modal-tipo-texto="{{ $tipoTexto }}"
+                             data-modal-tipo-clase="{{ $tipoClase }}"
+                             data-modal-respuesta="{{ $respuesta ?? '' }}"
+                             data-modal-producto=""
+                             onclick="openReviewModal(this)">
+
                             <div class="review-card-header">
                                 <div class="review-user-box">
                                     <div class="review-avatar">{{ $iniciales ?: 'CL' }}</div>
@@ -296,9 +281,7 @@
                     @endforeach
                 </div>
             @else
-                <div class="reviews-empty-state">
-                    No hay reseñas de local registradas para este gerente.
-                </div>
+                <div class="reviews-empty-state">No hay reseñas de local registradas para este gerente.</div>
             @endif
         </div>
 
@@ -308,33 +291,22 @@
             <div class="reviews-section-top">
                 <div class="review-stat-card">
                     <div class="review-stat-label">PROMEDIO</div>
-                    <div class="review-stat-value">
-                        {{ number_format($productStats['average'], 1) }} <span>★</span>
-                    </div>
+                    <div class="review-stat-value">{{ number_format($productStats['average'], 1) }} <span>★</span></div>
                     <div class="review-stat-text">Sobre 5 estrellas</div>
                 </div>
-
                 <div class="review-stat-card">
                     <div class="review-stat-label">RESEÑAS</div>
                     <div class="review-stat-value">{{ $productStats['total'] }}</div>
                     <div class="review-stat-text">Este mes: {{ $productStats['month_total'] }}</div>
                 </div>
-
                 <div class="review-stat-card">
                     <div class="review-stat-label">DISTRIBUCIÓN</div>
-                    @php
-                        $maxProduct = max($productStats['distribution']) > 0 ? max($productStats['distribution']) : 1;
-                    @endphp
+                    @php $maxProduct = max($productStats['distribution']) > 0 ? max($productStats['distribution']) : 1; @endphp
                     @for($star = 5; $star >= 1; $star--)
-                        @php
-                            $count = $productStats['distribution'][$star];
-                            $width = ($count / $maxProduct) * 100;
-                        @endphp
+                        @php $count = $productStats['distribution'][$star]; $width = ($count / $maxProduct) * 100; @endphp
                         <div class="distribution-row">
                             <span>{{ $star }}</span>
-                            <div class="distribution-bar">
-                                <div class="distribution-fill" style="width: {{ $width }}%;"></div>
-                            </div>
+                            <div class="distribution-bar"><div class="distribution-fill" style="width: {{ $width }}%;"></div></div>
                             <strong>{{ $count }}</strong>
                         </div>
                     @endfor
@@ -349,35 +321,33 @@
                 <div class="reviews-grid">
                     @foreach($productReviews as $item)
                         @php
-                            $nombre = $item->user->full_name ?? 'Cliente';
-                            $rating = $item->review->rating ?? 0;
-                            $comentario = $item->review->comment ?? 'Sin comentario.';
-                            $fecha = $item->review->date ?? '-';
-                            $respuesta = $item->review->response ?? null;
+                            $nombre         = $item->user->full_name ?? 'Cliente';
+                            $rating         = $item->review->rating ?? 0;
+                            $comentario     = $item->review->comment ?? 'Sin comentario.';
+                            $fecha          = $item->review->date ?? '-';
+                            $respuesta      = $item->review->response ?? null;
                             $nombreProducto = $item->product->name ?? ('Producto #' . $item->product_id);
-
                             $partes = explode(' ', trim($nombre));
                             $iniciales = '';
-                            foreach(array_slice($partes, 0, 2) as $parte){
-                                $iniciales .= strtoupper(substr($parte, 0, 1));
-                            }
-
-                            if ($rating >= 4) {
-                                $tipoTexto = 'Positiva';
-                                $tipoClase = 'positive';
-                            } elseif ($rating == 3) {
-                                $tipoTexto = 'Neutra';
-                                $tipoClase = 'neutral';
-                            } else {
-                                $tipoTexto = 'Negativa';
-                                $tipoClase = 'negative';
-                            }
+                            foreach(array_slice($partes, 0, 2) as $p){ $iniciales .= strtoupper(substr($p, 0, 1)); }
+                            if ($rating >= 4)     { $tipoTexto = 'Positiva'; $tipoClase = 'positive'; }
+                            elseif ($rating == 3) { $tipoTexto = 'Neutra';   $tipoClase = 'neutral';  }
+                            else                  { $tipoTexto = 'Negativa'; $tipoClase = 'negative'; }
                         @endphp
 
-                        <div class="review-card">
-                            <div class="review-mini-label">
-                                Producto: {{ $nombreProducto }}
-                            </div>
+                        <div class="review-card review-card-clickable"
+                             data-modal-nombre="{{ $nombre }}"
+                             data-modal-iniciales="{{ $iniciales ?: 'CL' }}"
+                             data-modal-fecha="{{ $fecha }}"
+                             data-modal-rating="{{ $rating }}"
+                             data-modal-comentario="{{ $comentario }}"
+                             data-modal-tipo-texto="{{ $tipoTexto }}"
+                             data-modal-tipo-clase="{{ $tipoClase }}"
+                             data-modal-respuesta="{{ $respuesta ?? '' }}"
+                             data-modal-producto="{{ $nombreProducto }}"
+                             onclick="openReviewModal(this)">
+
+                            <div class="review-mini-label">Producto: {{ $nombreProducto }}</div>
 
                             <div class="review-card-header">
                                 <div class="review-user-box">
@@ -487,9 +457,7 @@
                     @endforeach
                 </div>
             @else
-                <div class="reviews-empty-state">
-                    No hay reseñas de productos de este local.
-                </div>
+                <div class="reviews-empty-state">No hay reseñas de productos de este local.</div>
             @endif
         </div>
     </div>
