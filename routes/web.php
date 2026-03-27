@@ -10,6 +10,7 @@ use App\Http\Controllers\LocalDashboardController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\PlazaController;
 use Illuminate\Http\Request;
 
 /*
@@ -200,6 +201,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+
+// RUTAS PARA PLAZA PÚBLICA (Sin autenticación)
+
+Route::prefix('plaza')->name('plaza.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\PlazaController::class, 'index'])->name('index');
+    Route::get('/{localId}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show');
 });
 
 require __DIR__.'/auth.php';
