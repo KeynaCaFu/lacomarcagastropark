@@ -99,4 +99,127 @@ class ReviewController extends Controller
         return redirect()->route('reviews.index')
             ->with('success', 'Respuesta guardada correctamente.');
     }
+
+    
+    public function updateResponse(Request $request, $reviewId)
+{
+    $request->validate([
+        'response' => 'required|string|max:1000'
+    ], [
+        'response.required' => 'La respuesta es obligatoria.',
+        'response.max' => 'La respuesta no puede tener más de 1000 caracteres.'
+    ]);
+
+    $user = $request->user();
+    $local = $user->locals()->first();
+
+    if (!$local) {
+        return redirect()->route('reviews.index')
+            ->with('error', 'No tienes un local asignado.');
+    }
+
+    $review = \App\Models\Review::find($reviewId);
+
+    if (!$review) {
+        return redirect()->route('reviews.index')
+            ->with('error', 'La reseña no existe.');
+    }
+
+    $belongsToLocal = \App\Models\LocalReview::where('review_id', $reviewId)
+        ->where('local_id', $local->local_id)
+        ->exists();
+
+    $productIds = \Illuminate\Support\Facades\DB::table('tblocal_product')
+        ->where('local_id', $local->local_id)
+        ->pluck('product_id');
+
+    $belongsToProduct = \App\Models\ProductReview::where('review_id', $reviewId)
+        ->whereIn('product_id', $productIds)
+        ->exists();
+
+    if (!$belongsToLocal && !$belongsToProduct) {
+        return redirect()->route('reviews.index')
+            ->with('error', 'No puedes editar una respuesta de una reseña que no pertenece a tu local.');
+    }
+
+    $review->update([
+        'response' => $request->response
+    ]);
+
+    return redirect()->route('reviews.index')
+        ->with('success', 'Respuesta actualizada correctamente.');
+}
+
+public function deleteResponse(Request $request, $reviewId)
+{
+    $user = $request->user();
+    $local = $user->locals()->first();
+
+    if (!$local) {
+        return redirect()->route('reviews.index')
+            ->with('error', 'No tienes un local asignado.');
+    }
+
+    $review = \App\Models\Review::find($reviewId);
+
+    if (!$review) {
+        return redirect()->route('reviews.index')
+            ->with('error', 'La reseña no existe.');
+    }
+
+    $belongsToLocal = \App\Models\LocalReview::where('review_id', $reviewId)
+        ->where('local_id', $local->local_id)
+        ->exists();
+
+    $productIds = \Illuminate\Support\Facades\DB::table('tblocal_product')
+        ->where('local_id', $local->local_id)
+        ->pluck('product_id');
+
+    $belongsToProduct = \App\Models\ProductReview::where('review_id', $reviewId)
+        ->whereIn('product_id', $productIds)
+        ->exists();
+
+    if (!$belongsToLocal && !$belongsToProduct) {
+        return redirect()->route('reviews.index')
+            ->with('error', 'No puedes eliminar una respuesta de una reseña que no pertenece a tu local.');
+    }
+
+    $review->update([
+        'response' => null
+    ]);
+
+    return redirect()->route('reviews.index')
+        ->with('success', 'Respuesta eliminada correctamente.');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 }

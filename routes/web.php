@@ -176,7 +176,8 @@ Route::prefix('resenas')->name('reviews.')->group(function () {
     Route::get('/', [ReviewController::class, 'index'])->name('index');
 
     Route::post('/{id}/responder', [ReviewController::class, 'respond'])->name('respond');
-
+     Route::put('/respuesta/{reviewId}', [ReviewController::class, 'updateResponse'])->name('response.update');
+    Route::delete('/respuesta/{reviewId}', [ReviewController::class, 'deleteResponse'])->name('response.delete');
 });
 
 

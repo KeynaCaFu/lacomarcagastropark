@@ -407,6 +407,121 @@
     margin-top: 10px;
 }
 
+/* =========================
+   BOTONES DE RESPUESTA
+   ========================= */
+
+.reply-btn,
+.reply-save-btn {
+    background: linear-gradient(135deg, #915016, #a85e1f);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-align: center;
+}
+
+.reply-btn:hover,
+.reply-save-btn:hover {
+    background: #a85e1f;
+    color: #fff;
+}
+
+.reply-btn.cancel-btn {
+    background: transparent;
+    color: #444;
+    border: none;
+    padding: 10px 12px;
+}
+
+.reply-btn.cancel-btn:hover {
+    background: transparent;
+    color: #000;
+}
+
+/* ELIMINAR transparente, como cancelar */
+.reply-btn.danger-btn {
+    background: transparent;
+    color: #915016;
+    border: none;
+    padding: 10px 12px;
+}
+
+.reply-btn.danger-btn:hover {
+    background: transparent;
+    color: #a85e1f;
+}
+
+/* ayuda visual para textarea */
+.text-muted {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.82rem;
+    color: #6b7280;
+}
+
+/* mensajes estilo sistema */
+.auto-hide-message {
+    border-radius: 6px;
+    padding: 14px 18px;
+    font-weight: 500;
+}
+
+/* confirmación custom */
+.review-confirm-box {
+    margin-top: 12px;
+    background: #fff7eb;
+    border: 1px solid #f1d3a8;
+    border-left: 4px solid #915016;
+    border-radius: 8px;
+    padding: 12px 14px;
+}
+
+.review-confirm-text {
+    color: #5f3a12;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+}
+
+.review-confirm-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* arreglar espacio raro al cambiar de tab */
+.reviews-tab-panel {
+    display: none;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.reviews-tab-panel.active {
+    display: block;
+}
+
+.reviews-section-top {
+    margin-top: 24px;
+}
+
+.reviews-tabs-wrapper {
+    overflow: hidden;
+}
+
+.btn-danger-review {
+    background-color: #9f0505 !important;
+    color: #fff !important;
+    border: none !important;
+}
+.btn-danger-review:hover {
+    background-color: #d81b1b !important;
+    color: #fff !important;
+}
 /* RESPONSIVE */
 @media (max-width: 1200px) {
     .reviews-section-top,
