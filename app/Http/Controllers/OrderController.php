@@ -94,17 +94,23 @@ class OrderController extends Controller
             }
         }
 
-        $validated = $request->validate([
-            'status' => 'required|in:' . implode(',', array_keys(Order::getStatuses())),
-        ]);
-
         try {
-            $this->orderData->changeStatus($orderId, $validated['status']);
+            $statuses = array_keys(Order::getStatuses());
+            $status = $request->input('status');
+            
+            if (!in_array($status, $statuses)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => "Estado inválido: {$status}"
+                ], 422);
+            }
+
+            $this->orderData->changeStatus($orderId, $status);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Estado actualizado',
-                'status' => $validated['status']
+                'status' => $status
             ]);
         } catch (\Exception $e) {
             return response()->json([

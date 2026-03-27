@@ -165,20 +165,25 @@ class OrderData
      */
     public function getCountsByStatus($localId = null)
     {
-        $query = Order::query();
-
-        if ($localId) {
-            $query->byLocal($localId);
-        }
-
         $statuses = Order::getStatuses();
         $counts = [];
 
         foreach (array_keys($statuses) as $status) {
+            $query = Order::query();
+            
+            if ($localId) {
+                $query->byLocal($localId);
+            }
+            
             $counts[$status] = $query->byStatus($status)->count();
         }
 
-        $counts['total'] = $query->count();
+        // Total count
+        $totalQuery = Order::query();
+        if ($localId) {
+            $totalQuery->byLocal($localId);
+        }
+        $counts['total'] = $totalQuery->count();
 
         return $counts;
     }
