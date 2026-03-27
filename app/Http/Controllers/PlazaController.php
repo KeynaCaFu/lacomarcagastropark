@@ -90,13 +90,14 @@ class PlazaController extends Controller
     /**
      * Vista detallada de un local con sus productos
      */
-    public function show($localId)
+    public function show($id)
     {
-        $local = Local::findOrFail($localId);
+        // Buscar local por su primary key (local_id)
+        $local = Local::where('local_id', $id)->firstOrFail();
 
         // Obtener productos de este local
-        $productos = Product::whereHas('locals', function ($query) use ($localId) {
-            $query->where('tblocal_product.local_id', $localId);
+        $productos = Product::whereHas('locals', function ($query) use ($id) {
+            $query->where('tblocal_product.local_id', $id);
         })
             ->where('status', 'Available')
             ->with('gallery')

@@ -216,7 +216,7 @@ Route::middleware('auth')->group(function () {
 
 Route::prefix('plaza')->name('plaza.')->group(function () {
     Route::get('/', [\App\Http\Controllers\PlazaController::class, 'index'])->name('index');
-    Route::get('/{localId}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show');
+    Route::get('/{id}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show')->where('id', '[0-9]+');
 });
 
 require __DIR__.'/auth.php';

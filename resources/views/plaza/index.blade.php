@@ -1164,7 +1164,6 @@
                     </div>
                     <div class="footer-section">
                         <h3><i class="fas fa-share-alt"></i> Síguenos</h3>
-                        <p style="color: var(--text); margin-bottom: 12px;">Conecta con nosotros en redes sociales</p>
                         <div class="social-icons">
                             <a href="https://www.facebook.com/share/1CYem5AGeo/" 
                             target="_blank" 
