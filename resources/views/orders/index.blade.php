@@ -41,7 +41,7 @@
         </div>
 
         <div class="order-stat-card">
-            <div class="order-stat-icon" style="color: #ef4444;">
+            <div class="order-stat-icon" style="color: #f59e0b;">
                 <i class="fas fa-fire"></i>
             </div>
             <div>
@@ -51,7 +51,7 @@
         </div>
 
         <div class="order-stat-card">
-            <div class="order-stat-icon" style="color: #10b981;">
+            <div class="order-stat-icon" style="color: #f59e0b;">
                 <i class="fas fa-check-circle"></i>
             </div>
             <div>
@@ -61,7 +61,7 @@
         </div>
 
         <div class="order-stat-card">
-            <div class="order-stat-icon" style="color: #3b82f6;">
+            <div class="order-stat-icon" style="color: #f59e0b;">
                 <i class="fas fa-truck"></i>
             </div>
             <div>

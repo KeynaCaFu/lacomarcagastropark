@@ -136,6 +136,13 @@
                             </td>
                         </tr>
                     @endforeach
+                    <!-- Fila de Subtotal -->
+                    <tr style="border-top: 2px solid #e5e7eb; font-weight: 600;">
+                        <td colspan="3" style="text-align: right; padding: 12px;">Subtotal:</td>
+                        <td class="item-total" style="font-weight: 600;">
+                            ₡{{ number_format($order->total_amount, 2) }}
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         @else
@@ -148,10 +155,24 @@
     <!-- Resumen de Pago -->
     <div class="order-section">
         <div class="order-totals">
+            @php
+                $calculatedTotal = 0;
+                foreach($order->items as $item) {
+                    $localProduct = $item->product->locals->where('local_id', $order->local_id)->first();
+                    $price = $localProduct ? $localProduct->pivot->price : 0;
+                    $calculatedTotal += $price * $item->quantity;
+                }
+            @endphp
             <div class="total-row final-total-row">
                 <div class="total-label">Total:</div>
-                <div class="total-value">₡{{ number_format($order->total_amount, 2) }}</div>
+                <div class="total-value">₡{{ number_format($calculatedTotal, 2) }}</div>
             </div>
+            @if(abs($calculatedTotal - $order->total_amount) > 0.01)
+                <div style="padding: 12px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; margin-top: 12px; font-size: 12px; color: #92400e;">
+                    <i class="fas fa-exclamation-triangle" style="margin-right: 6px;"></i>
+                    <strong>Advertencia:</strong> El total guardado (₡{{ number_format($order->total_amount, 2) }}) no coincide con la suma de items (₡{{ number_format($calculatedTotal, 2) }})
+                </div>
+            @endif
         </div>
     </div>
 </div>

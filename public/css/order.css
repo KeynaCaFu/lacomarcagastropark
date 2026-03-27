@@ -84,31 +84,31 @@
 }
 
 .status-pending {
-    background-color: rgba(245, 158, 11, 0.1);
+    background-color: rgba(249, 249, 249, 0.92);
     color: var(--status-pending);
     border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .status-preparation {
-    background-color: rgba(239, 68, 68, 0.1);
-    color: var(--status-preparation);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background-color: rgba(255, 255, 255, 0.95);
+    color: #e02f2f;
+    border: 1px solid rgba(219, 22, 22, 0.3);
 }
 
 .status-ready {
-    background-color: rgba(16, 185, 129, 0.1);
+    background-color: rgba(249, 249, 249, 0.92);
     color: var(--status-ready);
     border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .status-delivered {
-    background-color: rgba(59, 130, 246, 0.1);
+    background-color: rgba(249, 249, 249, 0.92);
     color: var(--status-delivered);
     border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .status-cancelled {
-    background-color: rgba(107, 114, 128, 0.1);
+   background-color: rgba(249, 249, 249, 0.92);
     color: var(--status-cancelled);
     border: 1px solid rgba(107, 114, 128, 0.3);
 }
@@ -275,6 +275,7 @@
     display: flex;
     flex-direction: column;
     background: var(--light-gray);
+    margin-right: 119px;
 }
 
 .orders-list-search {
@@ -379,7 +380,12 @@
 .order-details-panel-large {
     background: white;
     overflow-y: auto;
-    padding: 20px;
+    padding: 0px;
+    margin-right: 39px;
+    margin-left: -76px;
+    border: 1px solid var(--primary-orange);
+    border-radius: 11px;
+    margin-top: 11px;
 }
 
 .order-details-wrapper {

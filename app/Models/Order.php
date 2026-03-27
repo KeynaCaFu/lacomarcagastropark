@@ -150,6 +150,33 @@ class Order extends Model
     }
 
     /**
+     * Calcular total de la orden a partir de los items
+     */
+    public function calculateTotal()
+    {
+        $total = 0;
+        foreach ($this->items as $item) {
+            $localProduct = $item->product->locals->where('local_id', $this->local_id)->first();
+            $price = $localProduct ? $localProduct->pivot->price : 0;
+            $total += $price * $item->quantity;
+        }
+        return $total;
+    }
+
+    /**
+     * Obtener total: verifica si total_amount es correcto, si no lo calcula
+     */
+    public function getTotalAmount()
+    {
+        $calculatedTotal = $this->calculateTotal();
+        // Si hay discrepancia mayor a 0.01, retorna el calculado
+        if (abs($this->total_amount - $calculatedTotal) > 0.01) {
+            return $calculatedTotal;
+        }
+        return $this->total_amount;
+    }
+
+    /**
      * Filtrar por fecha
      */
     public function scopeByDate($query, $date)
