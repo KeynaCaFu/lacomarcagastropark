@@ -455,7 +455,7 @@
                 <img src="{{ asset('images/logo_comarca.png') }}" alt="La Comarca">
             </div>
             <div class="header-actions">
-                <a href="{{ route('client.welcome') }}" class="back-btn">
+                <a href="{{ route('plaza.index') }}" class="back-btn">
                     <i class="fas fa-arrow-left"></i> Volver
                 </a>
                 <div class="position-relative">
@@ -594,7 +594,7 @@
                         <button type="submit" class="btn-custom btn-save">
                             <i class="fas fa-save"></i> Guardar cambios
                         </button>
-                        <a href="{{ route('client.welcome') }}" class="btn-custom btn-cancel">
+                        <a href="{{ route('plaza.index') }}" class="btn-custom btn-cancel">
                             <i class="fas fa-times"></i> Cancelar
                         </a>
                     </div>

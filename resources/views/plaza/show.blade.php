@@ -106,10 +106,147 @@
             background: var(--card-hover);
         }
 
+        .header-auth {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-auth {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-login {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-login:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-logout {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-logout:hover {
+            background: #c06830;
+        }
+
         .header-title {
             font-size: 0.95rem;
             font-weight: 600;
             color: var(--text);
+        }
+
+        /* User Menu Dropdown */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 8px;
+            font-size: 0.85rem;
+            color: var(--muted);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .user-info:hover {
+            color: var(--primary);
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .user-menu-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--surface-dark);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            min-width: 180px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .user-menu-dropdown.active {
+            display: flex;
+        }
+
+        .user-menu-dropdown a,
+        .user-menu-dropdown form {
+            padding: 10px 14px;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.8rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .user-menu-dropdown a:last-child,
+        .user-menu-dropdown form:last-child {
+            border-bottom: none;
+        }
+
+        .user-menu-dropdown a:hover,
+        .user-menu-dropdown form:hover {
+            background: var(--surface);
+        }
+
+        .user-menu-dropdown button {
+            background: none;
+            border: none;
+            color: var(--text);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .user-menu-dropdown button:hover {
+            background: var(--surface);
+        }
+
+        .user-menu-dropdown button.logout-btn {
+            color: #ff6b6b;
         }
 
         /* ========== LOCAL HERO ========== */
@@ -370,7 +507,43 @@
                         Atrás
                     </a>
                     <h1 class="header-title">Menú</h1>
-                    <div style="width: 50px;"></div>
+                    <div class="header-auth" style="width: auto;">
+                        @auth
+                            <!-- User Menu (igual al admin, compacto para mobile) -->
+                            <div class="user-menu-top" style="position: relative;">
+                                <button class="user-menu-btn" style="background: none; border: 2px solid var(--primary); cursor: pointer; padding: 6px 10px; color: var(--primary); border-radius: 6px; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 500;">
+                                    @if(auth()->user()->avatar)
+                                        <img src="{{ asset(auth()->user()->avatar) }}" alt="Avatar" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover;">
+                                    @else
+                                        <i class="fas fa-user-circle" style="font-size: 18px; color: var(--primary);"></i>
+                                    @endif
+                                    <span class="user-role-label" style="font-size: 0.7rem; color: var(--text); font-weight: 600;">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
+                                </button>
+                                <div class="user-menu-dropdown" style="position: absolute; top: 100%; right: 0; margin-top: 6px; background: var(--card); border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); min-width: 180px; z-index: 1000; display: none;">
+                                    <div style="padding: 10px 12px; border-bottom: 1px solid var(--border-color); font-size: 12px;">
+                                        <div style="font-weight: 600; color: var(--text); font-size: 0.8rem;">{{ auth()->user()->full_name ?? auth()->user()->name }}</div>
+                                        <div style="color: var(--muted); font-size: 0.7rem; margin-top: 2px;">{{ auth()->user()->email }}</div>
+                                    </div>
+
+                                    <a href="{{ route('client.profile.edit') }}" style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border-color); font-size: 0.75rem;">
+                                        <i class="fas fa-user-edit" style="color: var(--muted); font-size: 12px;"></i>
+                                        <span>Editar perfil</span>
+                                    </a>
+                                    <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
+                                        @csrf
+                                        <button type="submit" style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 10px 12px; color: #ff6b6b; text-decoration: none; border: none; background: none; cursor: pointer; font-size: 0.75rem;">
+                                            <i class="fas fa-sign-out-alt" style="font-size: 12px;"></i>
+                                            <span>Cerrar sesión</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @else
+                            <a href="{{ route('login') }}" class="btn-auth btn-login" style="font-size: 0.75rem; padding: 6px 10px;">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </a>
+                        @endauth
+                    </div>
                 </div>
             </div>
         </header>
@@ -378,15 +551,15 @@
         <!-- HERO LOCAL -->
         <section class="local-hero">
             <div class="hero-bg">
-                <img src="{{ $local->gallery->first()?->image_url ?? asset('images/local-placeholder.jpg') }}" 
-                     alt="{{ $local->name }}">
+                
             </div>
             <div class="hero-overlay"></div>
             <div class="hero-content">
+                @if($local->image_logo)
                 <div class="hero-logo">
-                    <img src="{{ $local->image_logo ?? asset('images/logo-placeholder.png') }}" 
-                         alt="">
+                    <img src="{{ $local->image_logo }}" alt="">
                 </div>
+                @endif
                 <div class="hero-info">
                     <h1 class="local-name">{{ $local->name }}</h1>
                     <p class="local-desc">{{ $local->description }}</p>
@@ -457,6 +630,36 @@
     </div>
 
     <script>
+        // Toggle User Menu
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const btn = event.target.closest('.user-menu-btn');
+            const dropdown = btn?.nextElementSibling;
+            
+            if (dropdown) {
+                const isOpen = dropdown.style.display === 'block';
+                dropdown.style.display = isOpen ? 'none' : 'block';
+            }
+        }
+
+        // Cerrar menú al hacer click fuera
+        document.addEventListener('click', function(event) {
+            const menuTop = event.target.closest('.user-menu-top');
+            if (!menuTop) {
+                document.querySelectorAll('.user-menu-dropdown').forEach(dropdown => {
+                    dropdown.style.display = 'none';
+                });
+            }
+        });
+
+        // Inicializar el menú de usuario al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            const userMenuBtn = document.querySelector('.user-menu-btn');
+            if (userMenuBtn) {
+                userMenuBtn.addEventListener('click', toggleUserMenu);
+            }
+        });
+
         const { createApp } = Vue;
 
         createApp({

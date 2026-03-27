@@ -24,8 +24,10 @@ use Illuminate\Http\Request;
 |
 */
 
-// Welcome page (without authentication)
-// Home: redirige según sesión (login o dashboard correspondiente)
+// Welcome page - Plaza Gastronómica
+// Si está sin autenticar → muestra plaza
+// Si es cliente → muestra plaza (con sesión)
+// Si es admin/gerente → redirige a dashboard
 Route::get('/', function () {
     if (auth()->check()) {
         $user = auth()->user();
@@ -35,14 +37,16 @@ Route::get('/', function () {
             $user->load('role');
         }
         
+        // Solo admins se redirigen a sus dashboards
         if ($user->isAdminGlobal()) {
             return redirect()->route('admin.dashboard');
-        } elseif ($user->isClient()) {
-            return redirect()->route('client.welcome');
+        } elseif ($user->isAdminLocal()) {
+            return redirect()->route('dashboard');
         }
-        return redirect()->route('dashboard');
+        // Por defecto, clientes ven la plaza
     }
-    return redirect()->route('login');
+    // Mostrar plaza a todos (autenticados o no)
+    return redirect()->route('plaza.index');
 })->name('home');
 
 // Redirect legacy routes to login
@@ -68,7 +72,7 @@ Route::get('/dashboard', function () {
     }
     
     if ($user->isClient()) {
-        return redirect()->route('client.welcome');
+        return redirect()->route('plaza.index');
     }
     
     // For local managers, show the dashboard
@@ -191,7 +195,11 @@ Route::prefix('resenas')->name('reviews.')->group(function () {
 // RUTAS PARA CLIENTE
 // ============================================================================
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/client-welcome', [ClienteController::class, 'index'])->name('client.welcome');
+    // Redirigir client-welcome a la plaza (ruta antigua, mantenida por compatibilidad)
+    Route::get('/client-welcome', function () {
+        return redirect()->route('plaza.index');
+    })->name('client.welcome');
+    
     Route::get('/client-profile', [ClienteController::class, 'editProfile'])->name('client.profile.edit');
     Route::patch('/client-profile', [ClienteController::class, 'updateProfile'])->name('client.profile.update');
 });

@@ -448,10 +448,10 @@
                                         </a>
 
                                         <li>
-                                                        <a href="{{ route('reviews.index') }}" class="{{ request()->routeIs('reviews*') ? 'active' : '' }}" data-tooltip="Reseñas">
-                                                            <i class="fas fa-star"></i> Reseñas
-                                                                     </a>
-                                            </li>
+                                            <a href="{{ route('reviews.index') }}" class="{{ request()->routeIs('reviews*') ? 'active' : '' }}" data-tooltip="Reseñas">
+                                                <i class="fas fa-star"></i> Reseñas
+                                            </a>
+                                        </li>
                                         
                                     @endif
                                 </div>

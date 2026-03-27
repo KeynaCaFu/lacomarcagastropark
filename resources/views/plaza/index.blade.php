@@ -71,6 +71,192 @@
             padding: 0 16px;
         }
 
+        /* ========== HEADER STICKY ========== */
+        .plaza-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+            background: rgba(14,12,10,0.95);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 0;
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+
+        .header-auth {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-auth {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-login {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-login:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-logout {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-logout:hover {
+            background: #c06830;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 12px;
+            font-size: 0.85rem;
+            color: var(--muted);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .user-info:hover {
+            color: var(--primary);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        /* Dropdown Menu ========== */
+        .user-menu-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--surface-dark);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            min-width: 200px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .user-menu-dropdown.active {
+            display: flex;
+        }
+
+        .user-menu-dropdown a,
+        .user-menu-dropdown form {
+            padding: 12px 16px;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .user-menu-dropdown a:last-child,
+        .user-menu-dropdown form:last-child {
+            border-bottom: none;
+        }
+
+        .user-menu-dropdown a:hover,
+        .user-menu-dropdown form:hover {
+            background: var(--surface);
+        }
+
+        .user-menu-dropdown button {
+            background: none;
+            border: none;
+            color: var(--text);
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .user-menu-dropdown button:hover {
+            background: var(--surface);
+        }
+
+        .user-menu-dropdown button.logout-btn {
+            color: #ff6b6b;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
         /* ========== HERO SECTION ========== */
         .hero {
             position: relative;
@@ -78,7 +264,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 20px 0 60px;
+            padding: 56px 0 60px;
             overflow: hidden;
         }
 
@@ -596,6 +782,29 @@
 
         /* ========== RESPONSIVE ========== */
         @media (max-width: 480px) {
+            .plaza-header {
+                padding: 10px 0;
+            }
+
+            .header-logo {
+                font-size: 0.95rem;
+            }
+
+            .btn-auth {
+                padding: 6px 10px;
+                font-size: 0.75rem;
+            }
+
+            .user-info {
+                font-size: 0.8rem;
+            }
+
+            .user-avatar {
+                width: 28px;
+                height: 28px;
+                font-size: 0.75rem;
+            }
+
             .hero-title {
                 font-size: 1.8rem;
             }
@@ -616,6 +825,56 @@
 </head>
 <body>
     <div id="plaza-app" class="plaza-app">
+        <!-- HEADER STICKY -->
+        <header class="plaza-header">
+            <div class="container">
+                <div class="header-inner">
+                    <div class="header-logo">
+                        <span class="logo-dot"></span>
+                        Plaza Gastronómica
+                    </div>
+                    <div class="header-auth">
+                        @auth
+                            <!-- User Menu cliente-->
+                            <div class="user-menu-top" style="position: relative;">
+                                <button class="user-menu-btn" style="background: none; border: 2px solid var(--primary); cursor: pointer; padding: 8px 12px; color: var(--primary); border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500;">
+                                    @if(auth()->user()->avatar)
+                                        <img src="{{ asset(auth()->user()->avatar) }}" alt="Avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                                    @else
+                                        <i class="fas fa-user-circle" style="font-size: 24px; color: var(--primary);"></i>
+                                    @endif
+                                    <span class="user-role-label" style="font-size: 13px; color: var(--text); font-weight: 600;">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
+                                </button>
+                                <div class="user-menu-dropdown" style="position: absolute; top: 100%; right: 0; margin-top: 8px; background: var(--card); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); min-width: 220px; z-index: 1000; display: none;">
+                                    <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-size: 13px;">
+                                        <div style="font-weight: 600; color: var(--text);">{{ auth()->user()->full_name ?? auth()->user()->name }}</div>
+                                        <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">{{ auth()->user()->email }}</div>
+                                    </div>
+
+                                    <a href="{{ route('client.profile.edit') }}" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border-color);">
+                                        <i class="fas fa-user-edit" style="color: var(--muted); font-size: 14px;"></i>
+                                        <span>Editar perfil</span>
+                                    </a>
+                                    <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
+                                        @csrf
+                                        <button type="submit" style="width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: #ff6b6b; text-decoration: none; border: none; background: none; cursor: pointer; font-size: 13px;">
+                                            <i class="fas fa-sign-out-alt" style="font-size: 14px;"></i>
+                                            <span>Cerrar sesión</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @else
+                            <a href="{{ route('login') }}" class="btn-auth btn-login">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Iniciar Sesión
+                            </a>
+                        @endauth
+                    </div>
+                </div>
+            </div>
+        </header>
+
         <!-- HERO -->
         <section class="hero">
             <div class="hero-bg">
@@ -625,8 +884,7 @@
             
             <div class="container hero-content">
                 <div class="hero-badge">
-                    <i class="fas fa-map-pin"></i>
-                    Plaza Gastronómica Central
+                    La Comarca Gastro Parck
                 </div>
                 
                 <h1 class="hero-title">
@@ -753,9 +1011,6 @@
                             <span class="local-status">
                                 {{ $local['estado'] === 'abierto' ? '🟢 Abierto' : '🔴 Cerrado' }}
                             </span>
-                            <div class="local-logo-wrap">
-                                <img src="{{ $local['logo'] }}" alt="Logo" class="local-logo">
-                            </div>
                         </div>
                         <div class="local-body">
                             <h3 class="local-name">{{ $local['nombre'] }}</h3>
@@ -791,6 +1046,36 @@
     </div>
 
     <script>
+        // Toggle User Menu
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const btn = event.target.closest('.user-menu-btn');
+            const dropdown = btn?.nextElementSibling;
+            
+            if (dropdown) {
+                const isOpen = dropdown.style.display === 'block';
+                dropdown.style.display = isOpen ? 'none' : 'block';
+            }
+        }
+
+        // Cerrar menú al hacer click fuera
+        document.addEventListener('click', function(event) {
+            const menuTop = event.target.closest('.user-menu-top');
+            if (!menuTop) {
+                document.querySelectorAll('.user-menu-dropdown').forEach(dropdown => {
+                    dropdown.style.display = 'none';
+                });
+            }
+        });
+
+        // Inicializar el menú de usuario al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            const userMenuBtn = document.querySelector('.user-menu-btn');
+            if (userMenuBtn) {
+                userMenuBtn.addEventListener('click', toggleUserMenu);
+            }
+        });
+
         const { createApp } = Vue;
 
         createApp({
