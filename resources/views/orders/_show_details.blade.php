@@ -7,7 +7,7 @@
         </div>
     </div>
     <div class="order-detail-status">
-        <div class="status-badge {{ $order->getStatusColorClass() }}">
+        <div class="status-badge {{ $order->getStatusColorClass() }}" style="display: inline-flex;">
             <i class="{{ $order->getStatusIcon() }}"></i>
             {{ $statuses[$order->status] ?? 'Desconocido' }}
         </div>
@@ -31,14 +31,14 @@
                     {{ ucfirst($order->origin) }}
                 </div>
             </div>
-            <div class="order-info-item">
+            {{-- <div class="order-info-item">
                 <div class="order-info-label">Fecha</div>
                 <div class="order-info-value">{{ $order->date->format('d/m/Y') }}</div>
             </div>
             <div class="order-info-item">
                 <div class="order-info-label">Hora</div>
                 <div class="order-info-value">{{ $order->time }}</div>
-            </div>
+            </div> --}}
             <div class="order-info-item">
                 <div class="order-info-label">Tiempo de Prep.</div>
                 <div class="order-info-value">{{ $order->preparation_time }} min</div>
@@ -56,6 +56,31 @@
             </div>
         @endif
     </div>
+
+    <!-- Información del Usuario/Cliente -->
+    @if($order->user && $order->user->count() > 0)
+        <div class="order-section">
+            <div class="order-section-title">
+                <i class="fas fa-user"></i> Información del Cliente
+            </div>
+            @foreach($order->user as $customer)
+                <div class="order-info-grid">
+                    <div class="order-info-item">
+                        <div class="order-info-label">Nombre</div>
+                        <div class="order-info-value">{{ $customer->full_name }}</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Email</div>
+                        <div class="order-info-value">{{ $customer->email }}</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Teléfono</div>
+                        <div class="order-info-value">{{ $customer->phone ?? 'N/A' }}</div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
 
     <!-- Items de la Orden -->
     <div class="order-section">
@@ -77,12 +102,23 @@
                     @foreach($order->items as $item)
                         <tr>
                             <td>
-                                <strong>{{ $item->product->name ?? 'N/A' }}</strong>
-                                @if($item->customization)
-                                    <div style="font-size: 11px; color: #999; margin-top: 3px;">
-                                        {{ $item->customization }}
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    @if($item->product->photo)
+                                        <img src="{{ asset($item->product->photo) }}" alt="{{ $item->product->name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                                    @else
+                                        <div style="width: 50px; height: 50px; background-color: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-image" style="color: #999; font-size: 24px;"></i>
+                                        </div>
+                                    @endif
+                                    <div>
+                                        <strong>{{ $item->product->name ?? 'N/A' }}</strong>
+                                        @if($item->customization)
+                                            <div style="font-size: 11px; color: #999; margin-top: 3px;">
+                                                {{ $item->customization }}
+                                            </div>
+                                        @endif
                                     </div>
-                                @endif
+                                </div>
                             </td>
                             <td class="item-quantity">{{ $item->quantity }}</td>
                             <td>
@@ -118,94 +154,4 @@
             </div>
         </div>
     </div>
-
-    <!-- Cambio de Estado -->
-    @if($order->status === 'Pending')
-        <div class="order-section">
-            <div class="order-section-title">
-                <i class="fas fa-arrow-right-arrow-left"></i> Cambiar Estado
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button type="button" class="status-option" data-order-id="{{ $order->order_id }}" data-status="En Preparación" style="padding: 12px; border-radius: 6px; border: 2px solid #e5e7eb; cursor: pointer; background: #f9fafb; font-weight: 600; transition: all 0.2s;">
-                    <i class="fas fa-fire"></i> Preparación
-                </button>
-                <button type="button" class="status-option" data-order-id="{{ $order->order_id }}" data-status="Listo" style="padding: 12px; border-radius: 6px; border: 2px solid #e5e7eb; cursor: pointer; background: #f9fafb; font-weight: 600; transition: all 0.2s;">
-                    <i class="fas fa-check-circle"></i> Listo
-                </button>
-                <button type="button" class="status-option" data-order-id="{{ $order->order_id }}" data-status="Delivered" style="padding: 12px; border-radius: 6px; border: 2px solid #e5e7eb; cursor: pointer; background: #f9fafb; font-weight: 600; transition: all 0.2s;">
-                    <i class="fas fa-truck"></i> Entregado
-                </button>
-                <button type="button" class="status-option" data-order-id="{{ $order->order_id }}" data-status="Cancelado" style="padding: 12px; border-radius: 6px; border: 2px solid #e5e7eb; cursor: pointer; background: #f9fafb; font-weight: 600; transition: all 0.2s;">
-                    <i class="fas fa-times-circle"></i> Cancelar
-                </button>
-            </div>
-        </div>
-    @endif
-
-    <!-- Acciones -->
-    <div class="order-actions">
-        @if($order->status === 'Pending')
-            <a href="{{ route('orders.edit', $order->order_id) }}" class="btn-order primary" style="flex: 1;">
-                <i class="fas fa-edit"></i> Editar
-            </a>
-        @endif
-
-        <a href="{{ route('orders.show', $order->order_id) }}" class="btn-order secondary" style="flex: 1;">
-            <i class="fas fa-expand"></i> Ver Completo
-        </a>
-
-        @if(in_array($order->status, ['Pending', 'Cancelado']))
-            <button type="button" class="btn-order danger" style="flex: 1;" data-order-id="{{ $order->order_id }}" data-delete onclick="deleteOrder({{ $order->order_id }})">
-                <i class="fas fa-trash"></i> Eliminar
-            </button>
-        @endif
-    </div>
 </div>
-
-<script>
-// Eventos de cambio de estado
-document.querySelectorAll('[data-status]').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const orderId = this.dataset.orderId;
-        const status = this.dataset.status;
-        changeOrderStatus(orderId, status);
-    });
-});
-
-function changeOrderStatus(orderId, status) {
-    fetch(`/ordenes/${orderId}/cambiar-estado`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ status })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success !== false) {
-            location.reload();
-        } else {
-            alert('Error: ' + (data.message || 'No se pudo cambiar el estado'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error en la solicitud');
-    });
-}
-
-function deleteOrder(orderId) {
-    if (confirm('¿Estás seguro de que deseas eliminar esta orden?')) {
-        fetch(`/ordenes/${orderId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        })
-        .then(() => location.reload())
-        .catch(error => alert('Error: ' + error));
-    }
-}
-</script>

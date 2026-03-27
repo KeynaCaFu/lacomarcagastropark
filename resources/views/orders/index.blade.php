@@ -16,9 +16,6 @@
             </h1>
             <p class="text-muted mb-0">Gestión de órdenes del establecimiento</p>
         </div>
-        <a href="{{ route('orders.create') }}" class="btn btn-primary" style="background: linear-gradient(135deg, #e18018, #c9690f); border: none;">
-            <i class="fas fa-plus"></i> Nueva Orden
-        </a>
     </div>
 
     <!-- Estadísticas de órdenes -->
@@ -27,125 +24,127 @@
             <div class="order-stat-icon">
                 <i class="fas fa-boxes"></i>
             </div>
-            <div class="order-stat-number">{{ $counts['total'] ?? 0 }}</div>
-            <div class="order-stat-label">Total de Órdenes</div>
+            <div>
+                <div class="order-stat-number">{{ $counts['total'] ?? 0 }}</div>
+                <div class="order-stat-label">Total de Órdenes</div>
+            </div>
         </div>
 
         <div class="order-stat-card">
             <div class="order-stat-icon" style="color: #f59e0b;">
                 <i class="fas fa-hourglass-start"></i>
             </div>
-            <div class="order-stat-number">{{ $counts['Pending'] ?? 0 }}</div>
-            <div class="order-stat-label">Pendientes</div>
+            <div>
+                <div class="order-stat-number">{{ $counts['Pending'] ?? 0 }}</div>
+                <div class="order-stat-label">Pendientes</div>
+            </div>
         </div>
 
         <div class="order-stat-card">
             <div class="order-stat-icon" style="color: #ef4444;">
                 <i class="fas fa-fire"></i>
             </div>
-            <div class="order-stat-number">{{ $counts['En Preparación'] ?? 0 }}</div>
-            <div class="order-stat-label">En Preparación</div>
+            <div>
+                <div class="order-stat-number">{{ $counts['Preparing'] ?? 0 }}</div>
+                <div class="order-stat-label">En Preparación</div>
+            </div>
         </div>
 
         <div class="order-stat-card">
             <div class="order-stat-icon" style="color: #10b981;">
                 <i class="fas fa-check-circle"></i>
             </div>
-            <div class="order-stat-number">{{ $counts['Listo'] ?? 0 }}</div>
-            <div class="order-stat-label">Listas</div>
+            <div>
+                <div class="order-stat-number">{{ $counts['Ready'] ?? 0 }}</div>
+                <div class="order-stat-label">Listas</div>
+            </div>
         </div>
 
         <div class="order-stat-card">
             <div class="order-stat-icon" style="color: #3b82f6;">
                 <i class="fas fa-truck"></i>
             </div>
-            <div class="order-stat-number">{{ $counts['Delivered'] ?? 0 }}</div>
-            <div class="order-stat-label">Entregadas</div>
+            <div>
+                <div class="order-stat-number">{{ $counts['Delivered'] ?? 0 }}</div>
+                <div class="order-stat-label">Entregadas</div>
+            </div>
         </div>
     </div>
 
-    <!-- Filtros y opciones -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ route('orders.index') }}" class="row g-3">
-                <div class="col-md-4">
-                    <label for="buscar" class="form-label">Buscar orden...</label>
-                    <input type="text" id="buscar" name="buscar" class="form-control" 
-                           placeholder="Número de orden" value="{{ request('buscar') }}">
-                </div>
-
-                <div class="col-md-3">
-                    <label for="estado" class="form-label">Estado</label>
-                    <select id="estado" name="estado" class="form-select">
-                        <option value="">Todos los estados</option>
-                        @foreach($statuses as $key => $label)
-                            <option value="{{ $key }}" {{ request('estado') === $key ? 'selected' : '' }}>
-                                {{ $label }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="col-md-3">
-                    <label for="fecha" class="form-label">Fecha</label>
-                    <input type="date" id="fecha" name="fecha" class="form-control" 
-                           value="{{ request('fecha') }}">
-                </div>
-
-                <div class="col-md-2 d-flex align-items-end gap-2">
-                    <button type="submit" class="btn btn-primary w-100" style="background: linear-gradient(135deg, #e18018, #c9690f); border: none;">
-                        <i class="fas fa-filter"></i> Filtrar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Contenedor de órdenes -->
+    <!-- Contenedor de órdenes con Tabs -->
     @if($orders->count() > 0)
-        <div class="orders-container">
-            <!-- Barra lateral con lista de órdenes -->
-            <div class="orders-sidebar">
-                <div class="orders-list-header">
-                    <i class="fas fa-list"></i>
-                    Órdenes Pendientes ({{ $counts['Pending'] ?? 0 }})
-                </div>
-
-                <div class="orders-list-search">
-                    <input type="text" class="form-control" placeholder="Buscar orden..." id="listSearch">
-                </div>
-
-                <div class="orders-list">
-                    @foreach($orders as $order)
-                        <div class="order-list-item" data-order-id="{{ $order->order_id }}">
-                            <div class="order-list-item-header">
-                                <span class="order-list-number">{{ $order->order_number }}</span>
-                                <span class="order-list-time">{{ $order->time }}</span>
-                            </div>
-                            <div style="margin-bottom: 6px;">
-                                <span class="status-badge {{ $order->getStatusColorClass() }}">
-                                    <i class="{{ $order->getStatusIcon() }}"></i>
-                                    {{ $statuses[$order->status] ?? 'Desconocido' }}
-                                </span>
-                            </div>
-                            <div class="order-list-amount">
-                                ₡{{ number_format($order->total_amount, 2) }}
-                            </div>
-                            @if($order->additional_notes)
-                                <div class="order-list-customer" style="font-size: 11px; color: #888;">
-                                    <i class="fas fa-sticky-note"></i> {{ Str::limit($order->additional_notes, 30) }}
-                                </div>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
+        <div class="orders-container-tabs">
+            <!-- Tabs de estados -->
+            <div class="orders-tabs-header">
+                @foreach($statuses as $key => $label)
+                    <button class="order-tab {{ $loop->first ? 'active' : '' }}" data-status="{{ $key }}">
+                        <span class="order-tab-label">{{ $label }}</span>
+                        <span class="order-tab-count">{{ $counts[$key] ?? 0 }}</span>
+                    </button>
+                @endforeach
             </div>
 
-            <!-- Panel de detalle de orden (será llenado por JavaScript) -->
-            <div class="order-details-panel">
-                <div style="text-align: center; padding: 60px 20px; color: #999;">
-                    <i class="fas fa-arrow-left" style="font-size: 32px; margin-bottom: 15px; display: block;"></i>
-                    <p>Selecciona una orden para ver los detalles</p>
+            <!-- Contenedor con lista central y detalles -->
+            <div class="orders-main-layout">
+                <!-- Lista de órdenes (Centro-Izquierda) -->
+                <div class="orders-list-container">
+                    <div class="orders-list-search">
+                        <input type="text" class="form-control" placeholder="Buscar orden..." id="listSearch">
+                    </div>
+
+                    <div class="orders-grid-list">
+                        @foreach($orders as $order)
+                            <div class="order-card-item" data-order-id="{{ $order->order_id }}" data-status="{{ $order->status }}">
+                                <div class="order-card-header">
+                                    <div>
+                                        <div class="order-card-number">{{ $order->order_number }}</div>
+                                        <div class="order-card-customer">Cliente</div>
+                                    </div>
+                                    <div class="order-card-time">{{ $order->time }}</div>
+                                </div>
+                                <div class="order-card-status">
+                                    <span class="status-badge {{ $order->getStatusColorClass() }} status-badge-clickable" 
+                                          data-order-id="{{ $order->order_id }}"
+                                          style="cursor: pointer; position: relative;">
+                                        <i class="{{ $order->getStatusIcon() }}"></i>
+                                        {{ $statuses[$order->status] ?? 'Desconocido' }}
+                                        <i class="fas fa-chevron-down" style="margin-left: 6px; font-size: 10px;"></i>
+                                        
+                                        <!-- Dropdown de estados -->
+                                        <div class="status-dropdown" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 180px;">
+                                            @foreach($statuses as $statusKey => $statusLabel)
+                                                @if($statusKey !== $order->status)
+                                                    <button type="button" class="status-dropdown-item status-dropdown-item-{{ $statusKey }}" data-status="{{ $statusKey }}">
+                                                        <i class="fas {{ match($statusKey) {
+                                                            'Pending' => 'fa-hourglass-start',
+                                                            'Preparing' => 'fa-fire',
+                                                            'Ready' => 'fa-check-circle',
+                                                            'Delivered' => 'fa-truck',
+                                                            'Cancelled' => 'fa-times-circle',
+                                                            default => 'fa-info-circle'
+                                                        } }}"></i>
+                                                        {{ $statusLabel }}
+                                                    </button>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </span>
+                                </div>
+                                <div class="order-card-footer">
+                                    <div class="order-card-amount">₡{{ number_format($order->total_amount, 2) }}</div>
+                                    <div class="order-card-items">{{ $order->items()->count() }} items</div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Panel de detalle de orden (Derecha) -->
+                <div class="order-details-panel-large">
+                    <div style="text-align: center; padding: 80px 40px; color: #999;">
+                        <i class="fas fa-arrow-left" style="font-size: 48px; margin-bottom: 20px; display: block; opacity: 0.5;"></i>
+                        <p style="font-size: 16px;">Selecciona una orden para ver los detalles</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -155,13 +154,12 @@
             {{ $orders->links() }}
         </div>
     @else
-        <div class="order-details-panel empty-state">
-            <i class="fas fa-inbox empty-state-icon"></i>
-            <h3 class="empty-state-title">No hay órdenes</h3>
-            <p class="empty-state-text">Comienza creando una nueva orden</p>
-            <a href="{{ route('orders.create') }}" class="btn btn-primary" style="background: linear-gradient(135deg, #e18018, #c9690f); border: none;">
-                <i class="fas fa-plus"></i> Crear Primera Orden
-            </a>
+        <div class="card mt-4">
+            <div class="order-details-panel empty-state">
+                <i class="fas fa-inbox empty-state-icon"></i>
+                <h3 class="empty-state-title">No hay órdenes</h3>
+                <p class="empty-state-text">Aún no hay órdenes registradas</p>
+            </div>
         </div>
     @endif
 </div>
@@ -169,16 +167,36 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Cargar detalles de orden al hacer clic
-    const orderItems = document.querySelectorAll('.order-list-item');
-    const detailsPanel = document.querySelector('.order-details-panel');
+    // Tabs de filtrado
+    const tabs = document.querySelectorAll('.order-tab');
+    const orderCards = document.querySelectorAll('.order-card-item');
 
-    orderItems.forEach(item => {
-        item.addEventListener('click', function() {
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const status = this.dataset.status;
+            
+            // Actualizar tab activo
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            // Filtrar órdenes
+            orderCards.forEach(card => {
+                if (card.dataset.status === status) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // Cargar detalles de orden al hacer clic
+    orderCards.forEach(card => {
+        card.addEventListener('click', function() {
             const orderId = this.dataset.orderId;
             
-            // Actualizar item activo
-            document.querySelectorAll('.order-list-item').forEach(el => el.classList.remove('active'));
+            // Actualizar orden activa
+            document.querySelectorAll('.order-card-item').forEach(el => el.classList.remove('active'));
             this.classList.add('active');
 
             // Cargar detalles
@@ -194,40 +212,72 @@ document.addEventListener('DOMContentLoaded', function() {
         })
             .then(response => response.text())
             .then(html => {
-                const panel = document.querySelector('.order-details-panel');
-                panel.innerHTML = '<div class="order-details-panel">' + html + '</div>';
-                
-                // Reasignar eventos a los botones de estado
-                setupStatusButtons();
-                setupDeleteButton();
+                const panel = document.querySelector('.order-details-panel-large');
+                panel.innerHTML = '<div class="order-details-wrapper">' + html + '</div>';
             })
             .catch(error => console.error('Error:', error));
     }
 
     function setupStatusButtons() {
-        const statusButtons = document.querySelectorAll('[data-status]');
-        statusButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const orderId = this.dataset.orderId;
-                const status = this.dataset.status;
-                changeOrderStatus(orderId, status);
+        // Usa delegación para clicks en badges de estado en las tarjetas
+        const ordersList = document.querySelector('.orders-grid-list');
+        
+        if (!ordersList) return;
+        
+        // Delegado para clicks en status badge
+        ordersList.addEventListener('click', function(e) {
+            const badge = e.target.closest('.status-badge-clickable');
+            if (!badge) return;
+            
+            e.stopPropagation();
+            
+            // Cerrar otros dropdowns primero
+            ordersList.querySelectorAll('.status-dropdown').forEach(d => {
+                if (d !== badge.querySelector('.status-dropdown')) {
+                    d.style.display = 'none';
+                }
             });
+            
+            // Toggle este dropdown
+            const dropdown = badge.querySelector('.status-dropdown');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+
+        // Delegado para items del dropdown
+        ordersList.addEventListener('click', function(e) {
+            if (!e.target.closest('.status-dropdown-item')) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const item = e.target.closest('.status-dropdown-item');
+            const badge = item.closest('.status-badge-clickable');
+            
+            if (badge) {
+                const orderId = badge.dataset.orderId;
+                const newStatus = item.dataset.status;
+                
+                changeOrderStatus(orderId, newStatus);
+            }
         });
     }
 
-    function setupDeleteButton() {
-        const deleteBtn = document.querySelector('[data-delete]');
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', function() {
-                const orderId = this.dataset.orderId;
-                if (confirm('¿Estás seguro de que deseas eliminar esta orden?')) {
-                    deleteOrder(orderId);
-                }
-            });
-        }
+    // Event listener global para cerrar dropdowns (una sola vez)
+    if (!window.dropdownCloserAttached) {
+        document.addEventListener('click', function(e) {
+            // Solo cerrar si NO es un status badge o dropdown
+            if (!e.target.closest('.status-badge-clickable') && !e.target.closest('.status-dropdown')) {
+                document.querySelectorAll('.status-dropdown').forEach(d => d.style.display = 'none');
+            }
+        });
+        window.dropdownCloserAttached = true;
     }
 
     function changeOrderStatus(orderId, status) {
+        console.log('Cambiando estado - Order:', orderId, 'Nuevo status:', status);
+        
         fetch(`{{ url('ordenes') }}/${orderId}/cambiar-estado`, {
             method: 'POST',
             headers: {
@@ -236,25 +286,22 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({ status })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
         .then(data => {
-            if (data.success) {
-                location.reload();
+            console.log('Response data:', data);
+            if (data.success || data.success !== false) {
+                console.log('Éxito, recargando página...');
+                setTimeout(() => location.reload(), 500);
             } else {
-                alert('Error: ' + (data.message || 'Erro al cambiar estado'));
-            }
-        });
-    }
-
-    function deleteOrder(orderId) {
-        fetch(`{{ url('ordenes') }}/${orderId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                alert('Error: ' + (data.error || data.message || 'Error al cambiar estado'));
             }
         })
-        .then(() => {
-            location.reload();
+        .catch(error => {
+            console.error('Error en fetch:', error);
+            alert('Error en la solicitud: ' + error.message);
         });
     }
 
@@ -263,11 +310,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchInput) {
         searchInput.addEventListener('keyup', function() {
             const searchTerm = this.value.toLowerCase();
-            document.querySelectorAll('.order-list-item').forEach(item => {
-                const orderNumber = item.querySelector('.order-list-number').textContent.toLowerCase();
-                const notes = item.querySelector('.order-list-customer')?.textContent.toLowerCase() || '';
+            document.querySelectorAll('.order-card-item').forEach(item => {
+                if (item.style.display === 'none') return;
                 
-                if (orderNumber.includes(searchTerm) || notes.includes(searchTerm)) {
+                const orderNumber = item.querySelector('.order-card-number').textContent.toLowerCase();
+                const customer = item.querySelector('.order-card-customer').textContent.toLowerCase();
+                
+                if (orderNumber.includes(searchTerm) || customer.includes(searchTerm)) {
                     item.style.display = 'block';
                 } else {
                     item.style.display = 'none';
@@ -277,9 +326,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Cargar primera orden por defecto
-    if (orderItems.length > 0) {
-        orderItems[0].click();
+    if (orderCards.length > 0) {
+        // Hacer clic en la primera pestaña para filtrar por estado inicial (Pendiente)
+        const firstTab = document.querySelector('.order-tab.active');
+        if (firstTab) {
+            firstTab.click();
+        }
     }
+
+    // Inicializar eventos de cambio de estado
+    setupStatusButtons();
 });
 </script>
 @endpush
