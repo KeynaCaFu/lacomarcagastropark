@@ -58,6 +58,9 @@ class OrderController extends Controller
             return response()->json(['error' => 'Orden no encontrada'], 404);
         }
 
+        // Cargar usuario que realizó la orden
+        $order->load('user');
+
         // Verificar permisos
         $user = auth()->user();
         if ($user->isAdminLocal()) {
@@ -118,5 +121,47 @@ class OrderController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Obtener contador de órdenes pendientes (JSON para la campana)
+     */
+    public function getPendingCount()
+    {
+        $user = auth()->user();
+        $localId = null;
+
+        // Si es gerente de local, obtener su local
+        if ($user->isAdminLocal()) {
+            $local = $user->locals()->first();
+            if (!$local) {
+                return response()->json(['count' => 0, 'orders' => []]);
+            }
+            $localId = $local->local_id;
+        }
+
+        // Obtener órdenes pendientes
+        $pendingOrders = Order::where('status', 'Pending')
+            ->when($localId, function ($query) use ($localId) {
+                return $query->where('local_id', $localId);
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get(['order_id', 'order_number', 'status', 'created_at']);
+
+        $count = Order::where('status', 'Pending')
+            ->when($localId, function ($query) use ($localId) {
+                return $query->where('local_id', $localId);
+            })
+            ->count();
+
+        return response()->json([
+            'count' => $count,
+            'orders' => $pendingOrders->map(fn($order) => [
+                'order_id' => $order->order_id,
+                'order_number' => $order->order_number,
+                'created_at' => $order->created_at->format('H:i')
+            ])
+        ]);
     }
 }

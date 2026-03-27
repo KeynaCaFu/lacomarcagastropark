@@ -62,6 +62,14 @@ class Order extends Model
     }
 
     /**
+     * Relación: Usuario que hizo la orden (cliente o gerente)
+     */
+    public function user()
+    {
+        return $this->belongsToMany(User::class, 'tbuser_order', 'order_id', 'user_id');
+    }
+
+    /**
      * Obtener estados disponibles
      */
     public static function getStatuses()
