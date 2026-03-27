@@ -1,6 +1,6 @@
 .reviews-page {
     padding: 28px;
-    background: #f7f6f1;
+    background: #f0f0f0;
     min-height: 100vh;
 }
 
@@ -40,7 +40,7 @@
 
 /* TABS WRAPPER */
 .reviews-tabs-wrapper {
-    background: #f4f2eb;
+    background: #fefefe;
     border-radius: 18px;
     padding: 28px;
     border: 1px solid #ebe5d8;

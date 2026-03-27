@@ -463,6 +463,238 @@
     </div>
 </div>
 
+<!-- MODAL DETALLES DE RESEÑA -->
+<div id="reviewModal" class="review-modal hidden">
+    <div class="review-modal-overlay"></div>
+    <div class="review-modal-content">
+        <button class="review-modal-close" onclick="closeReviewModal()">×</button>
+
+        <div class="review-modal-header">
+            <div class="review-modal-avatar" id="modalAvatar">CL</div>
+            <div class="review-modal-info">
+                <div class="review-modal-name" id="modalNombre">Cliente</div>
+                <div class="review-modal-fecha" id="modalFecha">-</div>
+            </div>
+            <span class="review-modal-badge" id="modalBadge">Positiva</span>
+        </div>
+
+        <div class="review-modal-body">
+            <div class="review-modal-producto" id="modalProducto" style="display: none;">
+                <strong>PRODUCTO:</strong> <span id="modalProductoNombre"></span>
+            </div>
+
+            <div class="review-modal-calificacion-title">Calificación</div>
+            <div class="review-modal-rating" id="modalRating">
+                <span class="star filled">★</span>
+                <span class="star filled">★</span>
+                <span class="star filled">★</span>
+                <span class="star filled">★</span>
+                <span class="star filled">★</span>
+            </div>
+
+            <div id="modalComentarioContainer" style="display: none;">
+                <div class="review-modal-comentario-title">Comentario</div>
+                <div class="review-modal-comentario" id="modalComentario">Sin comentario.</div>
+            </div>
+
+            <div class="review-modal-respuesta" id="modalRespuestaContainer" style="display: none;">
+                <div class="review-response-box review-response-box--orange">
+                    <div class="review-response-title">RESPUESTA DEL GERENTE</div>
+                    <div class="review-response-text" id="modalRespuesta"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* MODAL */
+    .review-modal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    .review-modal.hidden {
+        display: none;
+        opacity: 0;
+    }
+
+    .review-modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+    }
+
+    .review-modal-content {
+        position: relative;
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .review-modal-close {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: transparent;
+        font-size: 32px;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s ease;
+    }
+
+    .review-modal-close:hover {
+        color: #374151;
+    }
+
+    .review-modal-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .review-modal-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #915016, #c67c3f);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .review-modal-info {
+        flex: 1;
+    }
+
+    .review-modal-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: #181818;
+        margin-bottom: 4px;
+    }
+
+    .review-modal-fecha {
+        font-size: 14px;
+        color: #9ca3af;
+    }
+
+    .review-modal-badge {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .review-modal-badge.positive {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .review-modal-badge.neutral {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .review-modal-badge.negative {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .review-modal-body {
+        margin-top: 16px;
+    }
+
+    .review-modal-producto {
+        background: #f9fafb;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .review-modal-calificacion-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #3c3c3c;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .review-modal-comentario-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #3c3c3c;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 16px;
+    }
+
+    .review-modal-rating {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 16px;
+    }
+
+    .review-modal-rating .star {
+        font-size: 20px;
+        color: #d1d5db;
+    }
+
+    .review-modal-rating .star.filled {
+        color: #fbbf24;
+    }
+
+    .review-modal-comentario {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #374151;
+        margin-bottom: 16px;
+        background: #f9fafb;
+        padding: 16px;
+        border-radius: 8px;
+    }
+
+    .review-modal-respuesta {
+        margin-top: 16px;
+    }
+</style>
+
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -478,6 +710,20 @@
                 this.classList.add('active');
                 document.getElementById('tab-' + tab).classList.add('active');
             });
+        });
+
+        // Cerrar modal al hacer click en el overlay
+        const modal = document.getElementById('reviewModal');
+        const overlay = document.querySelector('.review-modal-overlay');
+        if (overlay) {
+            overlay.addEventListener('click', closeReviewModal);
+        }
+
+        // Cerrar modal con tecla Escape
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+                closeReviewModal();
+            }
         });
 
         // Mensajes de sesión via SweetAlert toast
@@ -510,7 +756,81 @@
         }
     }
 
-    // Contador de caracteres
+    // Abrir modal de detalles de reseña
+    function openReviewModal(element) {
+        const modal = document.getElementById('reviewModal');
+        
+        // Recopilar datos del elemento
+        const nombre = element.getAttribute('data-modal-nombre') || 'Cliente';
+        const iniciales = element.getAttribute('data-modal-iniciales') || 'CL';
+        const fecha = element.getAttribute('data-modal-fecha') || '-';
+        const rating = parseInt(element.getAttribute('data-modal-rating')) || 0;
+        const comentario = element.getAttribute('data-modal-comentario') || 'Sin comentario.';
+        const tipoTexto = element.getAttribute('data-modal-tipo-texto') || 'Neutra';
+        const tipoClase = element.getAttribute('data-modal-tipo-clase') || 'neutral';
+        const respuesta = element.getAttribute('data-modal-respuesta') || '';
+        const producto = element.getAttribute('data-modal-producto') || '';
+
+        // Actualizar contenido del modal
+        document.getElementById('modalAvatar').textContent = iniciales;
+        document.getElementById('modalNombre').textContent = nombre;
+        document.getElementById('modalFecha').textContent = fecha;
+        document.getElementById('modalComentario').textContent = comentario;
+
+        // Mostrar/ocultar comentario con su título
+        const comentarioContainer = document.getElementById('modalComentarioContainer');
+        if (comentario && comentario.trim() && comentario !== 'Sin comentario.') {
+            comentarioContainer.style.display = 'block';
+        } else {
+            comentarioContainer.style.display = 'none';
+        }
+
+        // Actualizar badge
+        const badge = document.getElementById('modalBadge');
+        badge.textContent = tipoTexto;
+        badge.className = 'review-modal-badge';
+        badge.classList.add(tipoClase);
+
+        // Actualizar rating (estrellas)
+        const starsContainer = document.querySelector('.review-modal-rating');
+        starsContainer.innerHTML = '';
+        for (let i = 1; i <= 5; i++) {
+            const star = document.createElement('span');
+            star.className = 'star' + (i <= rating ? ' filled' : '');
+            star.textContent = '★';
+            starsContainer.appendChild(star);
+        }
+
+        // Mostrar/ocultar producto
+        const productContainer = document.getElementById('modalProducto');
+        if (producto) {
+            document.getElementById('modalProductoNombre').textContent = producto;
+            productContainer.style.display = 'block';
+        } else {
+            productContainer.style.display = 'none';
+        }
+
+        // Mostrar/ocultar respuesta
+        const respuestaContainer = document.getElementById('modalRespuestaContainer');
+        if (respuesta) {
+            document.getElementById('modalRespuesta').textContent = respuesta;
+            respuestaContainer.style.display = 'block';
+        } else {
+            respuestaContainer.style.display = 'none';
+        }
+
+        // Mostrar modal
+        modal.classList.remove('hidden');
+    }
+
+    // Cerrar modal de detalles de reseña
+    function closeReviewModal() {
+        const modal = document.getElementById('reviewModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
     function updateCounter(textarea, counterId) {
         const counter = document.getElementById(counterId);
         if (!counter) return;
