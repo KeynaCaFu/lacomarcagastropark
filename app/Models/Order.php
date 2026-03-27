@@ -36,10 +36,10 @@ class Order extends Model
 
     // Estados disponibles
     const STATUS_PENDING = 'Pending';
-    const STATUS_PREPARATION = 'En Preparación';
-    const STATUS_READY = 'Listo';
+    const STATUS_PREPARATION = 'Preparing';
+    const STATUS_READY = 'Ready';
     const STATUS_DELIVERED = 'Delivered';
-    const STATUS_CANCELLED = 'Cancelado';
+    const STATUS_CANCELLED = 'Cancelled';
 
     // Orígenes
     const ORIGIN_WEB = 'web';
