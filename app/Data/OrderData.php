@@ -26,11 +26,6 @@ class OrderData
         // Filtro por estado
         if (!empty($filters['status'])) {
             $query->byStatus($filters['status']);
-            
-            // Validación especial SOLO para órdenes Entregadas: mostrar solo del día actual
-            if ($filters['status'] === Order::STATUS_DELIVERED) {
-                $query->whereDate('date', now()->toDateString());
-            }
         }
 
         // Filtro por local
@@ -42,6 +37,16 @@ class OrderData
         if (!empty($filters['date'])) {
             $query->byDate($filters['date']);
         }
+
+        // VALIDACIÓN CRÍTICA: Excluir órdenes Entregadas y Canceladas que NO sean del día actual
+        // Esto se aplica SIEMPRE, sin importar los filtros
+        $query->where(function($q) {
+            $q->whereNotIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
+              ->orWhere(function($subQuery) {
+                  $subQuery->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
+                           ->whereDate('date', now()->toDateString());
+              });
+        });
 
         // Ordenar por más recientes primero
         $query->orderByDesc('created_at');
@@ -60,8 +65,8 @@ class OrderData
             $query->byLocal($localId);
         }
 
-        // Validación especial para órdenes Entregadas: solo mostrar del día actual
-        if ($status === Order::STATUS_DELIVERED) {
+        // Validación especial para órdenes Entregadas y Canceladas: solo mostrar del día actual
+        if ($status === Order::STATUS_DELIVERED || $status === Order::STATUS_CANCELLED) {
             $query->byDate(now()->toDateString());
         }
 
@@ -187,8 +192,8 @@ class OrderData
             
             $query->byStatus($status);
             
-            // Validación especial para órdenes Entregadas: solo contar del día actual
-            if ($status === Order::STATUS_DELIVERED) {
+            // Validación especial para órdenes Entregadas y Canceladas: solo contar del día actual
+            if ($status === Order::STATUS_DELIVERED || $status === Order::STATUS_CANCELLED) {
                 $query->byDate(now()->toDateString());
             }
             
