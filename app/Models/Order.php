@@ -24,6 +24,8 @@ class Order extends Model
         'date',
         'time',
         'total_amount',
+        'voucher_path',
+        'cancellation_reason',
         'status',
         'origin',
         'local_id'
