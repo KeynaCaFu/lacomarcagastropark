@@ -99,21 +99,29 @@ class OrderController extends Controller
 
         try {
             $statuses = array_keys(Order::getStatuses());
-            $status = $request->input('status');
+            $newStatus = $request->input('status');
             
-            if (!in_array($status, $statuses)) {
+            if (!in_array($newStatus, $statuses)) {
                 return response()->json([
                     'success' => false,
-                    'error' => "Estado inválido: {$status}"
+                    'error' => "Estado inválido: {$newStatus}"
                 ], 422);
             }
 
-            $this->orderData->changeStatus($orderId, $status);
+            // Validar el flujo de estados
+            if (!$this->isValidStatusTransition($order->status, $newStatus)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => "No se puede cambiar de {$order->status} a {$newStatus}. Flujo inválido."
+                ], 422);
+            }
+
+            $this->orderData->changeStatus($orderId, $newStatus);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Estado actualizado',
-                'status' => $status
+                'status' => $newStatus
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -121,6 +129,29 @@ class OrderController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Validar si la transición de estado es permitida
+     */
+    private function isValidStatusTransition($currentStatus, $newStatus)
+    {
+        // Flujo permitido de estados
+        $allowedTransitions = [
+            Order::STATUS_PENDING => [Order::STATUS_PREPARATION, Order::STATUS_CANCELLED],
+            Order::STATUS_PREPARATION => [Order::STATUS_READY, Order::STATUS_CANCELLED],
+            Order::STATUS_READY => [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED],
+            Order::STATUS_DELIVERED => [],
+            Order::STATUS_CANCELLED => []
+        ];
+
+        // Si el estado actual no existe en la definición, no es válido
+        if (!isset($allowedTransitions[$currentStatus])) {
+            return false;
+        }
+
+        // Verificar si el nuevo estado está en los permitidos
+        return in_array($newStatus, $allowedTransitions[$currentStatus]);
     }
 
     /**
