@@ -55,6 +55,18 @@
                 <div class="order-address-text">{{ $order->additional_notes }}</div>
             </div>
         @endif
+
+        <!-- Razón de Cancelación (Solo si está Cancelado) -->
+        @if($order->status === 'Cancelled' && $order->cancellation_reason)
+            <div class="order-address" style="margin-top: 15px; background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 12px; border-radius: 4px;">
+                <div class="order-address-label" style="color: #991b1b;">
+                    <i class="fas fa-ban" style="margin-right: 6px;"></i>Razón de Cancelación
+                </div>
+                <div class="order-address-text" style="color: #7f1d1d; margin-top: 8px;">
+                    {{ $order->cancellation_reason }}
+                </div>
+            </div>
+        @endif
     </div>
 
     <!-- Información del Usuario/Cliente -->
