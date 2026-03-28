@@ -26,6 +26,11 @@ class OrderData
         // Filtro por estado
         if (!empty($filters['status'])) {
             $query->byStatus($filters['status']);
+            
+            // Validación especial SOLO para órdenes Entregadas: mostrar solo del día actual
+            if ($filters['status'] === Order::STATUS_DELIVERED) {
+                $query->whereDate('date', now()->toDateString());
+            }
         }
 
         // Filtro por local
@@ -33,7 +38,7 @@ class OrderData
             $query->byLocal($filters['local_id']);
         }
 
-        // Filtro por fecha
+        // Filtro por fecha (solo aplica si se proporciona explícitamente)
         if (!empty($filters['date'])) {
             $query->byDate($filters['date']);
         }
@@ -53,6 +58,11 @@ class OrderData
 
         if ($localId) {
             $query->byLocal($localId);
+        }
+
+        // Validación especial para órdenes Entregadas: solo mostrar del día actual
+        if ($status === Order::STATUS_DELIVERED) {
+            $query->byDate(now()->toDateString());
         }
 
         return $query->orderByDesc('created_at')->get();
@@ -175,7 +185,14 @@ class OrderData
                 $query->byLocal($localId);
             }
             
-            $counts[$status] = $query->byStatus($status)->count();
+            $query->byStatus($status);
+            
+            // Validación especial para órdenes Entregadas: solo contar del día actual
+            if ($status === Order::STATUS_DELIVERED) {
+                $query->byDate(now()->toDateString());
+            }
+            
+            $counts[$status] = $query->count();
         }
 
         // Total count
