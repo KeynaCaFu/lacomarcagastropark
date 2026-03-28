@@ -4,6 +4,33 @@
 
 @push('styles')
     <link href="{{ asset('css/order.css') }}" rel="stylesheet">
+    <style>
+        /* Scrollbar personalizado para la lista de órdenes */
+        .orders-grid-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .orders-grid-list::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        
+        .orders-grid-list::-webkit-scrollbar-thumb {
+            background: #e18018;
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+        
+        .orders-grid-list::-webkit-scrollbar-thumb:hover {
+            background: #d97c13;
+        }
+        
+        /* Para Firefox */
+        .orders-grid-list {
+            scrollbar-width: thin;
+            scrollbar-color: #e18018 #f1f5f9;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -278,30 +305,242 @@ document.addEventListener('DOMContentLoaded', function() {
     function changeOrderStatus(orderId, status) {
         console.log('Cambiando estado - Order:', orderId, 'Nuevo status:', status);
         
-        fetch(`{{ url('ordenes') }}/${orderId}/cambiar-estado`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({ status })
-        })
-        .then(response => {
-            console.log('Response status:', response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Response data:', data);
-            if (data.success || data.success !== false) {
-                console.log('Éxito, recargando página...');
-                setTimeout(() => location.reload(), 500);
-            } else {
-                alert('Error: ' + (data.error || data.message || 'Error al cambiar estado'));
+        // Mapear nombres de estado para mensajes amigables
+        const statusNames = {
+            'Pending': 'Pendiente',
+            'Preparing': 'En Preparación',
+            'Ready': 'Listo',
+            'Delivered': 'Entregado',
+            'Cancelled': 'Cancelada'
+        };
+        
+        const statusIcons = {
+            'Pending': 'fa-hourglass-start',
+            'Preparing': 'fa-fire',
+            'Ready': 'fa-check-circle',
+            'Delivered': 'fa-truck',
+            'Cancelled': 'fa-times-circle'
+        };
+        
+        // Mapear clases CSS según estado (debe coincidir con getStatusColorClass() del modelo)
+        const statusColorClasses = {
+            'Pending': 'status-pending',
+            'Preparing': 'status-preparation',
+            'Ready': 'status-ready',
+            'Delivered': 'status-delivered',
+            'Cancelled': 'status-cancelled'
+        };
+        
+        // Mostrar confirmación con SweetAlert
+        Swal.fire({
+            title: '¿Cambiar estado de la orden?',
+            html: `<p style="margin-bottom: 16px; color: #666;">¿Deseas cambiar el estado de la orden a:</p>
+                   <div style="display: inline-block; padding: 10px 20px; background: #fff7ed; border-radius: 8px; border: 2px solid #e18018;">
+                       <i class="fas ${statusIcons[status]}" style="color: #e18018; margin-right: 8px; font-size: 18px;"></i>
+                       <strong style="color: #e18018; font-size: 18px;">${statusNames[status]}</strong>
+                   </div>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, cambiar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#e18018',
+            cancelButtonColor: '#6b7280',
+            reverseButtons: true,
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Hacer el fetch
+                fetch(`{{ url('ordenes') }}/${orderId}/cambiar-estado`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ status })
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    if (data.success || data.success !== false) {
+                        
+                        // Actualizar el estado de la tarjeta en el DOM
+                        const orderCard = document.querySelector(`[data-order-id="${orderId}"]`);
+                        if (orderCard) {
+                            // Obtener el estado anterior
+                            const previousStatus = orderCard.dataset.status;
+                            
+                            // Actualizar el atributo data-status
+                            orderCard.dataset.status = status;
+                            
+                            // Actualizar contadores en los tabs
+                            const previousTab = document.querySelector(`[data-status="${previousStatus}"]`);
+                            const newTab = document.querySelector(`[data-status="${status}"]`);
+                            
+                            if (previousTab) {
+                                const previousCount = previousTab.querySelector('.order-tab-count');
+                                if (previousCount) {
+                                    let count = parseInt(previousCount.textContent) || 0;
+                                    previousCount.textContent = Math.max(0, count - 1);
+                                }
+                            }
+                            
+                            if (newTab) {
+                                const newCount = newTab.querySelector('.order-tab-count');
+                                if (newCount) {
+                                    let count = parseInt(newCount.textContent) || 0;
+                                    newCount.textContent = count + 1;
+                                }
+                            }
+                            
+                            // Actualizar contadores en las tarjetas de estadísticas
+                            const statCards = document.querySelectorAll('.order-stat-card');
+                            statCards.forEach(card => {
+                                const label = card.querySelector('.order-stat-label');
+                                if (!label) return;
+                                
+                                if (label.textContent.includes('Pendientes') && previousStatus === 'Pending') {
+                                    const statNumber = card.querySelector('.order-stat-number');
+                                    if (statNumber) {
+                                        let count = parseInt(statNumber.textContent) || 0;
+                                        statNumber.textContent = Math.max(0, count - 1);
+                                    }
+                                }
+                                if (label.textContent.includes('Pendientes') && status === 'Pending') {
+                                    const statNumber = card.querySelector('.order-stat-number');
+                                    if (statNumber) {
+                                        let count = parseInt(statNumber.textContent) || 0;
+                                        statNumber.textContent = count + 1;
+                                    }
+                                }
+                                if (label.textContent.includes('En Preparación') && previousStatus === 'Preparing') {
+                                    const statNumber = card.querySelector('.order-stat-number');
+                                    if (statNumber) {
+                                        let count = parseInt(statNumber.textContent) || 0;
+                                        statNumber.textContent = Math.max(0, count - 1);
+                                    }
+                                }
+                                if (label.textContent.includes('En Preparación') && status === 'Preparing') {
+                                    const statNumber = card.querySelector('.order-stat-number');
+                                    if (statNumber) {
+                                        let count = parseInt(statNumber.textContent) || 0;
+                                        statNumber.textContent = count + 1;
+                                    }
+                                }
+                                if (label.textContent.includes('Listas') && previousStatus === 'Ready') {
+                                    const statNumber = card.querySelector('.order-stat-number');
+                                    if (statNumber) {
+                                        let count = parseInt(statNumber.textContent) || 0;
+                                        statNumber.textContent = Math.max(0, count - 1);
+                                    }
+                                }
+                                if (label.textContent.includes('Listas') && status === 'Ready') {
+                                    const statNumber = card.querySelector('.order-stat-number');
+                                    if (statNumber) {
+                                        let count = parseInt(statNumber.textContent) || 0;
+                                        statNumber.textContent = count + 1;
+                                    }
+                                }
+                                if (label.textContent.includes('Entregadas') && previousStatus === 'Delivered') {
+                                    const statNumber = card.querySelector('.order-stat-number');
+                                    if (statNumber) {
+                                        let count = parseInt(statNumber.textContent) || 0;
+                                        statNumber.textContent = Math.max(0, count - 1);
+                                    }
+                                }
+                                if (label.textContent.includes('Entregadas') && status === 'Delivered') {
+                                    const statNumber = card.querySelector('.order-stat-number');
+                                    if (statNumber) {
+                                        let count = parseInt(statNumber.textContent) || 0;
+                                        statNumber.textContent = count + 1;
+                                    }
+                                }
+                            });
+                            
+                            // Actualizar el badge de estado con las clases CSS correctas
+                            const statusBadge = orderCard.querySelector('.status-badge-clickable');
+                            if (statusBadge) {
+                                // Remover todas las clases de color antiguas
+                                statusBadge.classList.remove('status-pending', 'status-preparation', 'status-ready', 'status-delivered', 'status-cancelled');
+                                // Agregar la nueva clase de color
+                                statusBadge.classList.add(statusColorClasses[status]);
+                                
+                                // Obtener todos los estados disponibles desde el HTML
+                                const allStatuses = ['Pending', 'Preparing', 'Ready', 'Delivered', 'Cancelled'];
+                                const statusLabelsMap = {
+                                    'Pending': 'Pendiente',
+                                    'Preparing': 'En Preparación',
+                                    'Ready': 'Listo',
+                                    'Delivered': 'Entregado',
+                                    'Cancelled': 'Cancelada'
+                                };
+                                
+                                // Construir el dropdown dinámicamente
+                                let dropdownHTML = '<div class="status-dropdown" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 180px;">';
+                                
+                                allStatuses.forEach(statusKey => {
+                                    if (statusKey !== status) {
+                                        dropdownHTML += `
+                                            <button type="button" class="status-dropdown-item status-dropdown-item-${statusKey}" data-status="${statusKey}">
+                                                <i class="fas ${statusIcons[statusKey]}"></i>
+                                                ${statusLabelsMap[statusKey]}
+                                            </button>
+                                        `;
+                                    }
+                                });
+                                
+                                dropdownHTML += '</div>';
+                                
+                                // Actualizar el contenido del badge
+                                statusBadge.innerHTML = `
+                                    <i class="fas ${statusIcons[status]}"></i>
+                                    ${statusNames[status]}
+                                    <i class="fas fa-chevron-down" style="margin-left: 6px; font-size: 10px;"></i>
+                                    ${dropdownHTML}
+                                `;
+                            }
+                            
+                            // Detectar el estado filtrado actualmente
+                            const activeTab = document.querySelector('.order-tab.active');
+                            if (activeTab) {
+                                const activeStatus = activeTab.dataset.status;
+                                
+                                // Si la orden cambió de estado y no coincide con el estado activo, ocultarla
+                                if (status !== activeStatus) {
+                                    orderCard.style.display = 'none';
+                                }
+                            }
+                        }
+                        
+                        // Mostrar mensaje de éxito con toast
+                        swToast.fire({
+                            icon: 'success',
+                            title: '¡Éxito!',
+                            html: `Estado cambiado a <strong style="color: #e18018;">${statusNames[status]}</strong>`
+                        });
+                    } else {
+                        // Error en la respuesta
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.error || data.message || 'Error al cambiar el estado',
+                            icon: 'error',
+                            confirmButtonColor: '#e18018'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error en fetch:', error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Error en la solicitud: ' + error.message,
+                        icon: 'error',
+                        confirmButtonColor: '#e18018'
+                    });
+                });
             }
-        })
-        .catch(error => {
-            console.error('Error en fetch:', error);
-            alert('Error en la solicitud: ' + error.message);
         });
     }
 
