@@ -85,15 +85,18 @@ class ReviewData
             }), 1)
             : 0;
 
-        $monthTotal = $items->filter(function ($item) {
-            if (!$item->review || !$item->review->date) {
-                return false;
-            }
-
-            $date = Carbon::parse($item->review->date);
-
-            return $date->month == now()->month && $date->year == now()->year;
-        })->count();
+       
+$monthTotal = $items->filter(function ($item) {
+    if (!$item->review || !$item->review->date) {
+        return false;
+    }
+    try {
+        $date = Carbon::parse($item->review->date);
+        return $date->month == now()->month && $date->year == now()->year;
+    } catch (\Exception $e) {
+        return false;
+    }
+})->count();
 
         $distribution = [
             5 => $items->filter(fn($item) => (int)$item->review->rating === 5)->count(),
