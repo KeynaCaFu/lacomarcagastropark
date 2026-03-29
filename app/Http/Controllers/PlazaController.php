@@ -26,18 +26,23 @@ class PlazaController extends Controller
                     'slug' => Str::slug($category),
                     'icono' => $this->getCategoryIcon($category),
                 ];
-            });
+            })
+            ->toArray();
 
         // Obtener productos disponibles
         $productos = Product::where('status', 'Available')
             ->with('locals')
-            ->get();
+            ->get()
+            ->map(function ($product) {
+                $product->category_slug = Str::slug($product->category);
+                return $product;
+            });
 
         // Filtrar por categoría si se proporciona
         if ($request->has('categoria') && $request->categoria !== 'todos') {
             $categoria = $request->categoria;
             $productos = $productos->filter(function ($product) use ($categoria) {
-                return Str::slug($product->category) === $categoria;
+                return $product->category_slug === $categoria;
             })->values();
         }
 
@@ -49,25 +54,7 @@ class PlazaController extends Controller
             ->with(['gallery' => function ($query) {
                 $query->limit(1);
             }])
-            ->get()
-            ->map(function ($local) {
-                // Contar productos disponibles de este local
-                $productosCount = Product::whereHas('locals', function ($query) use ($local) {
-                    $query->where('tblocal_product.local_id', $local->local_id)
-                        ->where('tblocal_product.is_available', true);
-                })->where('status', 'Available')->count();
-
-                return [
-                    'id' => $local->local_id,
-                    'nombre' => $local->name,
-                    'descripcion' => $local->description ?? 'Explora nuestro menú',
-                    'estado' => $local->status === 'Active' ? 'abierto' : 'cerrado',
-                    'imagen' => $local->image_logo ?? 'https://via.placeholder.com/400x300?text=' . urlencode($local->name),
-                    'calificacion' => '4.8',
-                    'tiempo_entrega' => '20-30 min',
-                    'productos_count' => $productosCount,
-                ];
-            });
+            ->get();
 
         // Obtener estadísticas
         $stats = [

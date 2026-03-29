@@ -660,11 +660,6 @@
             right: 10px;
             font-size: 0.7rem;
             font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 999px;
-            background: rgba(61,168,122,0.9);
-            color: #fff;
-            backdrop-filter: blur(8px);
         }
 
         .local-logo-wrap {
@@ -938,7 +933,7 @@
                 <div class="header-inner">
                     <div class="header-logo">
                         <span class="logo-dot"></span>
-                        Plaza Gastronómica
+                        La Comarca Gastro Parck
                     </div>
                     <div class="header-auth">
                         @auth
@@ -1057,6 +1052,55 @@
             </div>
         </div>
 
+
+        <!-- NUESTROS LOCALES -->
+        <section class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Nuestros Locales</h2>
+                    <p class="section-sub">Explora los mejores restaurantes de la plaza</p>
+                </div>
+
+                @if($locales->isEmpty())
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>No se encontraron locales disponibles</p>
+                </div>
+                @else
+                <div class="grid grid-2">
+                    @foreach($locales as $local)
+                    <article class="local-card">
+                        <div class="local-img-wrap">
+                            <img src="{{ $local->image_logo ?? 'https://via.placeholder.com/400x300?text=' . urlencode($local->name) }}" alt="{{ $local->name }}" class="local-img">
+                            <span class="local-status">
+                                {{ $local->status === 'Active' ? '🟢 Abierto' : '🔴 Cerrado' }}
+                            </span>
+                        </div>
+                        <div class="local-body">
+                            <h3 class="local-name">{{ $local->name }}</h3>
+                            <p class="local-desc">{{ $local->description ?? 'Explora nuestro menú' }}</p>
+                            <div class="local-meta">
+                                <span class="meta-item">
+                                    <i class="fas fa-star"></i>
+                                    4.8
+                                </span>
+                                <span class="meta-item">
+                                    <i class="fas fa-clock"></i>
+                                    20-30 min
+                                </span>
+                            </div>
+                            <a href="{{ route('plaza.show', $local->local_id) }}" class="btn-ver-menu">
+                                Ver Menú
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </div>
+                    </article>
+                    @endforeach
+                </div>
+                @endif
+            </div>
+        </section>
+
         <!-- PRODUCTOS ALEATORIOS -->
         @if($productos->isNotEmpty())
         <section class="section">
@@ -1096,53 +1140,6 @@
         </section>
         @endif
 
-        <!-- NUESTROS LOCALES -->
-        <section class="section">
-            <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title">Nuestros Locales</h2>
-                    <p class="section-sub">Explora los mejores restaurantes de la plaza</p>
-                </div>
-
-                @if($locales->isEmpty())
-                <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
-                    <p>No se encontraron locales disponibles</p>
-                </div>
-                @else
-                <div class="grid grid-2">
-                    @foreach($locales as $local)
-                    <article class="local-card">
-                        <div class="local-img-wrap">
-                            <img src="{{ $local['imagen'] }}" alt="{{ $local['nombre'] }}" class="local-img">
-                            <span class="local-status">
-                                {{ $local['estado'] === 'abierto' ? '🟢 Abierto' : '🔴 Cerrado' }}
-                            </span>
-                        </div>
-                        <div class="local-body">
-                            <h3 class="local-name">{{ $local['nombre'] }}</h3>
-                            <p class="local-desc">{{ $local['descripcion'] }}</p>
-                            <div class="local-meta">
-                                <span class="meta-item">
-                                    <i class="fas fa-star"></i>
-                                    {{ $local['calificacion'] }}
-                                </span>
-                                <span class="meta-item">
-                                    <i class="fas fa-clock"></i>
-                                    {{ $local['tiempo_entrega'] }}
-                                </span>
-                            </div>
-                            <a href="{{ route('plaza.show', $local['id']) }}" class="btn-ver-menu">
-                                Ver Menú
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </div>
-                    </article>
-                    @endforeach
-                </div>
-                @endif
-            </div>
-        </section>
 
         <!-- FOOTER -->
         <footer class="footer">

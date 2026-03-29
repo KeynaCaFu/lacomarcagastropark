@@ -24,7 +24,7 @@ use Illuminate\Http\Request;
 |
 */
 
-// Welcome page - Plaza Gastronómica
+// Welcome page -  La Comarca Gastro Parck
 // Si está sin autenticar → muestra plaza
 // Si es cliente → muestra plaza (con sesión)
 // Si es admin/gerente → redirige a dashboard

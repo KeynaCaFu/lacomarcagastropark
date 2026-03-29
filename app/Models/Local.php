@@ -13,6 +13,10 @@ class Local extends Model
 
     protected $primaryKey = 'local_id';
 
+    protected $casts = [
+        'local_id' => 'int',
+    ];
+
     protected $fillable = [
         'name',
         'description',

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $local->name }} - Plaza Gastronómica</title>
+    <title>{{ $local->name }} -  La Comarca Gastro Parck</title>
     
     <!-- Fuentes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -707,8 +707,8 @@
                 <div class="grid">
                     @foreach($productos as $producto)
                     <div class="product-card" 
-                         v-show="activeCategory === null || '{{ str_slug($producto->category) }}' === activeCategory"
-                         data-category="{{ str_slug($producto->category) }}">
+                         v-show="activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory"
+                         data-category="{{ Str::slug($producto->category) }}">
                         <div class="product-img">
                             <img src="{{ $producto->photo_url ?? asset('images/product-placeholder.jpg') }}" 
                                  alt="{{ $producto->name }}">
