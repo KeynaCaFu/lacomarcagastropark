@@ -99,22 +99,22 @@
     </div>
 
     <!-- Contenedor de órdenes con Tabs -->
-    @if($orders->count() > 0)
-        <div class="orders-container-tabs">
-            <!-- Tabs de estados -->
-            <div class="orders-tabs-header">
-                @foreach($statuses as $key => $label)
-                    <button class="order-tab {{ $loop->first ? 'active' : '' }}" data-status="{{ $key }}">
-                        <span class="order-tab-label">{{ $label }}</span>
-                        <span class="order-tab-count">{{ $counts[$key] ?? 0 }}</span>
-                    </button>
-                @endforeach
-            </div>
+    <div class="orders-container-tabs">
+        <!-- Tabs de estados -->
+        <div class="orders-tabs-header">
+            @foreach($statuses as $key => $label)
+                <button class="order-tab {{ $loop->first ? 'active' : '' }}" data-status="{{ $key }}">
+                    <span class="order-tab-label">{{ $label }}</span>
+                    <span class="order-tab-count">{{ $counts[$key] ?? 0 }}</span>
+                </button>
+            @endforeach
+        </div>
 
-            <!-- Contenedor con lista central y detalles -->
-            <div class="orders-main-layout">
-                <!-- Lista de órdenes (Centro-Izquierda) -->
-                <div class="orders-list-container">
+        <!-- Contenedor con lista central y detalles -->
+        <div class="orders-main-layout">
+            <!-- Lista de órdenes (Centro-Izquierda) -->
+            <div class="orders-list-container">
+                @if($orders->count() > 0)
                     <div class="orders-list-search">
                         <input type="text" class="form-control" placeholder="Buscar orden..." id="listSearch">
                     </div>
@@ -130,17 +130,42 @@
                                     <div class="order-card-time">{{ $order->time }}</div>
                                 </div>
                                 <div class="order-card-status">
+                                    @php
+                                        // Flujo de estados permitidos
+                                        $statusFlow = [
+                                            'Pending' => ['Preparing', 'Cancelled'],
+                                            'Preparing' => ['Ready', 'Cancelled'],
+                                            'Ready' => ['Delivered', 'Cancelled'],
+                                            'Delivered' => [],
+                                            'Cancelled' => []
+                                        ];
+                                        $allowedStatuses = $statusFlow[$order->status] ?? [];
+                                        $hasAllowedStatuses = count($allowedStatuses) > 0;
+                                    @endphp
                                     <span class="status-badge {{ $order->getStatusColorClass() }} status-badge-clickable" 
                                           data-order-id="{{ $order->order_id }}"
-                                          style="cursor: pointer; position: relative;">
+                                          style="cursor: {{ $hasAllowedStatuses ? 'pointer' : 'default' }}; position: relative; {{ !$hasAllowedStatuses ? 'opacity: 0.7;' : '' }}">
                                         <i class="{{ $order->getStatusIcon() }}"></i>
                                         {{ $statuses[$order->status] ?? 'Desconocido' }}
-                                        <i class="fas fa-chevron-down" style="margin-left: 6px; font-size: 10px;"></i>
+                                        @if($hasAllowedStatuses)
+                                            <i class="fas fa-chevron-down" style="margin-left: 6px; font-size: 10px;"></i>
+                                        @endif
                                         
                                         <!-- Dropdown de estados -->
                                         <div class="status-dropdown" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 180px;">
+                                            @php
+                                                // Flujo de estados permitidos
+                                                $statusFlow = [
+                                                    'Pending' => ['Preparing', 'Cancelled'],
+                                                    'Preparing' => ['Ready', 'Cancelled'],
+                                                    'Ready' => ['Delivered', 'Cancelled'],
+                                                    'Delivered' => [],
+                                                    'Cancelled' => []
+                                                ];
+                                                $allowedStatuses = $statusFlow[$order->status] ?? [];
+                                            @endphp
                                             @foreach($statuses as $statusKey => $statusLabel)
-                                                @if($statusKey !== $order->status)
+                                                @if(in_array($statusKey, $allowedStatuses))
                                                     <button type="button" class="status-dropdown-item status-dropdown-item-{{ $statusKey }}" data-status="{{ $statusKey }}">
                                                         <i class="fas {{ match($statusKey) {
                                                             'Pending' => 'fa-hourglass-start',
@@ -164,31 +189,38 @@
                             </div>
                         @endforeach
                     </div>
-                </div>
+                @else
+                    <div style="text-align: center; padding: 60px 20px; color: #999;">
+                        <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 20px; display: block; opacity: 0.3;"></i>
+                        <p style="font-size: 14px;">No hay órdenes en esta categoría</p>
+                    </div>
+                @endif
+            </div>
 
-                <!-- Panel de detalle de orden (Derecha) -->
-                <div class="order-details-panel-large">
+            <!-- Panel de detalle de orden (Derecha) -->
+            <div class="order-details-panel-large">
+                @if($orders->count() > 0)
                     <div style="text-align: center; padding: 80px 40px; color: #999;">
                         <i class="fas fa-arrow-left" style="font-size: 48px; margin-bottom: 20px; display: block; opacity: 0.5;"></i>
                         <p style="font-size: 16px;">Selecciona una orden para ver los detalles</p>
                     </div>
-                </div>
+                @else
+                    <div style="text-align: center; padding: 80px 40px; color: #999;">
+                        <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 20px; display: block; opacity: 0.3;"></i>
+                        <p style="font-size: 16px;">No hay órdenes para mostrar</p>
+                    </div>
+                @endif
             </div>
         </div>
+    </div>
 
-        <!-- Paginación -->
+    <!-- Paginación -->
+    @if($orders->count() > 0)
         <div class="d-flex justify-content-center mt-4">
             {{ $orders->links() }}
         </div>
-    @else
-        <div class="card mt-4">
-            <div class="order-details-panel empty-state">
-                <i class="fas fa-inbox empty-state-icon"></i>
-                <h3 class="empty-state-title">No hay órdenes</h3>
-                <p class="empty-state-text">Aún no hay órdenes registradas</p>
-            </div>
-        </div>
     @endif
+
 </div>
 
 @push('scripts')
@@ -258,18 +290,26 @@ document.addEventListener('DOMContentLoaded', function() {
             
             e.stopPropagation();
             
+            // Obtener el dropdown
+            const dropdown = badge.querySelector('.status-dropdown');
+            if (!dropdown) return;
+            
+            // Contar items en el dropdown
+            const items = dropdown.querySelectorAll('.status-dropdown-item');
+            if (items.length === 0) {
+                // No hay estados permitidos, no abrir dropdown
+                return;
+            }
+            
             // Cerrar otros dropdowns primero
             ordersList.querySelectorAll('.status-dropdown').forEach(d => {
-                if (d !== badge.querySelector('.status-dropdown')) {
+                if (d !== dropdown) {
                     d.style.display = 'none';
                 }
             });
             
             // Toggle este dropdown
-            const dropdown = badge.querySelector('.status-dropdown');
-            if (dropdown) {
-                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-            }
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
         });
 
         // Delegado para items del dropdown
@@ -468,8 +508,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // Agregar la nueva clase de color
                                 statusBadge.classList.add(statusColorClasses[status]);
                                 
-                                // Obtener todos los estados disponibles desde el HTML
-                                const allStatuses = ['Pending', 'Preparing', 'Ready', 'Delivered', 'Cancelled'];
+                                // Obtener estados permitidos según el nuevo estado
+                                const allowedNextStatuses = getNextStatuses(status);
                                 const statusLabelsMap = {
                                     'Pending': 'Pendiente',
                                     'Preparing': 'En Preparación',
@@ -481,15 +521,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // Construir el dropdown dinámicamente
                                 let dropdownHTML = '<div class="status-dropdown" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 180px;">';
                                 
-                                allStatuses.forEach(statusKey => {
-                                    if (statusKey !== status) {
-                                        dropdownHTML += `
-                                            <button type="button" class="status-dropdown-item status-dropdown-item-${statusKey}" data-status="${statusKey}">
-                                                <i class="fas ${statusIcons[statusKey]}"></i>
-                                                ${statusLabelsMap[statusKey]}
-                                            </button>
-                                        `;
-                                    }
+                                allowedNextStatuses.forEach(statusKey => {
+                                    dropdownHTML += `
+                                        <button type="button" class="status-dropdown-item status-dropdown-item-${statusKey}" data-status="${statusKey}">
+                                            <i class="fas ${statusIcons[statusKey]}"></i>
+                                            ${statusLabelsMap[statusKey]}
+                                        </button>
+                                    `;
                                 });
                                 
                                 dropdownHTML += '</div>';
@@ -498,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 statusBadge.innerHTML = `
                                     <i class="fas ${statusIcons[status]}"></i>
                                     ${statusNames[status]}
-                                    <i class="fas fa-chevron-down" style="margin-left: 6px; font-size: 10px;"></i>
+                                    ${allowedNextStatuses.length > 0 ? '<i class="fas fa-chevron-down" style="margin-left: 6px; font-size: 10px;"></i>' : ''}
                                     ${dropdownHTML}
                                 `;
                             }
@@ -542,6 +580,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         });
+    }
+
+    // Función para obtener los estados permitidos según el estado actual
+    function getNextStatuses(currentStatus) {
+        const statusFlow = {
+            'Pending': ['Preparing', 'Cancelled'],
+            'Preparing': ['Ready', 'Cancelled'],
+            'Ready': ['Delivered', 'Cancelled'],
+            'Delivered': [], // No puede cambiar desde Entregado
+            'Cancelled': [] // No puede cambiar desde Cancelado
+        };
+        
+        return statusFlow[currentStatus] || [];
     }
 
     // Búsqueda en lista
