@@ -4,44 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $local->name }} -  La Comarca Gastro Parck</title>
-    
-    <!-- Fuentes -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Vue 3 -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <title>{{ $local->name }} - La Comarca Gastro Park</title>
 
-        html, body {
-            width: 100%;
-            height: 100%;
-        }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --primary:       #D4773A;
-            --primary-light: #F0956040;
-            --primary-glow:  #D4773A30;
-            --bg:            #0E0C0A;
-            --surface:       #181410;
-            --card:          #1E1A15;
-            --card-hover:    #252018;
-            --border:        #2E2820;
+            --primary-light: rgba(212,119,58,0.15);
+            --primary-glow:  rgba(212,119,58,0.25);
+            --bg:            #0A0908;
+            --surface:       #111009;
+            --card:          #161310;
+            --card-hover:    #1D1914;
+            --border:        #252018;
+            --border-light:  #302820;
             --text:          #F5F0E8;
-            --muted:         #8A8070;
-            --radius:        16px;
-            --radius-sm:     10px;
+            --muted:         #7A7060;
+            --radius:        14px;
+            --radius-sm:     8px;
         }
+
+        html, body { width: 100%; min-height: 100%; }
 
         body {
             font-family: 'DM Sans', sans-serif;
@@ -52,36 +41,28 @@
             overflow-x: hidden;
         }
 
-        img {
-            display: block;
-            max-width: 100%;
-            height: auto;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
+        img { display: block; max-width: 100%; }
+        a { text-decoration: none; color: inherit; }
 
         .container {
             width: 100%;
-            max-width: 1280px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 0 16px;
+            padding: 0 20px;
         }
 
-        /* ========== HEADER CON BACK ========== */
-        .header-top {
+        /* ── HEADER ─────────────────────────────── */
+        .site-header {
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(14,12,10,0.95);
-            backdrop-filter: blur(16px);
+            background: rgba(10,9,8,0.96);
+            backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
-            padding: 12px 0;
+            padding: 14px 0;
         }
 
-        .header-flex {
+        .header-inner {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -91,736 +72,787 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: rgba(30,26,21,0.85);
-            border: 1px solid var(--border);
-            color: var(--text);
-            font-size: 0.85rem;
+            background: var(--card);
+            border: 1px solid var(--border-light);
+            color: var(--muted);
+            font-size: 0.8rem;
             font-weight: 500;
-            padding: 8px 12px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-back:hover {
-            background: var(--card-hover);
-        }
-
-        .header-auth {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-auth {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
             padding: 8px 14px;
             border-radius: var(--radius-sm);
-            font-size: 0.85rem;
-            font-weight: 600;
-            border: none;
             cursor: pointer;
             transition: all 0.2s;
-            font-family: 'DM Sans', sans-serif;
         }
+        .btn-back:hover { background: var(--card-hover); color: var(--text); }
+        .btn-back i { font-size: 0.7rem; }
 
-        .btn-login {
-            background: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-        }
-
-        .btn-login:hover {
-            background: var(--primary-light);
-        }
-
-        .btn-logout {
-            background: var(--primary);
-            color: #fff;
-        }
-
-        .btn-logout:hover {
-            background: #c06830;
-        }
-
-        .header-title {
-            font-size: 0.95rem;
+        .header-label {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.15rem;
             font-weight: 600;
+            letter-spacing: 0.04em;
             color: var(--text);
         }
 
-        /* User Menu Dropdown */
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0 8px;
-            font-size: 0.85rem;
-            color: var(--muted);
+        /* auth user menu */
+        .user-menu-top { position: relative; }
+        .user-menu-btn {
+            background: none;
+            border: 1px solid var(--border-light);
             cursor: pointer;
-            position: relative;
-            transition: all 0.2s;
-        }
-
-        .user-info:hover {
+            padding: 7px 12px;
             color: var(--primary);
-        }
-
-        .user-avatar {
-            width: 28px;
-            height: 28px;
-            background: var(--primary);
-            color: #fff;
-            border-radius: 50%;
+            border-radius: var(--radius-sm);
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.8rem;
+            gap: 7px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
         }
-
         .user-menu-dropdown {
             position: absolute;
-            top: 100%;
+            top: calc(100% + 8px);
             right: 0;
-            background: var(--surface-dark);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            min-width: 180px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-            display: none;
-            flex-direction: column;
+            background: var(--card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            min-width: 190px;
             z-index: 1000;
-            margin-top: 8px;
+            display: none;
             overflow: hidden;
         }
-
-        .user-menu-dropdown.active {
-            display: flex;
+        .user-menu-dropdown.open { display: block; }
+        .dropdown-header {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
         }
-
-        .user-menu-dropdown a,
-        .user-menu-dropdown form {
-            padding: 10px 14px;
-            color: var(--text);
-            text-decoration: none;
-            font-size: 0.8rem;
-            border-bottom: 1px solid var(--border-color);
+        .dropdown-name { font-weight: 600; font-size: 0.8rem; color: var(--text); }
+        .dropdown-email { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+        .dropdown-item {
             display: flex;
             align-items: center;
             gap: 8px;
+            padding: 10px 14px;
+            font-size: 0.78rem;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .user-menu-dropdown a:last-child,
-        .user-menu-dropdown form:last-child {
-            border-bottom: none;
-        }
-
-        .user-menu-dropdown a:hover,
-        .user-menu-dropdown form:hover {
-            background: var(--surface);
-        }
-
-        .user-menu-dropdown button {
             background: none;
-            border: none;
-            color: var(--text);
-            padding: 10px 14px;
-            text-align: left;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
+            border-left: none;
+            border-right: none;
             width: 100%;
-            transition: all 0.2s;
             font-family: 'DM Sans', sans-serif;
         }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover { background: var(--card-hover); }
+        .dropdown-item.danger { color: #e05c5c; }
 
-        .user-menu-dropdown button:hover {
-            background: var(--surface);
-        }
-
-        .user-menu-dropdown button.logout-btn {
-            color: #ff6b6b;
-        }
-
-        /* ========== LOCAL HERO ========== */
+        /* ── HERO ────────────────────────────────── */
         .local-hero {
             position: relative;
-            height: 50vh;
-            min-height: 280px;
+            height: 56vh;
+            min-height: 300px;
+            max-height: 520px;
             overflow: hidden;
-            margin-bottom: 0;
         }
 
         .hero-bg {
             position: absolute;
             inset: 0;
         }
-
         .hero-bg img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            filter: brightness(0.55);
+            transition: transform 8s ease;
         }
+        .local-hero:hover .hero-bg img { transform: scale(1.04); }
 
-        .hero-overlay {
+        .hero-gradient {
             position: absolute;
             inset: 0;
-            background: linear-gradient(to top, var(--bg) 0%, rgba(14,12,10,0.6) 50%, rgba(14,12,10,0.2) 100%);
+            background:
+                linear-gradient(to top,  var(--bg) 0%, rgba(10,9,8,0.7) 35%, transparent 70%),
+                linear-gradient(to right, rgba(10,9,8,0.4) 0%, transparent 60%);
         }
 
-        .hero-content {
+        .hero-body {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 20px 16px;
-            z-index: 10;
+            padding: 28px 20px;
             display: flex;
             align-items: flex-end;
-            gap: 16px;
+            gap: 18px;
         }
 
-        .hero-logo {
-            width: 70px;
-            height: 70px;
-            border-radius: var(--radius-sm);
+        .hero-logo-ring {
+            width: 76px;
+            height: 76px;
+            border-radius: 12px;
             overflow: hidden;
-            border: 3px solid var(--card);
+            border: 2px solid rgba(212,119,58,0.6);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 4px rgba(212,119,58,0.1);
             flex-shrink: 0;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
         }
+        .hero-logo-ring img { width: 100%; height: 100%; object-fit: cover; }
 
-        .hero-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .hero-text { flex: 1; min-width: 0; }
 
-        .hero-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .local-name {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.6rem;
-            font-weight: 900;
-            color: var(--text);
-            line-height: 1.1;
-            margin-bottom: 4px;
-        }
-
-        .local-desc {
-            font-size: 0.8rem;
-            color: var(--muted);
-        }
-
-        /* ========== CONTENT SECTION ========== */
-        .content-section {
-            padding: 32px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .section-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.5rem;
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--primary-light);
+            border: 1px solid var(--primary-glow);
+            color: var(--primary);
+            font-size: 0.65rem;
             font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 4px 10px;
+            border-radius: 999px;
+            margin-bottom: 8px;
+        }
+
+        .hero-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.4rem;
+            font-weight: 700;
+            line-height: 1.05;
             color: var(--text);
-            margin-bottom: 20px;
+            margin-bottom: 6px;
         }
 
-        /* ========== CATEGORY BAR ========== */
-        .category-bar {
-            margin-bottom: 24px;
-            padding-bottom: 12px;
+        .hero-desc {
+            font-size: 0.82rem;
+            color: rgba(245,240,232,0.55);
+            line-height: 1.5;
+        }
+
+        /* ── CATEGORY BAR ────────────────────────── */
+        .cat-strip {
+            background: var(--surface);
             border-bottom: 1px solid var(--border);
+            padding: 14px 0;
+            position: sticky;
+            top: 57px;
+            z-index: 90;
         }
 
-        .categories-scroll {
+        .cat-scroll {
             display: flex;
             align-items: center;
             gap: 8px;
             overflow-x: auto;
-            -ms-overflow-style: none;
             scrollbar-width: none;
+            -ms-overflow-style: none;
         }
+        .cat-scroll::-webkit-scrollbar { display: none; }
 
-        .categories-scroll::-webkit-scrollbar {
-            display: none;
-        }
-
-        .cat-btn {
+        .cat-pill {
             display: inline-flex;
             align-items: center;
             gap: 6px;
             white-space: nowrap;
-            padding: 8px 14px;
+            padding: 7px 16px;
             border-radius: 999px;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 500;
-            border: none;
+            border: 1px solid var(--border-light);
+            background: transparent;
+            color: var(--muted);
             cursor: pointer;
             transition: all 0.2s;
-            background: var(--card);
-            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
             flex-shrink: 0;
         }
-
-        .cat-btn:hover {
-            background: var(--card-hover);
-            color: var(--text);
-        }
-
-        .cat-btn.active {
+        .cat-pill:hover { color: var(--text); border-color: var(--border-light); background: var(--card); }
+        .cat-pill.active {
             background: var(--primary);
+            border-color: var(--primary);
             color: #fff;
+            box-shadow: 0 4px 16px var(--primary-glow);
         }
 
-        /* ========== PRODUCT GRID ========== */
-        .grid {
-            display: grid;
-            gap: 16px;
-            grid-template-columns: repeat(2, 1fr);
+        /* ── SECTION INTRO ───────────────────────── */
+        .menu-section {
+            padding: 52px 0 80px;
         }
 
-        @media (min-width: 768px) {
-            .grid {
-                gap: 20px;
-                grid-template-columns: repeat(3, 1fr);
-            }
+        .menu-intro {
+            margin-bottom: 40px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
-        /* ========== PRODUCT CARD ========== */
-        .product-card {
+        .menu-intro-left {}
+
+        .section-eyebrow {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+
+        .section-heading {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.1;
+        }
+
+        .section-heading em { font-style: italic; color: var(--primary); }
+
+        .item-count {
+            font-size: 0.78rem;
+            color: var(--muted);
+            padding: 6px 12px;
             background: var(--card);
-            border-radius: var(--radius-sm);
-            overflow: hidden;
             border: 1px solid var(--border);
-            transition: transform 0.3s, box-shadow 0.3s;
+            border-radius: 999px;
         }
 
-        .product-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+        /* ── PRODUCT GRID ────────────────────────── */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 2px;
         }
 
-        .product-img {
+        @media (min-width: 640px)  { .products-grid { grid-template-columns: repeat(2, 1fr); gap: 2px; } }
+        @media (min-width: 900px)  { .products-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 1100px) { .products-grid { grid-template-columns: repeat(4, 1fr); } }
+
+        /* ── PRODUCT CARD ────────────────────────── */
+        .p-card {
             position: relative;
-            aspect-ratio: 1;
+            background: var(--card);
             overflow: hidden;
-            background: rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.35s cubic-bezier(.22,.68,0,1.2), box-shadow 0.35s;
+            border: 1px solid var(--border);
         }
 
-        .product-img img {
+        .p-card:hover {
+            transform: translateY(-6px) scale(1.015);
+            box-shadow: 0 20px 48px rgba(0,0,0,0.55), 0 0 0 1px var(--primary-glow);
+            z-index: 2;
+        }
+
+        .p-card-img {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            background: #0d0b08;
+        }
+
+        .p-card-img img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.5s;
+            transition: transform 0.6s cubic-bezier(.22,.68,0,1.2), filter 0.4s;
+            filter: brightness(0.9);
         }
 
-        .product-card:hover .product-img img {
-            transform: scale(1.08);
+        .p-card:hover .p-card-img img {
+            transform: scale(1.1);
+            filter: brightness(1);
         }
 
-        .product-body {
-            padding: 12px;
+        /* shine overlay on hover */
+        .p-card-img::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .p-card:hover .p-card-img::after { opacity: 1; }
+
+        /* bottom gradient on image */
+        .p-card-img-fade {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 50%;
+            background: linear-gradient(to top, rgba(10,9,8,0.85) 0%, transparent 100%);
+            pointer-events: none;
         }
 
-        .product-name {
-            font-size: 0.85rem;
-            font-weight: 600;
+        /* category badge top-left */
+        .p-card-cat {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: rgba(10,9,8,0.75);
+            border: 1px solid rgba(212,119,58,0.4);
+            color: var(--primary);
+            backdrop-filter: blur(8px);
+        }
+
+        .p-card-body {
+            padding: 16px 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+        }
+
+        /* top rule */
+        .p-card-body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 16px; right: 16px;
+            height: 1px;
+            background: linear-gradient(to right, var(--primary-glow), transparent);
+        }
+
+        .p-card-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
             color: var(--text);
-            margin-bottom: 6px;
+            line-height: 1.2;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
 
-        .product-info {
+        .p-card-footer {
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: flex-end;
         }
 
-        .product-price {
-            font-size: 1rem;
+        .p-card-price {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.55rem;
             font-weight: 700;
             color: var(--primary);
+            line-height: 1;
         }
 
-        /* ========== EMPTY STATE ========== */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--muted);
+        .p-card-price sup {
+            font-size: 0.7em;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            vertical-align: super;
+            margin-right: 1px;
+            opacity: 0.8;
         }
 
-        .empty-state i {
-            font-size: 3rem;
-            opacity: 0.3;
-            margin-bottom: 16px;
-        }
-
-        /* ========== FOOTER ========== */
-        .footer {
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            padding: 48px 0 20px;
-            color: var(--text);
-        }
-
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 32px;
-            margin-bottom: 32px;
-        }
-
-        .footer-section {
-            text-align: left;
-        }
-
-        .footer-section h3 {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 16px;
+        .p-card-icon {
+            width: 34px;
+            height: 34px;
             display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .footer-section h3 i {
-            color: var(--primary);
-            font-size: 1.1rem;
-        }
-
-        .footer-section p {
-            font-size: 0.85rem;
-            color: var(--muted);
-            line-height: 1.8;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .footer-section p i {
-            color: var(--primary);
-            width: 16px;
-            text-align: center;
-        }
-
-        .footer-section p:first-of-type {
-            margin-top: 0;
-        }
-
-        .social-icons {
-            display: flex;
-            gap: 16px;
-            margin-top: 12px;
-            flex-wrap: wrap;
-        }
-
-        .social-icons a {
-            display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius-sm);
-            background: rgba(212, 119, 58, 0.1);
+            border-radius: 50%;
+            background: var(--primary-light);
+            border: 1px solid var(--primary-glow);
             color: var(--primary);
+            font-size: 0.8rem;
             transition: all 0.2s;
-            font-size: 1.1rem;
         }
 
-        .social-icons a:hover {
+        .p-card:hover .p-card-icon {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        /* ── FEATURED CARD (first item, full width) ── */
+        .p-card.featured {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: row;
+        }
+
+        @media (max-width: 640px) {
+            .p-card.featured { flex-direction: column; }
+        }
+
+        .p-card.featured .p-card-img {
+            flex: 0 0 50%;
+            aspect-ratio: unset;
+            min-height: 260px;
+        }
+
+        .p-card.featured .p-card-body {
+            flex: 1;
+            justify-content: center;
+            padding: 28px 28px;
+        }
+
+        .p-card.featured .p-card-name {
+            font-size: 2rem;
+            -webkit-line-clamp: 3;
+        }
+
+        .p-card.featured .p-card-price {
+            font-size: 2.2rem;
+        }
+
+        .featured-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+
+        .featured-desc {
+            font-size: 0.85rem;
+            color: var(--muted);
+            line-height: 1.6;
+            margin-top: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* ── EMPTY STATE ─────────────────────────── */
+        .empty-wrap {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            font-size: 3.5rem;
+            opacity: 0.15;
+            margin-bottom: 16px;
+        }
+
+        .empty-msg {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+            opacity: 0.5;
+        }
+
+        /* ── FOOTER ──────────────────────────────── */
+        .site-footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 56px 0 24px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 36px;
+            margin-bottom: 36px;
+        }
+
+        .footer-col h4 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .footer-col h4 i { color: var(--primary); font-size: 0.95rem; }
+
+        .footer-col p {
+            font-size: 0.82rem;
+            color: var(--muted);
+            line-height: 1.9;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .footer-col p i { color: var(--primary); width: 14px; text-align: center; }
+
+        .social-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .social-btn {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 1rem;
+            transition: all 0.2s;
+            border: 1px solid var(--primary-glow);
+        }
+        .social-btn:hover {
             background: var(--primary);
             color: #fff;
             transform: translateY(-2px);
+            box-shadow: 0 6px 16px var(--primary-glow);
         }
 
-        .copyright {
-            text-align: center;
+        .footer-copy {
             border-top: 1px solid var(--border);
             padding-top: 20px;
-            font-size: 0.8rem;
+            text-align: center;
+            font-size: 0.75rem;
             color: var(--muted);
         }
 
-        .copyright p {
-            margin: 0;
-        }
-
-        /* ========== RESPONSIVE ========== */
+        /* ── RESPONSIVE ──────────────────────────── */
         @media (max-width: 480px) {
-            .hero-logo {
-                width: 60px;
-                height: 60px;
-            }
-
-            .local-name {
-                font-size: 1.3rem;
-            }
-
-            .section-title {
-                font-size: 1.2rem;
-            }
-
-            .footer-content {
-                grid-template-columns: 1fr;
-                gap: 24px;
-            }
-
-            .footer-section {
-                text-align: center;
-            }
-
-            .footer-section h3 {
-                justify-content: center;
-            }
-
-            .footer-section p {
-                justify-content: center;
-            }
-
-            .social-icons {
-                justify-content: center;
-            }
-
-            .copyright {
-                text-align: center;
-            }
+            .hero-name { font-size: 1.8rem; }
+            .section-heading { font-size: 1.6rem; }
+            .p-card-name { font-size: 1rem; }
+            .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+            .footer-col { text-align: center; }
+            .footer-col h4 { justify-content: center; }
+            .footer-col p { justify-content: center; }
+            .social-row { justify-content: center; }
         }
     </style>
 </head>
 <body>
-    <div id="plaza-app">
-        <!-- HEADER CON BACK -->
-        <header class="header-top">
-            <div class="container">
-                <div class="header-flex">
-                    <a href="{{ route('plaza.index') }}" class="btn-back">
-                        <i class="fas fa-chevron-left"></i>
-                        Atrás
-                    </a>
-                    <h1 class="header-title">Menú</h1>
-                    <div class="header-auth" style="width: auto;">
-                        @auth
-                            <!-- User Menu (igual al admin, compacto para mobile) -->
-                            <div class="user-menu-top" style="position: relative;">
-                                <button class="user-menu-btn" style="background: none; border: 2px solid var(--primary); cursor: pointer; padding: 6px 10px; color: var(--primary); border-radius: 6px; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 500;">
-                                    @if(auth()->user()->avatar)
-                                        <img src="{{ asset(auth()->user()->avatar) }}" alt="Avatar" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover;">
-                                    @else
-                                        <i class="fas fa-user-circle" style="font-size: 18px; color: var(--primary);"></i>
-                                    @endif
-                                    <span class="user-role-label" style="font-size: 0.7rem; color: var(--text); font-weight: 600;">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
-                                </button>
-                                <div class="user-menu-dropdown" style="position: absolute; top: 100%; right: 0; margin-top: 6px; background: var(--card); border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); min-width: 180px; z-index: 1000; display: none;">
-                                    <div style="padding: 10px 12px; border-bottom: 1px solid var(--border-color); font-size: 12px;">
-                                        <div style="font-weight: 600; color: var(--text); font-size: 0.8rem;">{{ auth()->user()->full_name ?? auth()->user()->name }}</div>
-                                        <div style="color: var(--muted); font-size: 0.7rem; margin-top: 2px;">{{ auth()->user()->email }}</div>
-                                    </div>
+<div id="plaza-app">
 
-                                    <a href="{{ route('client.profile.edit') }}" style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border-color); font-size: 0.75rem;">
-                                        <i class="fas fa-user-edit" style="color: var(--muted); font-size: 12px;"></i>
-                                        <span>Editar perfil</span>
-                                    </a>
-                                    <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
-                                        @csrf
-                                        <button type="submit" style="width: 100%; display: flex; align-items: center; gap: 8px; padding: 10px 12px; color: #ff6b6b; text-decoration: none; border: none; background: none; cursor: pointer; font-size: 0.75rem;">
-                                            <i class="fas fa-sign-out-alt" style="font-size: 12px;"></i>
-                                            <span>Cerrar sesión</span>
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        @else
-                            <a href="{{ route('login') }}" class="btn-auth btn-login" style="font-size: 0.75rem; padding: 6px 10px;">
-                                <i class="fas fa-sign-in-alt"></i>
-                            </a>
-                        @endauth
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- HERO LOCAL -->
-        <section class="local-hero">
-            <div class="hero-bg">
-                
-            </div>
-            <div class="hero-overlay"></div>
-            <div class="hero-content">
-                @if($local->image_logo)
-                <div class="hero-logo">
-                    <img src="{{ $local->image_logo }}" alt="">
-                </div>
-                @endif
-                <div class="hero-info">
-                    <h1 class="local-name">{{ $local->name }}</h1>
-                    <p class="local-desc">{{ $local->description }}</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- CONTENIDO -->
+    <!-- ── HEADER ── -->
+    <header class="site-header">
         <div class="container">
-            <!-- CATEGORÍAS -->
-            @if($categorias->isNotEmpty())
-            <div class="content-section">
-                <div class="category-bar">
-                    <div class="categories-scroll">
-                        <button class="cat-btn active" @click="activeCategory = null" v-if="activeCategory !== null">
-                            <i class="fas fa-th"></i>
-                            Todos
-                        </button>
-                        @foreach($categorias as $cat)
-                        <button class="cat-btn" @click="activeCategory = '{{ $cat['slug'] }}'">
-                            <i class="fas {{ $cat['icono'] }}"></i>
-                            {{ $cat['nombre'] }}
-                        </button>
-                        @endforeach
-                    </div>
+            <div class="header-inner">
+                <a href="{{ route('plaza.index') }}" class="btn-back">
+                    <i class="fas fa-chevron-left"></i> Atrás
+                </a>
+                <span class="header-label">Menú</span>
+                <div>
+                    @auth
+                        <div class="user-menu-top">
+                            <button class="user-menu-btn" id="userMenuBtn">
+                                @if(auth()->user()->avatar)
+                                    <img src="{{ asset(auth()->user()->avatar) }}" alt="" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">
+                                @else
+                                    <i class="fas fa-user-circle" style="font-size:17px;"></i>
+                                @endif
+                                <span style="color:var(--text);font-size:0.72rem;">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
+                            </button>
+                            <div class="user-menu-dropdown" id="userMenuDropdown">
+                                <div class="dropdown-header">
+                                    <div class="dropdown-name">{{ auth()->user()->full_name ?? auth()->user()->name }}</div>
+                                    <div class="dropdown-email">{{ auth()->user()->email }}</div>
+                                </div>
+                                <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
+                                    <i class="fas fa-user-edit" style="color:var(--muted);"></i> Editar perfil
+                                </a>
+                                <form method="POST" action="{{ route('logout') }}" style="margin:0;">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item danger">
+                                        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ route('login') }}" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--border-light);border-radius:var(--radius-sm);font-size:0.78rem;color:var(--primary);">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </a>
+                    @endauth
                 </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ── HERO ── -->
+    <section class="local-hero">
+        <div class="hero-bg">
+            <img src="{{ $local->image_logo ?? 'https://via.placeholder.com/1200x600/111009/D4773A?text=' . urlencode($local->name) }}" alt="{{ $local->name }}">
+        </div>
+        <div class="hero-gradient"></div>
+        <div class="hero-body container">
+            @if($local->image_logo)
+            <div class="hero-logo-ring">
+                <img src="{{ $local->image_logo }}" alt="{{ $local->name }}">
             </div>
             @endif
+            <div class="hero-text">
+                <div class="hero-tag"><i class="fas fa-utensils"></i> La Comarca Gastro Park</div>
+                <h1 class="hero-name">{{ $local->name }}</h1>
+                @if($local->description)
+                    <p class="hero-desc">{{ $local->description }}</p>
+                @endif
+            </div>
+        </div>
+    </section>
 
-            <!-- PRODUCTOS -->
-            <div class="content-section">
-                @if($productos->isEmpty())
-                <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
-                    <p>Este local no tiene productos disponibles</p>
+    <!-- ── CATEGORY STRIP ── -->
+    @if($categorias->isNotEmpty())
+    <div class="cat-strip">
+        <div class="container">
+            <div class="cat-scroll">
+                <button class="cat-pill" :class="{ active: activeCategory === null }" @click="activeCategory = null">
+                    <i class="fas fa-border-all"></i> Todos
+                </button>
+                @foreach($categorias as $cat)
+                <button
+                    class="cat-pill"
+                    :class="{ active: activeCategory === '{{ $cat['slug'] }}' }"
+                    @click="activeCategory = '{{ $cat['slug'] }}'">
+                    <i class="fas {{ $cat['icono'] }}"></i>
+                    {{ $cat['nombre'] }}
+                </button>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- ── PRODUCTS ── -->
+    <main class="menu-section">
+        <div class="container">
+            <div class="menu-intro">
+                <div class="menu-intro-left">
+                    <p class="section-eyebrow">Nuestro Menú</p>
+                    <h2 class="section-heading">Lo Mejor de <em>{{ $local->name }}</em></h2>
                 </div>
-                @else
-                <div class="grid">
-                    @foreach($productos as $producto)
-                    <div class="product-card" 
-                         v-show="activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory"
-                         data-category="{{ Str::slug($producto->category) }}">
-                        <div class="product-img">
-                            <img src="{{ $producto->photo_url ?? asset('images/product-placeholder.jpg') }}" 
-                                 alt="{{ $producto->name }}">
+                @if($productos->isNotEmpty())
+                <span class="item-count">{{ $productos->count() }} platillos</span>
+                @endif
+            </div>
+
+            @if($productos->isEmpty())
+                <div class="empty-wrap">
+                    <div class="empty-icon"><i class="fas fa-bowl-food"></i></div>
+                    <p class="empty-msg">No hay platillos disponibles por el momento</p>
+                </div>
+            @else
+                <div class="products-grid">
+                    @foreach($productos as $i => $producto)
+                    <div class="p-card {{ $i === 0 ? 'featured' : '' }}"
+                         v-show="activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory">
+
+                        <div class="p-card-img">
+                            <img src="{{ $producto->photo_url ?? asset('images/product-placeholder.jpg') }}"
+                                 alt="{{ $producto->name }}"
+                                 loading="{{ $i < 4 ? 'eager' : 'lazy' }}">
+                            <div class="p-card-img-fade"></div>
+                            @if($producto->category)
+                            <span class="p-card-cat">{{ $producto->category }}</span>
+                            @endif
                         </div>
-                        <div class="product-body">
-                            <h3 class="product-name" title="{{ $producto->name }}">
-                                {{ $producto->name }}
-                            </h3>
-                            <div class="product-info">
-                                <span class="product-price">${{ number_format($producto->price, 2) }}</span>
+
+                        <div class="p-card-body">
+                            @if($i === 0)
+                                <p class="featured-label"><i class="fas fa-crown"></i> &nbsp;Destacado</p>
+                            @endif
+                            <h3 class="p-card-name">{{ $producto->name }}</h3>
+                            @if($i === 0 && $producto->description)
+                                <p class="featured-desc">{{ $producto->description }}</p>
+                            @endif
+                            <div class="p-card-footer">
+                                <span class="p-card-price">
+                                    <sup>₡</sup>{{ number_format($producto->price, 2) }}
+                                </span>
+                                <span class="p-card-icon">
+                                    <i class="fas fa-arrow-right"></i>
+                                </span>
                             </div>
                         </div>
                     </div>
                     @endforeach
                 </div>
-                @endif
+            @endif
+        </div>
+    </main>
+
+    <!-- ── FOOTER ── -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4><i class="fas fa-clock"></i> Horario</h4>
+                    <p><strong>Lunes a Viernes</strong></p>
+                    <p>12:00 PM – 12:00 AM</p>
+                    <p style="margin-top:10px;"><strong>Sábado y Domingo</strong></p>
+                    <p>11:00 AM – 2:00 AM</p>
+                </div>
+                <div class="footer-col">
+                    <h4><i class="fas fa-map-marker-alt"></i> Ubicación</h4>
+                    <p>
+                        <i class="fas fa-location-dot"></i>
+                        <a href="https://maps.app.goo.gl/UYkQZhrKbVnTKgWj8?g_st=aw" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:underline;">La Comarca Gastro Park</a>
+                    </p>
+                    <p>
+                        <i class="fas fa-map"></i>
+                        <a href="https://maps.app.goo.gl/UYkQZhrKbVnTKgWj8?g_st=aw" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:underline;">Guápiles, Limón, Costa Rica</a>
+                    </p>
+                    <p style="margin-top:10px;"><i class="fas fa-phone"></i> +506 8888 8888</p>
+                    <p><i class="fas fa-envelope"></i> info@lacomarcagastropark.com</p>
+                </div>
+                <div class="footer-col">
+                    <h4><i class="fas fa-share-alt"></i> Síguenos</h4>
+                    <p style="margin-bottom:4px;">Conecta con nosotros</p>
+                    <div class="social-row">
+                        <a class="social-btn" href="https://www.facebook.com/share/1CYem5AGeo/" target="_blank" rel="noopener" aria-label="Facebook">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a class="social-btn" href="https://www.instagram.com/la.comarcagastropark?igsh=bW43MHB0OG9yMG8y" target="_blank" rel="noopener" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a class="social-btn" href="https://www.tiktok.com/@la.comarcagastropark?_t=ZM-8z8TOSBnnGv&_r=1" target="_blank" rel="noopener" aria-label="TikTok">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-copy">
+                &copy; 2026 La Comarca Gastro Park. Todos los derechos reservados.
             </div>
         </div>
+    </footer>
 
-        <!-- FOOTER -->
-        <footer class="footer">
-            <div class="container">
-                <div class="footer-content">
-                    <div class="footer-section">
-                        <h3><i class="fas fa-clock"></i> Horario</h3>
-                        <p><strong>Lunes a Viernes</strong></p>
-                        <p>12:00 PM - 12:00 AM</p>
-                        <p style="margin-top: 12px;"><strong>Sábado a Domingo</strong></p>
-                        <p>11:00 AM - 2:00 AM</p>
-                    </div>
-                    <div class="footer-section">
-                        <h3><i class="fas fa-map-marker-alt"></i> Ubicación</h3>
-                        <p><i class="fas fa-location-dot"></i> <a href="https://maps.app.goo.gl/UYkQZhrKbVnTKgWj8?g_st=aw" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline; transition: color 0.2s;" onmouseover="this.style.color='#c06830'" onmouseout="this.style.color='var(--primary)'">La Comarca Gastro Park</a></p>
-                        <p><i class="fas fa-map"></i> <a href="https://maps.app.goo.gl/UYkQZhrKbVnTKgWj8?g_st=aw" target="_blank" rel="noopener noreferrer" style="color: var(--muted); text-decoration: underline; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted)'">Guápiles, Limón, Costa Rica</a></p>
-                        <p style="margin-top: 12px;"><i class="fas fa-phone"></i> +506 8888 8888</p>
-                        <p><i class="fas fa-envelope"></i> info@lacomarcagastropark.com</p>
-                    </div>
-                    <div class="footer-section">
-                        <h3><i class="fas fa-share-alt"></i> Síguenos</h3>
-                        <p style="color: var(--text); margin-bottom: 12px;">Conecta con nosotros en redes sociales</p>
-                        <div class="social-icons">
-                            <a href="https://www.facebook.com/share/1CYem5AGeo/" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            title="Facebook"
-                            aria-label="Síguenos en Facebook">
-                                <i class="fab fa-facebook"></i>
-                            </a>
-                            <a href="https://www.instagram.com/la.comarcagastropark?igsh=bW43MHB0OG9yMG8y" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            title="Instagram"
-                            aria-label="Síguenos en Instagram">
-                                <i class="fab fa-instagram"></i>
-                            </a>
-                            <a href="https://www.tiktok.com/@la.comarcagastropark?_t=ZM-8z8TOSBnnGv&_r=1" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            title="TikTok"
-                            aria-label="Síguenos en TikTok">
-                                <i class="fab fa-tiktok"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="copyright">
-                    <p>&copy; 2026 La Comarca Gastro Park. Todos los derechos reservados.</p>
-                </div>
-            </div>
-        </footer>
-    </div>
+</div>
 
-    <script>
-        // Toggle User Menu
-        function toggleUserMenu(event) {
-            event.stopPropagation();
-            const btn = event.target.closest('.user-menu-btn');
-            const dropdown = btn?.nextElementSibling;
-            
-            if (dropdown) {
-                const isOpen = dropdown.style.display === 'block';
-                dropdown.style.display = isOpen ? 'none' : 'block';
-            }
+<script>
+    // User menu toggle
+    const menuBtn = document.getElementById('userMenuBtn');
+    const menuDropdown = document.getElementById('userMenuDropdown');
+
+    if (menuBtn && menuDropdown) {
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menuDropdown.classList.toggle('open');
+        });
+        document.addEventListener('click', () => {
+            menuDropdown.classList.remove('open');
+        });
+    }
+
+    // Vue app
+    const { createApp } = Vue;
+    createApp({
+        data() {
+            return { activeCategory: null };
         }
-
-        // Cerrar menú al hacer click fuera
-        document.addEventListener('click', function(event) {
-            const menuTop = event.target.closest('.user-menu-top');
-            if (!menuTop) {
-                document.querySelectorAll('.user-menu-dropdown').forEach(dropdown => {
-                    dropdown.style.display = 'none';
-                });
-            }
-        });
-
-        // Inicializar el menú de usuario al cargar
-        document.addEventListener('DOMContentLoaded', function() {
-            const userMenuBtn = document.querySelector('.user-menu-btn');
-            if (userMenuBtn) {
-                userMenuBtn.addEventListener('click', toggleUserMenu);
-            }
-        });
-
-        const { createApp } = Vue;
-
-        createApp({
-            data() {
-                return {
-                    activeCategory: null
-                };
-            }
-        }).mount('#plaza-app');
-    </script>
+    }).mount('#plaza-app');
+</script>
 </body>
 </html>

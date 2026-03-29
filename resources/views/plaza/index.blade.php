@@ -284,7 +284,7 @@
         .hero-overlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, var(--bg) 0%, rgba(14,12,10,.8) 50%, rgba(14,12,10,.4) 100%);
+            background: linear-gradient(135deg, #FF820487 0%, rgba(14,12,10,.8) 50%, rgba(0, 0, 0, 0.55) 100%);
             z-index: 1;
         }
 
@@ -478,7 +478,30 @@
         }
 
         .section:nth-child(even) {
-            background: rgba(30,26,21,0.4);
+            background-image: url('{{ asset("images/fondomadera1.webp") }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: scroll;
+            position: relative;
+            image-rendering: high-quality;
+            -webkit-font-smoothing: antialiased;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .section:nth-child(even)::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(14, 12, 10, 0.4) 0%, rgba(14, 12, 10, 0.3) 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .section:nth-child(even) > * {
+            position: relative;
+            z-index: 1;
+        }
         }
 
         .section-header {
@@ -980,7 +1003,7 @@
         <!-- HERO -->
         <section class="hero">
             <div class="hero-bg">
-                <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1920&h=1080&fit=crop" alt="Plaza Gastronómica">
+                <img src="{{ asset('images/fotoIndex.jpeg') }}" alt="La Comarca Gastro Parck">
             </div>
             <div class="hero-overlay"></div>
             
@@ -1082,11 +1105,7 @@
                             <div class="local-meta">
                                 <span class="meta-item">
                                     <i class="fas fa-star"></i>
-                                    4.8
-                                </span>
-                                <span class="meta-item">
-                                    <i class="fas fa-clock"></i>
-                                    20-30 min
+                                    {{ $local->average_rating }}
                                 </span>
                             </div>
                             <a href="{{ route('plaza.show', $local->local_id) }}" class="btn-ver-menu">

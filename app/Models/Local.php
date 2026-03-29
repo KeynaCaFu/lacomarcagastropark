@@ -61,4 +61,25 @@ class Local extends Model
     public function schedules(){
         return $this->hasMany(Schedule::class, 'local_id', 'local_id');
     }
+
+    /**
+     * Relación: Reseñas del local
+     */
+    public function localReviews()
+    {
+        return $this->hasMany(LocalReview::class, 'local_id', 'local_id');
+    }
+
+    /**
+     * Accessor: Obtener el promedio de calificación del local
+     * Usa el cálculo real de las reseñas
+     */
+    public function getAverageRatingAttribute()
+    {
+        $average = $this->localReviews()
+            ->join('tbreview', 'tblocal_review.review_id', '=', 'tbreview.review_id')
+            ->avg('tbreview.rating');
+
+        return $average ? round($average, 1) : 0;
+    }
 }
