@@ -46,15 +46,23 @@ class PlazaController extends Controller
             })->values();
         }
 
-        // Shuffle productos para mostrar de forma aleatoria
-        $productosAleatorios = $productos->shuffle()->take(20);
-
         // Obtener locales activos con sus productos disponibles
         $locales = Local::where('status', 'Active')
             ->with(['gallery' => function ($query) {
                 $query->limit(1);
             }])
             ->get();
+
+        // Obtener 2 productos aleatorios de cada local
+        $productosAleatorios = collect();
+        foreach ($locales as $local) {
+            $productosLocal = $local->products()
+                ->where('tbproduct.status', 'Available')
+                ->inRandomOrder()
+                ->limit(2)
+                ->get();
+            $productosAleatorios = $productosAleatorios->merge($productosLocal);
+        }
 
         // Obtener estadísticas
         $stats = [

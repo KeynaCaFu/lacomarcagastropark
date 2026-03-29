@@ -684,13 +684,13 @@
     <!-- ── HERO ── -->
     <section class="local-hero">
         <div class="hero-bg">
-            <img src="{{ $local->image_logo ?? 'https://via.placeholder.com/1200x600/111009/D4773A?text=' . urlencode($local->name) }}" alt="{{ $local->name }}">
+            <img src="{{ $local->logo_url ?? 'https://via.placeholder.com/1200x600/111009/D4773A?text=' . urlencode($local->name) }}" alt="{{ $local->name }}">
         </div>
         <div class="hero-gradient"></div>
         <div class="hero-body container">
-            @if($local->image_logo)
+            @if($local->logo_url)
             <div class="hero-logo-ring">
-                <img src="{{ $local->image_logo }}" alt="{{ $local->name }}">
+                <img src="{{ $local->logo_url }}" alt="{{ $local->name }}">
             </div>
             @endif
             <div class="hero-text">

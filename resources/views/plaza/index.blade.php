@@ -678,11 +678,29 @@
         }
 
         .local-status {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
             font-weight: 600;
+            color: #4ade80;
+            padding: 0;
+            margin-bottom: 0;
+        }
+
+        .local-status::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
         }
 
         .local-logo-wrap {
@@ -730,6 +748,7 @@
         .local-meta {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 12px;
             font-size: 0.75rem;
             color: var(--muted);
@@ -1003,7 +1022,7 @@
         <!-- HERO -->
         <section class="hero">
             <div class="hero-bg">
-                <img src="{{ asset('images/fotoIndex.jpeg') }}" alt="La Comarca Gastro Parck">
+                <img src="{{ asset('images/fotoindex.webp') }}" alt="La Comarca Gastro Parck">
             </div>
             <div class="hero-overlay"></div>
             
@@ -1094,10 +1113,8 @@
                     @foreach($locales as $local)
                     <article class="local-card">
                         <div class="local-img-wrap">
-                            <img src="{{ $local->image_logo ?? 'https://via.placeholder.com/400x300?text=' . urlencode($local->name) }}" alt="{{ $local->name }}" class="local-img">
-                            <span class="local-status">
-                                {{ $local->status === 'Active' ? '🟢 Abierto' : '🔴 Cerrado' }}
-                            </span>
+                            <img src="{{ $local->logo_url ?? 'https://via.placeholder.com/400x300?text=' . urlencode($local->name) }}" alt="{{ $local->name }}" class="local-img">
+                            
                         </div>
                         <div class="local-body">
                             <h3 class="local-name">{{ $local->name }}</h3>
@@ -1106,6 +1123,9 @@
                                 <span class="meta-item">
                                     <i class="fas fa-star"></i>
                                     {{ $local->average_rating }}
+                                </span>
+                                <span class="local-status">
+                                    {{ $local->status === 'Active' ? 'Abierto' : 'Cerrado' }}
                                 </span>
                             </div>
                             <a href="{{ route('plaza.show', $local->local_id) }}" class="btn-ver-menu">
@@ -1129,7 +1149,7 @@
                         <i class="fas fa-fire"></i>
                         Lo Más Buscado
                     </div>
-                    <h2 class="section-title">Platillos Destacados</h2>
+                    <h2 class="section-title"></h2>
                     <p class="section-sub">Los favoritos de nuestros clientes de todos nuestros locales</p>
                 </div>
 
@@ -1149,7 +1169,7 @@
                                 {{ $producto->name }}
                             </h3>
                             <div class="product-footer">
-                                <span class="product-price">${{ number_format($producto->price, 2) }}</span>
+                                <span class="product-price">₡{{ number_format($producto->price, 2) }}</span>
                             </div>
                         </div>
                     </div>
