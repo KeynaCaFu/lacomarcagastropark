@@ -171,12 +171,15 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
    
 });
 
-    // RESEÑAS (GERENTE)
-    Route::prefix('resenas')->name('reviews.')->group(function () {
-        Route::get('/', [ReviewController::class, 'index'])->name('index');
-        Route::post('/{id}/responder', [ReviewController::class, 'respond'])->name('respond');
-    });
+// RESEÑAS (GERENTE)
+Route::prefix('resenas')->name('reviews.')->group(function () {
+    Route::get('/', [ReviewController::class, 'index'])->name('index');
+    Route::post('/{id}/responder', [ReviewController::class, 'respond'])->name('respond');
+    Route::put('/respuesta/{reviewId}', [ReviewController::class, 'updateResponse'])->name('response.update');
+    Route::delete('/respuesta/{reviewId}', [ReviewController::class, 'deleteResponse'])->name('response.delete');
+});
 
+  
     // ÓRDENES (GERENTE) - Ver, filtrar y cambiar estado
     Route::prefix('ordenes')->name('orders.')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
