@@ -10,6 +10,7 @@ use App\Http\Controllers\LocalDashboardController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Http\Request;
 
 /*
@@ -172,20 +173,26 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
 
 // RESEÑAS (GERENTE)
 Route::prefix('resenas')->name('reviews.')->group(function () {
-
     Route::get('/', [ReviewController::class, 'index'])->name('index');
-
     Route::post('/{id}/responder', [ReviewController::class, 'respond'])->name('respond');
-     Route::put('/respuesta/{reviewId}', [ReviewController::class, 'updateResponse'])->name('response.update');
+    Route::put('/respuesta/{reviewId}', [ReviewController::class, 'updateResponse'])->name('response.update');
     Route::delete('/respuesta/{reviewId}', [ReviewController::class, 'deleteResponse'])->name('response.delete');
 });
 
-
-
-
+  
+    // ÓRDENES (GERENTE) - Ver, filtrar y cambiar estado
+    Route::prefix('ordenes')->name('orders.')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])->name('index');
+        Route::get('/api/pendientes-count', [OrderController::class, 'getPendingCount'])->name('pending-count');
+        Route::get('/{order}', [OrderController::class, 'show'])->name('show');
+        Route::post('/{order}/cambiar-estado', [OrderController::class, 'changeStatus'])->name('change-status');
+        Route::post('/{order}/actualizar', [OrderController::class, 'update'])->name('update');
+        Route::post('/crear', [OrderController::class, 'store'])->name('store');
+        Route::get('/nuevo', [OrderController::class, 'create'])->name('create');
+        Route::get('/{order}/edit', [OrderController::class, 'edit'])->name('edit');   
+        Route::delete('/{order}', [OrderController::class, 'destroy'])->name('destroy');
+    });
 });
-
-
 
 // ============================================================================
 // RUTAS PARA CLIENTE
