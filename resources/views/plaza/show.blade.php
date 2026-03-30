@@ -152,9 +152,9 @@
         /* ── HERO ────────────────────────────────── */
         .local-hero {
             position: relative;
-            height: 56vh;
-            min-height: 300px;
-            max-height: 520px;
+            height: 35vh;
+            min-height: 280px;
+            max-height: 380px;
             overflow: hidden;
         }
 
@@ -184,19 +184,19 @@
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 28px 20px;
+            padding: 24px 20px;
             display: flex;
             align-items: flex-end;
-            gap: 18px;
+            gap: 14px;
         }
 
         .hero-logo-ring {
-            width: 76px;
-            height: 76px;
-            border-radius: 12px;
+            width: 64px;
+            height: 64px;
+            border-radius: 10px;
             overflow: hidden;
             border: 2px solid rgba(212,119,58,0.6);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 4px rgba(212,119,58,0.1);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 0 3px rgba(212,119,58,0.1);
             flex-shrink: 0;
         }
         .hero-logo-ring img { width: 100%; height: 100%; object-fit: cover; }
@@ -206,32 +206,32 @@
         .hero-tag {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             background: var(--primary-light);
             border: 1px solid var(--primary-glow);
             color: var(--primary);
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            padding: 4px 10px;
+            letter-spacing: 0.08em;
+            padding: 3px 8px;
             border-radius: 999px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .hero-name {
             font-family: 'Cormorant Garamond', serif;
-            font-size: 2.4rem;
+            font-size: 2rem;
             font-weight: 700;
             line-height: 1.05;
             color: var(--text);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .hero-desc {
-            font-size: 0.82rem;
+            font-size: 0.75rem;
             color: rgba(245,240,232,0.55);
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
         /* ── CATEGORY BAR ────────────────────────── */
@@ -481,43 +481,46 @@
 
         /* ── FEATURED CARD (first item, full width) ── */
         .p-card.featured {
-            grid-column: 1 / -1;
+            grid-column: 1 / 3;
             display: flex;
             flex-direction: row;
         }
 
         @media (max-width: 640px) {
-            .p-card.featured { flex-direction: column; }
+            .p-card.featured { 
+                grid-column: 1 / -1;
+                flex-direction: column; 
+            }
         }
 
         .p-card.featured .p-card-img {
-            flex: 0 0 50%;
+            flex: 0 0 40%;
             aspect-ratio: unset;
-            min-height: 260px;
+            min-height: 200px;
         }
 
         .p-card.featured .p-card-body {
             flex: 1;
             justify-content: center;
-            padding: 28px 28px;
+            padding: 20px 20px;
         }
 
         .p-card.featured .p-card-name {
-            font-size: 2rem;
-            -webkit-line-clamp: 3;
+            font-size: 1.4rem;
+            -webkit-line-clamp: 2;
         }
 
         .p-card.featured .p-card-price {
-            font-size: 2.2rem;
+            font-size: 1.6rem;
         }
 
         .featured-label {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.12em;
+            letter-spacing: 0.1em;
             color: var(--primary);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .featured-desc {
