@@ -807,148 +807,6 @@
         }
 
         /* ══════════════════════════════════════
-           SEARCH DROPDOWN
-        ══════════════════════════════════════ */
-        .search-wrap {
-            position: relative;
-            margin: 40px 0;
-        }
-
-        .search-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            margin-top: 8px;
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-
-        .search-dropdown.active {
-            max-height: 500px;
-            opacity: 1;
-            overflow-y: auto;
-        }
-
-        .search-section {
-            border-bottom: 1px solid var(--border);
-            padding: 8px 0;
-        }
-
-        .search-section:last-child {
-            border-bottom: none;
-        }
-
-        .search-section-title {
-            padding: 12px 16px 8px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .search-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            color: var(--text);
-            transition: all 0.2s;
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .search-item:last-child {
-            border-bottom: none;
-        }
-
-        .search-item:hover {
-            background: var(--card-hover);
-            color: var(--primary);
-        }
-
-        .search-item-img-wrap {
-            position: relative;
-            width: 42px;
-            height: 42px;
-            border-radius: 6px;
-            overflow: hidden;
-            flex-shrink: 0;
-            background: var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .search-item-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .search-item-emoji {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #D4773A 0%, #E08840 100%);
-            font-size: 1.3rem;
-        }
-
-        .search-item-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .search-item-name {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .search-item-meta {
-            font-size: 0.75rem;
-            color: var(--muted);
-            margin-top: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .search-item-type,
-        .search-item-price {
-            font-size: 0.75rem;
-            color: var(--primary);
-            font-weight: 600;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .search-empty {
-            padding: 24px 16px;
-            text-align: center;
-            color: var(--muted);
-            font-size: 0.85rem;
-        }
-
-        .search-empty strong {
-            color: var(--text);
-        }
-
-        /* ══════════════════════════════════════
            RESPONSIVE
         ══════════════════════════════════════ */
         @media (max-width: 900px) {
@@ -1098,81 +956,9 @@
                 <input
                     type="text"
                     v-model="searchQuery"
-                    @input="buscarDinamico"
-                    @focus="mostrarDropdown = true"
                     placeholder="Buscar local o platillo..."
                     class="search-input"
                 >
-
-                <!-- Dropdown de resultados -->
-                <div :class="['search-dropdown', { active: mostrarDropdown && (resultadosLocales.length > 0 || resultadosProductos.length > 0 || cargandoBusqueda || (searchQuery.length >= 1 && !cargandoBusqueda && resultadosLocales.length === 0 && resultadosProductos.length === 0)) }]">
-                    
-                    <!-- Locales -->
-                    <div v-if="resultadosLocales.length > 0" class="search-section">
-                        <div class="search-section-title">
-                            <i class="fas fa-store"></i> Locales
-                        </div>
-                        <a
-                            v-for="local in resultadosLocales"
-                            :key="'local-' + local.id"
-                            :href="local.route"
-                            class="search-item">
-                            <div class="search-item-img-wrap">
-                                <img 
-                                    :src="local.photo_url" 
-                                    :alt="local.name" 
-                                    class="search-item-img"
-                                    @error="$event.target.style.display='none'">
-                                <div v-if="local.photo_url.includes('placeholder')" class="search-item-emoji">🍽️</div>
-                            </div>
-                            <div class="search-item-content">
-                                <div class="search-item-name">@{{ local.name }}</div>
-                                <div class="search-item-meta">
-                                    <i class="fas fa-star" style="color: var(--primary); font-size: 0.7rem;"></i>
-                                    @{{ local.rating }}
-                                </div>
-                            </div>
-                            <span class="search-item-type">Local</span>
-                        </a>
-                    </div>
-
-                    <!-- Productos -->
-                    <div v-if="resultadosProductos.length > 0" class="search-section">
-                        <div class="search-section-title">
-                            <i class="fas fa-utensils"></i> Productos
-                        </div>
-                        <a
-                            v-for="producto in resultadosProductos"
-                            :key="'prod-' + producto.id"
-                            :href="'/plaza/' + producto.local_id"
-                            class="search-item">
-                            <div class="search-item-img-wrap">
-                                <img 
-                                    :src="producto.photo_url" 
-                                    :alt="producto.name" 
-                                    class="search-item-img"
-                                    @error="$event.target.style.display='none'">
-                                <div v-if="producto.photo_url.includes('placeholder')" class="search-item-emoji">🍴</div>
-                            </div>
-                            <div class="search-item-content">
-                                <div class="search-item-name">@{{ producto.name }}</div>
-                                <div class="search-item-meta">@{{ producto.local }} • @{{ producto.category }}</div>
-                            </div>
-                            <span class="search-item-price">₡@{{ producto.price }}</span>
-                        </a>
-                    </div>
-
-                    <!-- Sin resultados -->
-                    <div v-if="searchQuery.length >= 1 && resultadosLocales.length === 0 && resultadosProductos.length === 0 && !cargandoBusqueda" class="search-empty">
-                        <i class="fas fa-search" style="font-size: 1.5rem; opacity: 0.3; display: block; margin-bottom: 8px;"></i>
-                        No se encontraron resultados para "<strong>@{{ searchQuery }}</strong>"
-                    </div>
-
-                    <!-- Cargando -->
-                    <div v-if="cargandoBusqueda" class="search-empty">
-                        <i class="fas fa-spinner fa-spin" style="font-size: 1rem; margin-right: 6px;"></i> Buscando...
-                    </div>
-                </div>
             </div>
 
             <div class="hero-stats">
@@ -1411,12 +1197,6 @@
         document.addEventListener('click', () => menuDrop.classList.remove('open'));
     }
 
-    /* ── URLs ── */
-    const ROUTES = {
-        productosPorCategoria: '{{ route("plaza.get.productos") }}',
-        buscar: '{{ route("plaza.search") }}'
-    };
-
     /* ── Vue App ── */
     const { createApp } = Vue;
 
@@ -1430,12 +1210,6 @@
                 categoriaSelectNombre: 'Todos',
                 productosFiltrados: [],
                 cargandoProductos: false,
-                // Búsqueda dinámica
-                resultadosLocales: [],
-                resultadosProductos: [],
-                mostrarDropdown: false,
-                cargandoBusqueda: false,
-                timeoutBusqueda: null,
             };
         },
 
@@ -1443,14 +1217,11 @@
             this.buildParticles();
             document.addEventListener('mousemove', this.onMouseMove);
             window.addEventListener('scroll', this.onScroll, { passive: true });
-            // Cerrar dropdown al hacer click fuera
-            document.addEventListener('click', this.cerrarDropdown.bind(this));
         },
 
         beforeUnmount() {
             document.removeEventListener('mousemove', this.onMouseMove);
             window.removeEventListener('scroll', this.onScroll);
-            document.removeEventListener('click', this.cerrarDropdown.bind(this));
         },
 
         methods: {
@@ -1518,8 +1289,7 @@
             async obtenerProductosFiltrados(categoria) {
                 this.cargandoProductos = true;
                 try {
-                    const url = ROUTES.productosPorCategoria + '?categoria=' + categoria;
-                    const response = await fetch(url);
+                    const response = await fetch(`{{ route('plaza.get.productos') }}?categoria=${categoria}`);
                     const data = await response.json();
 
                     if (data.success) {
@@ -1539,56 +1309,6 @@
                     this.productosFiltrados = [];
                 } finally {
                     this.cargandoProductos = false;
-                }
-            },
-
-            // Búsqueda dinámica con debounce
-            buscarDinamico() {
-                // Limpiar timeout anterior
-                if (this.timeoutBusqueda) {
-                    clearTimeout(this.timeoutBusqueda);
-                }
-
-                // Si la consulta está vacía, limpiar resultados
-                if (this.searchQuery.length < 1) {
-                    this.resultadosLocales = [];
-                    this.resultadosProductos = [];
-                    this.mostrarDropdown = false;
-                    return;
-                }
-
-                // Mostrar dropdown y ejecutar búsqueda después de 200ms (más rápido)
-                this.mostrarDropdown = true;
-                this.timeoutBusqueda = setTimeout(() => {
-                    this.ejecutarBusqueda();
-                }, 200);
-            },
-
-            async ejecutarBusqueda() {
-                this.cargandoBusqueda = true;
-                try {
-                    const url = ROUTES.buscar + '?q=' + encodeURIComponent(this.searchQuery);
-                    const response = await fetch(url);
-                    const data = await response.json();
-
-                    if (data.success) {
-                        this.resultadosLocales = data.data.locales || [];
-                        this.resultadosProductos = data.data.productos || [];
-                    }
-                } catch (error) {
-                    console.error('Error en búsqueda:', error);
-                    this.resultadosLocales = [];
-                    this.resultadosProductos = [];
-                } finally {
-                    this.cargandoBusqueda = false;
-                }
-            },
-
-            cerrarDropdown(e) {
-                // No cerrar si el click es en el input o el dropdown
-                const searchWrap = document.querySelector('.search-wrap');
-                if (searchWrap && !searchWrap.contains(e.target)) {
-                    this.mostrarDropdown = false;
                 }
             },
         }
