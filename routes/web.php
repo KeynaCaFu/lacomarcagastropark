@@ -10,6 +10,8 @@ use App\Http\Controllers\LocalDashboardController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\PlazaController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Http\Request;
 
 /*
@@ -23,8 +25,10 @@ use Illuminate\Http\Request;
 |
 */
 
-// Welcome page (without authentication)
-// Home: redirige según sesión (login o dashboard correspondiente)
+// Welcome page -  La Comarca Gastro Parck
+// Si está sin autenticar → muestra plaza
+// Si es cliente → muestra plaza (con sesión)
+// Si es admin/gerente → redirige a dashboard
 Route::get('/', function () {
     if (auth()->check()) {
         $user = auth()->user();
@@ -34,14 +38,16 @@ Route::get('/', function () {
             $user->load('role');
         }
         
+        // Solo admins se redirigen a sus dashboards
         if ($user->isAdminGlobal()) {
             return redirect()->route('admin.dashboard');
-        } elseif ($user->isClient()) {
-            return redirect()->route('client.welcome');
+        } elseif ($user->isAdminLocal()) {
+            return redirect()->route('dashboard');
         }
-        return redirect()->route('dashboard');
+        // Por defecto, clientes ven la plaza
     }
-    return redirect()->route('login');
+    // Mostrar plaza a todos (autenticados o no)
+    return redirect()->route('plaza.index');
 })->name('home');
 
 // Redirect legacy routes to login
@@ -67,7 +73,7 @@ Route::get('/dashboard', function () {
     }
     
     if ($user->isClient()) {
-        return redirect()->route('client.welcome');
+        return redirect()->route('plaza.index');
     }
     
     // For local managers, show the dashboard
@@ -172,26 +178,36 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
 
 // RESEÑAS (GERENTE)
 Route::prefix('resenas')->name('reviews.')->group(function () {
-
     Route::get('/', [ReviewController::class, 'index'])->name('index');
-
     Route::post('/{id}/responder', [ReviewController::class, 'respond'])->name('respond');
-     Route::put('/respuesta/{reviewId}', [ReviewController::class, 'updateResponse'])->name('response.update');
+    Route::put('/respuesta/{reviewId}', [ReviewController::class, 'updateResponse'])->name('response.update');
     Route::delete('/respuesta/{reviewId}', [ReviewController::class, 'deleteResponse'])->name('response.delete');
 });
 
-
-
-
+  
+    // ÓRDENES (GERENTE) - Ver, filtrar y cambiar estado
+    Route::prefix('ordenes')->name('orders.')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])->name('index');
+        Route::get('/api/pendientes-count', [OrderController::class, 'getPendingCount'])->name('pending-count');
+        Route::get('/{order}', [OrderController::class, 'show'])->name('show');
+        Route::post('/{order}/cambiar-estado', [OrderController::class, 'changeStatus'])->name('change-status');
+        Route::post('/{order}/actualizar', [OrderController::class, 'update'])->name('update');
+        Route::post('/crear', [OrderController::class, 'store'])->name('store');
+        Route::get('/nuevo', [OrderController::class, 'create'])->name('create');
+        Route::get('/{order}/edit', [OrderController::class, 'edit'])->name('edit');   
+        Route::delete('/{order}', [OrderController::class, 'destroy'])->name('destroy');
+    });
 });
-
-
 
 // ============================================================================
 // RUTAS PARA CLIENTE
 // ============================================================================
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/client-welcome', [ClienteController::class, 'index'])->name('client.welcome');
+    // Redirigir client-welcome a la plaza (ruta antigua, mantenida por compatibilidad)
+    Route::get('/client-welcome', function () {
+        return redirect()->route('plaza.index');
+    })->name('client.welcome');
+    
     Route::get('/client-profile', [ClienteController::class, 'editProfile'])->name('client.profile.edit');
     Route::patch('/client-profile', [ClienteController::class, 'updateProfile'])->name('client.profile.update');
 });
@@ -201,6 +217,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+
+// RUTAS PARA PLAZA PÚBLICA (Sin autenticación)
+
+Route::prefix('plaza')->name('plaza.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\PlazaController::class, 'index'])->name('index');
+    Route::get('/{id}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show')->where('id', '[0-9]+');
 });
 
 require __DIR__.'/auth.php';

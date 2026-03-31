@@ -37,15 +37,15 @@ class AuthenticatedSessionController extends Controller
             $user->load('role');
         }
         
+        // Solo admins globales y locales se redirigen a sus dashboards
         if ($user->isAdminGlobal()) {
             return redirect()->route('admin.dashboard');
         } elseif ($user->isAdminLocal()) {
             return redirect()->route('dashboard');
-        } elseif ($user->isClient()) {
-            return redirect()->route('client.welcome');
         }
-
-        return redirect()->intended(RouteServiceProvider::HOME);
+        
+        // Por defecto, clientes y cualquier otro usuario ve la plaza
+        return redirect()->route('plaza.index');
     }
 
     /**

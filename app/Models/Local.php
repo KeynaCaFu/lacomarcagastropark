@@ -13,6 +13,10 @@ class Local extends Model
 
     protected $primaryKey = 'local_id';
 
+    protected $casts = [
+        'local_id' => 'int',
+    ];
+
     protected $fillable = [
         'name',
         'description',
@@ -56,5 +60,72 @@ class Local extends Model
      */
     public function schedules(){
         return $this->hasMany(Schedule::class, 'local_id', 'local_id');
+    }
+
+    /**
+     * Relación: Reseñas del local
+     */
+    public function localReviews()
+    {
+        return $this->hasMany(LocalReview::class, 'local_id', 'local_id');
+    }
+
+    /**
+     * Relación: Productos de este local
+     */
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'tblocal_product', 'local_id', 'product_id')
+            ->withPivot('price', 'is_available')
+            ->withTimestamps();
+    }
+
+    /**
+     * Accessor: Obtener el promedio de calificación del local
+     * Usa el cálculo real de las reseñas
+     */
+    public function getAverageRatingAttribute()
+    {
+        $average = $this->localReviews()
+            ->join('tbreview', 'tblocal_review.review_id', '=', 'tbreview.review_id')
+            ->avg('tbreview.rating');
+
+        return $average ? round($average, 1) : 0;
+    }
+
+    /**
+     * Accessor: Obtener URL del logo del local
+     * Uso en Blade: {{ $local->logo_url }}
+     */
+    public function getLogoUrlAttribute()
+    {
+        if (!$this->image_logo) {
+            return null;
+        }
+
+        // Si ya es URL absoluta, devolverla
+        if (str_starts_with($this->image_logo, 'http')) {
+            return $this->image_logo;
+        }
+
+        // Si empieza con /storage/, usar Storage (compatibilidad atrás)
+        if (str_starts_with($this->image_logo, '/storage/')) {
+            $path = str_replace('/storage/', '', $this->image_logo);
+            return \Illuminate\Support\Facades\Storage::url($path);
+        }
+
+        // Si comienza con public/, remover el prefijo public/
+        if (str_starts_with($this->image_logo, 'public/')) {
+            $logo = str_replace('public/', '', $this->image_logo);
+            return asset($logo);
+        }
+
+        // Si empieza con images/, usar asset()
+        if (str_starts_with($this->image_logo, 'images/')) {
+            return asset($this->image_logo);
+        }
+
+        // Por defecto, usar asset
+        return asset($this->image_logo);
     }
 }

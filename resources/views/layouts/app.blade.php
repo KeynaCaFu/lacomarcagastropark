@@ -357,6 +357,12 @@
                             </li>
 
                             <li>
+                                <a href="{{ route('orders.index') }}" class="{{ request()->routeIs('orders*') ? 'active' : '' }}" data-tooltip="Órdenes">
+                                    <i class="fas fa-shopping-cart"></i> Órdenes
+                                </a>
+                            </li>
+
+                            <li>
                                      <a href="{{ route('reviews.index') }}" class="{{ request()->routeIs('reviews*') ? 'active' : '' }}" data-tooltip="Reseñas">
                                       <i class="fas fa-star"></i> Reseñas
                                                     </a>
@@ -400,6 +406,33 @@
                         
                         <!-- Help Button Container (Eventos) -->
                         <div id="topHelpEventContainer"></div>
+
+                        <!-- Campana de órdenes pendientes -->
+                        @if(auth()->check() && !auth()->user()->isAdminGlobal())
+                        <div style="position: relative;">
+                            <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; padding: 8px 12px; color: #e18018; font-size: 20px; display: flex; align-items: center; justify-content: center; position: relative;" title="Órdenes pendientes">
+                                <i class="fas fa-bell"></i>
+                                <span id="pendingCountBadge" style="position: absolute; top: -5px; right: 0; background: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; border: 2px solid white; display: none;">0</span>
+                            </button>
+                            
+                            <!-- Dropdown de órdenes pendientes -->
+                            <div id="notificationDropdown" style="position: absolute; top: 100%; right: 0; margin-top: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 300px; z-index: 1000; display: none;">
+                                <div style="padding: 12px 16px; border-bottom: 1px solid #f3f4f6; font-weight: 600; color: #111827; font-size: 14px;">
+                                    Órdenes Pendientes
+                                </div>
+                                <div id="notificationList" style="max-height: 300px; overflow-y: auto;">
+                                    <div style="padding: 20px 16px; text-align: center; color: #9ca3af; font-size: 13px;">
+                                        Cargando...
+                                    </div>
+                                </div>
+                                <div style="padding: 12px 16px; border-top: 1px solid #f3f4f6; text-align: center;">
+                                    <a href="{{ route('orders.index') }}" style="color: #e18018; text-decoration: none; font-weight: 600; font-size: 13px;">
+                                        Ver todas las órdenes →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
 
                         <!-- User Icon Menu -->
                         <div class="user-menu-top" style="position: relative;">
@@ -446,12 +479,15 @@
                                         <a href="{{ route('suppliers.index') }}" class="mobile-nav-item {{ request()->routeIs('suppliers*') ? 'active' : '' }}">
                                             <i class="fas fa-truck"></i> Proveedores
                                         </a>
+                                        <a href="{{ route('orders.index') }}" class="mobile-nav-item {{ request()->routeIs('orders*') ? 'active' : '' }}">
+                                            <i class="fas fa-shopping-cart"></i> Órdenes
+                                        </a>
 
                                         <li>
-                                                        <a href="{{ route('reviews.index') }}" class="{{ request()->routeIs('reviews*') ? 'active' : '' }}" data-tooltip="Reseñas">
-                                                            <i class="fas fa-star"></i> Reseñas
-                                                                     </a>
-                                            </li>
+                                            <a href="{{ route('reviews.index') }}" class="{{ request()->routeIs('reviews*') ? 'active' : '' }}" data-tooltip="Reseñas">
+                                                <i class="fas fa-star"></i> Reseñas
+                                            </a>
+                                        </li>
                                         
                                     @endif
                                 </div>
@@ -1023,6 +1059,80 @@
                     });
                 }
             }
+        });
+    </script>
+
+    <!-- Campana de notificaciones - Órdenes Pendientes -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const bellBtn = document.getElementById('notificationBellBtn');
+            const dropdown = document.getElementById('notificationDropdown');
+            const badge = document.getElementById('pendingCountBadge');
+            const notificationList = document.getElementById('notificationList');
+
+            if (!bellBtn) return; // No mostrar en rutas de admin global
+
+            // Función para cargar órdenes pendientes
+            async function loadPendingOrders() {
+                try {
+                    const response = await fetch('{{ route("orders.pending-count") }}', {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    const count = data.count || 0;
+                    const orders = data.orders || [];
+
+                    // Actualizar badge
+                    if (count > 0) {
+                        badge.textContent = count <= 99 ? count : '99+';
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+
+                    // Actualizar lista
+                    if (orders.length > 0) {
+                        notificationList.innerHTML = orders.map(order => `
+                            <div style="padding: 12px 16px; border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: background 0.2s ease;" 
+                                 onclick="window.location.href='{{ url('ordenes') }}/${order.order_id}'" 
+                                 onmouseover="this.style.background='#f9fafb'" 
+                                 onmouseout="this.style.background='transparent'">
+                                <div style="font-weight: 600; color: #111827; font-size: 13px;">Orden #${order.order_number}</div>
+                                <div style="color: #6b7280; font-size: 12px; margin-top: 2px;">Hace ${order.created_at}</div>
+                            </div>
+                        `).join('');
+                    } else {
+                        notificationList.innerHTML = '<div style="padding: 20px 16px; text-align: center; color: #9ca3af; font-size: 13px;">Sin órdenes pendientes</div>';
+                    }
+                } catch (error) {
+                    console.error('Error al cargar órdenes pendientes:', error);
+                }
+            }
+
+            // Cargar órdenes al abrir el dropdown
+            bellBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                if (dropdown.style.display === 'block') {
+                    loadPendingOrders();
+                }
+            });
+
+            // Cerrar dropdown al hacer clic afuera
+            document.addEventListener('click', function(e) {
+                if (!bellBtn.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+
+            // Cargar contador inicial
+            loadPendingOrders();
+
+            // Actualizar contador cada 30 segundos
+            setInterval(loadPendingOrders, 30000);
         });
     </script>
     
