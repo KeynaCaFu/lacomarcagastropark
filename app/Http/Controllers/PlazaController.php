@@ -162,6 +162,72 @@ class PlazaController extends Controller
     }
 
     /**
+     * Búsqueda dinámica de locales y productos (AJAX)
+     */
+    public function search(Request $request)
+    {
+        $query = $request->query('q', '');
+        
+        // Validar que la búsqueda tenga al menos 1 carácter
+        if (strlen($query) < 1) {
+            return response()->json([
+                'success' => true,
+                'data' => ['locales' => [], 'productos' => []],
+            ]);
+        }
+
+        // Buscar locales por nombre o descripción (case-insensitive)
+        $locales = Local::where(function ($q) use ($query) {
+            $q->whereRaw("LOWER(name) LIKE ?", ['%' . strtolower($query) . '%'])
+              ->orWhereRaw("LOWER(description) LIKE ?", ['%' . strtolower($query) . '%']);
+        })
+        ->where('status', 'Active')
+        ->limit(5)
+        ->get()
+        ->map(function ($local) {
+            return [
+                'id' => $local->local_id,
+                'name' => $local->name,
+                'photo_url' => $local->logo_url ?? asset('images/local-placeholder.jpg'),
+                'rating' => $local->average_rating ?? '4.5',
+                'route' => route('plaza.show', $local->local_id),
+            ];
+        });
+
+        // Buscar productos por nombre o categoría (case-insensitive)
+        $productos = Product::where(function ($q) use ($query) {
+            $q->whereRaw("LOWER(name) LIKE ?", ['%' . strtolower($query) . '%'])
+              ->orWhereRaw("LOWER(category) LIKE ?", ['%' . strtolower($query) . '%']);
+        })
+        ->where('status', 'Available')
+        ->with(['locals' => function ($query) {
+            $query->select('tblocal.local_id', 'tblocal.name');
+        }])
+        ->limit(5)
+        ->get()
+        ->map(function ($product) {
+            $localFirst = $product->locals->first();
+            return [
+                'id' => $product->product_id ?? $product->id,
+                'name' => $product->name,
+                'price' => number_format($product->price ?? 0, 2),
+                'photo_url' => $product->photo_url ?? asset('images/product-placeholder.jpg'),
+                'category' => $product->category ?? 'Sin categoría',
+                'local' => $localFirst?->name ?? 'Local',
+                'local_id' => $localFirst?->local_id ?? null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'locales' => $locales->values(),
+                'productos' => $productos->values(),
+            ],
+        ]);
+    }
+
+    /**
      * Retornar icono según categoría
      */
     private function getCategoryIcon($category)
