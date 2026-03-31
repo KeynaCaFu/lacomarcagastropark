@@ -68,6 +68,6 @@ class ClienteController extends Controller
 
         $user->update($validated);
 
-        return redirect()->route('client.welcome')->with('status', 'Perfil actualizado exitosamente.');
+        return redirect()->route('plaza.index')->with('status', 'Perfil actualizado exitosamente.');
     }
 }
