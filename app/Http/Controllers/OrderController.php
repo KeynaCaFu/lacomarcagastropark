@@ -221,6 +221,7 @@ class OrderController extends Controller
                 'name' => $product->name,
                 'photo' => $product->photo_url,
                 'price' => $product->pivot->price ?? 0,
+                'category' => $product->category ?? 'Sin categoría',
             ]);
 
         return response()->json(['products' => $products]);
@@ -328,5 +329,32 @@ class OrderController extends Controller
     {
         // ORD-XXXX con 4 números aleatorios
         return 'ORD-' . str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Buscar clientes por nombre o email
+     */
+    public function searchCustomers(Request $request)
+    {
+        $search = $request->input('query', '');
+
+        $query = \App\Models\User::join('tbrole', 'tbuser.role_id', '=', 'tbrole.role_id')
+            ->where('tbuser.status', 'active')
+            ->where('tbrole.role_type', 'Cliente');
+
+        if (!empty($search) && strlen($search) >= 2) {
+            $query->where(function ($q) use ($search) {
+                $q->where('tbuser.full_name', 'like', "%{$search}%")
+                  ->orWhere('tbuser.email', 'like', "%{$search}%")
+                  ->orWhere('tbuser.phone', 'like', "%{$search}%");
+            });
+        }
+
+        $customers = $query->select(['tbuser.user_id', 'tbuser.full_name', 'tbuser.email', 'tbuser.phone'])
+            ->orderBy('tbuser.full_name', 'asc')
+            ->limit(20)
+            ->get();
+
+        return response()->json(['customers' => $customers]);
     }
 }
