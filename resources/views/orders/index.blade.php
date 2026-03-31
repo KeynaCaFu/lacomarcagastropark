@@ -43,6 +43,9 @@
             </h1>
             <p class="text-muted mb-0">Gestión de órdenes del establecimiento</p>
         </div>
+        <button type="button" class="btn btn-warning" id="newOrderBtn" style="background: linear-gradient(135deg, #e18018, #c9690f); border: none; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-plus"></i> Nueva Orden
+        </button>
     </div>
 
     <!-- Estadísticas de órdenes -->
@@ -222,6 +225,9 @@
     @endif
 
 </div>
+
+<!-- Incluir modal para crear orden -->
+@include('orders._create_order_modal')
 
 @push('scripts')
 <script>
@@ -626,6 +632,205 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Inicializar eventos de cambio de estado
     setupStatusButtons();
+
+    // ========== CREAR NUEVA ORDEN ==========
+    
+    // Datos de la orden en construcción
+    let orderInProgress = {
+        items: {},
+        customerId: null
+    };
+
+    // Abrir modal
+    document.getElementById('newOrderBtn').addEventListener('click', function() {
+        document.getElementById('createOrderModal').classList.add('show');
+        loadLocalProducts();
+    });
+
+    // Cerrar modal
+    function closeModal() {
+        document.getElementById('createOrderModal').classList.remove('show');
+        resetOrderForm();
+    }
+
+    document.getElementById('closeOrderModal').addEventListener('click', closeModal);
+    document.getElementById('cancelOrderBtn').addEventListener('click', closeModal);
+
+    // Cargar productos del local
+    async function loadLocalProducts() {
+        try {
+            const response = await fetch('{{ route("orders.local-products") }}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const data = await response.json();
+            const products = data.products || [];
+
+            const container = document.getElementById('productsContainer');
+            container.innerHTML = '';
+
+            if (products.length === 0) {
+                container.innerHTML = '<p style="color: #999;">No hay productos disponibles</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    ${product.photo ? `<img src="${product.photo}" alt="${product.name}">` : '<div style="width: 100%; height: 80px; background: #e5e7eb; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;"><i class="fas fa-image" style="color: #999; font-size: 24px;"></i></div>'}
+                    <div class="product-card-name" title="${product.name}">${product.name}</div>
+                    <div class="product-card-price">₡${parseFloat(product.price).toFixed(2)}</div>
+                    <input type="number" class="product-quantity-input" value="1" min="1" max="99" data-product-id="${product.product_id}" data-product-name="${product.name}" data-product-price="${product.price}">
+                `;
+
+                card.addEventListener('click', function() {
+                    card.classList.toggle('selected');
+                    if (card.classList.contains('selected')) {
+                        orderInProgress.items[product.product_id] = {
+                            product_id: product.product_id,
+                            name: product.name,
+                            price: product.price,
+                            quantity: 1
+                        };
+                    } else {
+                        delete orderInProgress.items[product.product_id];
+                    }
+                    updateOrderSummary();
+                });
+
+                // Cambiar cantidad
+                const quantityInput = card.querySelector('.product-quantity-input');
+                quantityInput.addEventListener('click', function(e){
+                    e.stopPropagation();
+                });
+                quantityInput.addEventListener('change', function(e) {
+                    const quantity = parseInt(e.target.value) || 1;
+                    if (orderInProgress.items[product.product_id]) {
+                        orderInProgress.items[product.product_id].quantity = quantity;
+                        updateOrderSummary();
+                    }
+                });
+
+                container.appendChild(card);
+            });
+        } catch (error) {
+            console.error('Error cargando productos:', error);
+        }
+    }
+
+    // Actualizar resumen de orden
+    function updateOrderSummary() {
+        const items = Object.values(orderInProgress.items);
+        const tbody = document.getElementById('orderItemsSummary');
+        let total = 0;
+
+        if (items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 16px; color: #999;">Sin productos seleccionados</td></tr>';
+            document.getElementById('orderTotal').textContent = '0.00';
+            return;
+        }
+
+        tbody.innerHTML = items.map(item => {
+            const subtotal = item.price * item.quantity;
+            total += subtotal;
+            return `
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 8px 0;">${item.name}</td>
+                    <td style="text-align: center; padding: 8px 0;">${item.quantity}</td>
+                    <td style="text-align: right; padding: 8px 0;">₡${subtotal.toFixed(2)}</td>
+                </tr>
+            `;
+        }).join('');
+
+        document.getElementById('orderTotal').textContent = total.toFixed(2);
+    }
+
+    // Búsqueda de clientes
+    const customerSearch = document.getElementById('customerSearch');
+    customerSearch.addEventListener('input', async function() {
+        const search = this.value.trim();
+        if (search.length < 2) {
+            document.getElementById('customerResults').style.display = 'none';
+            return;
+        }
+
+        try {
+            // Esta búsqueda es local; idealmente debería ser AJAX a un endpoint
+            // Por ahora, simplemente filtramos localmente
+            document.getElementById('customerResults').style.display = 'none';
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+
+    // Enviar formulario
+    document.getElementById('createOrderForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const items = Object.values(orderInProgress.items);
+        if (items.length === 0) {
+            swAlert({ icon: 'warning', title: 'Error', text: 'Debes seleccionar al menos un producto' });
+            return;
+        }
+
+        const preparationTime = document.getElementById('preparationTime').value;
+        const additionalNotes = document.getElementById('additionalNotes').value;
+        const userId = document.getElementById('customerId').value;
+
+        const payload = {
+            user_id: userId || null,
+            items: items.map(item => ({
+                product_id: item.product_id,
+                quantity: item.quantity,
+                customization: null
+            })),
+            preparation_time: parseInt(preparationTime),
+            additional_notes: additionalNotes
+        };
+
+        try {
+            const response = await fetch('{{ route("orders.store") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                swAlert({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    html: `Orden <strong>${data.order.order_number}</strong> creada exitosamente`,
+                    didClose: function() {
+                        location.reload();
+                    }
+                });
+            } else {
+                swAlert({ icon: 'error', title: 'Error', text: data.error || 'Error al crear la orden' });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            swAlert({ icon: 'error', title: 'Error', text: error.message });
+        }
+    });
+
+    function resetOrderForm() {
+        orderInProgress = {
+            items: {},
+            customerId: null
+        };
+        document.getElementById('createOrderForm').reset();
+        document.querySelectorAll('.product-card').forEach(card => card.classList.remove('selected'));
+        document.getElementById('customerId').value = '';
+        document.getElementById('customerSearch').value = '';
+        updateOrderSummary();
+    }
 });
 </script>
 @endpush
