@@ -195,4 +195,138 @@ class OrderController extends Controller
             ])
         ]);
     }
+
+    /**
+     * Obtener productos disponibles del local para crear orden (AJAX)
+     */
+    public function getLocalProducts()
+    {
+        $user = auth()->user();
+
+        if (!$user->isAdminLocal()) {
+            return response()->json(['error' => 'No autorizado'], 403);
+        }
+
+        $local = $user->locals()->first();
+        if (!$local) {
+            return response()->json(['products' => []]);
+        }
+
+        // Obtener productos activos del local con sus precios
+        $products = $local->products()
+            ->where('tbproduct.status', 'Available')
+            ->get()
+            ->map(fn($product) => [
+                'product_id' => $product->product_id,
+                'name' => $product->name,
+                'photo' => $product->photo_url,
+                'price' => $product->pivot->price ?? 0,
+            ]);
+
+        return response()->json(['products' => $products]);
+    }
+
+    /**
+     * Crear una nueva orden (presencial)
+     */
+    public function store(Request $request)
+    {
+        $user = auth()->user();
+
+        if (!$user->isAdminLocal()) {
+            return response()->json(['success' => false, 'error' => 'No autorizado'], 403);
+        }
+
+        $local = $user->locals()->first();
+        if (!$local) {
+            return response()->json(['success' => false, 'error' => 'Local no asignado'], 400);
+        }
+
+        try {
+            $validated = $request->validate([
+                'user_id' => 'nullable|exists:tbuser,user_id',
+                'items' => 'required|array|min:1',
+                'items.*.product_id' => 'required|exists:tbproduct,product_id',
+                'items.*.quantity' => 'required|integer|min:1',
+                'items.*.customization' => 'nullable|string|max:500',
+                'preparation_time' => 'required|integer|min:1',
+                'additional_notes' => 'nullable|string|max:500',
+            ]);
+
+            // Generar número único de orden ORD-XXXX
+            $orderNumber = $this->generateOrderNumber();
+
+            // Calcular total
+            $totalAmount = 0;
+            $quantity = 0;
+
+            foreach ($validated['items'] as $item) {
+                $localProduct = $local->products()
+                    ->where('tbproduct.product_id', $item['product_id'])
+                    ->first();
+
+                if (!$localProduct) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Producto no disponible en este local'
+                    ], 422);
+                }
+
+                $price = $localProduct->pivot->price ?? 0;
+                $totalAmount += $price * $item['quantity'];
+                $quantity += $item['quantity'];
+            }
+
+            // Crear la orden
+            $order = Order::create([
+                'order_number' => $orderNumber,
+                'local_id' => $local->local_id,
+                'status' => Order::STATUS_PENDING,
+                'origin' => 'presencial',
+                'quantity' => $quantity,
+                'total_amount' => $totalAmount,
+                'preparation_time' => $validated['preparation_time'],
+                'additional_notes' => $validated['additional_notes'] ?? null,
+                'date' => now()->toDateString(),
+                'time' => now()->format('H:i:s'),
+            ]);
+
+            // Agregar items a la orden
+            foreach ($validated['items'] as $item) {
+                $order->items()->create([
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'customization' => $item['customization'] ?? null,
+                ]);
+            }
+
+            // Asociar cliente si se proporciona
+            if ($validated['user_id'] ?? null) {
+                $order->user()->attach($validated['user_id']);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Orden creada exitosamente',
+                'order' => [
+                    'order_id' => $order->order_id,
+                    'order_number' => $order->order_number,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generar número único de orden
+     */
+    private function generateOrderNumber()
+    {
+        // ORD-XXXX con 4 números aleatorios
+        return 'ORD-' . str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+    }
 }
