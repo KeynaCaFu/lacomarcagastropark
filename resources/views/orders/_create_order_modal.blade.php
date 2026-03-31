@@ -20,16 +20,43 @@
                 <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #111;">
                     Cliente <span style="color: #999; font-weight: 400;">(Opcional)</span>
                 </label>
-                <input type="text" id="customerSearch" placeholder="Buscar cliente por nombre o email..." style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                <div style="position: relative;">
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input type="text" id="customerSearch" placeholder="Selecciona o escribe para buscar..." style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; padding-right: 70px;">
+                        <i class="fas fa-chevron-down" style="position: absolute; right: 35px; color: #999; pointer-events: none; font-size: 12px;"></i>
+                        <button type="button" id="toggleCustomerDropdown" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #e18018; cursor: pointer; font-size: 14px; padding: 5px 8px; display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="customerResults" style="display: none; position: absolute; background: white; border: 1px solid #e5e7eb; border-top: 1px solid #e5e7eb; border-radius: 0 0 8px 8px; width: 100%; max-height: 250px; overflow-y: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 2001; top: 100%; left: 0; margin-top: -1px;"></div>
+                </div>
                 <input type="hidden" id="customerId" name="user_id" value="">
-                <div id="customerResults" style="display: none; background: white; border: 1px solid #e5e7eb; border-radius: 8px; margin-top: 8px; max-height: 200px; overflow-y: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
             </div>
 
             <!-- Productos -->
             <div style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #111;">Productos</label>
                 
-                <div id="productsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                <!-- Búsqueda de productos -->
+                <div style="margin-bottom: 12px; position: relative;">
+                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #999; pointer-events: none;"></i>
+                    <input type="text" id="productSearch" placeholder="Buscar producto..." style="width: 100%; padding: 10px 12px 10px 40px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                </div>
+
+                <!-- Tabs de categorías -->
+                <div id="categoryTabs" style="display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 8px;">
+                    <button type="button" class="category-tab active" data-category="all" style="padding: 8px 16px; background: #e18018; color: white; border: none; border-radius: 20px; font-weight: 600; cursor: pointer; white-space: nowrap; font-size: 13px; transition: all 0.2s;">
+                        Todas
+                    </button>
+                </div>
+
+                <!-- Contador de productos -->
+                <div style="margin-bottom: 12px; font-size: 12px; color: #666;">
+                    <span id="productCount">0</span> productos disponibles
+                </div>
+
+                <!-- Contenedor de productos con scroll limitado -->
+                <div id="productsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; max-height: 350px; overflow-y: auto; padding-right: 8px;">
                     <!-- Se completa con JavaScript -->
                 </div>
             </div>
@@ -87,6 +114,160 @@
 <style>
     #createOrderModal.show {
         display: flex !important;
+    }
+
+    /* Ocultar scrollbar del modal pero permitir scroll */
+    #createOrderModal > div {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    #createOrderModal > div::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Input focus personalizado */
+    input[type="text"],
+    input[type="number"],
+    textarea {
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #e18018 !important;
+        box-shadow: 0 0 0 3px rgba(225, 128, 24, 0.1) !important;
+    }
+
+    /* Estilos para resultados de búsqueda de clientes */
+    .customer-result-item {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f3f4f6;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .customer-result-item:last-child {
+        border-bottom: none;
+        border-radius: 0 0 8px 8px;
+    }
+
+    .customer-result-item:hover {
+        background: #f9fafb;
+    }
+
+    .customer-result-item:active {
+        background: #f3f4f6;
+    }
+
+    /* Botón de limpiar búsqueda */
+    #toggleCustomerDropdown {
+        transition: all 0.2s;
+        opacity: 0.7;
+    }
+
+    #toggleCustomerDropdown:hover {
+        opacity: 1;
+        color: #e18018;
+    }
+
+    /* Scrollbar personalizado para productos */
+    #productsContainer::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    #productsContainer::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+    
+    #productsContainer::-webkit-scrollbar-thumb {
+        background: #e18018;
+        border-radius: 10px;
+        transition: background 0.3s ease;
+    }
+    
+    #productsContainer::-webkit-scrollbar-thumb:hover {
+        background: #d97c13;
+    }
+
+    /* Para Firefox */
+    #productsContainer {
+        scrollbar-width: thin;
+        scrollbar-color: #e18018 #f1f5f9;
+    }
+
+    /* Scrollbar personalizado para resultados de clientes */
+    #customerResults::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    #customerResults::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+    
+    #customerResults::-webkit-scrollbar-thumb {
+        background: #e18018;
+        border-radius: 10px;
+        transition: background 0.3s ease;
+    }
+    
+    #customerResults::-webkit-scrollbar-thumb:hover {
+        background: #d97c13;
+    }
+
+    /* Para Firefox */
+    #customerResults {
+        scrollbar-width: thin;
+        scrollbar-color: #e18018 #f1f5f9;
+    }
+
+    /* Scrollbar personalizado para categoryTabs */
+    #categoryTabs::-webkit-scrollbar {
+        height: 4px;
+    }
+    
+    #categoryTabs::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 10px;
+    }
+    
+    #categoryTabs::-webkit-scrollbar-thumb {
+        background: #e18018;
+        border-radius: 10px;
+        transition: background 0.3s ease;
+    }
+    
+    #categoryTabs::-webkit-scrollbar-thumb:hover {
+        background: #d97c13;
+    }
+
+    /* Para Firefox */
+    #categoryTabs {
+        scrollbar-width: thin;
+        scrollbar-color: #e18018 transparent;
+    }
+
+    .category-tab {
+        transition: all 0.2s;
+    }
+
+    .category-tab:hover {
+        opacity: 0.9;
+    }
+
+    .category-tab.active {
+        background: #e18018;
+        color: white;
+    }
+
+    .category-tab:not(.active) {
+        background: #f3f4f6;
+        color: #666;
+        border: 1px solid #e5e7eb;
     }
 
     .product-card {
