@@ -118,6 +118,50 @@ class PlazaController extends Controller
     }
 
     /**
+     * Obtener productos filtrados por categoría (AJAX)
+     */
+    public function getProductosByCategory(Request $request)
+    {
+        $categoria = $request->query('categoria', 'todos');
+
+        // Obtener productos disponibles con sus locales
+        $productosQuery = Product::where('status', 'Available')
+            ->with(['locals' => function ($query) {
+                $query->select('tblocal.local_id', 'tblocal.name');
+            }]);
+
+        // Filtrar por categoría si no es 'todos'
+        if ($categoria !== 'todos') {
+            $productosQuery->whereRaw("LOWER(REPLACE(REPLACE(`category`, ' ', ''), '-', '')) = ?", 
+                [strtolower(str_replace([' ', '-'], '', $categoria))]
+            );
+        }
+
+        $productos = $productosQuery->get();
+
+        // Mapear datos para retornar en JSON
+        $productosFormateados = $productos->map(function ($product) {
+            $localFirst = $product->locals->first();
+            return [
+                'id' => $product->product_id ?? $product->id,
+                'name' => $product->name,
+                'price' => number_format($product->price ?? 0, 2),
+                'photo_url' => $product->photo_url ?? asset('images/product-placeholder.jpg'),
+                'category' => $product->category ?? 'Sin categoría',
+                'local' => $localFirst?->name ?? 'Local desconocido',
+                'local_id' => $localFirst?->local_id ?? null,
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => $productosFormateados,
+            'total' => $productosFormateados->count(),
+            'categoria' => $categoria,
+        ]);
+    }
+
+    /**
      * Retornar icono según categoría
      */
     private function getCategoryIcon($category)

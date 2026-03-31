@@ -224,7 +224,8 @@ Route::middleware('auth')->group(function () {
 
 Route::prefix('plaza')->name('plaza.')->group(function () {
     Route::get('/', [\App\Http\Controllers\PlazaController::class, 'index'])->name('index');
-    Route::get('/{id}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show')->where('id', '[0-9]+');
+    Route::get('api/productos', [\App\Http\Controllers\PlazaController::class, 'getProductosByCategory'])->name('get.productos');
+    Route::get('{id}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show')->where('id', '[0-9]+');
 });
 
 require __DIR__.'/auth.php';

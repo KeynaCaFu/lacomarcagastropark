@@ -721,6 +721,40 @@
             font-size: 1.2rem; font-weight: 700; color: var(--primary);
         }
 
+        /* Grid Productos Filtrados */
+        .grid-products-filtered {
+            display: grid; gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            animation: fadeUp 0.5s cubic-bezier(.22,.68,0,1.2);
+        }
+        @media (min-width: 640px) {
+            .grid-products-filtered { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (min-width: 900px) {
+            .grid-products-filtered { grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        }
+
+        /* Botón Ver Producto Filtrado */
+        .btn-product-view {
+            display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+            padding: 6px 10px; background: var(--primary); color: #fff;
+            font-size: 0.7rem; font-weight: 600; border-radius: var(--radius-sm);
+            transition: background 0.2s, transform 0.15s;
+            text-decoration: none;
+            border: none; cursor: pointer; font-family: 'DM Sans', sans-serif;
+        }
+        .btn-product-view:hover { background: #c06830; transform: translateX(2px); }
+
+        /* Spinner de carga */
+        .spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* ══════════════════════════════════════
            EMPTY STATE
         ══════════════════════════════════════ */
@@ -907,7 +941,7 @@
             </h1>
 
             <p class="hero-subtitle">
-                {{ $stats['total_locales'] }} locales únicos te esperan. Platillos auténticos,
+                {{ $stats['total_locales'] }} Locales únicos te esperan. Platillos auténticos,
                 ambiente inigualable y la magia de comer bajo las estrellas.
             </p>
 
@@ -959,20 +993,63 @@
     <div class="category-bar">
         <div class="container">
             <div class="categories-scroll">
-                <a href="{{ route('plaza.index') }}"
-                   class="cat-btn {{ $categoria_actual === 'todos' ? 'active' : '' }}">
+                <button
+                   @click="filtrarPorCategoria('todos')"
+                   :class="['cat-btn', { active: categoriaSelect === 'todos' }]">
                     <i class="fas fa-border-all"></i> Todos
-                </a>
-                @foreach($categorias as $cat)
-                <a href="{{ route('plaza.index', ['categoria' => $cat['slug']]) }}"
-                   class="cat-btn {{ $categoria_actual === $cat['slug'] ? 'active' : '' }}">
-                    <i class="fas {{ $cat['icono'] }}"></i>
-                    {{ $cat['nombre'] }}
-                </a>
-                @endforeach
+                </button>
+                <button
+                   v-for="cat in categorias"
+                   :key="cat.slug"
+                   @click="filtrarPorCategoria(cat.slug)"
+                   :class="['cat-btn', { active: categoriaSelect === cat.slug }]">
+                    <i :class="['fas', cat.icono]"></i>
+                    @{{ cat.nombre }}
+                </button>
             </div>
         </div>
     </div>
+
+    <!-- ══ PRODUCTOS FILTRADOS ══ -->
+    <section class="section" v-if="categoriaSelect !== 'todos'">
+        <div class="container">
+            <div class="section-header">
+                <p class="section-eyebrow">Categoría Seleccionada</p>
+                <h2 class="section-title">@{{ categoriaSelectNombre || 'Productos Filtrados' }}</h2>
+                <p class="section-sub" v-if="!cargandoProductos">Se encontraron <strong>@{{ productosFiltrados.length }}</strong> productos</p>
+            </div>
+
+            <!-- No results -->
+            <div v-if="!cargandoProductos && productosFiltrados.length === 0" class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>No se encontraron productos en esta categoría</p>
+            </div>
+
+            <!-- Grid de productos filtrados -->
+            <div v-if="!cargandoProductos && productosFiltrados.length > 0" class="grid-products-filtered">
+                <div v-for="producto in productosFiltrados" :key="producto.id" class="product-card">
+                    <div class="product-img">
+                        <img :src="producto.photo_url" :alt="producto.name" loading="lazy">
+                        <span class="product-badge">@{{ producto.category }}</span>
+                    </div>
+                    <div class="product-body">
+                        <div class="product-local">
+                            @{{ producto.local }}
+                        </div>
+                        <h3 class="product-name" :title="producto.name">
+                            @{{ producto.name }}
+                        </h3>
+                        <div class="product-footer">
+                            <span class="product-price">₡@{{ producto.price }}</span>
+                            <a :href="'/plaza/' + producto.local_id" class="btn-product-view">
+                                Ver <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- ══ NUESTROS LOCALES ══ -->
     <section class="section">
@@ -1128,6 +1205,11 @@
             return {
                 searchQuery: '',
                 particles: [],
+                categorias: {!! json_encode($categorias) !!},
+                categoriaSelect: 'todos',
+                categoriaSelectNombre: 'Todos',
+                productosFiltrados: [],
+                cargandoProductos: false,
             };
         },
 
@@ -1187,6 +1269,47 @@
                 const scrollY = window.scrollY;
                 const bg = document.getElementById('heroBgImg');
                 if (bg) bg.style.transform = `scale(1.06) translateY(${scrollY * 0.14}px)`;
+            },
+
+            filtrarPorCategoria(slug) {
+                this.categoriaSelect = slug;
+
+                // Actualizar el nombre de la categoría seleccionada
+                if (slug === 'todos') {
+                    this.categoriaSelectNombre = 'Todos';
+                } else {
+                    const cat = this.categorias.find(c => c.slug === slug);
+                    this.categoriaSelectNombre = cat ? cat.nombre : 'Productos Filtrados';
+                }
+
+                // Obtener productos filtrados vía AJAX
+                this.obtenerProductosFiltrados(slug);
+            },
+
+            async obtenerProductosFiltrados(categoria) {
+                this.cargandoProductos = true;
+                try {
+                    const response = await fetch(`{{ route('plaza.get.productos') }}?categoria=${categoria}`);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.productosFiltrados = data.data;
+                        // Scroll a la sección de productos filtrados
+                        setTimeout(() => {
+                            const section = document.querySelector('[v-if*="categoriaSelect"]');
+                            if (section) {
+                                section.scrollIntoView({ behavior: 'smooth' });
+                            }
+                        }, 100);
+                    } else {
+                        this.productosFiltrados = [];
+                    }
+                } catch (error) {
+                    console.error('Error al obtener productos:', error);
+                    this.productosFiltrados = [];
+                } finally {
+                    this.cargandoProductos = false;
+                }
             },
         }
     }).mount('#plaza-app');
