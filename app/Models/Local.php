@@ -57,4 +57,14 @@ class Local extends Model
     public function schedules(){
         return $this->hasMany(Schedule::class, 'local_id', 'local_id');
     }
+
+    /**
+     * Relación: Productos disponibles en este local
+     */
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'tblocal_product', 'local_id', 'product_id')
+            ->withPivot('price')
+            ->withTimestamps();
+    }
 }
