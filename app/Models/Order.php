@@ -72,6 +72,14 @@ class Order extends Model
     }
 
     /**
+     * Relación: Locales asociados a la orden
+     */
+    public function locals()
+    {
+        return $this->belongsToMany(Local::class, 'tblocal_orden', 'order_id', 'local_id');
+    }
+
+    /**
      * Obtener estados disponibles
      */
     public static function getStatuses()

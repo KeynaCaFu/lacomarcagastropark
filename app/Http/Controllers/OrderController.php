@@ -301,10 +301,12 @@ class OrderController extends Controller
                 ]);
             }
 
-            // Asociar cliente si se proporciona
-            if ($validated['user_id'] ?? null) {
-                $order->user()->attach($validated['user_id']);
-            }
+            // Guardar relación en tblocal_orden
+            $order->locals()->attach($local->local_id);
+
+            // Asociar cliente o gerente si corresponde
+            $userToAttach = $validated['user_id'] ?? $user->user_id;
+            $order->user()->attach($userToAttach);
 
             return response()->json([
                 'success' => true,
