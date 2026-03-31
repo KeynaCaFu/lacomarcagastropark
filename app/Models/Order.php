@@ -76,7 +76,7 @@ class Order extends Model
      */
     public function locals()
     {
-        return $this->belongsToMany(Local::class, 'tblocal_orden', 'order_id', 'local_id');
+        return $this->belongsToMany(Local::class, 'tblocal_order', 'order_id', 'local_id');
     }
 
     /**
