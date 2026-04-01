@@ -634,6 +634,7 @@
         }
         .meta-item { display: flex; align-items: center; gap: 4px; }
         .meta-item i { color: var(--primary); font-size: 0.85rem; }
+        .local-stars { display: flex; gap: 2px; align-items: center; }
 
         .local-status {
             display: inline-flex; align-items: center; gap: 5px;
@@ -720,6 +721,8 @@
             font-family: 'Cormorant Garamond', serif;
             font-size: 1.2rem; font-weight: 700; color: var(--primary);
         }
+        .product-stars { display: flex; gap: 2px; margin-bottom: 8px; align-items: center; }
+        .product-stars-filtered { display: flex; gap: 2px; margin-bottom: 8px; align-items: center; }
 
         /* Grid Productos Filtrados */
         .grid-products-filtered {
@@ -1039,6 +1042,9 @@
                         <h3 class="product-name" :title="producto.name">
                             @{{ producto.name }}
                         </h3>
+                        <div class="product-stars-filtered">
+                            <i v-for="j in 5" :key="j" class="fas fa-star" :style="{ color: j <= producto.average_rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)', fontSize: '0.75rem' }"></i>
+                        </div>
                         <div class="product-footer">
                             <span class="product-price">₡@{{ producto.price }}</span>
                             <a :href="'/plaza/' + producto.local_id" class="btn-product-view">
@@ -1078,10 +1084,16 @@
                             <h3 class="local-name">{{ $local->name }}</h3>
                             <p class="local-desc">{{ $local->description ?? 'Explora nuestro menú' }}</p>
                             <div class="local-meta">
-                                <span class="meta-item">
-                                    <i class="fas fa-star"></i>
-                                    {{ $local->average_rating }}
-                                </span>
+                                <div class="local-stars">
+                                    @php
+                                        $rating = round($local->average_rating ?? 0);
+                                        for ($j = 1; $j <= 5; $j++):
+                                    @endphp
+                                        <i class="fas fa-star" style="color: {{ $j <= $rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }}; font-size: 0.75rem;"></i>
+                                    @php
+                                        endfor;
+                                    @endphp
+                                </div>
                                 <span class="local-status {{ $local->status === 'Active' ? '' : 'closed' }}">
                                     {{ $local->status === 'Active' ? 'Abierto' : 'Cerrado' }}
                                 </span>
@@ -1124,6 +1136,16 @@
                         <h3 class="product-name" title="{{ $producto->name }}">
                             {{ $producto->name }}
                         </h3>
+                        <div class="product-stars">
+                            @php
+                                $rating = round($producto->average_rating ?? 0);
+                                for ($j = 1; $j <= 5; $j++):
+                            @endphp
+                                <i class="fas fa-star" style="color: {{ $j <= $rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }}; font-size: 0.75rem;"></i>
+                            @php
+                                endfor;
+                            @endphp
+                        </div>
                         <div class="product-footer">
                             <span class="product-price">₡{{ number_format($producto->price, 2) }}</span>
                         </div>

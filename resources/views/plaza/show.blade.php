@@ -442,6 +442,13 @@
             justify-content: space-between;
         }
 
+        .p-card-stars {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
         .p-card-price {
             font-family: 'Cormorant Garamond', serif;
             font-size: 1.55rem;
@@ -770,6 +777,16 @@
                             @if($i === 0 && $producto->description)
                                 <p class="featured-desc">{{ $producto->description }}</p>
                             @endif
+                            <div class="p-card-stars">
+                                @php
+                                    $rating = round($producto->average_rating ?? 0);
+                                    for ($j = 1; $j <= 5; $j++):
+                                @endphp
+                                    <i class="fas fa-star" style="color: {{ $j <= $rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }}; font-size: 0.7rem;"></i>
+                                @php
+                                    endfor;
+                                @endphp
+                            </div>
                             <div class="p-card-footer">
                                 <span class="p-card-price">
                                     <sup>₡</sup>{{ number_format($producto->price, 2) }}

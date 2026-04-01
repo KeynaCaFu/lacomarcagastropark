@@ -31,7 +31,12 @@ class PlazaController extends Controller
 
         // Obtener productos disponibles
         $productos = Product::where('status', 'Available')
-            ->with('locals')
+            ->with([
+                'locals',
+                'productReviews.review' => function ($query) {
+                    $query->select('review_id', 'rating');
+                }
+            ])
             ->get()
             ->map(function ($product) {
                 $product->category_slug = Str::slug($product->category);
@@ -53,11 +58,14 @@ class PlazaController extends Controller
             }])
             ->get();
 
-        // Obtener 2 productos aleatorios de cada local
+        // Obtener 2 productos aleatorios de cada local con eager loading de reseñas
         $productosAleatorios = collect();
         foreach ($locales as $local) {
             $productosLocal = $local->products()
                 ->where('tbproduct.status', 'Available')
+                ->with(['productReviews.review' => function ($query) {
+                    $query->select('review_id', 'rating');
+                }])
                 ->inRandomOrder()
                 ->limit(2)
                 ->get();
@@ -90,12 +98,17 @@ class PlazaController extends Controller
         // Buscar local por su primary key (local_id)
         $local = Local::where('local_id', $id)->firstOrFail();
 
-        // Obtener productos de este local
+        // Obtener productos de este local con eager loading de reseñas
         $productos = Product::whereHas('locals', function ($query) use ($id) {
             $query->where('tblocal_product.local_id', $id);
         })
             ->where('status', 'Available')
-            ->with('gallery')
+            ->with([
+                'gallery',
+                'productReviews.review' => function ($query) {
+                    $query->select('review_id', 'rating');
+                }
+            ])
             ->get();
 
         // Extraer categorías únicas de los productos de este local
@@ -124,11 +137,16 @@ class PlazaController extends Controller
     {
         $categoria = $request->query('categoria', 'todos');
 
-        // Obtener productos disponibles con sus locales
+        // Obtener productos disponibles con sus locales y reseñas
         $productosQuery = Product::where('status', 'Available')
-            ->with(['locals' => function ($query) {
-                $query->select('tblocal.local_id', 'tblocal.name');
-            }]);
+            ->with([
+                'locals' => function ($query) {
+                    $query->select('tblocal.local_id', 'tblocal.name');
+                },
+                'productReviews.review' => function ($query) {
+                    $query->select('review_id', 'rating');
+                }
+            ]);
 
         // Filtrar por categoría si no es 'todos'
         if ($categoria !== 'todos') {
@@ -142,6 +160,18 @@ class PlazaController extends Controller
         // Mapear datos para retornar en JSON
         $productosFormateados = $productos->map(function ($product) {
             $localFirst = $product->locals->first();
+            
+            // Calcular rating sin hacer queries adicionales
+            $reviews = $product->productReviews;
+            if ($reviews->isNotEmpty()) {
+                $totalRating = $reviews->sum(function ($productReview) {
+                    return $productReview->review->rating ?? 0;
+                });
+                $averageRating = round($totalRating / $reviews->count());
+            } else {
+                $averageRating = 0;
+            }
+            
             return [
                 'id' => $product->product_id ?? $product->id,
                 'name' => $product->name,
@@ -150,6 +180,7 @@ class PlazaController extends Controller
                 'category' => $product->category ?? 'Sin categoría',
                 'local' => $localFirst?->name ?? 'Local desconocido',
                 'local_id' => $localFirst?->local_id ?? null,
+                'average_rating' => $averageRating,
             ];
         })->values();
 
