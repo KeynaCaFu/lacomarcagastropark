@@ -146,7 +146,7 @@ class PlazaController extends Controller
                 'id' => $product->product_id ?? $product->id,
                 'name' => $product->name,
                 'price' => number_format($product->price ?? 0, 2),
-                'photo_url' => $product->photo_url ?? asset('images/product-placeholder.jpg'),
+                'photo_url' => $product->photo_url ?? asset('images/product-placeholder.png'),
                 'category' => $product->category ?? 'Sin categoría',
                 'local' => $localFirst?->name ?? 'Local desconocido',
                 'local_id' => $localFirst?->local_id ?? null,

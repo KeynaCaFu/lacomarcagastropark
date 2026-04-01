@@ -753,7 +753,7 @@
                          v-show="activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory">
 
                         <div class="p-card-img">
-                            <img src="{{ $producto->photo_url ?? asset('images/product-placeholder.jpg') }}"
+                            <img src="{{ $producto->photo_url ?? asset('images/product-placeholder.png') }}"
                                  alt="{{ $producto->name }}"
                                  loading="{{ $i < 4 ? 'eager' : 'lazy' }}">
                             <div class="p-card-img-fade"></div>

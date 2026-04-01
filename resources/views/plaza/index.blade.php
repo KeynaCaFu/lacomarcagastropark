@@ -1029,7 +1029,7 @@
             <div v-if="!cargandoProductos && productosFiltrados.length > 0" class="grid-products-filtered">
                 <div v-for="producto in productosFiltrados" :key="producto.id" class="product-card">
                     <div class="product-img">
-                        <img :src="producto.photo_url" :alt="producto.name" loading="lazy">
+                        <img :src="producto.photo_url || '{{ asset('images/product-placeholder.png') }}'" :alt="producto.name" loading="lazy">
                         <span class="product-badge">@{{ producto.category }}</span>
                     </div>
                     <div class="product-body">
@@ -1113,7 +1113,7 @@
                 @foreach($productos as $producto)
                 <div class="product-card">
                     <div class="product-img">
-                        <img src="{{ $producto->photo_url ?? asset('images/product-placeholder.jpg') }}"
+                        <img src="{{ $producto->photo_url ?? asset('images/product-placeholder.png') }}"
                              alt="{{ $producto->name }}" loading="lazy">
                         <span class="product-badge">Popular</span>
                     </div>
