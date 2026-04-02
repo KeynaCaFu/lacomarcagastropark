@@ -1082,18 +1082,20 @@
 
 <script>
     // User menu toggle
-    const menuBtn = document.getElementById('userMenuBtn');
-    const menuDropdown = document.getElementById('userMenuDropdown');
+    document.addEventListener('DOMContentLoaded', function() {
+        const menuBtn = document.getElementById('userMenuBtn');
+        const menuDropdown = document.getElementById('userMenuDropdown');
 
-    if (menuBtn && menuDropdown) {
-        menuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menuDropdown.classList.toggle('open');
-        });
-        document.addEventListener('click', () => {
-            menuDropdown.classList.remove('open');
-        });
-    }
+        if (menuBtn && menuDropdown) {
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menuDropdown.classList.toggle('open');
+            });
+            document.addEventListener('click', () => {
+                menuDropdown.classList.remove('open');
+            });
+        }
+    });
 
     // Vue app
     const { createApp } = Vue;

@@ -1646,15 +1646,17 @@
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     /* ── User menu ── */
-    const menuBtn = document.getElementById('userMenuBtn');
-    const menuDrop = document.getElementById('userMenuDropdown');
-    if (menuBtn && menuDrop) {
-        menuBtn.addEventListener('click', e => {
-            e.stopPropagation();
-            menuDrop.classList.toggle('open');
-        });
-        document.addEventListener('click', () => menuDrop.classList.remove('open'));
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const menuBtn = document.getElementById('userMenuBtn');
+        const menuDrop = document.getElementById('userMenuDropdown');
+        if (menuBtn && menuDrop) {
+            menuBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                menuDrop.classList.toggle('open');
+            });
+            document.addEventListener('click', () => menuDrop.classList.remove('open'));
+        }
+    });
 
     /* ── Vue App ── */
     const { createApp } = Vue;
