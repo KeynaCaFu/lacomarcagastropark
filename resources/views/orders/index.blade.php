@@ -380,202 +380,270 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         // Mostrar confirmación con SweetAlert
-        Swal.fire({
-            title: '¿Cambiar estado de la orden?',
-            html: `<p style="margin-bottom: 16px; color: #666;">¿Deseas cambiar el estado de la orden a:</p>
-                   <div style="display: inline-block; padding: 10px 20px; background: #fff7ed; border-radius: 8px; border: 2px solid #e18018;">
-                       <i class="fas ${statusIcons[status]}" style="color: #e18018; margin-right: 8px; font-size: 18px;"></i>
-                       <strong style="color: #e18018; font-size: 18px;">${statusNames[status]}</strong>
-                   </div>`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, cambiar',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#e18018',
-            cancelButtonColor: '#6b7280',
-            reverseButtons: true,
-            allowOutsideClick: false,
-            allowEscapeKey: false
-        }).then((result) => {
+        let swalPromise;
+        
+        if (status === 'Cancelled') {
+            // Para cancelación, pedir motivo
+            swalPromise = Swal.fire({
+                title: 'Cancelar Orden',
+                text: 'Por favor, indique su nombre y el motivo de la cancelación:',
+                input: 'textarea',
+                inputPlaceholder: 'Ej: Cliente lo solicita, error en pedido, etc...',
+                inputAttributes: {
+                    maxlength: 500
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Cancelar orden',
+                cancelButtonText: 'Atrás',
+                confirmButtonColor: '#e18018',
+                cancelButtonColor: '#6b7280',
+                icon: 'warning',
+                reverseButtons: true,
+                allowOutsideClick: false,
+                inputValidator: (value) => {
+                    if (!value || !value.trim()) {
+                        return 'Debe ingresar un motivo para cancelar'
+                    }
+                }
+            });
+        } else {
+            // Para otros estados, confirmación simple
+            swalPromise = Swal.fire({
+                title: '¿Cambiar estado de la orden?',
+                html: `<p style="margin-bottom: 16px; color: #666;">¿Deseas cambiar el estado de la orden a:</p>
+                       <div style="display: inline-block; padding: 10px 20px; background: #fff7ed; border-radius: 8px; border: 2px solid #e18018;">
+                           <i class="fas ${statusIcons[status]}" style="color: #e18018; margin-right: 8px; font-size: 18px;"></i>
+                           <strong style="color: #e18018; font-size: 18px;">${statusNames[status]}</strong>
+                       </div>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, cambiar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#e18018',
+                cancelButtonColor: '#6b7280',
+                reverseButtons: true,
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+        }
+        
+        swalPromise.then((result) => {
             if (result.isConfirmed) {
-                // Hacer el fetch
-                fetch(`{{ url('ordenes') }}/${orderId}/cambiar-estado`, {
+                // Preparar payload
+                const payload = { status };
+                if (status === 'Cancelled' && result.value) {
+                    payload.cancellation_reason = result.value.trim();
+                    
+                    // Mostrar confirmación final antes de cancelar
+                    return Swal.fire({
+                        title: '⚠️ ¿Estás seguro?',
+                        text: 'Esta acción cancelará la orden. ¿Deseas continuar?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, cancelar orden',
+                        cancelButtonText: 'No, atrás',
+                        confirmButtonColor: '#dc2626',
+                        cancelButtonColor: '#6b7280',
+                        reverseButtons: true,
+                        allowOutsideClick: false
+                    }).then((confirmResult) => {
+                        if (confirmResult.isConfirmed) {
+                            return { shouldProceed: true, payload };
+                        }
+                        return { shouldProceed: false };
+                    });
+                }
+                
+                return { shouldProceed: true, payload };
+            }
+            return { shouldProceed: false };
+        }).then((result) => {
+            if (!result || !result.shouldProceed) return;
+            
+            const payload = result.payload;
+            
+            // Hacer el fetch
+            fetch(`{{ url('ordenes') }}/${orderId}/cambiar-estado`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
-                    body: JSON.stringify({ status })
+                    body: JSON.stringify(payload)
                 })
                 .then(response => {
                     console.log('Response status:', response.status);
-                    return response.json();
+                    return response.json().then(data => ({
+                        ok: response.ok,
+                        data: data
+                    }));
                 })
-                .then(data => {
+                .then(({ ok, data }) => {
                     console.log('Response data:', data);
-                    if (data.success || data.success !== false) {
-                        
-                        // Actualizar el estado de la tarjeta en el DOM
-                        const orderCard = document.querySelector(`[data-order-id="${orderId}"]`);
-                        if (orderCard) {
-                            // Obtener el estado anterior
-                            const previousStatus = orderCard.dataset.status;
-                            
-                            // Actualizar el atributo data-status
-                            orderCard.dataset.status = status;
-                            
-                            // Actualizar contadores en los tabs
-                            const previousTab = document.querySelector(`[data-status="${previousStatus}"]`);
-                            const newTab = document.querySelector(`[data-status="${status}"]`);
-                            
-                            if (previousTab) {
-                                const previousCount = previousTab.querySelector('.order-tab-count');
-                                if (previousCount) {
-                                    let count = parseInt(previousCount.textContent) || 0;
-                                    previousCount.textContent = Math.max(0, count - 1);
-                                }
-                            }
-                            
-                            if (newTab) {
-                                const newCount = newTab.querySelector('.order-tab-count');
-                                if (newCount) {
-                                    let count = parseInt(newCount.textContent) || 0;
-                                    newCount.textContent = count + 1;
-                                }
-                            }
-                            
-                            // Actualizar contadores en las tarjetas de estadísticas
-                            const statCards = document.querySelectorAll('.order-stat-card');
-                            statCards.forEach(card => {
-                                const label = card.querySelector('.order-stat-label');
-                                if (!label) return;
-                                
-                                if (label.textContent.includes('Pendientes') && previousStatus === 'Pending') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = Math.max(0, count - 1);
-                                    }
-                                }
-                                if (label.textContent.includes('Pendientes') && status === 'Pending') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = count + 1;
-                                    }
-                                }
-                                if (label.textContent.includes('En Preparación') && previousStatus === 'Preparing') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = Math.max(0, count - 1);
-                                    }
-                                }
-                                if (label.textContent.includes('En Preparación') && status === 'Preparing') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = count + 1;
-                                    }
-                                }
-                                if (label.textContent.includes('Listas') && previousStatus === 'Ready') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = Math.max(0, count - 1);
-                                    }
-                                }
-                                if (label.textContent.includes('Listas') && status === 'Ready') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = count + 1;
-                                    }
-                                }
-                                if (label.textContent.includes('Entregadas') && previousStatus === 'Delivered') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = Math.max(0, count - 1);
-                                    }
-                                }
-                                if (label.textContent.includes('Entregadas') && status === 'Delivered') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = count + 1;
-                                    }
-                                }
-                            });
-                            
-                            // Actualizar el badge de estado con las clases CSS correctas
-                            const statusBadge = orderCard.querySelector('.status-badge-clickable');
-                            if (statusBadge) {
-                                // Remover todas las clases de color antiguas
-                                statusBadge.classList.remove('status-pending', 'status-preparation', 'status-ready', 'status-delivered', 'status-cancelled');
-                                // Agregar la nueva clase de color
-                                statusBadge.classList.add(statusColorClasses[status]);
-                                
-                                // Obtener estados permitidos según el nuevo estado
-                                const allowedNextStatuses = getNextStatuses(status);
-                                const statusLabelsMap = {
-                                    'Pending': 'Pendiente',
-                                    'Preparing': 'En Preparación',
-                                    'Ready': 'Listo',
-                                    'Delivered': 'Entregado',
-                                    'Cancelled': 'Cancelada'
-                                };
-                                
-                                // Construir el dropdown dinámicamente
-                                let dropdownHTML = '<div class="status-dropdown" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 180px;">';
-                                
-                                allowedNextStatuses.forEach(statusKey => {
-                                    dropdownHTML += `
-                                        <button type="button" class="status-dropdown-item status-dropdown-item-${statusKey}" data-status="${statusKey}">
-                                            <i class="fas ${statusIcons[statusKey]}"></i>
-                                            ${statusLabelsMap[statusKey]}
-                                        </button>
-                                    `;
-                                });
-                                
-                                dropdownHTML += '</div>';
-                                
-                                // Actualizar el contenido del badge
-                                statusBadge.innerHTML = `
-                                    <i class="fas ${statusIcons[status]}"></i>
-                                    ${statusNames[status]}
-                                    ${allowedNextStatuses.length > 0 ? '<i class="fas fa-chevron-down" style="margin-left: 6px; font-size: 10px;"></i>' : ''}
-                                    ${dropdownHTML}
-                                `;
-                            }
-                            
-                            // Detectar el estado filtrado actualmente
-                            const activeTab = document.querySelector('.order-tab.active');
-                            if (activeTab) {
-                                const activeStatus = activeTab.dataset.status;
-                                
-                                // Si la orden cambió de estado y no coincide con el estado activo, ocultarla
-                                if (status !== activeStatus) {
-                                    orderCard.style.display = 'none';
-                                }
-                            }
-                        }
-                        
-                        // Mostrar mensaje de éxito con toast
-                        swToast.fire({
-                            icon: 'success',
-                            title: '¡Éxito!',
-                            html: `Estado cambiado a <strong style="color: #e18018;">${statusNames[status]}</strong>`
-                        });
-                    } else {
-                        // Error en la respuesta
+                    
+                    if (!ok || !data.success) {
+                        // Error del servidor
                         Swal.fire({
                             title: 'Error',
                             text: data.error || data.message || 'Error al cambiar el estado',
                             icon: 'error',
                             confirmButtonColor: '#e18018'
                         });
+                        return;
                     }
+                    
+                    // Éxito - procesar actualización del DOM
+                    const orderCard = document.querySelector(`[data-order-id="${orderId}"]`);
+                    if (orderCard) {
+                        // Obtener el estado anterior
+                        const previousStatus = orderCard.dataset.status;
+                        
+                        // Actualizar el atributo data-status
+                        orderCard.dataset.status = status;
+                        
+                        // Actualizar contadores en los tabs
+                        const previousTab = document.querySelector(`[data-status="${previousStatus}"]`);
+                        const newTab = document.querySelector(`[data-status="${status}"]`);
+                        
+                        if (previousTab) {
+                            const previousCount = previousTab.querySelector('.order-tab-count');
+                            if (previousCount) {
+                                let count = parseInt(previousCount.textContent) || 0;
+                                previousCount.textContent = Math.max(0, count - 1);
+                            }
+                        }
+                        
+                        if (newTab) {
+                            const newCount = newTab.querySelector('.order-tab-count');
+                            if (newCount) {
+                                let count = parseInt(newCount.textContent) || 0;
+                                newCount.textContent = count + 1;
+                            }
+                        }
+                        
+                        // Actualizar contadores en las tarjetas de estadísticas
+                        const statCards = document.querySelectorAll('.order-stat-card');
+                        statCards.forEach(card => {
+                            const label = card.querySelector('.order-stat-label');
+                            if (!label) return;
+                            
+                            if (label.textContent.includes('Pendientes') && previousStatus === 'Pending') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = Math.max(0, count - 1);
+                                }
+                            }
+                            if (label.textContent.includes('Pendientes') && status === 'Pending') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = count + 1;
+                                }
+                            }
+                            if (label.textContent.includes('En Preparación') && previousStatus === 'Preparing') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = Math.max(0, count - 1);
+                                }
+                            }
+                            if (label.textContent.includes('En Preparación') && status === 'Preparing') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = count + 1;
+                                }
+                            }
+                            if (label.textContent.includes('Listas') && previousStatus === 'Ready') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = Math.max(0, count - 1);
+                                }
+                            }
+                            if (label.textContent.includes('Listas') && status === 'Ready') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = count + 1;
+                                }
+                            }
+                            if (label.textContent.includes('Entregadas') && previousStatus === 'Delivered') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = Math.max(0, count - 1);
+                                }
+                            }
+                            if (label.textContent.includes('Entregadas') && status === 'Delivered') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = count + 1;
+                                }
+                            }
+                        });
+                        
+                        // Actualizar el badge de estado con las clases CSS correctas
+                        const statusBadge = orderCard.querySelector('.status-badge-clickable');
+                        if (statusBadge) {
+                            // Remover todas las clases de color antiguas
+                            statusBadge.classList.remove('status-pending', 'status-preparation', 'status-ready', 'status-delivered', 'status-cancelled');
+                            // Agregar la nueva clase de color
+                            statusBadge.classList.add(statusColorClasses[status]);
+                            
+                            // Obtener estados permitidos según el nuevo estado
+                            const allowedNextStatuses = getNextStatuses(status);
+                            const statusLabelsMap = {
+                                'Pending': 'Pendiente',
+                                'Preparing': 'En Preparación',
+                                'Ready': 'Listo',
+                                'Delivered': 'Entregado',
+                                'Cancelled': 'Cancelada'
+                            };
+                            
+                            // Construir el dropdown dinámicamente
+                            let dropdownHTML = '<div class="status-dropdown" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 180px;">';
+                            
+                            allowedNextStatuses.forEach(statusKey => {
+                                dropdownHTML += `
+                                    <button type="button" class="status-dropdown-item status-dropdown-item-${statusKey}" data-status="${statusKey}">
+                                        <i class="fas ${statusIcons[statusKey]}"></i>
+                                        ${statusLabelsMap[statusKey]}
+                                    </button>
+                                `;
+                            });
+                            
+                            dropdownHTML += '</div>';
+                            
+                            // Actualizar el contenido del badge
+                            statusBadge.innerHTML = `
+                                <i class="fas ${statusIcons[status]}"></i>
+                                ${statusNames[status]}
+                                ${allowedNextStatuses.length > 0 ? '<i class="fas fa-chevron-down" style="margin-left: 6px; font-size: 10px;"></i>' : ''}
+                                ${dropdownHTML}
+                            `;
+                        }
+                        
+                        // Detectar el estado filtrado actualmente
+                        const activeTab = document.querySelector('.order-tab.active');
+                        if (activeTab) {
+                            const activeStatus = activeTab.dataset.status;
+                            
+                            // Si la orden cambió de estado y no coincide con el estado activo, ocultarla
+                            if (status !== activeStatus) {
+                                orderCard.style.display = 'none';
+                            }
+                        }
+                    }
+                    
+                    // Mostrar mensaje de éxito con toast
+                    swToast.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        html: `Estado cambiado a <strong style="color: #e18018;">${statusNames[status]}</strong>`
+                    });
                 })
                 .catch(error => {
                     console.error('Error en fetch:', error);
@@ -586,7 +654,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         confirmButtonColor: '#e18018'
                     });
                 });
-            }
         });
     }
 
