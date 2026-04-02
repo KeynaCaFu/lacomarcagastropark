@@ -62,24 +62,24 @@
             </div>
 
             <!-- Resumen de Orden -->
-            <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
-                <table style="width: 100%; font-size: 13px;">
+            <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+                <table style="width: 100%; font-size: 12px;">
                     <thead>
-                        <tr style="border-bottom: 1px solid #e5e7eb;">
-                            <th style="text-align: left; padding: 8px 0;">Producto</th>
-                            <th style="text-align: center; padding: 8px 0; width: 50px;">Cant.</th>
-                            <th style="text-align: right; padding: 8px 0; width: 80px;">Subtotal</th>
+                        <tr style="border-bottom: 2px solid #e5e7eb;">
+                            <th style="text-align: left; padding: 6px 8px; font-weight: 700; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Producto</th>
+                            <th style="text-align: center; padding: 6px 8px; font-weight: 700; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 45px;">Cant.</th>
+                            <th style="text-align: right; padding: 6px 8px; font-weight: 700; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 70px;">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody id="orderItemsSummary">
                         <tr>
-                            <td colspan="3" style="text-align: center; padding: 16px; color: #999;">Sin productos seleccionados</td>
+                            <td colspan="3" style="text-align: center; padding: 12px 8px; color: #999; font-size: 12px;">Sin productos seleccionados</td>
                         </tr>
                     </tbody>
                 </table>
-                <div style="border-top: 1px solid #e5e7eb; margin-top: 12px; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 700;">
-                    <span>Total:</span>
-                    <span style="color: #e18018;">₡<span id="orderTotal">0.00</span></span>
+                <div style="border-top: 2px solid #e5e7eb; margin-top: 8px; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 14px;">
+                    <span style="font-weight: 600; color: #111;">Total:</span>
+                    <span style="color: #e18018; font-weight: 700; font-size: 15px;">₡<span id="orderTotal">0.00</span></span>
                 </div>
             </div>
 
