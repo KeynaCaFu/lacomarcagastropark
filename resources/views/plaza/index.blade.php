@@ -349,6 +349,10 @@
         .hero-content {
             position: relative; z-index: 10;
             max-width: 620px;
+            margin: 0 0 0 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
 
         .hero-badge {
@@ -1424,8 +1428,14 @@
                     <div class="product-body">
                         <div class="product-local">@{{ producto.local }}</div>
                         <h3 class="product-name" :title="producto.name">@{{ producto.name }}</h3>
+                        <div class="product-stars" style="margin: 8px 0; display: flex; gap: 2px;">
+                            <i v-for="i in 5" :key="i" class="fas fa-star" :style="{color: i <= (producto.average_rating || 0) ? 'var(--primary)' : 'rgba(122,112,96,0.25)', fontSize: '0.65rem'}"></i>
+                        </div>
                         <div class="product-footer">
                             <span class="product-price">₡@{{ producto.price }}</span>
+                            <a :href="'/plaza/' + producto.local_id" style="color: var(--primary); font-size: 0.8rem; font-weight: 600;">
+                                Ver <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -1465,12 +1475,12 @@
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px;">
                                 <h3 class="local-name-v2">{{ $local->name }}</h3>
                                 <span class="meta-chip" style="white-space: nowrap; font-size: 0.7rem; padding: 4px 8px;">
-                                    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: {{ $local->status === 'Active' ? '#4ade80' : 'var(--muted)' }}; margin-right: 4px;"></span>
-                                    {{ $local->status === 'Active' ? 'Abierto' : 'Cerrado' }}
+                                    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: {{ $local->isOpenNow ? '#4ade80' : '#ef4444' }}; margin-right: 4px;"></span>
+                                    {{ $local->isOpenNow ? 'Abierto' : 'Cerrado' }}
                                 </span>
                             </div>
                             <p class="local-desc-v2">{{ $local->description ?? 'Explora nuestro menú y descubre sabores únicos' }}</p>
-                            <div class="local-stars">
+                            <div class="local-stars" style="display: flex; gap: 4px; margin: 10px 0;">
                                 @php
                                     $rating = round($local->average_rating ?? 0);
                                     for ($j = 1; $j <= 5; $j++):
@@ -1521,8 +1531,19 @@
                         <h3 class="destacado-name" title="{{ $producto->name }}">
                             {{ $producto->name }}
                         </h3>
-                        <div class="destacado-footer">
+                        @php
+                            $rating = round($producto->average_rating ?? 0);
+                        @endphp
+                        <div style="margin: 8px 0; display: flex; gap: 2px;">
+                            @for($i = 1; $i <= 5; $i++)
+                                <i class="fas fa-star" style="color: {{ $i <= $rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }}; font-size: 0.65rem;"></i>
+                            @endfor
+                        </div>
+                        <div class="destacado-footer" style="display: flex; justify-content: space-between; align-items: center;">
                             <span class="destacado-price">₡{{ number_format($producto->price, 2) }}</span>
+                            <a href="{{ route('plaza.show', $producto->locals->first()?->local_id ?? '#') }}" style="color: var(--primary); font-size: 0.8rem; font-weight: 600;">
+                                Ver <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -1625,8 +1646,7 @@
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     /* ── User menu ── */
-    const menuBtn = document.getElementById('userel cuadro naranaja no se debeb de ver, en teoria seria comoo negro el fono original para que se camule con el de productos populares 
-    MenuBtn');
+    const menuBtn = document.getElementById('userMenuBtn');
     const menuDrop = document.getElementById('userMenuDropdown');
     if (menuBtn && menuDrop) {
         menuBtn.addEventListener('click', e => {

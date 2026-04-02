@@ -864,10 +864,37 @@
             @endif
             <div class="hero-text">
                 <div class="hero-tag"><i class="fas fa-utensils"></i> La Comarca Gastro Park</div>
-                <h1 class="hero-name">{{ $local->name }}</h1>
-                @if($local->description)
-                    <p class="hero-desc">{{ $local->description }}</p>
-                @endif
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
+                    <div>
+                        <h1 class="hero-name">{{ $local->name }}</h1>
+                        @if($local->description)
+                            <p class="hero-desc">{{ $local->description }}</p>
+                        @endif
+                    </div>
+                    @if($horarioHoy)
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 2px solid rgba(212,119,58,0.4); min-width: fit-content;">
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.75rem; color: rgba(245,240,232,0.6); margin-bottom: 4px; font-weight: 600;">{{ $diaActual }}</div>
+                                @if($horarioHoy->status)
+                                    <div style="font-size: 0.95rem; color: var(--primary); font-weight: 700;">
+                                        {{ $horarioHoy->opening_time?->format('H:i') ?? 'N/A' }} - {{ $horarioHoy->closing_time?->format('H:i') ?? 'N/A' }}
+                                    </div>
+                                    <div style="font-size: 0.65rem; margin-top: 2px; font-weight: 600;">
+                                        @if($estaAbierto)
+                                            <span style="color: #4ade80;"><i class="fas fa-circle" style="font-size: 0.5rem;"></i> Abierto</span>
+                                        @else
+                                            <span style="color: var(--muted);"><i class="fas fa-circle" style="font-size: 0.5rem; color: #ff1100;"></i> Cerrado</span>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div style="font-size: 0.85rem; color: #ff1100; font-weight: 600;">
+                                        Cerrado hoy
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
     </section>

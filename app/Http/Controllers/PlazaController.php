@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Local;
+use App\Models\Schedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -56,7 +57,12 @@ class PlazaController extends Controller
             ->with(['gallery' => function ($query) {
                 $query->limit(1);
             }])
-            ->get();
+            ->get()
+            ->map(function ($local) {
+                // Calcular si el local está abierto en este momento
+                $local->isOpenNow = Schedule::isCurrentlyOpen($local->local_id);
+                return $local;
+            });
 
         // Obtener 2 productos aleatorios de cada local con eager loading de reseñas
         $productosAleatorios = collect();
@@ -123,10 +129,41 @@ class PlazaController extends Controller
                 ];
             });
 
+        // Obtener horario del día actual
+        $now = now();
+        $dayOfWeek = $now->translatedFormat('l');
+        
+        $dayTranslation = [
+            'Monday' => 'Lunes',
+            'Tuesday' => 'Martes',
+            'Wednesday' => 'Miércoles',
+            'Thursday' => 'Jueves',
+            'Friday' => 'Viernes',
+            'Saturday' => 'Sábado',
+            'Sunday' => 'Domingo',
+        ];
+
+        $dayInSpanish = $dayTranslation[$dayOfWeek] ?? null;
+
+        $horarioHoy = null;
+        $estaAbierto = false;
+        
+        if ($dayInSpanish) {
+            $horarioHoy = Schedule::where('local_id', $id)
+                ->where('day_of_week', $dayInSpanish)
+                ->first();
+            
+            // Usar el método del modelo para verificar si está abierto
+            $estaAbierto = Schedule::isCurrentlyOpen($id);
+        }
+
         return view('plaza.show', [
             'local' => $local,
             'productos' => $productos,
             'categorias' => $categorias,
+            'horarioHoy' => $horarioHoy,
+            'diaActual' => $dayInSpanish,
+            'estaAbierto' => $estaAbierto,
         ]);
     }
 

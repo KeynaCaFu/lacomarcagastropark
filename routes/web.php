@@ -43,8 +43,9 @@ Route::get('/', function () {
             return redirect()->route('admin.dashboard');
         } elseif ($user->isAdminLocal()) {
             return redirect()->route('dashboard');
+        } elseif ($user->isClient()) {
+            return redirect()->route('plaza.index');
         }
-        // Por defecto, clientes ven la plaza
     }
     // Mostrar plaza a todos (autenticados o no)
     return redirect()->route('plaza.index');
