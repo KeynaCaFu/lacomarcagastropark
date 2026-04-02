@@ -109,6 +109,11 @@
         }
 
         /* ══════════════════════════════════════
+           V-CLOAK - Hide Vue elements during compilation
+        ══════════════════════════════════════ */
+        [v-cloak] { display: none; }
+
+        /* ══════════════════════════════════════
            HEADER
         ══════════════════════════════════════ */
         .plaza-header {
@@ -344,6 +349,10 @@
         .hero-content {
             position: relative; z-index: 10;
             max-width: 620px;
+            margin: 0 0 0 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
 
         .hero-badge {
@@ -491,149 +500,346 @@
         }
 
         /* ══════════════════════════════════════
-           CATEGORY BAR
+           CATEGORY BAR — UPGRADED
         ══════════════════════════════════════ */
         .category-bar {
+            position: sticky; top: 57px; z-index: 150;
+            padding: 0;
             background: rgba(10,9,8,0.96);
-            border-bottom: 1px solid var(--border);
             backdrop-filter: blur(18px);
-            position: sticky; top: 0; z-index: 150;
-            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
         }
-        .categories-scroll {
-            display: flex; align-items: center; gap: 8px;
-            overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
-            padding: 4px 0;
+        .category-bar-inner {
+            display: flex; align-items: center;
+            gap: 0; overflow-x: auto;
+            scrollbar-width: none; -ms-overflow-style: none;
+            padding: 0 4px;
         }
-        .categories-scroll::-webkit-scrollbar { display: none; }
-        .cat-btn {
-            display: inline-flex; align-items: center; gap: 6px;
+        .category-bar-inner::-webkit-scrollbar { display: none; }
+
+        .cat-pill {
+            display: inline-flex; align-items: center; gap: 7px;
             white-space: nowrap;
-            padding: 7px 16px; border-radius: 999px;
-            font-size: 0.78rem; font-weight: 500;
+            padding: 13px 20px;
+            font-size: 0.77rem; font-weight: 600;
             font-family: 'DM Sans', sans-serif;
-            border: 1px solid var(--border); cursor: pointer;
-            transition: all 0.2s;
+            letter-spacing: 0.03em;
+            border: none; cursor: pointer;
             background: transparent; color: var(--muted);
             flex-shrink: 0;
+            position: relative;
+            transition: color 0.22s;
         }
-        .cat-btn:hover { background: var(--card); color: var(--text); }
-        .cat-btn.active {
-            background: var(--primary); border-color: var(--primary);
-            color: #fff; box-shadow: 0 4px 16px var(--primary-glow);
+        .cat-pill::after {
+            content: '';
+            position: absolute; bottom: 0; left: 20px; right: 20px;
+            height: 2px; border-radius: 2px 2px 0 0;
+            background: var(--primary);
+            transform: scaleX(0);
+            transition: transform 0.25s cubic-bezier(.22,.68,0,1.2);
         }
+        .cat-pill:hover { color: var(--text); }
+        .cat-pill.active { color: var(--primary); }
+        .cat-pill.active::after { transform: scaleX(1); }
+        .cat-pill i { font-size: 0.85rem; transition: transform 0.2s; }
+        .cat-pill:hover i { transform: scale(1.2); }
+        .cat-pill .cat-count {
+            font-size: 0.62rem; background: var(--primary-light);
+            color: var(--primary); padding: 1px 6px; border-radius: 99px;
+            font-weight: 700; display: none;
+        }
+        .cat-pill.active .cat-count { display: inline-block; }
 
         /* ══════════════════════════════════════
-           SECTIONS
+           FILTERED PRODUCTS — UPGRADED
         ══════════════════════════════════════ */
-        .section {
-            padding: 56px 0;
+        .filtered-section {
+            padding: 60px 0;
+            background: var(--bg);
             border-bottom: 1px solid var(--border);
             position: relative;
         }
-        .section-wood {
-            background-image: url('{{ asset("images/fondomadera1.webp") }}');
-            background-size: cover;
-            background-position: center;
-        }
-        .section-wood::before {
+        .filtered-section::before {
             content: '';
-            position: absolute; inset: 0;
-            background: rgba(10,9,8,0.72);
-            pointer-events: none; z-index: 0;
+            position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
         }
-        .section-wood > .container { position: relative; z-index: 1; }
-
-        .section-header { margin-bottom: 36px; }
-        .section-eyebrow {
-            font-size: 0.68rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.12em;
-            color: var(--primary); margin-bottom: 8px;
-            display: flex; align-items: center; gap: 8px;
+        .filtered-header {
+            display: flex; align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 32px; flex-wrap: wrap; gap: 12px;
         }
-        .section-eyebrow::before {
-            content: ''; width: 24px; height: 1px;
+        .filtered-label {
+            font-size: 0.65rem; font-weight: 700; letter-spacing: 0.14em;
+            text-transform: uppercase; color: var(--primary);
+            display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+        }
+        .filtered-label::before {
+            content: ''; width: 20px; height: 1px;
             background: var(--primary); opacity: 0.6;
         }
-        .section-title {
+        .filtered-title {
             font-family: 'Cormorant Garamond', serif;
-            font-size: clamp(1.8rem, 3vw, 2.4rem);
-            font-weight: 700; color: var(--text); margin-bottom: 8px;
+            font-size: clamp(1.7rem, 3vw, 2.2rem);
+            font-weight: 700; color: var(--text);
             line-height: 1.1;
         }
-        .section-sub { color: var(--muted); font-size: 0.88rem; line-height: 1.6; font-weight: 300; }
+        .filtered-count-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 6px 14px; border-radius: 99px;
+            background: var(--card); border: 1px solid var(--border-light);
+            font-size: 0.75rem; color: var(--muted); font-weight: 500;
+        }
+        .filtered-count-badge strong { color: var(--primary); }
 
-        /* Section badge (products) */
-        .section-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: var(--primary-light); color: var(--primary);
-            font-size: 0.72rem; font-weight: 700;
-            letter-spacing: 0.08em; text-transform: uppercase;
-            padding: 5px 12px; border-radius: 999px; margin-bottom: 10px;
+        .grid-products-filtered {
+            display: grid; gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        }
+        @media (min-width: 640px) {
+            .grid-products-filtered { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (min-width: 900px) {
+            .grid-products-filtered { grid-template-columns: repeat(4, 1fr); gap: 20px; }
         }
 
-        /* ══════════════════════════════════════
-           LOCAL CARDS
-        ══════════════════════════════════════ */
-        .grid-locals {
-            display: grid;
-            gap: 16px;
-            grid-template-columns: repeat(2, 1fr);
-        }
-        @media (min-width: 768px) {
-            .grid-locals { grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        }
+        /* Transition for filtered grid */
+        .fade-slide-enter-active { transition: all 0.42s cubic-bezier(.22,.68,0,1.2); }
+        .fade-slide-leave-active { transition: all 0.22s ease; position: absolute; }
+        .fade-slide-enter-from { opacity: 0; transform: translateY(20px); }
+        .fade-slide-leave-to   { opacity: 0; transform: translateY(-8px); }
 
-        .local-card {
+        .product-card-v2 {
             background: var(--card);
             border-radius: var(--radius);
             overflow: hidden;
             border: 1px solid var(--border);
             transition: transform 0.32s cubic-bezier(.22,.68,0,1.2), box-shadow 0.32s;
+            cursor: pointer;
+            position: relative;
         }
-        .local-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 16px 40px rgba(0,0,0,0.45), 0 0 0 1px var(--primary-glow);
+        .product-card-v2:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px var(--primary-glow);
+        }
+        .product-card-v2 .product-img {
+            position: relative; aspect-ratio: 4/3; overflow: hidden;
+            background: rgba(0,0,0,0.2);
+        }
+        .product-card-v2 .product-img img {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform 0.55s cubic-bezier(.22,.68,0,1.2);
+        }
+        .product-card-v2:hover .product-img img { transform: scale(1.1); }
+        .product-img-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(10,9,8,0.8) 0%, transparent 60%);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .product-card-v2:hover .product-img-overlay { opacity: 1; }
+        .product-cat-chip {
+            position: absolute; top: 10px; left: 10px;
+            background: rgba(10,9,8,0.75); backdrop-filter: blur(8px);
+            color: var(--primary); font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            padding: 4px 9px; border-radius: 99px;
+            border: 1px solid rgba(212,119,58,0.3);
+        }
+        .product-quick-view {
+            position: absolute; bottom: 10px; right: 10px;
+            background: var(--primary); color: #fff;
+            font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
+            padding: 6px 12px; border-radius: var(--radius-sm);
+            border: none; cursor: pointer; font-family: 'DM Sans', sans-serif;
+            opacity: 0; transform: translateY(6px);
+            transition: opacity 0.25s, transform 0.25s;
+            display: flex; align-items: center; gap: 5px;
+            text-decoration: none;
+        }
+        .product-card-v2:hover .product-quick-view {
+            opacity: 1; transform: translateY(0);
+        }
+        .product-card-v2 .product-body { padding: 14px; }
+        .product-card-v2 .product-local {
+            font-size: 0.62rem; font-weight: 700;
+            color: var(--primary); text-transform: uppercase;
+            letter-spacing: 0.07em; margin-bottom: 5px;
+        }
+        .product-card-v2 .product-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.05rem; font-weight: 700; color: var(--text);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 10px;
+        }
+        .product-card-v2 .product-footer {
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .product-card-v2 .product-price {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.25rem; font-weight: 700; color: var(--primary);
         }
 
-        .local-img-wrap {
-            position: relative;
-            aspect-ratio: 16/9; overflow: hidden;
+        /* Loading skeleton */
+        .skeleton-grid {
+            display: grid; gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         }
-        .local-img {
+        @media (min-width: 640px) { .skeleton-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 900px) { .skeleton-grid { grid-template-columns: repeat(4, 1fr); gap: 20px; } }
+
+        .skeleton-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .skeleton-img {
+            aspect-ratio: 4/3;
+            background: linear-gradient(90deg, var(--card) 25%, var(--card-hover) 50%, var(--card) 75%);
+            background-size: 200% 100%;
+            animation: skeletonShimmer 1.4s infinite;
+        }
+        .skeleton-body { padding: 14px; }
+        .skeleton-line {
+            height: 10px; border-radius: 5px;
+            background: linear-gradient(90deg, var(--card) 25%, var(--card-hover) 50%, var(--card) 75%);
+            background-size: 200% 100%;
+            animation: skeletonShimmer 1.4s infinite;
+            margin-bottom: 8px;
+        }
+        .skeleton-line.w-60 { width: 60%; }
+        .skeleton-line.w-80 { width: 80%; }
+        .skeleton-line.w-40 { width: 40%; }
+        @keyframes skeletonShimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ══════════════════════════════════════
+           LOCALES SECTION — UPGRADED
+        ══════════════════════════════════════ */
+        .locales-section {
+            padding: 72px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .locales-header-row {
+            display: flex; align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 40px; flex-wrap: wrap; gap: 16px;
+        }
+        .locales-eyebrow {
+            font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 0.14em; text-transform: uppercase;
+            color: var(--primary); margin-bottom: 8px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .locales-eyebrow::before {
+            content: ''; width: 20px; height: 1px;
+            background: var(--primary); opacity: 0.6;
+        }
+        .locales-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2rem, 3.5vw, 2.8rem);
+            font-weight: 700; color: var(--text);
+            line-height: 1.05; margin-bottom: 8px;
+        }
+        .locales-sub {
+            font-size: 0.88rem; color: var(--muted); font-weight: 300; line-height: 1.6;
+        }
+        .locales-count {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3rem; font-weight: 300; color: var(--border-light);
+            line-height: 1; letter-spacing: -0.03em;
+        }
+        .locales-count span { color: var(--primary); }
+
+        .grid-locals-v2 {
+            display: grid; gap: 20px;
+            grid-template-columns: repeat(2, 1fr);
+        }
+        @media (min-width: 768px) {
+            .grid-locals-v2 { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (min-width: 1100px) {
+            .grid-locals-v2 { grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        }
+
+        .local-card-v2 {
+            background: var(--card);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: transform 0.35s cubic-bezier(.22,.68,0,1.2), box-shadow 0.35s;
+            cursor: pointer;
+            position: relative;
+            display: flex; flex-direction: column;
+        }
+        .local-card-v2:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--primary-glow);
+        }
+
+        .local-img-wrap-v2 {
+            position: relative;
+            aspect-ratio: 3/2; overflow: hidden;
+        }
+        .local-img-v2 {
             width: 100%; height: 100%;
             object-fit: cover;
-            transition: transform 0.5s cubic-bezier(.22,.68,0,1.2);
+            transition: transform 0.55s cubic-bezier(.22,.68,0,1.2);
         }
-        .local-card:hover .local-img { transform: scale(1.07); }
+        .local-card-v2:hover .local-img-v2 { transform: scale(1.09); }
 
-        .local-img-overlay {
+        .local-img-gradient {
             position: absolute; inset: 0;
-            background: linear-gradient(to top, rgba(10,9,8,0.7) 0%, transparent 55%);
+            background: linear-gradient(180deg, transparent 35%, rgba(10,9,8,0.85) 100%);
+        }
+        .local-floating-status {
+            position: absolute; top: 12px; right: 12px;
+            display: inline-flex; align-items: center; gap: 5px;
+            background: rgba(10,9,8,0.75); backdrop-filter: blur(8px);
+            padding: 4px 10px; border-radius: 99px;
+            font-size: 0.66rem; font-weight: 700;
+            border: 1px solid rgba(74,222,128,0.25);
+        }
+        .local-floating-status.open { color: #4ade80; }
+        .local-floating-status.closed { color: var(--muted); border-color: var(--border); }
+        .local-floating-status .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+        .local-floating-status.closed .dot {
+            background: var(--muted); animation: none;
         }
 
-        .local-body { padding: 16px; }
-
-        .local-name {
+        .local-body-v2 {
+            padding: 18px; flex: 1;
+            display: flex; flex-direction: column;
+        }
+        .local-name-v2 {
             font-family: 'Cormorant Garamond', serif;
-            font-size: 1.1rem; font-weight: 700;
-            color: var(--text); margin-bottom: 5px;
+            font-size: 1.2rem; font-weight: 700;
+            color: var(--text); margin-bottom: 6px;
+            line-height: 1.2;
         }
-        .local-desc {
-            font-size: 0.75rem; color: var(--muted);
-            line-height: 1.5; font-weight: 300;
+        .local-desc-v2 {
+            font-size: 0.76rem; color: var(--muted);
+            line-height: 1.6; font-weight: 300;
             display: -webkit-box; -webkit-line-clamp: 2;
             -webkit-box-orient: vertical; overflow: hidden;
-            margin-bottom: 12px;
+            margin-bottom: 14px; flex: 1;
         }
-        .local-meta {
+        .local-meta-v2 {
             display: flex; align-items: center;
-            justify-content: space-between;
-            font-size: 0.73rem; color: var(--muted);
-            margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+            gap: 12px; margin-bottom: 14px;
+            flex-wrap: wrap;
         }
-        .meta-item { display: flex; align-items: center; gap: 4px; }
-        .meta-item i { color: var(--primary); font-size: 0.85rem; }
+        .meta-chip {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 0.72rem; color: var(--muted); font-weight: 500;
+        }
+        .meta-chip i { color: var(--primary); font-size: 0.8rem; }
 
         .local-status {
             display: inline-flex; align-items: center; gap: 5px;
@@ -648,128 +854,324 @@
         .local-status.closed { color: var(--muted); }
         .local-status.closed::before { background: var(--muted); animation: none; }
 
-        .btn-ver-menu {
-            width: 100%; padding: 10px 0;
-            background: var(--primary); color: #fff;
-            font-size: 0.82rem; font-weight: 600;
-            border: none; border-radius: var(--radius-sm);
+        .btn-ver-menu-v2 {
+            width: 100%; padding: 11px 0;
+            background: transparent;
+            color: var(--primary);
+            font-size: 0.82rem; font-weight: 700;
+            border: 1px solid var(--primary);
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            font-family: 'DM Sans', sans-serif;
+            transition: background 0.22s, color 0.22s, box-shadow 0.22s, transform 0.15s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            font-family: 'DM Sans', sans-serif; letter-spacing: 0.04em;
+            text-decoration: none;
         }
-        .btn-ver-menu:hover { background: #c06830; box-shadow: 0 4px 14px var(--primary-glow); }
-        .btn-ver-menu:active { transform: scale(0.97); }
+        .btn-ver-menu-v2:hover {
+            background: var(--primary); color: #fff;
+            box-shadow: 0 6px 20px var(--primary-glow);
+        }
+        .btn-ver-menu-v2:active { transform: scale(0.97); }
+        .btn-ver-menu-v2 i { transition: transform 0.22s; }
+        .btn-ver-menu-v2:hover i { transform: translateX(4px); }
 
         /* ══════════════════════════════════════
-           PRODUCT CARDS
+           PRODUCTOS DESTACADOS — UPGRADED
         ══════════════════════════════════════ */
-        .grid-products {
-            display: grid; gap: 16px;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        .destacados-section {
+            padding: 72px 0;
+            position: relative;
+            border-bottom: 1px solid var(--border);
         }
-        @media (min-width: 640px) {
-            .grid-products { grid-template-columns: repeat(3, 1fr); }
+        .destacados-section::before {
+            content: ''; position: absolute; inset: 0;
+            background: rgba(10,9,8,0.80);
+            pointer-events: none; z-index: 0;
         }
-        @media (min-width: 900px) {
-            .grid-products { grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .destacados-section > .container { position: relative; z-index: 1; }
+
+        .destacados-header {
+            display: flex; align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 40px; flex-wrap: wrap; gap: 16px;
+        }
+        .destacados-fire-badge {
+            display: inline-flex; align-items: center; gap: 7px;
+            background: rgba(212,119,58,0.12);
+            border: 1px solid rgba(212,119,58,0.35);
+            color: var(--primary);
+            font-size: 0.68rem; font-weight: 800;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            padding: 6px 14px; border-radius: 99px;
+            margin-bottom: 12px; width: fit-content;
+        }
+        .destacados-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2rem, 3.5vw, 2.8rem);
+            font-weight: 700; color: var(--text);
+            line-height: 1.05; margin-bottom: 8px;
+        }
+        .destacados-sub {
+            font-size: 0.88rem; color: rgba(245,240,232,0.45);
+            font-weight: 300; line-height: 1.6;
         }
 
-        .product-card {
-            background: var(--card);
-            border-radius: var(--radius-sm);
+        .grid-destacados {
+            display: grid; gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+        }
+        @media (min-width: 640px) {
+            .grid-destacados { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (min-width: 900px) {
+            .grid-destacados { grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        }
+
+        .destacado-card {
+            background: rgba(23,20,16,0.7);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius);
             overflow: hidden;
-            border: 1px solid var(--border);
-            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid rgba(48,40,32,0.8);
+            transition: transform 0.35s cubic-bezier(.22,.68,0,1.2), box-shadow 0.35s;
             cursor: pointer;
         }
-        .product-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+        .destacado-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 0 1px var(--primary-glow);
         }
-        .product-img {
+        .destacado-img {
             position: relative; aspect-ratio: 1; overflow: hidden;
-            background: rgba(0,0,0,0.15);
+            background: rgba(0,0,0,0.25);
         }
-        .product-img img {
+        .destacado-img img {
             width: 100%; height: 100%; object-fit: cover;
-            transition: transform 0.5s;
+            transition: transform 0.55s cubic-bezier(.22,.68,0,1.2);
         }
-        .product-card:hover .product-img img { transform: scale(1.09); }
-        .product-badge {
-            position: absolute; top: 8px; right: 8px;
+        .destacado-card:hover .destacado-img img { transform: scale(1.1); }
+        .destacado-img-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(10,9,8,0.7) 0%, transparent 55%);
+        }
+        .destacado-popular-tag {
+            position: absolute; top: 9px; right: 9px;
             background: var(--primary); color: #fff;
-            font-size: 0.62rem; font-weight: 700;
-            padding: 3px 8px; border-radius: 999px;
-            letter-spacing: 0.04em;
+            font-size: 0.58rem; font-weight: 800; letter-spacing: 0.06em;
+            text-transform: uppercase; padding: 3px 9px; border-radius: 99px;
         }
-        .product-body { padding: 12px; }
-        .product-local {
-            font-size: 0.62rem; font-weight: 700;
-            color: var(--primary); text-transform: uppercase;
-            letter-spacing: 0.07em; margin-bottom: 4px;
+        .destacado-body { padding: 13px 14px; }
+        .destacado-local {
+            font-size: 0.6rem; font-weight: 700; color: var(--primary);
+            text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px;
         }
-        .product-name {
+        .destacado-name {
             font-family: 'Cormorant Garamond', serif;
-            font-size: 1rem; font-weight: 600; color: var(--text);
+            font-size: 1rem; font-weight: 700; color: var(--text);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
-        .product-footer { display: flex; align-items: center; justify-content: space-between; }
-        .product-price {
+        .destacado-footer {
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .destacado-price {
             font-family: 'Cormorant Garamond', serif;
             font-size: 1.2rem; font-weight: 700; color: var(--primary);
         }
 
         /* ══════════════════════════════════════
-           EMPTY STATE
+           FOOTER — UPGRADED (Nature-inspired)
         ══════════════════════════════════════ */
-        .empty-state {
-            text-align: center; padding: 60px 20px; color: var(--muted);
+        .footer-v2 {
+            position: relative;
+            background: #5a2e02;
+            background-image: url('{{ asset("images/fondomadera1.webp") }}');
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
         }
-        .empty-state i { font-size: 3rem; opacity: 0.2; margin-bottom: 14px; display: block; }
 
-        /* ══════════════════════════════════════
-           FOOTER
-        ══════════════════════════════════════ */
-        .footer {
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            padding: 56px 0 24px;
+        /* Dark overlay for text readability */
+        .footer-v2::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: rgba(10, 9, 8, 0.75);
+            pointer-events: none; z-index: 0;
         }
-        .footer-content {
+
+        /* Silhouette landscape SVG top */
+        .footer-landscape {
+            display: block;
+            width: 100%;
+            margin-bottom: 0;
+            line-height: 0;
+            position: relative; z-index: 1;
+        }
+        .footer-landscape svg {
+            width: 100%; height: 120px;
+            display: block;
+        }
+
+        .footer-main {
+            padding: 56px 0 0;
+            position: relative; z-index: 2;
+        }
+
+        /* Subtle texture overlay */
+        .footer-v2::after {
+            content: '';
+            position: absolute; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.025; pointer-events: none; z-index: 1;
+        }
+
+        .footer-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-            gap: 36px; margin-bottom: 36px;
+            grid-template-columns: 1.8fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 52px;
+            position: relative; z-index: 3;
         }
-        .footer-section h3 {
+        @media (max-width: 900px) {
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+        }
+        @media (max-width: 600px) {
+            .footer-grid { grid-template-columns: 1fr; gap: 28px; text-align: center; }
+        }
+
+        /* Brand column */
+        .footer-brand-logo {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 18px;
+        }
+        @media (max-width: 600px) { .footer-brand-logo { justify-content: center; } }
+        .footer-brand-logo img { height: 38px; width: auto; opacity: 0.92; }
+        .footer-brand-name {
             font-family: 'Cormorant Garamond', serif;
-            font-size: 1rem; font-weight: 700; color: var(--text);
-            margin-bottom: 16px;
-            display: flex; align-items: center; gap: 7px;
+            font-size: 1.15rem; font-weight: 600;
+            color: #F5F0E8; letter-spacing: 0.02em;
         }
-        .footer-section h3 i { color: var(--primary); font-size: 0.9rem; }
-        .footer-section p {
-            font-size: 0.82rem; color: var(--muted);
-            line-height: 1.9; font-weight: 300;
-            display: flex; align-items: center; gap: 8px;
+        .footer-brand-desc {
+            font-size: 0.82rem; color: rgba(245,240,232,0.75);
+            line-height: 1.8; font-weight: 300; margin-bottom: 24px;
+            max-width: 300px;
         }
-        .footer-section p i { color: var(--primary); width: 14px; text-align: center; }
-        .social-icons { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
-        .social-icons a {
+        @media (max-width: 600px) { .footer-brand-desc { margin: 0 auto 24px; } }
+
+        /* Newsletter input */
+        .footer-newsletter {
+            display: flex; gap: 0;
+            border: 1px solid rgba(200,220,200,0.15);
+            border-radius: var(--radius-sm); overflow: hidden;
+            max-width: 320px;
+        }
+        @media (max-width: 600px) { .footer-newsletter { margin: 0 auto; } }
+        .footer-newsletter input {
+            flex: 1; background: rgba(255,255,255,0.06);
+            border: none; padding: 10px 14px;
+            font-size: 0.78rem; color: #F5F0E8;
+            font-family: 'DM Sans', sans-serif; outline: none;
+        }
+        .footer-newsletter input::placeholder { color: rgba(245,240,232,0.4); }
+        .footer-newsletter-btn {
+            background: var(--primary); color: #F5F0E8;
+            border: none; padding: 10px 16px;
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 0.07em;
+            text-transform: uppercase; cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .footer-newsletter-btn:hover { background: #c06830; }
+
+        /* Column headings */
+        .footer-col-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.05rem; font-weight: 700;
+            color: #F5F0E8;
+            margin-bottom: 20px; letter-spacing: 0.01em;
+        }
+
+        /* Navigation links */
+        .footer-nav { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        @media (max-width: 600px) { .footer-nav { align-items: center; } }
+        .footer-nav a {
+            font-size: 0.82rem; color: rgba(245,240,232,0.75);
+            font-weight: 400; transition: color 0.2s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .footer-nav a::before {
+            content: '→'; font-size: 0.65rem;
+            opacity: 0; transform: translateX(-4px);
+            transition: all 0.2s; color: var(--primary);
+        }
+        .footer-nav a:hover { color: var(--primary); }
+        .footer-nav a:hover::before { opacity: 1; transform: translateX(0); }
+
+        /* Contact info */
+        .footer-contact { display: flex; flex-direction: column; gap: 12px; }
+        @media (max-width: 600px) { .footer-contact { align-items: center; } }
+        .footer-contact-item {
+            display: flex; align-items: flex-start; gap: 10px;
+            font-size: 0.8rem; color: rgba(245,240,232,0.75); line-height: 1.5;
+        }
+        @media (max-width: 600px) { .footer-contact-item { align-items: center; } }
+        .footer-contact-item i {
+            color: var(--primary); font-size: 0.88rem; width: 16px;
+            text-align: center; margin-top: 1px; flex-shrink: 0;
+        }
+        .footer-contact-item a { color: inherit; transition: color 0.2s; }
+        .footer-contact-item a:hover { color: var(--primary); }
+
+        /* Divider */
+        .footer-divider {
+            border: none; border-top: 1px solid rgba(245,240,232,0.1);
+            margin-bottom: 28px; position: relative; z-index: 3;
+        }
+
+        /* Bottom bar */
+        .footer-bottom {
+            display: flex; align-items: center;
+            justify-content: center;
+            padding-bottom: 32px;
+            flex-wrap: wrap; gap: 16px;
+            position: relative; z-index: 3;
+        }
+        @media (max-width: 600px) { .footer-bottom { flex-direction: column; align-items: center; } }
+
+        .footer-copy {
+            font-size: 0.74rem; color: rgba(245,240,232,0.55); font-weight: 300;
+        }
+
+        .footer-socials { display: flex; gap: 10px; }
+        .footer-social-btn {
             display: inline-flex; align-items: center; justify-content: center;
-            width: 38px; height: 38px; border-radius: var(--radius-sm);
-            background: var(--primary-light); color: var(--primary);
-            border: 1px solid rgba(212,119,58,0.2);
-            transition: all 0.2s; font-size: 1rem;
+            width: 36px; height: 36px; border-radius: var(--radius-sm);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(245,240,232,0.15);
+            color: rgba(245,240,232,0.65);
+            font-size: 0.9rem;
+            transition: all 0.22s;
         }
-        .social-icons a:hover {
-            background: var(--primary); color: #fff;
-            transform: translateY(-2px); box-shadow: 0 6px 16px var(--primary-glow);
+        .footer-social-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #F5F0E8;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(212,119,58,0.35);
         }
-        .copyright {
-            border-top: 1px solid var(--border); padding-top: 20px;
-            text-align: center; font-size: 0.75rem; color: var(--muted); font-weight: 300;
+
+        /* Horario badge */
+        .footer-horario-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(212,119,58,0.15);
+            border: 1px solid rgba(212,119,58,0.35);
+            padding: 6px 14px; border-radius: 99px;
+            font-size: 0.73rem; color: var(--primary); font-weight: 600;
+            margin-bottom: 16px; letter-spacing: 0.04em;
+        }
+        .footer-horario-badge .pulsedot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--primary); animation: pulse 2s infinite;
         }
 
         /* ══════════════════════════════════════
@@ -787,15 +1189,14 @@
             .orb-2 { display: none; }
             .hero-stats { gap: 14px; }
             .stat-divider { display: none; }
-            .footer-content { grid-template-columns: 1fr; gap: 24px; }
-            .footer-section { text-align: center; }
-            .footer-section h3 { justify-content: center; }
-            .footer-section p { justify-content: center; }
-            .social-icons { justify-content: center; }
+            .grid-locals-v2 { grid-template-columns: 1fr; }
+            .locales-count { display: none; }
+            .filtered-header { flex-direction: column; align-items: flex-start; gap: 8px; }
         }
         @media (max-width: 480px) {
             .plaza-header { padding: 10px 0; }
-            .grid-locals { grid-template-columns: 1fr; }
+            .grid-locals-v2 { grid-template-columns: 1fr; }
+            .destacados-header { flex-direction: column; }
         }
     </style>
 </head>
@@ -907,7 +1308,7 @@
             </h1>
 
             <p class="hero-subtitle">
-                {{ $stats['total_locales'] }} locales únicos te esperan. Platillos auténticos,
+                {{ $stats['total_locales'] }} Locales únicos te esperan. Platillos auténticos,
                 ambiente inigualable y la magia de comer bajo las estrellas.
             </p>
 
@@ -956,61 +1357,141 @@
     </section>
 
     <!-- ══ CATEGORY BAR ══ -->
-    <div class="category-bar">
+    <div class="category-bar" v-cloak>
         <div class="container">
-            <div class="categories-scroll">
-                <a href="{{ route('plaza.index') }}"
-                   class="cat-btn {{ $categoria_actual === 'todos' ? 'active' : '' }}">
+            <div class="category-bar-inner">
+                <button
+                   @click="filtrarPorCategoria('todos')"
+                   :class="['cat-pill', { active: categoriaSelect === 'todos' }]">
                     <i class="fas fa-border-all"></i> Todos
-                </a>
-                @foreach($categorias as $cat)
-                <a href="{{ route('plaza.index', ['categoria' => $cat['slug']]) }}"
-                   class="cat-btn {{ $categoria_actual === $cat['slug'] ? 'active' : '' }}">
-                    <i class="fas {{ $cat['icono'] }}"></i>
-                    {{ $cat['nombre'] }}
-                </a>
-                @endforeach
+                </button>
+                <button
+                   v-for="cat in categorias"
+                   :key="cat.slug"
+                   @click="filtrarPorCategoria(cat.slug)"
+                   :class="['cat-pill', { active: categoriaSelect === cat.slug }]">
+                    <i :class="['fas', cat.icono]"></i>
+                    @{{ cat.nombre }}
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- ══ NUESTROS LOCALES ══ -->
-    <section class="section">
+    <!-- ══ PRODUCTOS FILTRADOS ══ -->
+    <section class="filtered-section" v-if="categoriaSelect !== 'todos'" v-cloak>
         <div class="container">
-            <div class="section-header">
-                <p class="section-eyebrow">Explora</p>
-                <h2 class="section-title">Nuestros Locales</h2>
-                <p class="section-sub">Los mejores restaurantes de la plaza, todos en un solo lugar</p>
+            <div class="filtered-header">
+                <div>
+                    <p class="filtered-label">
+                        <i class="fas fa-filter"></i> Categoría Seleccionada
+                    </p>
+                    <h2 class="filtered-title">@{{ categoriaSelectNombre || 'Productos Filtrados' }}</h2>
+                </div>
+                <div class="filtered-count-badge" v-if="!cargandoProductos">
+                    <strong>@{{ productosFiltrados.length }}</strong> resultados
+                </div>
+            </div>
+
+            <!-- Loading skeletons -->
+            <div v-if="cargandoProductos" class="skeleton-grid">
+                <div class="skeleton-card" v-for="n in 8" :key="n">
+                    <div class="skeleton-img"></div>
+                    <div class="skeleton-body">
+                        <div class="skeleton-line w-40"></div>
+                        <div class="skeleton-line w-80"></div>
+                        <div class="skeleton-line w-60"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- No results -->
+            <div v-if="!cargandoProductos && productosFiltrados.length === 0" class="empty-state">
+                <i class="fas fa-bowl-food"></i>
+                <p>No se encontraron productos en esta categoría</p>
+            </div>
+
+            <!-- Grid de productos filtrados -->
+            <transition-group
+                v-if="!cargandoProductos && productosFiltrados.length > 0"
+                name="fade-slide"
+                tag="div"
+                class="grid-products-filtered">
+                <div v-for="producto in productosFiltrados" :key="producto.id" class="product-card-v2">
+                    <div class="product-img">
+                        <img :src="producto.photo_url" :alt="producto.name" loading="lazy">
+                        <div class="product-img-overlay"></div>
+                        <span class="product-cat-chip">@{{ producto.category }}</span>
+                        <a :href="'/plaza/' + producto.local_id" class="product-quick-view">
+                            Ver <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="product-body">
+                        <div class="product-local">@{{ producto.local }}</div>
+                        <h3 class="product-name" :title="producto.name">@{{ producto.name }}</h3>
+                        <div class="product-stars" style="margin: 8px 0; display: flex; gap: 2px;">
+                            <i v-for="i in 5" :key="i" class="fas fa-star" :style="{color: i <= (producto.average_rating || 0) ? 'var(--primary)' : 'rgba(122,112,96,0.25)', fontSize: '0.65rem'}"></i>
+                        </div>
+                        <div class="product-footer">
+                            <span class="product-price">₡@{{ producto.price }}</span>
+                            <a :href="'/plaza/' + producto.local_id" style="color: var(--primary); font-size: 0.8rem; font-weight: 600;">
+                                Ver <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </transition-group>
+        </div>
+    </section>
+
+    <!-- ══ NUESTROS LOCALES ══ -->
+    <section class="locales-section">
+        <div class="container">
+            <div class="locales-header-row">
+                <div>
+                    <p class="locales-eyebrow">Explora</p>
+                    <h2 class="locales-title">Nuestros Locales</h2>
+                    <p class="locales-sub">Los mejores restaurantes de la plaza, todos en un solo lugar</p>
+                </div>
+                <div class="locales-count" aria-hidden="true">
+                    <span>{{ $stats['total_locales'] }}</span> locales
+                </div>
             </div>
 
             @if($locales->isEmpty())
                 <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
+                    <i class="fas fa-store-slash"></i>
                     <p>No se encontraron locales disponibles</p>
                 </div>
             @else
-                <div class="grid-locals">
+                <div class="grid-locals-v2">
                     @foreach($locales as $local)
-                    <article class="local-card">
-                        <div class="local-img-wrap">
+                    <article class="local-card-v2">
+                        <div class="local-img-wrap-v2">
                             <img src="{{ $local->logo_url ?? 'https://via.placeholder.com/400x225/171410/D4773A?text=' . urlencode($local->name) }}"
-                                 alt="{{ $local->name }}" class="local-img">
-                            <div class="local-img-overlay"></div>
+                                 alt="{{ $local->name }}" class="local-img-v2" loading="lazy">
+                            <div class="local-img-gradient"></div>
                         </div>
-                        <div class="local-body">
-                            <h3 class="local-name">{{ $local->name }}</h3>
-                            <p class="local-desc">{{ $local->description ?? 'Explora nuestro menú' }}</p>
-                            <div class="local-meta">
-                                <span class="meta-item">
-                                    <i class="fas fa-star"></i>
-                                    {{ $local->average_rating }}
-                                </span>
-                                <span class="local-status {{ $local->status === 'Active' ? '' : 'closed' }}">
-                                    {{ $local->status === 'Active' ? 'Abierto' : 'Cerrado' }}
+                        <div class="local-body-v2">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px;">
+                                <h3 class="local-name-v2">{{ $local->name }}</h3>
+                                <span class="meta-chip" style="white-space: nowrap; font-size: 0.7rem; padding: 4px 8px;">
+                                    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: {{ $local->isOpenNow ? '#4ade80' : '#ef4444' }}; margin-right: 4px;"></span>
+                                    {{ $local->isOpenNow ? 'Abierto' : 'Cerrado' }}
                                 </span>
                             </div>
-                            <a href="{{ route('plaza.show', $local->local_id) }}" class="btn-ver-menu">
-                                Ver Menú <i class="fas fa-chevron-right"></i>
+                            <p class="local-desc-v2">{{ $local->description ?? 'Explora nuestro menú y descubre sabores únicos' }}</p>
+                            <div class="local-stars" style="display: flex; gap: 4px; margin: 10px 0;">
+                                @php
+                                    $rating = round($local->average_rating ?? 0);
+                                    for ($j = 1; $j <= 5; $j++):
+                                @endphp
+                                    <i class="fas fa-star" style="color: {{ $j <= $rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }}; font-size: 0.75rem;"></i>
+                                @php
+                                    endfor;
+                                @endphp
+                            </div>
+                            <a href="{{ route('plaza.show', $local->local_id) }}" class="btn-ver-menu-v2">
+                                Ver Menú <i class="fas fa-arrow-right"></i>
                             </a>
                         </div>
                     </article>
@@ -1022,33 +1503,47 @@
 
     <!-- ══ PRODUCTOS DESTACADOS ══ -->
     @if($productos->isNotEmpty())
-    <section class="section section-wood">
+    <section class="destacados-section">
         <div class="container">
-            <div class="section-header">
-                <div class="section-badge">
-                    <i class="fas fa-fire"></i> Lo Más Buscado
+            <div class="destacados-header">
+                <div>
+                    <div class="destacados-fire-badge">
+                        <i class="fas fa-fire"></i> Lo Más Buscado
+                    </div>
+                    <h2 class="destacados-title">Platillos Destacados</h2>
+                    <p class="destacados-sub">Los favoritos de nuestros clientes de todos los locales</p>
                 </div>
-                <h2 class="section-title">Platillos Destacados</h2>
-                <p class="section-sub">Los favoritos de nuestros clientes de todos los locales</p>
             </div>
 
-            <div class="grid-products">
+            <div class="grid-destacados">
                 @foreach($productos as $producto)
-                <div class="product-card">
-                    <div class="product-img">
-                        <img src="{{ $producto->photo_url ?? asset('images/product-placeholder.jpg') }}"
+                <div class="destacado-card">
+                    <div class="destacado-img">
+                        <img src="{{ $producto->photo_url ?? asset('images/product-placeholder.png') }}"
                              alt="{{ $producto->name }}" loading="lazy">
-                        <span class="product-badge">Popular</span>
+                        <div class="destacado-img-overlay"></div>
+                        <span class="destacado-popular-tag">Popular</span>
                     </div>
-                    <div class="product-body">
-                        <div class="product-local">
+                    <div class="destacado-body">
+                        <div class="destacado-local">
                             {{ $producto->locals->first()?->name ?? 'Local' }}
                         </div>
-                        <h3 class="product-name" title="{{ $producto->name }}">
+                        <h3 class="destacado-name" title="{{ $producto->name }}">
                             {{ $producto->name }}
                         </h3>
-                        <div class="product-footer">
-                            <span class="product-price">₡{{ number_format($producto->price, 2) }}</span>
+                        @php
+                            $rating = round($producto->average_rating ?? 0);
+                        @endphp
+                        <div style="margin: 8px 0; display: flex; gap: 2px;">
+                            @for($i = 1; $i <= 5; $i++)
+                                <i class="fas fa-star" style="color: {{ $i <= $rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }}; font-size: 0.65rem;"></i>
+                            @endfor
+                        </div>
+                        <div class="destacado-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="destacado-price">₡{{ number_format($producto->price, 2) }}</span>
+                            <a href="{{ route('plaza.show', $producto->locals->first()?->local_id ?? '#') }}" style="color: var(--primary); font-size: 0.8rem; font-weight: 600;">
+                                Ver <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -1059,66 +1554,109 @@
     @endif
 
     <!-- ══ FOOTER ══ -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3><i class="fas fa-clock"></i> Horario</h3>
-                    <p><strong>Lunes</strong></p>
-                    <p>Cerrado</p>
-                    <p><strong>Martes a Domingo</strong></p>
-                    <p>12:00 MD – 10:00 PM</p>
-                </div>
-                <div class="footer-section">
-                    <h3><i class="fas fa-map-marker-alt"></i> Ubicación</h3>
-                    <p>
-                        <i class="fas fa-location-dot"></i>
-                        <a href="https://maps.app.goo.gl/UYkQZhrKbVnTKgWj8?g_st=aw" target="_blank" rel="noopener"
-                           style="color:var(--primary);text-decoration:underline;">La Comarca Gastro Park</a>
-                    </p>
-                    <p>
-                        <i class="fas fa-map"></i>
-                        <a href="https://maps.app.goo.gl/UYkQZhrKbVnTKgWj8?g_st=aw" target="_blank" rel="noopener"
-                           style="color:var(--muted);text-decoration:underline;">Guápiles, Limón, Costa Rica</a>
-                    </p>
-                    <p style="margin-top:8px;"><i class="fas fa-phone"></i> +506 8888 8888</p>
-                    <p><i class="fas fa-envelope"></i> info@lacomarcagastropark.com</p>
-                </div>
-                <div class="footer-section">
-                    <h3><i class="fas fa-share-alt"></i> Síguenos</h3>
-                    <p style="margin-bottom:4px;font-weight:300;">Conecta con nosotros en redes sociales</p>
-                    <div class="social-icons">
-                        <a href="https://www.facebook.com/share/1CYem5AGeo/" target="_blank" rel="noopener" aria-label="Facebook">
-                            <i class="fab fa-facebook"></i>
-                        </a>
-                        <a href="https://www.instagram.com/la.comarcagastropark?igsh=bW43MHB0OG9yMG8y" target="_blank" rel="noopener" aria-label="Instagram">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="https://www.tiktok.com/@la.comarcagastropark?_t=ZM-8z8TOSBnnGv&_r=1" target="_blank" rel="noopener" aria-label="TikTok">
-                            <i class="fab fa-tiktok"></i>
-                        </a>
+    <footer class="footer-v2">
+        <!-- Mountains silhouette - separator -->
+        <div class="footer-landscape">
+            <svg viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0,40 C80,100 160,20 240,60 C280,80 300,30 340,50 C380,70 400,35 440,55
+                         C480,75 510,25 560,65 C600,95 630,30 680,70 C720,105 750,40 800,75
+                         C840,105 870,45 920,80 C960,110 990,50 1040,85 C1080,115 1110,55 1160,90
+                         C1200,120 1240,65 1280,95 C1320,120 1360,70 1400,100 L1440,120 L1440,0 L0,0 Z"
+                      fill="#0A0908" stroke="none"/>
+            </svg>
+        </div>
+
+        <div class="footer-main">
+            <div class="container">
+                <div class="footer-grid">
+                    <!-- Brand column -->
+                    <div>
+                        <div class="footer-brand-logo">
+                            <img src="{{ asset('images/iconoblanco.png') }}" alt="La Comarca">
+                            <span class="footer-brand-name">La Comarca Gastropark</span>
+                        </div>
+                        <p class="footer-brand-desc">
+                            Un espacio gastronómico único en Guápiles, Limón. Sabores auténticos, ambiente inigualable y la magia de comer bajo las estrellas.
+                        </p>
+                        <div class="footer-horario-badge">
+                            <span class="pulsedot"></span>
+                            Mar–Dom &nbsp;·&nbsp; 12:00 MD – 10:00 PM
+                        </div>
+                    </div>
+
+                    <!-- Contacto column -->
+                    <div>
+                        <h3 class="footer-col-title">Contáctanos</h3>
+                        <div class="footer-contact">
+                            <div class="footer-contact-item">
+                                <i class="fas fa-location-dot"></i>
+                                <span>
+                                    <a href="https://maps.app.goo.gl/UYkQZhrKbVnTKgWj8?g_st=aw" target="_blank" rel="noopener">La Comarca Gastro Park</a><br>
+                                    Guápiles, Limón, Costa Rica
+                                </span>
+                            </div>
+                            <div class="footer-contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>+506 8888 8888</span>
+                            </div>
+                            <div class="footer-contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span><a href="mailto:info@lacomarcagastropark.com">info@lacomarcagastropark.com</a></span>
+                            </div>
+                            <div class="footer-contact-item">
+                                <i class="fas fa-clock"></i>
+                                <span>Lunes: Cerrado<br>Mar–Dom: 12:00 MD – 10:00 PM</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Síguenos column -->
+                    <div>
+                        <h3 class="footer-col-title">Síguenos</h3>
+                        <p style="font-size:0.8rem;color:rgba(200,220,200,0.4);font-weight:300;line-height:1.7;margin-bottom:20px;">
+                            Conecta con nosotros en redes sociales y mantente al día con nuestros eventos y promociones especiales.
+                        </p>
+                        <div class="footer-socials">
+                            <a href="https://www.facebook.com/share/1CYem5AGeo/" target="_blank" rel="noopener"
+                               class="footer-social-btn" aria-label="Facebook">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="https://www.instagram.com/la.comarcagastropark?igsh=bW43MHB0OG9yMG8y" target="_blank" rel="noopener"
+                               class="footer-social-btn" aria-label="Instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="https://www.tiktok.com/@la.comarcagastropark?_t=ZM-8z8TOSBnnGv&_r=1" target="_blank" rel="noopener"
+                               class="footer-social-btn" aria-label="TikTok">
+                                <i class="fab fa-tiktok"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="copyright">
-                <p>&copy; 2026 La Comarca Gastro Park. Todos los derechos reservados.</p>
+
+                <hr class="footer-divider">
+
+                <div class="footer-bottom">
+                    <p class="footer-copy">&copy; 2026 La Comarca Gastro Park. Todos los derechos reservados.</p>
+                </div>
             </div>
         </div>
     </footer>
 
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     /* ── User menu ── */
-    const menuBtn = document.getElementById('userMenuBtn');
-    const menuDrop = document.getElementById('userMenuDropdown');
-    if (menuBtn && menuDrop) {
-        menuBtn.addEventListener('click', e => {
-            e.stopPropagation();
-            menuDrop.classList.toggle('open');
-        });
-        document.addEventListener('click', () => menuDrop.classList.remove('open'));
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const menuBtn = document.getElementById('userMenuBtn');
+        const menuDrop = document.getElementById('userMenuDropdown');
+        if (menuBtn && menuDrop) {
+            menuBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                menuDrop.classList.toggle('open');
+            });
+            document.addEventListener('click', () => menuDrop.classList.remove('open'));
+        }
+    });
 
     /* ── Vue App ── */
     const { createApp } = Vue;
@@ -1128,6 +1666,11 @@
             return {
                 searchQuery: '',
                 particles: [],
+                categorias: {!! json_encode($categorias) !!},
+                categoriaSelect: 'todos',
+                categoriaSelectNombre: 'Todos',
+                productosFiltrados: [],
+                cargandoProductos: false,
             };
         },
 
@@ -1188,8 +1731,50 @@
                 const bg = document.getElementById('heroBgImg');
                 if (bg) bg.style.transform = `scale(1.06) translateY(${scrollY * 0.14}px)`;
             },
-        }
+
+            filtrarPorCategoria(slug) {
+                this.categoriaSelect = slug;
+
+                // Actualizar el nombre de la categoría seleccionada
+                if (slug === 'todos') {
+                    this.categoriaSelectNombre = 'Todos';
+                } else {
+                    const cat = this.categorias.find(c => c.slug === slug);
+                    this.categoriaSelectNombre = cat ? cat.nombre : 'Productos Filtrados';
+                }
+
+                // Obtener productos filtrados vía AJAX
+                this.obtenerProductosFiltrados(slug);
+            },
+
+            async obtenerProductosFiltrados(categoria) {
+                this.cargandoProductos = true;
+                try {
+                    const response = await fetch(`{{ route('plaza.get.productos') }}?categoria=${categoria}`);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.productosFiltrados = data.data;
+                        // Scroll a la sección de productos filtrados
+                        setTimeout(() => {
+                            const section = document.querySelector('[v-if*="categoriaSelect"]');
+                            if (section) {
+                                section.scrollIntoView({ behavior: 'smooth' });
+                            }
+                        }, 100);
+                    } else {
+                        this.productosFiltrados = [];
+                    }
+                } catch (error) {
+                    console.error('Error al obtener productos:', error);
+                    this.productosFiltrados = [];
+                } finally {
+                    this.cargandoProductos = false;
+                }
+            },
+        },
     }).mount('#plaza-app');
 </script>
+
 </body>
 </html>

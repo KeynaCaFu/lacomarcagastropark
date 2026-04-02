@@ -442,6 +442,13 @@
             justify-content: space-between;
         }
 
+        .p-card-stars {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
         .p-card-price {
             font-family: 'Cormorant Garamond', serif;
             font-size: 1.55rem;
@@ -553,42 +560,201 @@
             opacity: 0.5;
         }
 
-        /* ── FOOTER ──────────────────────────────── */
-        .site-footer {
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            padding: 56px 0 24px;
+         /* ══════════════════════════════════════
+           FOOTER — UPGRADED (Nature-inspired)
+        ══════════════════════════════════════ */
+        .footer-v2 {
+            position: relative;
+            background: #5a2e02;
+            background-image: url('{{ asset("images/fondomadera1.webp") }}');
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+        }
+
+        /* Dark overlay for text readability */
+        .footer-v2::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: rgba(10, 9, 8, 0.75);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* Silhouette landscape SVG top */
+        .footer-landscape {
+            display: block;
+            width: 100%;
+            margin-bottom: 0;
+            line-height: 0;
+            position: relative; z-index: 1;
+        }
+        .footer-landscape svg {
+            width: 100%; height: 120px;
+            display: block;
+        }
+
+        .footer-main {
+            padding: 56px 0 0;
+            position: relative; z-index: 2;
+        }
+
+        /* Subtle texture overlay */
+        .footer-v2::after {
+            content: '';
+            position: absolute; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.025; pointer-events: none; z-index: 1;
         }
 
         .footer-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 36px;
-            margin-bottom: 36px;
+            grid-template-columns: 1.8fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 52px;
+            position: relative; z-index: 3;
+        }
+        @media (max-width: 900px) {
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+        }
+        @media (max-width: 600px) {
+            .footer-grid { grid-template-columns: 1fr; gap: 28px; text-align: center; }
         }
 
-        .footer-col h4 {
+        /* Brand column */
+        .footer-brand-logo {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 18px;
+        }
+        @media (max-width: 600px) { .footer-brand-logo { justify-content: center; } }
+        .footer-brand-logo img { height: 38px; width: auto; opacity: 0.92; }
+        .footer-brand-name {
             font-family: 'Cormorant Garamond', serif;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 14px;
-            display: flex;
-            align-items: center;
-            gap: 7px;
+            font-size: 1.15rem; font-weight: 600;
+            color: #F5F0E8; letter-spacing: 0.02em;
         }
-        .footer-col h4 i { color: var(--primary); font-size: 0.95rem; }
-
-        .footer-col p {
-            font-size: 0.82rem;
-            color: var(--muted);
-            line-height: 1.9;
-            display: flex;
-            align-items: center;
-            gap: 7px;
+        .footer-brand-desc {
+            font-size: 0.82rem; color: rgba(245,240,232,0.75);
+            line-height: 1.8; font-weight: 300; margin-bottom: 24px;
+            max-width: 300px;
         }
-        .footer-col p i { color: var(--primary); width: 14px; text-align: center; }
+        @media (max-width: 600px) { .footer-brand-desc { margin: 0 auto 24px; } }
 
+        /* Newsletter input */
+        .footer-newsletter {
+            display: flex; gap: 0;
+            border: 1px solid rgba(200,220,200,0.15);
+            border-radius: var(--radius-sm); overflow: hidden;
+            max-width: 320px;
+        }
+        @media (max-width: 600px) { .footer-newsletter { margin: 0 auto; } }
+        .footer-newsletter input {
+            flex: 1; background: rgba(255,255,255,0.06);
+            border: none; padding: 10px 14px;
+            font-size: 0.78rem; color: #F5F0E8;
+            font-family: 'DM Sans', sans-serif; outline: none;
+        }
+        .footer-newsletter input::placeholder { color: rgba(245,240,232,0.4); }
+        .footer-newsletter-btn {
+            background: var(--primary); color: #F5F0E8;
+            border: none; padding: 10px 16px;
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 0.07em;
+            text-transform: uppercase; cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .footer-newsletter-btn:hover { background: #c06830; }
+
+        /* Column headings */
+        .footer-col-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.05rem; font-weight: 700;
+            color: #F5F0E8;
+            margin-bottom: 20px; letter-spacing: 0.01em;
+        }
+
+        /* Navigation links */
+        .footer-nav { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        @media (max-width: 600px) { .footer-nav { align-items: center; } }
+        .footer-nav a {
+            font-size: 0.82rem; color: rgba(245,240,232,0.75);
+            font-weight: 400; transition: color 0.2s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .footer-nav a::before {
+            content: '→'; font-size: 0.65rem;
+            opacity: 0; transform: translateX(-4px);
+            transition: all 0.2s; color: var(--primary);
+        }
+        .footer-nav a:hover { color: var(--primary); }
+        .footer-nav a:hover::before { opacity: 1; transform: translateX(0); }
+
+        /* Contact info */
+        .footer-contact { display: flex; flex-direction: column; gap: 12px; }
+        @media (max-width: 600px) { .footer-contact { align-items: center; } }
+        .footer-contact-item {
+            display: flex; align-items: flex-start; gap: 10px;
+            font-size: 0.8rem; color: rgba(245,240,232,0.75); line-height: 1.5;
+        }
+        @media (max-width: 600px) { .footer-contact-item { align-items: center; } }
+        .footer-contact-item i {
+            color: var(--primary); font-size: 0.88rem; width: 16px;
+            text-align: center; margin-top: 1px; flex-shrink: 0;
+        }
+        .footer-contact-item a { color: inherit; transition: color 0.2s; }
+        .footer-contact-item a:hover { color: var(--primary); }
+
+        /* Divider */
+        .footer-divider {
+            border: none; border-top: 1px solid rgba(245,240,232,0.1);
+            margin-bottom: 28px; position: relative; z-index: 3;
+        }
+
+        /* Bottom bar */
+        .footer-bottom {
+            display: flex; align-items: center;
+            justify-content: center;
+            padding-bottom: 32px;
+            flex-wrap: wrap; gap: 16px;
+            position: relative; z-index: 3;
+        }
+        @media (max-width: 600px) { .footer-bottom { flex-direction: column; align-items: center; } }
+
+        .footer-copy {
+            font-size: 0.74rem; color: rgba(245,240,232,0.55); font-weight: 300;
+        }
+
+        .footer-socials { display: flex; gap: 10px; }
+        .footer-social-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; border-radius: var(--radius-sm);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(245,240,232,0.15);
+            color: rgba(245,240,232,0.65);
+            font-size: 0.9rem;
+            transition: all 0.22s;
+        }
+        .footer-social-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #F5F0E8;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(212,119,58,0.35);
+        }
+
+        /* Horario badge */
+        .footer-horario-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(212,119,58,0.15);
+            border: 1px solid rgba(212,119,58,0.35);
+            padding: 6px 14px; border-radius: 99px;
+            font-size: 0.73rem; color: var(--primary); font-weight: 600;
+            margin-bottom: 16px; letter-spacing: 0.04em;
+        }
+        .footer-horario-badge .pulsedot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--primary); animation: pulse 2s infinite;
+        }
         .social-row {
             display: flex;
             gap: 12px;
@@ -698,10 +864,37 @@
             @endif
             <div class="hero-text">
                 <div class="hero-tag"><i class="fas fa-utensils"></i> La Comarca Gastro Park</div>
-                <h1 class="hero-name">{{ $local->name }}</h1>
-                @if($local->description)
-                    <p class="hero-desc">{{ $local->description }}</p>
-                @endif
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
+                    <div>
+                        <h1 class="hero-name">{{ $local->name }}</h1>
+                        @if($local->description)
+                            <p class="hero-desc">{{ $local->description }}</p>
+                        @endif
+                    </div>
+                    @if($horarioHoy)
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 2px solid rgba(212,119,58,0.4); min-width: fit-content;">
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.75rem; color: rgba(245,240,232,0.6); margin-bottom: 4px; font-weight: 600;">{{ $diaActual }}</div>
+                                @if($horarioHoy->status)
+                                    <div style="font-size: 0.95rem; color: var(--primary); font-weight: 700;">
+                                        {{ $horarioHoy->opening_time?->format('H:i') ?? 'N/A' }} - {{ $horarioHoy->closing_time?->format('H:i') ?? 'N/A' }}
+                                    </div>
+                                    <div style="font-size: 0.65rem; margin-top: 2px; font-weight: 600;">
+                                        @if($estaAbierto)
+                                            <span style="color: #4ade80;"><i class="fas fa-circle" style="font-size: 0.5rem;"></i> Abierto</span>
+                                        @else
+                                            <span style="color: var(--muted);"><i class="fas fa-circle" style="font-size: 0.5rem; color: #ff1100;"></i> Cerrado</span>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div style="font-size: 0.85rem; color: #ff1100; font-weight: 600;">
+                                        Cerrado hoy
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
     </section>
@@ -753,7 +946,7 @@
                          v-show="activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory">
 
                         <div class="p-card-img">
-                            <img src="{{ $producto->photo_url ?? asset('images/product-placeholder.jpg') }}"
+                            <img src="{{ $producto->photo_url ?? asset('images/product-placeholder.png') }}"
                                  alt="{{ $producto->name }}"
                                  loading="{{ $i < 4 ? 'eager' : 'lazy' }}">
                             <div class="p-card-img-fade"></div>
@@ -770,6 +963,16 @@
                             @if($i === 0 && $producto->description)
                                 <p class="featured-desc">{{ $producto->description }}</p>
                             @endif
+                            <div class="p-card-stars">
+                                @php
+                                    $rating = round($producto->average_rating ?? 0);
+                                    for ($j = 1; $j <= 5; $j++):
+                                @endphp
+                                    <i class="fas fa-star" style="color: {{ $j <= $rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }}; font-size: 0.7rem;"></i>
+                                @php
+                                    endfor;
+                                @endphp
+                            </div>
                             <div class="p-card-footer">
                                 <span class="p-card-price">
                                     <sup>₡</sup>{{ number_format($producto->price, 2) }}
@@ -786,48 +989,91 @@
         </div>
     </main>
 
-    <!-- ── FOOTER ── -->
-    <footer class="site-footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <h4><i class="fas fa-clock"></i> Horario</h4>
-                    <p><strong>Lunes a Viernes</strong></p>
-                    <p>12:00 PM – 12:00 AM</p>
-                    <p style="margin-top:10px;"><strong>Sábado y Domingo</strong></p>
-                    <p>11:00 AM – 2:00 AM</p>
-                </div>
-                <div class="footer-col">
-                    <h4><i class="fas fa-map-marker-alt"></i> Ubicación</h4>
-                    <p>
-                        <i class="fas fa-location-dot"></i>
-                        <a href="https://maps.app.goo.gl/UYkQZhrKbVnTKgWj8?g_st=aw" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:underline;">La Comarca Gastro Park</a>
-                    </p>
-                    <p>
-                        <i class="fas fa-map"></i>
-                        <a href="https://maps.app.goo.gl/UYkQZhrKbVnTKgWj8?g_st=aw" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:underline;">Guápiles, Limón, Costa Rica</a>
-                    </p>
-                    <p style="margin-top:10px;"><i class="fas fa-phone"></i> +506 8888 8888</p>
-                    <p><i class="fas fa-envelope"></i> info@lacomarcagastropark.com</p>
-                </div>
-                <div class="footer-col">
-                    <h4><i class="fas fa-share-alt"></i> Síguenos</h4>
-                    <p style="margin-bottom:4px;">Conecta con nosotros</p>
-                    <div class="social-row">
-                        <a class="social-btn" href="https://www.facebook.com/share/1CYem5AGeo/" target="_blank" rel="noopener" aria-label="Facebook">
-                            <i class="fab fa-facebook"></i>
-                        </a>
-                        <a class="social-btn" href="https://www.instagram.com/la.comarcagastropark?igsh=bW43MHB0OG9yMG8y" target="_blank" rel="noopener" aria-label="Instagram">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a class="social-btn" href="https://www.tiktok.com/@la.comarcagastropark?_t=ZM-8z8TOSBnnGv&_r=1" target="_blank" rel="noopener" aria-label="TikTok">
-                            <i class="fab fa-tiktok"></i>
-                        </a>
+     <!-- ══ FOOTER ══ -->
+    <footer class="footer-v2">
+        <!-- Mountains silhouette - separator -->
+        <div class="footer-landscape">
+            <svg viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0,40 C80,100 160,20 240,60 C280,80 300,30 340,50 C380,70 400,35 440,55
+                         C480,75 510,25 560,65 C600,95 630,30 680,70 C720,105 750,40 800,75
+                         C840,105 870,45 920,80 C960,110 990,50 1040,85 C1080,115 1110,55 1160,90
+                         C1200,120 1240,65 1280,95 C1320,120 1360,70 1400,100 L1440,120 L1440,0 L0,0 Z"
+                      fill="#0A0908" stroke="none"/>
+            </svg>
+        </div>
+
+        <div class="footer-main">
+            <div class="container">
+                <div class="footer-grid">
+                    <!-- Brand column -->
+                    <div>
+                        <div class="footer-brand-logo">
+                            <img src="{{ asset('images/iconoblanco.png') }}" alt="La Comarca">
+                            <span class="footer-brand-name">La Comarca Gastropark</span>
+                        </div>
+                        <p class="footer-brand-desc">
+                            Un espacio gastronómico único en Guápiles, Limón. Sabores auténticos, ambiente inigualable y la magia de comer bajo las estrellas.
+                        </p>
+                        <div class="footer-horario-badge">
+                            <span class="pulsedot"></span>
+                            Mar–Dom &nbsp;·&nbsp; 12:00 MD – 10:00 PM
+                        </div>
+                    </div>
+
+                    <!-- Contacto column -->
+                    <div>
+                        <h3 class="footer-col-title">Contáctanos</h3>
+                        <div class="footer-contact">
+                            <div class="footer-contact-item">
+                                <i class="fas fa-location-dot"></i>
+                                <span>
+                                    <a href="https://maps.app.goo.gl/UYkQZhrKbVnTKgWj8?g_st=aw" target="_blank" rel="noopener">La Comarca Gastro Park</a><br>
+                                    Guápiles, Limón, Costa Rica
+                                </span>
+                            </div>
+                            <div class="footer-contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>+506 8888 8888</span>
+                            </div>
+                            <div class="footer-contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span><a href="mailto:info@lacomarcagastropark.com">info@lacomarcagastropark.com</a></span>
+                            </div>
+                            <div class="footer-contact-item">
+                                <i class="fas fa-clock"></i>
+                                <span>Lunes: Cerrado<br>Mar–Dom: 12:00 MD – 10:00 PM</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Síguenos column -->
+                    <div>
+                        <h3 class="footer-col-title">Síguenos</h3>
+                        <p style="font-size:0.8rem;color:rgba(200,220,200,0.4);font-weight:300;line-height:1.7;margin-bottom:20px;">
+                            Conecta con nosotros en redes sociales y mantente al día con nuestros eventos y promociones especiales.
+                        </p>
+                        <div class="footer-socials">
+                            <a href="https://www.facebook.com/share/1CYem5AGeo/" target="_blank" rel="noopener"
+                               class="footer-social-btn" aria-label="Facebook">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="https://www.instagram.com/la.comarcagastropark?igsh=bW43MHB0OG9yMG8y" target="_blank" rel="noopener"
+                               class="footer-social-btn" aria-label="Instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="https://www.tiktok.com/@la.comarcagastropark?_t=ZM-8z8TOSBnnGv&_r=1" target="_blank" rel="noopener"
+                               class="footer-social-btn" aria-label="TikTok">
+                                <i class="fab fa-tiktok"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="footer-copy">
-                &copy; 2026 La Comarca Gastro Park. Todos los derechos reservados.
+
+                <hr class="footer-divider">
+
+                <div class="footer-bottom">
+                    <p class="footer-copy">&copy; 2026 La Comarca Gastro Park. Todos los derechos reservados.</p>
+                </div>
             </div>
         </div>
     </footer>
@@ -836,18 +1082,20 @@
 
 <script>
     // User menu toggle
-    const menuBtn = document.getElementById('userMenuBtn');
-    const menuDropdown = document.getElementById('userMenuDropdown');
+    document.addEventListener('DOMContentLoaded', function() {
+        const menuBtn = document.getElementById('userMenuBtn');
+        const menuDropdown = document.getElementById('userMenuDropdown');
 
-    if (menuBtn && menuDropdown) {
-        menuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menuDropdown.classList.toggle('open');
-        });
-        document.addEventListener('click', () => {
-            menuDropdown.classList.remove('open');
-        });
-    }
+        if (menuBtn && menuDropdown) {
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menuDropdown.classList.toggle('open');
+            });
+            document.addEventListener('click', () => {
+                menuDropdown.classList.remove('open');
+            });
+        }
+    });
 
     // Vue app
     const { createApp } = Vue;

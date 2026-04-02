@@ -43,8 +43,9 @@ Route::get('/', function () {
             return redirect()->route('admin.dashboard');
         } elseif ($user->isAdminLocal()) {
             return redirect()->route('dashboard');
+        } elseif ($user->isClient()) {
+            return redirect()->route('plaza.index');
         }
-        // Por defecto, clientes ven la plaza
     }
     // Mostrar plaza a todos (autenticados o no)
     return redirect()->route('plaza.index');
@@ -224,7 +225,8 @@ Route::middleware('auth')->group(function () {
 
 Route::prefix('plaza')->name('plaza.')->group(function () {
     Route::get('/', [\App\Http\Controllers\PlazaController::class, 'index'])->name('index');
-    Route::get('/{id}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show')->where('id', '[0-9]+');
+    Route::get('api/productos', [\App\Http\Controllers\PlazaController::class, 'getProductosByCategory'])->name('get.productos');
+    Route::get('{id}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show')->where('id', '[0-9]+');
 });
 
 require __DIR__.'/auth.php';
