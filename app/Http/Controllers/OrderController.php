@@ -171,11 +171,12 @@ class OrderController extends Controller
             $localId = $local->local_id;
         }
 
-        // Obtener órdenes pendientes
+        // Obtener órdenes pendientes con sus items
         $pendingOrders = Order::where('status', 'Pending')
             ->when($localId, function ($query) use ($localId) {
                 return $query->where('local_id', $localId);
             })
+            ->with('items.product:product_id,name')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get(['order_id', 'order_number', 'status', 'created_at']);
@@ -191,7 +192,11 @@ class OrderController extends Controller
             'orders' => $pendingOrders->map(fn($order) => [
                 'order_id' => $order->order_id,
                 'order_number' => $order->order_number,
-                'created_at' => $order->created_at->format('H:i')
+                'created_at' => $order->created_at->format('H:i'),
+                'items' => $order->items->map(fn($item) => [
+                    'product_name' => $item->product->name,
+                    'quantity' => $item->quantity
+                ])->toArray()
             ])
         ]);
     }
