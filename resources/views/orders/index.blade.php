@@ -840,7 +840,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let total = 0;
 
         if (items.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 16px; color: #999;">Sin productos seleccionados</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 12px 8px; color: #999; font-size: 12px;">Sin productos seleccionados</td></tr>';
             document.getElementById('orderTotal').textContent = '0.00';
             return;
         }
@@ -849,10 +849,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const subtotal = item.price * item.quantity;
             total += subtotal;
             return `
-                <tr style="border-bottom: 1px solid #e5e7eb;">
-                    <td style="padding: 8px 0;">${item.name}</td>
-                    <td style="text-align: center; padding: 8px 0;">${item.quantity}</td>
-                    <td style="text-align: right; padding: 8px 0;">₡${subtotal.toFixed(2)}</td>
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td>₡${subtotal.toFixed(2)}</td>
                 </tr>
             `;
         }).join('');
@@ -1004,53 +1004,82 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const items = Object.values(orderInProgress.items);
         if (items.length === 0) {
-            swAlert({ icon: 'warning', title: 'Error', text: 'Debes seleccionar al menos un producto' });
+            swAlert({ icon: 'warning', title: 'Advertencia', text: 'Debes seleccionar al menos un producto' });
             return;
         }
 
         const preparationTime = document.getElementById('preparationTime').value;
         const additionalNotes = document.getElementById('additionalNotes').value;
         const userId = document.getElementById('customerId').value;
+        const itemsCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
-        const payload = {
-            user_id: userId || null,
-            items: items.map(item => ({
-                product_id: item.product_id,
-                quantity: item.quantity,
-                customization: null
-            })),
-            preparation_time: parseInt(preparationTime),
-            additional_notes: additionalNotes
-        };
+        // Mostrar confirmación antes de guardar
+        swConfirm({
+            title: '¿Confirmar nueva orden?',
+            html: `
+                <div style="text-align: left; margin-top: 15px;">
+                    <p><strong>Resumen de la orden:</strong></p>
+                    <ul style="list-style: none; padding: 0; font-size: 14px;">
+                        <li><i class="fas fa-box" style="margin-right: 8px; color: #e18018;"></i> <strong>${itemsCount}</strong> producto${itemsCount > 1 ? 's' : ''}</li>
+                        <li><i class="fas fa-clock" style="margin-right: 8px; color: #e18018;"></i> Tiempo: <strong>${preparationTime} min</strong></li>
+                        ${userId ? `<li><i class="fas fa-user" style="margin-right: 8px; color: #e18018;"></i> Cliente: <strong>Seleccionado</strong></li>` : `<li><i class="fas fa-user" style="margin-right: 8px; color: #999;"></i> Cliente: <em>No asignado</em></li>`}
+                    </ul>
+                </div>
+            `,
+            confirmButtonText: 'Sí, crear orden',
+            cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (!result.isConfirmed) return;
 
-        try {
-            const response = await fetch('{{ route("orders.store") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify(payload)
-            });
+            const payload = {
+                user_id: userId || null,
+                items: items.map(item => ({
+                    product_id: item.product_id,
+                    quantity: item.quantity,
+                    customization: null
+                })),
+                preparation_time: parseInt(preparationTime),
+                additional_notes: additionalNotes
+            };
 
-            const data = await response.json();
-
-            if (data.success) {
-                swAlert({
-                    icon: 'success',
-                    title: '¡Éxito!',
-                    html: `Orden <strong>${data.order.order_number}</strong> creada exitosamente`,
-                    didClose: function() {
-                        location.reload();
-                    }
+            try {
+                const response = await fetch('{{ route("orders.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify(payload)
                 });
-            } else {
-                swAlert({ icon: 'error', title: 'Error', text: data.error || 'Error al crear la orden' });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Cerrar modal primero
+                    closeModal();
+                    
+                    // Mostrar notificación de éxito (toast con tiempo)
+                    if (window.swToast) {
+                        window.swToast.fire({
+                            icon: 'success',
+                            title: `Orden ${data.order.order_number} creada exitosamente`
+                        });
+                    } else {
+                        showNotification('success', `Orden ${data.order.order_number} creada exitosamente`);
+                    }
+                    
+                    // Refrescar la página después de 1.5 segundos para que aparezca la nueva orden
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    swAlert({ icon: 'error', title: 'Error', text: data.error || 'Error al crear la orden' });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                swAlert({ icon: 'error', title: 'Error', text: error.message });
             }
-        } catch (error) {
-            console.error('Error:', error);
-            swAlert({ icon: 'error', title: 'Error', text: error.message });
-        }
+        });
     });
 
     function resetOrderForm() {
