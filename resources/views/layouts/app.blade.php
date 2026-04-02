@@ -1095,27 +1095,61 @@
             
             const message = confirmMessages[status] || '¿Cambiar estado?';
             
-            // Mostrar confirmación
-            const result = await window.swConfirm({
-                title: 'Confirmar cambio',
-                text: message,
-                icon: status === 'Cancelled' ? 'warning' : 'info'
-            });
-            
-            // Si no confirmó, salir
-            if (!result.isConfirmed) return;
+            // Si es cancelación, pedir motivo
+            let cancellationReason = null;
+            if (status === 'Cancelled') {
+                const inputResult = await Swal.fire({
+                    title: 'Cancelar Orden',
+                    text: 'Por favor, indique el motivo de la cancelación:',
+                    input: 'textarea',
+                    inputPlaceholder: 'Ej: Cliente lo solicita, error en pedido, etc...',
+                    inputAttributes: {
+                        maxlength: 500
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Cancelar orden',
+                    cancelButtonText: 'Atrás',
+                    confirmButtonColor: '#e18018',
+                    cancelButtonColor: '#6b7280',
+                    icon: 'warning',
+                    inputValidator: (value) => {
+                        if (!value || !value.trim()) {
+                            return 'Debe ingresar un motivo para cancelar'
+                        }
+                    }
+                });
+                
+                if (!inputResult.isConfirmed) return;
+                cancellationReason = inputResult.value.trim();
+            } else {
+                // Para otros estados, confirmación simple
+                const result = await window.swConfirm({
+                    title: 'Confirmar cambio',
+                    text: message,
+                    icon: 'info'
+                });
+                
+                if (!result.isConfirmed) return;
+            }
             
             try {
+                const payload = { status };
+                if (cancellationReason) {
+                    payload.cancellation_reason = cancellationReason;
+                }
+
                 const response = await fetch(`{{ url('ordenes') }}/${orderId}/cambiar-estado`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
-                    body: JSON.stringify({ status })
+                    body: JSON.stringify(payload)
                 });
                 
-                if (response.ok) {
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
                     // Recargar órdenes después de cambiar el estado
                     if (window.loadPendingOrdersNotif) {
                         window.loadPendingOrdersNotif();
@@ -1130,9 +1164,25 @@
                             title: `Estado cambiado a ${statusNames[status]}`
                         });
                     }
+                } else {
+                    // Error del servidor
+                    if (window.swAlert) {
+                        window.swAlert({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.error || 'No se pudo cambiar el estado'
+                        });
+                    }
                 }
             } catch (error) {
                 console.error('Error al cambiar estado:', error);
+                if (window.swAlert) {
+                    window.swAlert({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Hubo un error al procesar la solicitud'
+                    });
+                }
             }
         }
 
