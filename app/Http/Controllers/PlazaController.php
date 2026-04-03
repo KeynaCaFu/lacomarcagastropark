@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Local;
+use App\Models\Schedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -31,7 +32,12 @@ class PlazaController extends Controller
 
         // Obtener productos disponibles
         $productos = Product::where('status', 'Available')
-            ->with('locals')
+            ->with([
+                'locals',
+                'productReviews.review' => function ($query) {
+                    $query->select('review_id', 'rating');
+                }
+            ])
             ->get()
             ->map(function ($product) {
                 $product->category_slug = Str::slug($product->category);
@@ -51,13 +57,21 @@ class PlazaController extends Controller
             ->with(['gallery' => function ($query) {
                 $query->limit(1);
             }])
-            ->get();
+            ->get()
+            ->map(function ($local) {
+                // Calcular si el local está abierto en este momento
+                $local->isOpenNow = Schedule::isCurrentlyOpen($local->local_id);
+                return $local;
+            });
 
-        // Obtener 2 productos aleatorios de cada local
+        // Obtener 2 productos aleatorios de cada local con eager loading de reseñas
         $productosAleatorios = collect();
         foreach ($locales as $local) {
             $productosLocal = $local->products()
                 ->where('tbproduct.status', 'Available')
+                ->with(['productReviews.review' => function ($query) {
+                    $query->select('review_id', 'rating');
+                }])
                 ->inRandomOrder()
                 ->limit(2)
                 ->get();
@@ -90,12 +104,17 @@ class PlazaController extends Controller
         // Buscar local por su primary key (local_id)
         $local = Local::where('local_id', $id)->firstOrFail();
 
-        // Obtener productos de este local
+        // Obtener productos de este local con eager loading de reseñas
         $productos = Product::whereHas('locals', function ($query) use ($id) {
             $query->where('tblocal_product.local_id', $id);
         })
             ->where('status', 'Available')
-            ->with('gallery')
+            ->with([
+                'gallery',
+                'productReviews.review' => function ($query) {
+                    $query->select('review_id', 'rating');
+                }
+            ])
             ->get();
 
         // Extraer categorías únicas de los productos de este local
@@ -110,10 +129,103 @@ class PlazaController extends Controller
                 ];
             });
 
+        // Obtener horario del día actual
+        $now = now();
+        $dayOfWeek = $now->translatedFormat('l');
+        
+        $dayTranslation = [
+            'Monday' => 'Lunes',
+            'Tuesday' => 'Martes',
+            'Wednesday' => 'Miércoles',
+            'Thursday' => 'Jueves',
+            'Friday' => 'Viernes',
+            'Saturday' => 'Sábado',
+            'Sunday' => 'Domingo',
+        ];
+
+        $dayInSpanish = $dayTranslation[$dayOfWeek] ?? null;
+
+        $horarioHoy = null;
+        $estaAbierto = false;
+        
+        if ($dayInSpanish) {
+            $horarioHoy = Schedule::where('local_id', $id)
+                ->where('day_of_week', $dayInSpanish)
+                ->first();
+            
+            // Usar el método del modelo para verificar si está abierto
+            $estaAbierto = Schedule::isCurrentlyOpen($id);
+        }
+
         return view('plaza.show', [
             'local' => $local,
             'productos' => $productos,
             'categorias' => $categorias,
+            'horarioHoy' => $horarioHoy,
+            'diaActual' => $dayInSpanish,
+            'estaAbierto' => $estaAbierto,
+        ]);
+    }
+
+    /**
+     * Obtener productos filtrados por categoría (AJAX)
+     */
+    public function getProductosByCategory(Request $request)
+    {
+        $categoria = $request->query('categoria', 'todos');
+
+        // Obtener productos disponibles con sus locales y reseñas
+        $productosQuery = Product::where('status', 'Available')
+            ->with([
+                'locals' => function ($query) {
+                    $query->select('tblocal.local_id', 'tblocal.name');
+                },
+                'productReviews.review' => function ($query) {
+                    $query->select('review_id', 'rating');
+                }
+            ]);
+
+        // Filtrar por categoría si no es 'todos'
+        if ($categoria !== 'todos') {
+            $productosQuery->whereRaw("LOWER(REPLACE(REPLACE(`category`, ' ', ''), '-', '')) = ?", 
+                [strtolower(str_replace([' ', '-'], '', $categoria))]
+            );
+        }
+
+        $productos = $productosQuery->get();
+
+        // Mapear datos para retornar en JSON
+        $productosFormateados = $productos->map(function ($product) {
+            $localFirst = $product->locals->first();
+            
+            // Calcular rating sin hacer queries adicionales
+            $reviews = $product->productReviews;
+            if ($reviews->isNotEmpty()) {
+                $totalRating = $reviews->sum(function ($productReview) {
+                    return $productReview->review->rating ?? 0;
+                });
+                $averageRating = round($totalRating / $reviews->count());
+            } else {
+                $averageRating = 0;
+            }
+            
+            return [
+                'id' => $product->product_id ?? $product->id,
+                'name' => $product->name,
+                'price' => number_format($product->price ?? 0, 2),
+                'photo_url' => $product->photo_url ?? asset('images/product-placeholder.png'),
+                'category' => $product->category ?? 'Sin categoría',
+                'local' => $localFirst?->name ?? 'Local desconocido',
+                'local_id' => $localFirst?->local_id ?? null,
+                'average_rating' => $averageRating,
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => $productosFormateados,
+            'total' => $productosFormateados->count(),
+            'categoria' => $categoria,
         ]);
     }
 
