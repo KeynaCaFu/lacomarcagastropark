@@ -29,6 +29,8 @@
         .orders-grid-list {
             scrollbar-width: thin;
             scrollbar-color: #e18018 #f1f5f9;
+            max-height: 500px;
+            overflow-y: auto;
         }
     </style>
 @endpush
@@ -43,6 +45,9 @@
             </h1>
             <p class="text-muted mb-0">Gestión de órdenes del establecimiento</p>
         </div>
+        <button type="button" class="btn btn-warning" id="newOrderBtn" style="background: linear-gradient(135deg, #e18018, #c9690f); border: none; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-plus"></i> Nueva Orden
+        </button>
     </div>
 
     <!-- Estadísticas de órdenes -->
@@ -223,6 +228,9 @@
 
 </div>
 
+<!-- Incluir modal para crear orden -->
+@include('orders._create_order_modal')
+
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -372,202 +380,270 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         // Mostrar confirmación con SweetAlert
-        Swal.fire({
-            title: '¿Cambiar estado de la orden?',
-            html: `<p style="margin-bottom: 16px; color: #666;">¿Deseas cambiar el estado de la orden a:</p>
-                   <div style="display: inline-block; padding: 10px 20px; background: #fff7ed; border-radius: 8px; border: 2px solid #e18018;">
-                       <i class="fas ${statusIcons[status]}" style="color: #e18018; margin-right: 8px; font-size: 18px;"></i>
-                       <strong style="color: #e18018; font-size: 18px;">${statusNames[status]}</strong>
-                   </div>`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, cambiar',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#e18018',
-            cancelButtonColor: '#6b7280',
-            reverseButtons: true,
-            allowOutsideClick: false,
-            allowEscapeKey: false
-        }).then((result) => {
+        let swalPromise;
+        
+        if (status === 'Cancelled') {
+            // Para cancelación, pedir motivo
+            swalPromise = Swal.fire({
+                title: 'Cancelar Orden',
+                text: 'Por favor, indique su nombre y el motivo de la cancelación:',
+                input: 'textarea',
+                inputPlaceholder: 'Ej: Cliente lo solicita, error en pedido, etc...',
+                inputAttributes: {
+                    maxlength: 500
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Cancelar orden',
+                cancelButtonText: 'Atrás',
+                confirmButtonColor: '#e18018',
+                cancelButtonColor: '#6b7280',
+                icon: 'warning',
+                reverseButtons: true,
+                allowOutsideClick: false,
+                inputValidator: (value) => {
+                    if (!value || !value.trim()) {
+                        return 'Debe ingresar un motivo para cancelar'
+                    }
+                }
+            });
+        } else {
+            // Para otros estados, confirmación simple
+            swalPromise = Swal.fire({
+                title: '¿Cambiar estado de la orden?',
+                html: `<p style="margin-bottom: 16px; color: #666;">¿Deseas cambiar el estado de la orden a:</p>
+                       <div style="display: inline-block; padding: 10px 20px; background: #fff7ed; border-radius: 8px; border: 2px solid #e18018;">
+                           <i class="fas ${statusIcons[status]}" style="color: #e18018; margin-right: 8px; font-size: 18px;"></i>
+                           <strong style="color: #e18018; font-size: 18px;">${statusNames[status]}</strong>
+                       </div>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, cambiar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#e18018',
+                cancelButtonColor: '#6b7280',
+                reverseButtons: true,
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+        }
+        
+        swalPromise.then((result) => {
             if (result.isConfirmed) {
-                // Hacer el fetch
-                fetch(`{{ url('ordenes') }}/${orderId}/cambiar-estado`, {
+                // Preparar payload
+                const payload = { status };
+                if (status === 'Cancelled' && result.value) {
+                    payload.cancellation_reason = result.value.trim();
+                    
+                    // Mostrar confirmación final antes de cancelar
+                    return Swal.fire({
+                        title: '⚠️ ¿Estás seguro?',
+                        text: 'Esta acción cancelará la orden. ¿Deseas continuar?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, cancelar orden',
+                        cancelButtonText: 'No, atrás',
+                        confirmButtonColor: '#dc2626',
+                        cancelButtonColor: '#6b7280',
+                        reverseButtons: true,
+                        allowOutsideClick: false
+                    }).then((confirmResult) => {
+                        if (confirmResult.isConfirmed) {
+                            return { shouldProceed: true, payload };
+                        }
+                        return { shouldProceed: false };
+                    });
+                }
+                
+                return { shouldProceed: true, payload };
+            }
+            return { shouldProceed: false };
+        }).then((result) => {
+            if (!result || !result.shouldProceed) return;
+            
+            const payload = result.payload;
+            
+            // Hacer el fetch
+            fetch(`{{ url('ordenes') }}/${orderId}/cambiar-estado`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
-                    body: JSON.stringify({ status })
+                    body: JSON.stringify(payload)
                 })
                 .then(response => {
                     console.log('Response status:', response.status);
-                    return response.json();
+                    return response.json().then(data => ({
+                        ok: response.ok,
+                        data: data
+                    }));
                 })
-                .then(data => {
+                .then(({ ok, data }) => {
                     console.log('Response data:', data);
-                    if (data.success || data.success !== false) {
-                        
-                        // Actualizar el estado de la tarjeta en el DOM
-                        const orderCard = document.querySelector(`[data-order-id="${orderId}"]`);
-                        if (orderCard) {
-                            // Obtener el estado anterior
-                            const previousStatus = orderCard.dataset.status;
-                            
-                            // Actualizar el atributo data-status
-                            orderCard.dataset.status = status;
-                            
-                            // Actualizar contadores en los tabs
-                            const previousTab = document.querySelector(`[data-status="${previousStatus}"]`);
-                            const newTab = document.querySelector(`[data-status="${status}"]`);
-                            
-                            if (previousTab) {
-                                const previousCount = previousTab.querySelector('.order-tab-count');
-                                if (previousCount) {
-                                    let count = parseInt(previousCount.textContent) || 0;
-                                    previousCount.textContent = Math.max(0, count - 1);
-                                }
-                            }
-                            
-                            if (newTab) {
-                                const newCount = newTab.querySelector('.order-tab-count');
-                                if (newCount) {
-                                    let count = parseInt(newCount.textContent) || 0;
-                                    newCount.textContent = count + 1;
-                                }
-                            }
-                            
-                            // Actualizar contadores en las tarjetas de estadísticas
-                            const statCards = document.querySelectorAll('.order-stat-card');
-                            statCards.forEach(card => {
-                                const label = card.querySelector('.order-stat-label');
-                                if (!label) return;
-                                
-                                if (label.textContent.includes('Pendientes') && previousStatus === 'Pending') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = Math.max(0, count - 1);
-                                    }
-                                }
-                                if (label.textContent.includes('Pendientes') && status === 'Pending') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = count + 1;
-                                    }
-                                }
-                                if (label.textContent.includes('En Preparación') && previousStatus === 'Preparing') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = Math.max(0, count - 1);
-                                    }
-                                }
-                                if (label.textContent.includes('En Preparación') && status === 'Preparing') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = count + 1;
-                                    }
-                                }
-                                if (label.textContent.includes('Listas') && previousStatus === 'Ready') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = Math.max(0, count - 1);
-                                    }
-                                }
-                                if (label.textContent.includes('Listas') && status === 'Ready') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = count + 1;
-                                    }
-                                }
-                                if (label.textContent.includes('Entregadas') && previousStatus === 'Delivered') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = Math.max(0, count - 1);
-                                    }
-                                }
-                                if (label.textContent.includes('Entregadas') && status === 'Delivered') {
-                                    const statNumber = card.querySelector('.order-stat-number');
-                                    if (statNumber) {
-                                        let count = parseInt(statNumber.textContent) || 0;
-                                        statNumber.textContent = count + 1;
-                                    }
-                                }
-                            });
-                            
-                            // Actualizar el badge de estado con las clases CSS correctas
-                            const statusBadge = orderCard.querySelector('.status-badge-clickable');
-                            if (statusBadge) {
-                                // Remover todas las clases de color antiguas
-                                statusBadge.classList.remove('status-pending', 'status-preparation', 'status-ready', 'status-delivered', 'status-cancelled');
-                                // Agregar la nueva clase de color
-                                statusBadge.classList.add(statusColorClasses[status]);
-                                
-                                // Obtener estados permitidos según el nuevo estado
-                                const allowedNextStatuses = getNextStatuses(status);
-                                const statusLabelsMap = {
-                                    'Pending': 'Pendiente',
-                                    'Preparing': 'En Preparación',
-                                    'Ready': 'Listo',
-                                    'Delivered': 'Entregado',
-                                    'Cancelled': 'Cancelada'
-                                };
-                                
-                                // Construir el dropdown dinámicamente
-                                let dropdownHTML = '<div class="status-dropdown" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 180px;">';
-                                
-                                allowedNextStatuses.forEach(statusKey => {
-                                    dropdownHTML += `
-                                        <button type="button" class="status-dropdown-item status-dropdown-item-${statusKey}" data-status="${statusKey}">
-                                            <i class="fas ${statusIcons[statusKey]}"></i>
-                                            ${statusLabelsMap[statusKey]}
-                                        </button>
-                                    `;
-                                });
-                                
-                                dropdownHTML += '</div>';
-                                
-                                // Actualizar el contenido del badge
-                                statusBadge.innerHTML = `
-                                    <i class="fas ${statusIcons[status]}"></i>
-                                    ${statusNames[status]}
-                                    ${allowedNextStatuses.length > 0 ? '<i class="fas fa-chevron-down" style="margin-left: 6px; font-size: 10px;"></i>' : ''}
-                                    ${dropdownHTML}
-                                `;
-                            }
-                            
-                            // Detectar el estado filtrado actualmente
-                            const activeTab = document.querySelector('.order-tab.active');
-                            if (activeTab) {
-                                const activeStatus = activeTab.dataset.status;
-                                
-                                // Si la orden cambió de estado y no coincide con el estado activo, ocultarla
-                                if (status !== activeStatus) {
-                                    orderCard.style.display = 'none';
-                                }
-                            }
-                        }
-                        
-                        // Mostrar mensaje de éxito con toast
-                        swToast.fire({
-                            icon: 'success',
-                            title: '¡Éxito!',
-                            html: `Estado cambiado a <strong style="color: #e18018;">${statusNames[status]}</strong>`
-                        });
-                    } else {
-                        // Error en la respuesta
+                    
+                    if (!ok || !data.success) {
+                        // Error del servidor
                         Swal.fire({
                             title: 'Error',
                             text: data.error || data.message || 'Error al cambiar el estado',
                             icon: 'error',
                             confirmButtonColor: '#e18018'
                         });
+                        return;
                     }
+                    
+                    // Éxito - procesar actualización del DOM
+                    const orderCard = document.querySelector(`[data-order-id="${orderId}"]`);
+                    if (orderCard) {
+                        // Obtener el estado anterior
+                        const previousStatus = orderCard.dataset.status;
+                        
+                        // Actualizar el atributo data-status
+                        orderCard.dataset.status = status;
+                        
+                        // Actualizar contadores en los tabs
+                        const previousTab = document.querySelector(`[data-status="${previousStatus}"]`);
+                        const newTab = document.querySelector(`[data-status="${status}"]`);
+                        
+                        if (previousTab) {
+                            const previousCount = previousTab.querySelector('.order-tab-count');
+                            if (previousCount) {
+                                let count = parseInt(previousCount.textContent) || 0;
+                                previousCount.textContent = Math.max(0, count - 1);
+                            }
+                        }
+                        
+                        if (newTab) {
+                            const newCount = newTab.querySelector('.order-tab-count');
+                            if (newCount) {
+                                let count = parseInt(newCount.textContent) || 0;
+                                newCount.textContent = count + 1;
+                            }
+                        }
+                        
+                        // Actualizar contadores en las tarjetas de estadísticas
+                        const statCards = document.querySelectorAll('.order-stat-card');
+                        statCards.forEach(card => {
+                            const label = card.querySelector('.order-stat-label');
+                            if (!label) return;
+                            
+                            if (label.textContent.includes('Pendientes') && previousStatus === 'Pending') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = Math.max(0, count - 1);
+                                }
+                            }
+                            if (label.textContent.includes('Pendientes') && status === 'Pending') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = count + 1;
+                                }
+                            }
+                            if (label.textContent.includes('En Preparación') && previousStatus === 'Preparing') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = Math.max(0, count - 1);
+                                }
+                            }
+                            if (label.textContent.includes('En Preparación') && status === 'Preparing') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = count + 1;
+                                }
+                            }
+                            if (label.textContent.includes('Listas') && previousStatus === 'Ready') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = Math.max(0, count - 1);
+                                }
+                            }
+                            if (label.textContent.includes('Listas') && status === 'Ready') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = count + 1;
+                                }
+                            }
+                            if (label.textContent.includes('Entregadas') && previousStatus === 'Delivered') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = Math.max(0, count - 1);
+                                }
+                            }
+                            if (label.textContent.includes('Entregadas') && status === 'Delivered') {
+                                const statNumber = card.querySelector('.order-stat-number');
+                                if (statNumber) {
+                                    let count = parseInt(statNumber.textContent) || 0;
+                                    statNumber.textContent = count + 1;
+                                }
+                            }
+                        });
+                        
+                        // Actualizar el badge de estado con las clases CSS correctas
+                        const statusBadge = orderCard.querySelector('.status-badge-clickable');
+                        if (statusBadge) {
+                            // Remover todas las clases de color antiguas
+                            statusBadge.classList.remove('status-pending', 'status-preparation', 'status-ready', 'status-delivered', 'status-cancelled');
+                            // Agregar la nueva clase de color
+                            statusBadge.classList.add(statusColorClasses[status]);
+                            
+                            // Obtener estados permitidos según el nuevo estado
+                            const allowedNextStatuses = getNextStatuses(status);
+                            const statusLabelsMap = {
+                                'Pending': 'Pendiente',
+                                'Preparing': 'En Preparación',
+                                'Ready': 'Listo',
+                                'Delivered': 'Entregado',
+                                'Cancelled': 'Cancelada'
+                            };
+                            
+                            // Construir el dropdown dinámicamente
+                            let dropdownHTML = '<div class="status-dropdown" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 180px;">';
+                            
+                            allowedNextStatuses.forEach(statusKey => {
+                                dropdownHTML += `
+                                    <button type="button" class="status-dropdown-item status-dropdown-item-${statusKey}" data-status="${statusKey}">
+                                        <i class="fas ${statusIcons[statusKey]}"></i>
+                                        ${statusLabelsMap[statusKey]}
+                                    </button>
+                                `;
+                            });
+                            
+                            dropdownHTML += '</div>';
+                            
+                            // Actualizar el contenido del badge
+                            statusBadge.innerHTML = `
+                                <i class="fas ${statusIcons[status]}"></i>
+                                ${statusNames[status]}
+                                ${allowedNextStatuses.length > 0 ? '<i class="fas fa-chevron-down" style="margin-left: 6px; font-size: 10px;"></i>' : ''}
+                                ${dropdownHTML}
+                            `;
+                        }
+                        
+                        // Detectar el estado filtrado actualmente
+                        const activeTab = document.querySelector('.order-tab.active');
+                        if (activeTab) {
+                            const activeStatus = activeTab.dataset.status;
+                            
+                            // Si la orden cambió de estado y no coincide con el estado activo, ocultarla
+                            if (status !== activeStatus) {
+                                orderCard.style.display = 'none';
+                            }
+                        }
+                    }
+                    
+                    // Mostrar mensaje de éxito con toast
+                    swToast.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        html: `Estado cambiado a <strong style="color: #e18018;">${statusNames[status]}</strong>`
+                    });
                 })
                 .catch(error => {
                     console.error('Error en fetch:', error);
@@ -578,7 +654,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         confirmButtonColor: '#e18018'
                     });
                 });
-            }
         });
     }
 
@@ -626,6 +701,485 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Inicializar eventos de cambio de estado
     setupStatusButtons();
+
+    // ========== CREAR NUEVA ORDEN ==========
+    
+    // Datos de la orden en construcción
+    let orderInProgress = {
+        items: {},
+        customerId: null
+    };
+
+    // Productos disponibles en memoria
+    let allProducts = [];
+    let selectedCategory = 'all';
+
+    // Abrir modal
+    document.getElementById('newOrderBtn').addEventListener('click', function() {
+        document.getElementById('createOrderModal').classList.add('show');
+        document.body.style.overflow = 'hidden';
+        loadLocalProducts();
+        loadAllCustomers(); // Cargar clientes
+    });
+
+    // Cerrar modal
+    function closeModal() {
+        document.getElementById('createOrderModal').classList.remove('show');
+        document.body.style.overflow = 'auto';
+        resetOrderForm();
+    }
+
+    document.getElementById('closeOrderModal').addEventListener('click', closeModal);
+    document.getElementById('cancelOrderBtn').addEventListener('click', closeModal);
+
+    // Cerrar modal al hacer clic fuera de él
+    document.getElementById('createOrderModal').addEventListener('click', function(e) {
+        // Si el click fue en el overlay (no en el contenido del modal)
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+    // Cargar productos del local
+    async function loadLocalProducts() {
+        try {
+            const response = await fetch('{{ route("orders.local-products") }}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const data = await response.json();
+            allProducts = data.products || [];
+
+            if (allProducts.length === 0) {
+                document.getElementById('productsContainer').innerHTML = '<p style="color: #999; grid-column: 1/-1; text-align: center; padding: 20px;">No hay productos disponibles</p>';
+                return;
+            }
+
+            // Extraer categorías únicas
+            const categories = ['all', ...new Set(allProducts.map(p => p.category || 'Sin categoría'))];
+            setupCategoryTabs(categories);
+            
+            // Mostrar todos los productos
+            displayProducts(allProducts);
+            updateProductCount(allProducts.length);
+
+            // Agregar listeners para búsqueda y categorías
+            setupProductFilters();
+        } catch (error) {
+            console.error('Error cargando productos:', error);
+        }
+    }
+
+    // Configurar tabs de categorías
+    function setupCategoryTabs(categories) {
+        const tabsContainer = document.getElementById('categoryTabs');
+        tabsContainer.innerHTML = '';
+
+        categories.forEach((category, index) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'category-tab' + (index === 0 ? ' active' : '');
+            button.dataset.category = category;
+            button.textContent = category === 'all' ? 'Todas' : category;
+            button.style.padding = '8px 16px';
+            button.style.background = index === 0 ? '#e18018' : '#f3f4f6';
+            button.style.color = index === 0 ? 'white' : '#666';
+            button.style.border = index === 0 ? 'none' : '1px solid #e5e7eb';
+            button.style.borderRadius = '20px';
+            button.style.fontWeight = '600';
+            button.style.cursor = 'pointer';
+            button.style.whiteSpace = 'nowrap';
+            button.style.fontSize = '13px';
+
+            button.addEventListener('click', function() {
+                // Actualizar tab activo
+                document.querySelectorAll('.category-tab').forEach(t => {
+                    t.classList.remove('active');
+                    t.style.background = '#f3f4f6';
+                    t.style.color = '#666';
+                    t.style.border = '1px solid #e5e7eb';
+                });
+                this.classList.add('active');
+                this.style.background = '#e18018';
+                this.style.color = 'white';
+                this.style.border = 'none';
+
+                selectedCategory = category;
+                filterProducts();
+            });
+
+            tabsContainer.appendChild(button);
+        });
+    }
+
+    // Configurar listeners para búsqueda
+    function setupProductFilters() {
+        const searchInput = document.getElementById('productSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', filterProducts);
+        }
+    }
+
+    // Filtrar productos por búsqueda y categoría
+    function filterProducts() {
+        const searchTerm = document.getElementById('productSearch').value.toLowerCase();
+        
+        let filtered = allProducts.filter(product => {
+            const matchCategory = selectedCategory === 'all' || product.category === selectedCategory;
+            const matchSearch = product.name.toLowerCase().includes(searchTerm) || 
+                              (product.category || '').toLowerCase().includes(searchTerm);
+            return matchCategory && matchSearch;
+        });
+
+        displayProducts(filtered);
+        updateProductCount(filtered.length);
+    }
+
+    // Mostrar productos en el grid
+    function displayProducts(products) {
+        const container = document.getElementById('productsContainer');
+        container.innerHTML = '';
+
+        if (products.length === 0) {
+            container.innerHTML = '<p style="color: #999; grid-column: 1/-1; text-align: center; padding: 20px;">No hay productos que coincidan</p>';
+            return;
+        }
+
+        products.forEach(product => {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            if (orderInProgress.items[product.product_id]) {
+                card.classList.add('selected');
+            }
+
+            card.innerHTML = `
+                ${product.photo ? `<img src="${product.photo}" alt="${product.name}">` : '<div style="width: 100%; height: 80px; background: #e5e7eb; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;"><i class="fas fa-image" style="color: #999; font-size: 24px;"></i></div>'}
+                <div class="product-card-name" title="${product.name}">${product.name}</div>
+                <div class="product-card-price">₡${parseFloat(product.price).toFixed(2)}</div>
+                <input type="number" class="product-quantity-input" value="${orderInProgress.items[product.product_id]?.quantity || 1}" min="1" max="99" data-product-id="${product.product_id}" data-product-name="${product.name}" data-product-price="${product.price}">
+            `;
+
+            card.addEventListener('click', function() {
+                card.classList.toggle('selected');
+                if (card.classList.contains('selected')) {
+                    orderInProgress.items[product.product_id] = {
+                        product_id: product.product_id,
+                        name: product.name,
+                        price: product.price,
+                        quantity: 1
+                    };
+                } else {
+                    delete orderInProgress.items[product.product_id];
+                }
+                updateOrderSummary();
+            });
+
+            // Cambiar cantidad
+            const quantityInput = card.querySelector('.product-quantity-input');
+            quantityInput.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            quantityInput.addEventListener('change', function(e) {
+                const quantity = parseInt(e.target.value) || 1;
+                if (orderInProgress.items[product.product_id]) {
+                    orderInProgress.items[product.product_id].quantity = quantity;
+                    updateOrderSummary();
+                }
+            });
+
+            container.appendChild(card);
+        });
+    }
+
+    // Actualizar contador de productos
+    function updateProductCount(count) {
+        const countElement = document.getElementById('productCount');
+        if (countElement) {
+            countElement.textContent = count;
+        }
+    }
+
+    // Actualizar resumen de orden
+    function updateOrderSummary() {
+        const items = Object.values(orderInProgress.items);
+        const tbody = document.getElementById('orderItemsSummary');
+        let total = 0;
+
+        if (items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 12px 8px; color: #999; font-size: 12px;">Sin productos seleccionados</td></tr>';
+            document.getElementById('orderTotal').textContent = '0.00';
+            return;
+        }
+
+        tbody.innerHTML = items.map(item => {
+            const subtotal = item.price * item.quantity;
+            total += subtotal;
+            return `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td>₡${subtotal.toFixed(2)}</td>
+                </tr>
+            `;
+        }).join('');
+
+        document.getElementById('orderTotal').textContent = total.toFixed(2);
+    }
+
+    // Búsqueda de clientes
+    const customerSearch = document.getElementById('customerSearch');
+    const toggleCustomerDropdown = document.getElementById('toggleCustomerDropdown');
+    let allCustomers = [];
+    let customersLoaded = false;
+
+    // Cargar todos los clientes al abrir el modal
+    async function loadAllCustomers() {
+        try {
+            const response = await fetch(`{{ route('orders.search-customers') }}?query=`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await response.json();
+            allCustomers = data.customers || [];
+            customersLoaded = true;
+            console.log('Clientes cargados:', allCustomers.length);
+        } catch (error) {
+            console.error('Error cargando clientes:', error);
+            allCustomers = [];
+        }
+    }
+
+    // Mostrar dropdown al hacer clic o focus en el input
+    customerSearch.addEventListener('focus', async function() {
+        // Si no están cargados, cargar
+        if (!customersLoaded) {
+            await loadAllCustomers();
+        }
+        
+        if (!customerSearch.value && document.getElementById('customerId').value === '') {
+            displayCustomerResults(allCustomers);
+        }
+    });
+
+    // También al hacer clic
+    customerSearch.addEventListener('click', async function() {
+        if (!customersLoaded) {
+            await loadAllCustomers();
+        }
+        
+        if (!customerSearch.value && document.getElementById('customerId').value === '') {
+            displayCustomerResults(allCustomers);
+        }
+    });
+
+    // Botón toggle para dropdown
+    document.getElementById('toggleCustomerDropdown').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('customerSearch').value = '';
+        document.getElementById('customerId').value = '';
+        document.getElementById('customerResults').style.display = 'none';
+        toggleCustomerDropdown.style.display = 'none';
+        customerSearch.focus();
+    });
+
+    customerSearch.addEventListener('input', async function() {
+        const search = this.value.trim();
+        
+        if (search.length === 0) {
+            // Si está vacío, mostrar todos
+            displayCustomerResults(allCustomers);
+            return;
+        }
+
+        if (search.length < 2) {
+            document.getElementById('customerResults').style.display = 'none';
+            return;
+        }
+
+        try {
+            const response = await fetch(`{{ route('orders.search-customers') }}?query=${encodeURIComponent(search)}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await response.json();
+            displayCustomerResults(data.customers || []);
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('customerResults').style.display = 'none';
+        }
+    });
+
+    // Mostrar resultados de búsqueda de clientes
+    function displayCustomerResults(customers) {
+        const resultsDiv = document.getElementById('customerResults');
+        
+        if (customers.length === 0) {
+            resultsDiv.innerHTML = '<div style="padding: 12px; color: #999; text-align: center; font-size: 13px;">No se encontraron clientes</div>';
+            resultsDiv.style.display = 'block';
+            return;
+        }
+
+        resultsDiv.innerHTML = customers.map((customer, index) => `
+            <div class="customer-result-item" data-customer-id="${customer.user_id}" data-customer-name="${customer.full_name}" data-customer-email="${customer.email}" style="padding: 10px 12px; border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: background 0.2s;">
+                <div style="font-weight: 500; color: #111; font-size: 14px;">${customer.full_name}</div>
+                <div style="font-size: 12px; color: #666;">${customer.email}</div>
+                ${customer.phone ? `<div style="font-size: 11px; color: #999;">📞 ${customer.phone}</div>` : ''}
+            </div>
+        `).join('');
+
+        resultsDiv.style.display = 'block';
+
+        // Agregar event listeners a los resultados
+        resultsDiv.querySelectorAll('.customer-result-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const customerId = this.dataset.customerId;
+                const customerName = this.dataset.customerName;
+                const customerEmail = this.dataset.customerEmail;
+
+                // Llenar campos
+                document.getElementById('customerSearch').value = `${customerName} (${customerEmail})`;
+                document.getElementById('customerId').value = customerId;
+                document.getElementById('customerResults').style.display = 'none';
+                toggleCustomerDropdown.style.display = 'block';
+            });
+
+            item.addEventListener('mouseenter', function() {
+                this.style.background = '#f9fafb';
+            });
+
+            item.addEventListener('mouseleave', function() {
+                this.style.background = 'white';
+            });
+        });
+    }
+
+    // Cerrar resultados al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#customerSearch') && !e.target.closest('#customerResults') && !e.target.closest('#toggleCustomerDropdown')) {
+            document.getElementById('customerResults').style.display = 'none';
+        }
+    });
+
+    // Enviar formulario
+    document.getElementById('createOrderForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const items = Object.values(orderInProgress.items);
+        if (items.length === 0) {
+            swAlert({ icon: 'warning', title: 'Advertencia', text: 'Debes seleccionar al menos un producto' });
+            return;
+        }
+
+        const preparationTime = document.getElementById('preparationTime').value;
+        const additionalNotes = document.getElementById('additionalNotes').value;
+        const userId = document.getElementById('customerId').value;
+        const itemsCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+        // Mostrar confirmación antes de guardar
+        swConfirm({
+            title: '¿Confirmar nueva orden?',
+            html: `
+                <div style="text-align: left; margin-top: 15px;">
+                    <p><strong>Resumen de la orden:</strong></p>
+                    <ul style="list-style: none; padding: 0; font-size: 14px;">
+                        <li><i class="fas fa-box" style="margin-right: 8px; color: #e18018;"></i> <strong>${itemsCount}</strong> producto${itemsCount > 1 ? 's' : ''}</li>
+                        <li><i class="fas fa-clock" style="margin-right: 8px; color: #e18018;"></i> Tiempo: <strong>${preparationTime} min</strong></li>
+                        ${userId ? `<li><i class="fas fa-user" style="margin-right: 8px; color: #e18018;"></i> Cliente: <strong>Seleccionado</strong></li>` : `<li><i class="fas fa-user" style="margin-right: 8px; color: #999;"></i> Cliente: <em>No asignado</em></li>`}
+                    </ul>
+                </div>
+            `,
+            confirmButtonText: 'Sí, crear orden',
+            cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (!result.isConfirmed) return;
+
+            const payload = {
+                user_id: userId || null,
+                items: items.map(item => ({
+                    product_id: item.product_id,
+                    quantity: item.quantity,
+                    customization: null
+                })),
+                preparation_time: parseInt(preparationTime),
+                additional_notes: additionalNotes
+            };
+
+            try {
+                const response = await fetch('{{ route("orders.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Cerrar modal primero
+                    closeModal();
+                    
+                    // Mostrar notificación de éxito (toast con tiempo)
+                    if (window.swToast) {
+                        window.swToast.fire({
+                            icon: 'success',
+                            title: `Orden ${data.order.order_number} creada exitosamente`
+                        });
+                    } else {
+                        showNotification('success', `Orden ${data.order.order_number} creada exitosamente`);
+                    }
+                    
+                    // Refrescar la página después de 1.5 segundos para que aparezca la nueva orden
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    swAlert({ icon: 'error', title: 'Error', text: data.error || 'Error al crear la orden' });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                swAlert({ icon: 'error', title: 'Error', text: error.message });
+            }
+        });
+    });
+
+    function resetOrderForm() {
+        orderInProgress = {
+            items: {},
+            customerId: null
+        };
+        document.getElementById('createOrderForm').reset();
+        document.querySelectorAll('.product-card').forEach(card => card.classList.remove('selected'));
+        document.getElementById('customerId').value = '';
+        document.getElementById('customerSearch').value = '';
+        document.getElementById('productSearch').value = '';
+        document.getElementById('toggleCustomerDropdown').style.display = 'none';
+        document.getElementById('customerResults').style.display = 'none';
+        
+        // Resetear categoría a "Todas"
+        selectedCategory = 'all';
+        document.querySelectorAll('.category-tab').forEach((tab, index) => {
+            if (index === 0) {
+                tab.classList.add('active');
+                tab.style.background = '#e18018';
+                tab.style.color = 'white';
+                tab.style.border = 'none';
+            } else {
+                tab.classList.remove('active');
+                tab.style.background = '#f3f4f6';
+                tab.style.color = '#666';
+                tab.style.border = '1px solid #e5e7eb';
+            }
+        });
+        
+        updateOrderSummary();
+    }
 });
 </script>
 @endpush
