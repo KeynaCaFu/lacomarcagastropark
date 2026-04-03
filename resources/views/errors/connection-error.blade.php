@@ -241,9 +241,9 @@
 </head>
 <body>
     <div class="error-container">
-        <div class="logo-container">
-            <img src="{{ asset('images/logo.png') }}" alt="La Comarca Gastro Park" class="logo">
-        </div>
+        {{-- <div class="logo-container">
+            <img src="{{ asset('images/iconoblanco.png') }}" alt="La Comarca Gastro Park" class="logo">
+        </div> --}}
 
         <div class="error-code">{{ $code ?? '503' }}</div>
         <div class="error-icon">

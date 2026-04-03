@@ -332,10 +332,6 @@
                 <span>Verifica que otros dispositivos puedan acceder a internet</span>
             </div>
             <div class="checklist-item">
-                <span class="checklist-icon">3.</span>
-                <span>Reinicia tu router o módem de internet</span>
-            </div>
-            <div class="checklist-item">
                 <span class="checklist-icon">4.</span>
                 <span>Intenta acceder nuevamente a la plaza</span>
             </div>
@@ -359,7 +355,7 @@
 
         <div class="footer-text">
             <p>
-                <i class="fas fa-phone"></i> Contáctanos: <strong>+34 XXX XXX XXX</strong><br>
+                <i class="fas fa-phone"></i> Contáctanos: <strong>+506 6141-5178</strong><br>
                 La Comarca Gastro Park - Tu plaza gastronómica
             </p>
         </div>
@@ -394,7 +390,7 @@
                         // Sin conexión aún
                     });
             }
-        }, 10000); // Cada 10 segundos
+        }, 15000); // Cada 10 segundos
     </script>
 </body>
 </html>
