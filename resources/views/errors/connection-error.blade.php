@@ -244,11 +244,11 @@
         {{-- <div class="logo-container">
             <img src="{{ asset('images/iconoblanco.png') }}" alt="La Comarca Gastro Park" class="logo">
         </div> --}}
-
-        <div class="error-code">{{ $code ?? '503' }}</div>
-        <div class="error-icon">
+         <div class="error-icon">
             <i class="fas fa-exclamation-triangle"></i>
         </div>
+        <div class="error-code">{{ $code ?? '503' }}</div>
+       
 
         <h1 class="error-title">{{ $title ?? 'Error de Servidor' }}</h1>
 

@@ -223,9 +223,8 @@ Route::middleware('auth')->group(function () {
 });
 
 
-// RUTAS PARA PLAZA PÚBLICA (Sin autenticación)
-
-Route::prefix('plaza')->name('plaza.')->group(function () {
+// RUTAS PARA PLAZA PÚBLICA (Admins/Gerentes pueden verla sin afectar su sesión)
+Route::prefix('plaza')->name('plaza.')->middleware('preserve.admin.session')->group(function () {
     Route::get('/', [\App\Http\Controllers\PlazaController::class, 'index'])->name('index');
     Route::get('api/productos', [\App\Http\Controllers\PlazaController::class, 'getProductosByCategory'])->name('get.productos');
     Route::get('{id}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show')->where('id', '[0-9]+');
