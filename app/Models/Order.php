@@ -28,7 +28,12 @@ class Order extends Model
         'cancellation_reason',
         'status',
         'origin',
-        'local_id'
+        'local_id',
+        'payment_method',
+        'receipt_reference',
+        'receipt_number',
+        'receipt_sent_to_email',
+        'receipt_sent_at',
     ];
 
     protected $casts = [
