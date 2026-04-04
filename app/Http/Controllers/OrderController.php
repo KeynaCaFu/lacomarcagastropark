@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Data\OrderData;
 use App\Models\Order;
+use App\Http\Controllers\ReceiptController;
 
 class OrderController extends Controller
 {
@@ -137,6 +138,51 @@ class OrderController extends Controller
 
                 // Guardar el motivo de cancelación
                 $order->update(['cancellation_reason' => $cancellationReason]);
+            }
+
+            // Validaciones para cambio a DELIVERED - requiere datos de pago
+            if ($newStatus === Order::STATUS_DELIVERED && $order->status === Order::STATUS_READY) {
+                $paymentMethod = $request->input('payment_method', '');
+                $receiptReference = $request->input('receipt_reference', '');
+
+                if (empty(trim($paymentMethod))) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Debe seleccionar un método de pago.'
+                    ], 422);
+                }
+
+                if (empty(trim($receiptReference))) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Debe proporcionar un número de comprobante/factura.'
+                    ], 422);
+                }
+
+                // Cambiar estado primero
+                $this->orderData->changeStatus($orderId, $newStatus);
+
+                // Generar comprobante
+                $receiptController = app(ReceiptController::class);
+                $receiptResult = $receiptController->generateReceipt(
+                    $order,
+                    $paymentMethod,
+                    $receiptReference
+                );
+
+                if (!$receiptResult['success']) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Estado actualizado pero error al generar comprobante: ' . $receiptResult['message']
+                    ], 500);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Estado actualizado y comprobante generado',
+                    'status' => $newStatus,
+                    'receipt' => $receiptResult['receipt'] ?? null
+                ]);
             }
 
             $this->orderData->changeStatus($orderId, $newStatus);
