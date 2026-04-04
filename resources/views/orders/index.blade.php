@@ -281,8 +281,153 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(html => {
                 const panel = document.querySelector('.order-details-panel-large');
                 panel.innerHTML = '<div class="order-details-wrapper">' + html + '</div>';
+                
+                // Agregar botones de comprobante si la orden está Entregada
+                setupReceiptButtons(orderId);
             })
             .catch(error => console.error('Error:', error));
+    }
+
+    function setupReceiptButtons(orderId) {
+        // Obtener el elemento de la orden actual
+        const orderCard = document.querySelector(`.order-card-item[data-order-id="${orderId}"]`);
+        if (!orderCard || orderCard.dataset.status !== 'Delivered') {
+            return;
+        }
+
+        // Buscar donde agregar los botones (en el panel de detalles)
+        const detailsWrapper = document.querySelector('.order-details-wrapper');
+        if (!detailsWrapper) return;
+
+        // Crear contenedor de botones si no existe
+        let receiptButtonsContainer = detailsWrapper.querySelector('.receipt-buttons-container');
+        if (!receiptButtonsContainer) {
+            receiptButtonsContainer = document.createElement('div');
+            receiptButtonsContainer.className = 'receipt-buttons-container';
+            receiptButtonsContainer.style.cssText = 'margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; display: flex; gap: 10px;';
+            
+            // Agregar después del último elemento del panel
+            detailsWrapper.appendChild(receiptButtonsContainer);
+        } else {
+            receiptButtonsContainer.innerHTML = '';
+        }
+
+        // Botón de Descargar Comprobante
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'btn btn-info';
+        downloadBtn.style.cssText = 'flex: 1; background: #3b82f6; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px;';
+        downloadBtn.innerHTML = '<i class="fas fa-download"></i> Descargar Comprobante';
+        downloadBtn.addEventListener('click', () => downloadReceipt(orderId));
+
+        // Botón de Reenviar Comprobante
+        const resendBtn = document.createElement('button');
+        resendBtn.className = 'btn btn-warning';
+        resendBtn.style.cssText = 'flex: 1; background: #10b981; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px;';
+        resendBtn.innerHTML = '<i class="fas fa-envelope"></i> Reenviar al Email';
+        resendBtn.addEventListener('click', (e) => resendReceipt(orderId, e.target.closest('button')));
+
+        receiptButtonsContainer.appendChild(downloadBtn);
+        receiptButtonsContainer.appendChild(resendBtn);
+    }
+
+    function downloadReceipt(orderId) {
+        fetch(`{{ url('ordenes') }}/${orderId}/comprobante/descargar`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al descargar el comprobante');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Comprobante_${orderId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Descargado!',
+                    text: 'El comprobante ha sido descargado exitosamente',
+                    confirmButtonColor: '#c9690f'
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No fue posible descargar el comprobante. Asegúrate de que exista.',
+                    confirmButtonColor: '#c9690f'
+                });
+            });
+    }
+
+    function resendReceipt(orderId, btn) {
+        Swal.fire({
+            icon: 'question',
+            title: '¿Reenviar Comprobante?',
+            text: 'Se reenviará el comprobante al correo del cliente',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, reenviar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#6b7280',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+
+                fetch(`{{ url('ordenes') }}/${orderId}/comprobante/reenviar`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Enviado!',
+                                text: data.message,
+                                confirmButtonColor: '#c9690f'
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message || 'No fue posible reenviar el comprobante',
+                                confirmButtonColor: '#c9690f'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Ocurrió un error al reenviar el comprobante',
+                            confirmButtonColor: '#c9690f'
+                        });
+                    });
+            }
+        });
     }
 
     function setupStatusButtons() {
@@ -406,6 +551,58 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
+        } else if (status === 'Delivered') {
+            // Para DELIVERED, pedir método de pago y número de comprobante
+            swalPromise = Swal.fire({
+                title: 'Registrar Pago y Comprobante',
+                html: `
+                    <div style="text-align: left; margin: 20px 0;">
+                        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">Método de Pago</label>
+                        <select id="paymentMethod" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                            <option value="">-- Seleccionar --</option>
+                            <option value="Efectivo">💵 Efectivo</option>
+                            <option value="Tarjeta de Crédito">💳 Tarjeta de Crédito</option>
+                            <option value="Tarjeta de Débito">🏧 Tarjeta de Débito</option>
+                            <option value="Transferencia Bancaria">🏦 Transferencia Bancaria</option>
+                            <option value="Billetera Digital">📱 Billetera Digital</option>
+                            <option value="Cheque">📄 Cheque</option>
+                        </select>
+                        
+                        <label style="display: block; margin: 15px 0 10px 0; font-weight: 600; color: #333;">Número de Comprobante/Factura</label>
+                        <input type="text" id="receiptReference" placeholder="Ej: FAC-001-2026, 12345678, etc..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Marcar como Entregado',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#e18018',
+                cancelButtonColor: '#6b7280',
+                reverseButtons: true,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    // Enfocar el campo de método de pago
+                    document.getElementById('paymentMethod').focus();
+                },
+                preConfirm: () => {
+                    const paymentMethod = document.getElementById('paymentMethod').value;
+                    const receiptReference = document.getElementById('receiptReference').value;
+                    
+                    if (!paymentMethod) {
+                        Swal.showValidationMessage('Debe seleccionar un método de pago');
+                        return false;
+                    }
+                    if (!receiptReference || !receiptReference.trim()) {
+                        Swal.showValidationMessage('Debe ingresar un número de comprobante/factura');
+                        return false;
+                    }
+                    
+                    return {
+                        paymentMethod: paymentMethod,
+                        receiptReference: receiptReference.trim()
+                    };
+                }
+            });
         } else {
             // Para otros estados, confirmación simple
             swalPromise = Swal.fire({
@@ -431,6 +628,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (result.isConfirmed) {
                 // Preparar payload
                 const payload = { status };
+                
                 if (status === 'Cancelled' && result.value) {
                     payload.cancellation_reason = result.value.trim();
                     
@@ -452,6 +650,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         return { shouldProceed: false };
                     });
+                }
+                
+                if (status === 'Delivered' && result.value) {
+                    // Agregar datos de pago para Delivered
+                    payload.payment_method = result.value.paymentMethod;
+                    payload.receipt_reference = result.value.receiptReference;
                 }
                 
                 return { shouldProceed: true, payload };
