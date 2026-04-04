@@ -13,6 +13,7 @@ use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\PlazaController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ReceiptController;
 use Illuminate\Http\Request;
 
 /*
@@ -199,6 +200,11 @@ Route::prefix('resenas')->name('reviews.')->group(function () {
         Route::post('/{order}/actualizar', [OrderController::class, 'update'])->name('update');
         Route::get('/{order}/edit', [OrderController::class, 'edit'])->name('edit');   
         Route::delete('/{order}', [OrderController::class, 'destroy'])->name('destroy');
+        
+        // Rutas para comprobantes
+        Route::get('/{order}/comprobante/descargar', [ReceiptController::class, 'downloadReceipt'])->name('receipt.download');
+        Route::get('/{order}/comprobante/ver', [ReceiptController::class, 'viewReceipt'])->name('receipt.view');
+        Route::post('/{order}/comprobante/reenviar', [ReceiptController::class, 'resendReceipt'])->name('receipt.resend');
     });
 });
 
