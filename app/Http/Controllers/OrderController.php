@@ -116,6 +116,29 @@ class OrderController extends Controller
                 ], 422);
             }
 
+            // Validaciones específicas para cancelación
+            if ($newStatus === Order::STATUS_CANCELLED) {
+                // No se puede cancelar órdenes entregadas
+                if ($order->status === Order::STATUS_DELIVERED) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'No se pueden cancelar órdenes que ya han sido entregadas.'
+                    ], 422);
+                }
+
+                // El motivo de cancelación es obligatorio
+                $cancellationReason = $request->input('cancellation_reason', '');
+                if (empty(trim($cancellationReason))) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Debe proporcionar un motivo para cancelar la orden.'
+                    ], 422);
+                }
+
+                // Guardar el motivo de cancelación
+                $order->update(['cancellation_reason' => $cancellationReason]);
+            }
+
             $this->orderData->changeStatus($orderId, $newStatus);
 
             return response()->json([
