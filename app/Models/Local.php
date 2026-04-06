@@ -63,6 +63,7 @@ class Local extends Model
     }
 
     /**
+     * Relación: Productos disponibles en este local
      * Relación: Reseñas del local
      */
     public function localReviews()

@@ -190,11 +190,12 @@ Route::prefix('resenas')->name('reviews.')->group(function () {
     Route::prefix('ordenes')->name('orders.')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/api/pendientes-count', [OrderController::class, 'getPendingCount'])->name('pending-count');
+        Route::get('/api/productos-local', [OrderController::class, 'getLocalProducts'])->name('local-products');
+        Route::get('/api/buscar-clientes', [OrderController::class, 'searchCustomers'])->name('search-customers');
+        Route::post('/crear', [OrderController::class, 'store'])->name('store');
         Route::get('/{order}', [OrderController::class, 'show'])->name('show');
         Route::post('/{order}/cambiar-estado', [OrderController::class, 'changeStatus'])->name('change-status');
         Route::post('/{order}/actualizar', [OrderController::class, 'update'])->name('update');
-        Route::post('/crear', [OrderController::class, 'store'])->name('store');
-        Route::get('/nuevo', [OrderController::class, 'create'])->name('create');
         Route::get('/{order}/edit', [OrderController::class, 'edit'])->name('edit');   
         Route::delete('/{order}', [OrderController::class, 'destroy'])->name('destroy');
     });
