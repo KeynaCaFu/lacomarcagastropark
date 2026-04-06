@@ -73,11 +73,12 @@ class GoogleController extends Controller
             // Redirigir según el rol del usuario
             if ($user->isAdminGlobal()) {
                 return redirect()->route('admin.dashboard');
-            } elseif ($user->isClient()) {
-                return redirect()->route('client.welcome');
+            } elseif ($user->isAdminLocal()) {
+                return redirect()->route('dashboard');
             }
-
-            return redirect()->route('dashboard');
+            
+            // Por defecto, clientes y cualquier otro usuario ve la plaza
+            return redirect()->route('plaza.index');
 
         } catch (Exception $e) {
             return redirect('/login')->with('error', 'Error al autenticarse con Google: ' . $e->getMessage());

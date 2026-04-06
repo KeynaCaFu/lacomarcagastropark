@@ -50,6 +50,52 @@ class Product extends Model
     }
 
     /**
+     * Relación: Reseñas del producto
+     */
+    public function productReviews()
+    {
+        return $this->hasMany(ProductReview::class, 'product_id', 'product_id');
+    }
+
+    /**
+     * Accessor: Obtener rating promedio del producto
+     * Uso en Blade: {{ $product->average_rating }}
+     * Optimizado para usar eager-loaded relations si están disponibles
+     */
+    public function getAverageRatingAttribute()
+    {
+        // Si ya tenemos las relaciones cargadas, úsalas
+        if ($this->relationLoaded('productReviews')) {
+            $reviews = $this->productReviews;
+            if ($reviews->isEmpty()) {
+                return 0;
+            }
+
+            $totalRating = $reviews->sum(function ($productReview) {
+                return $productReview->review->rating ?? 0;
+            });
+
+            return round($totalRating / $reviews->count(), 1);
+        }
+
+        // Si no están cargadas, haz la query (fallback)
+        $reviews = $this->productReviews()
+            ->whereHas('review')
+            ->with('review')
+            ->get();
+
+        if ($reviews->isEmpty()) {
+            return 0;
+        }
+
+        $totalRating = $reviews->sum(function ($productReview) {
+            return $productReview->review->rating ?? 0;
+        });
+
+        return round($totalRating / $reviews->count(), 1);
+    }
+
+    /**
      * Accessor: Obtener URL de la foto
      * Uso en Blade: {{ $product->photo_url }}
      */
