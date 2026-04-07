@@ -203,8 +203,11 @@ Route::prefix('resenas')->name('reviews.')->group(function () {
         
         // Rutas para comprobantes
         Route::get('/{order}/comprobante/descargar', [ReceiptController::class, 'downloadReceipt'])->name('receipt.download');
+        Route::get('/{order}/comprobante/regenerar', [ReceiptController::class, 'regenerateReceiptAction'])->name('receipt.regenerate');
         Route::get('/{order}/comprobante/ver', [ReceiptController::class, 'viewReceipt'])->name('receipt.view');
         Route::post('/{order}/comprobante/reenviar', [ReceiptController::class, 'resendReceipt'])->name('receipt.resend');
+        Route::get('/comprobante/historial', [ReceiptController::class, 'viewOrderHistory'])->name('receipt.history');
+        Route::get('/comprobante/buscar', [ReceiptController::class, 'searchOrderHistory'])->name('receipt.search');
     });
 });
 
