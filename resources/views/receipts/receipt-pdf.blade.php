@@ -2,399 +2,211 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Comprobante - {{ $order->order_number }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+        html, body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #222;
             background: white;
-            color: #333;
-            padding: 5mm;
         }
+
+        body { padding: 15mm 18mm; }
 
         .receipt-container {
             width: 100%;
-            max-width: 210mm;
-            margin: 0;
-            background: white;
-            padding: 5mm;
-            font-size: 8px;
+            max-width: 160mm;
+            margin: 0 auto;
         }
 
-        /* Header */
-        .receipt-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 2px solid #c9690f;
-            padding-bottom: 4px;
-            margin-bottom: 6px;
-            gap: 5px;
+        .divider-orange {
+            height: 2px;
+            background: #e18018;
+            margin-bottom: 12px;
+            font-size: 0;
+            line-height: 0;
         }
 
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 0 1 auto;
-        }
-
-        .company-info {
-            flex: 0 1 auto;
-        }
-
-        .company-info h1 {
-            font-size: 12px;
-            color: #c9690f;
-            margin: 0;
-            line-height: 1;
-        }
-
-        .company-info p {
-            font-size: 8px;
-            color: #666;
-            margin: 0;
-        }
-
-        .receipt-meta {
-            text-align: right;
-            flex: 1;
-            min-width: 150px;
-        }
-
-        .receipt-meta-item {
-            font-size: 7px;
-            margin: 1px 0;
-            white-space: nowrap;
-        }
-
-        .receipt-meta-item strong {
-            color: #c9690f;
-        }
-
-        /* Título */
-        .receipt-title {
-            text-align: center;
-            font-size: 11px;
-            font-weight: 700;
-            color: #c9690f;
-            margin: 3px 0 2px 0;
-        }
-
-        .receipt-reference {
-            text-align: center;
-            font-size: 7px;
-            color: #999;
-            margin-bottom: 5px;
-        }
-
-        /* Secciones */
-        .section {
+        .section-label {
+            font-size: 9px;
+            font-weight: bold;
+            color: #e18018;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
             margin-bottom: 6px;
         }
 
-        .section-title {
-            background: #f9f9f9;
-            border-left: 3px solid #c9690f;
-            padding: 3px 5px;
-            font-weight: 600;
-            font-size: 8px;
-            color: #333;
-            margin-bottom: 3px;
-        }
-
-        /* Customer Info */
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3px;
-            font-size: 7px;
-            margin-bottom: 4px;
-        }
-
-        .info-item {
-            background: #fafafa;
-            padding: 2px 3px;
-            border-radius: 2px;
-            page-break-inside: avoid;
+        .info-cell {
+            border: 0.5px solid #e8e8e8;
+            padding: 6px 8px;
         }
 
         .info-label {
-            font-size: 6px;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 0.2px;
-            margin-bottom: 1px;
+            font-size: 8px;
+            color: #aaa;
+            margin-bottom: 2px;
         }
 
         .info-value {
-            font-weight: 600;
-            color: #333;
+            font-size: 10px;
+            font-weight: bold;
+            color: #222;
             word-break: break-word;
-            font-size: 7px;
         }
 
-        /* Items Table */
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 8px 0;
-            font-size: 9px;
-        }
-
-        .items-table thead {
-            background: #f0f0f0;
-        }
-
-        .items-table th {
-            padding: 2px 2px;
-            text-align: left;
-            font-size: 7px;
-            font-weight: 700;
-            color: #333;
-            border-bottom: 1px solid #c9690f;
-        }
-
-        .items-table td {
-            padding: 2px 2px;
-            font-size: 7px;
-            border-bottom: 0.5px solid #f0f0f0;
-        }
-
-        .item-name {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .item-quantity {
-            text-align: center;
-        }
-
-        .item-price {
-            text-align: right;
-        }
-
-        .item-subtotal {
-            text-align: right;
-            font-weight: 600;
-            color: #c9690f;
-        }
-
-        /* Totals Section */
-        .totals-section {
-            margin-top: 4px;
-            border-top: 1px solid #f0f0f0;
-            padding-top: 3px;
-            text-align: right;
-        }
-
-        .total-row {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            font-size: 7px;
-            margin-bottom: 1px;
-        }
-
-        .total-label {
-            width: 100px;
-            text-align: left;
-            color: #666;
-        }
-
-        .total-value {
-            width: 60px;
-            text-align: right;
-        }
-
-        .final-total {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            font-size: 8px;
-            font-weight: 700;
-            margin-top: 3px;
-            padding-top: 3px;
-            border-top: 1px solid #c9690f;
-        }
-
-        .final-total .total-label {
-            color: #c9690f;
-        }
-
-        .final-total .total-value {
-            color: #c9690f;
-        }
-
-        /* Payment Info */
-        .payment-info {
-            background: #fef5ed;
-            border-left: 3px solid #f0a060;
-            padding: 3px 4px;
-            border-radius: 2px;
-            font-size: 7px;
-            margin: 4px 0;
-        }
-
-        .payment-method {
-            margin-bottom: 1px;
-        }
-
-        .payment-method strong {
-            color: #c9690f;
-        }
-
-        /* Footer */
-        .receipt-footer {
-            margin-top: 4px;
-            padding-top: 3px;
-            border-top: 1px solid #f0f0f0;
-            text-align: center;
-            font-size: 6px;
-            color: #999;
-        }
-
-        .footer-text {
-            margin: 1px 0;
-        }
-
-        /* Print styles */
         @media print {
-            body {
-                background: white;
-                padding: 3mm;
+            @page {
+                margin: 15mm 18mm;
+                size: letter;
             }
-            .receipt-container {
-                box-shadow: none;
-                padding: 3mm;
-            }
-            .section {
-                page-break-inside: avoid;
-            }
+            body { padding: 0; }
         }
     </style>
 </head>
 <body>
-    <div class="receipt-container">
-        <!-- Header -->
-        <div class="receipt-header">
-            <div class="logo-section">
-                <div class="company-info">
-                    <h1>LA COMARCA</h1>
-                    <p>Gastropark - Comprobante de Venta</p>
-                </div>
-            </div>
+<div class="receipt-container">
 
-            <div class="receipt-meta">
-                <div class="receipt-meta-item">
-                    <strong>Orden #:</strong> {{ $order->order_number }}
-                </div>
-                <div class="receipt-meta-item">
-                    <strong>Comprobante #:</strong> {{ $receiptNumber }}
-                </div>
-                <div class="receipt-meta-item">
-                    <strong>Fecha:</strong> {{ $generatedAt->format('d/m/Y') }}
-                </div>
-                <div class="receipt-meta-item">
-                    <strong>Hora:</strong> {{ $generatedAt->format('H:i') }}
-                </div>
-            </div>
-        </div>
+    <!-- HEADER -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;">
+        <tr>
+            <td style="vertical-align:top;">
+                <div style="font-size:20px; font-weight:bold; color:#e18018; letter-spacing:1.5px;">LA COMARCA</div>
+                <div style="font-size:9px; color:#888; letter-spacing:1px; margin-top:2px;">GASTROPARK</div>
+                <div style="font-size:8px; color:#aaa; margin-top:2px;">Comprobante de Venta</div>
+            </td>
+            <td style="vertical-align:top; text-align:right; font-size:9px; color:#555; line-height:1.9;">
+                <div><span style="color:#aaa;">Orden:</span> {{ $order->order_number }}</div>
+                <div><span style="color:#aaa;">Comprobante:</span> {{ $receiptNumber }}</div>
+                <div><span style="color:#aaa;">Fecha:</span> {{ $generatedAt->format('d/m/Y') }} &middot; {{ $generatedAt->format('H:i') }}</div>
+            </td>
+        </tr>
+    </table>
 
-        <div class="receipt-title">COMPROBANTE DE VENTA</div>
-        <div class="receipt-reference">
-            Referencia: <strong>{{ $reference }}</strong>
-        </div>
+    <div class="divider-orange"></div>
 
-        <!-- Cliente -->
-        <div class="section">
-            <div class="section-title">Información de Cliente</div>
-            <div class="info-grid">
-                <div class="info-item">
+    <!-- TÍTULO + REFERENCIA -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
+        <tr>
+            <td style="font-size:14px; font-weight:bold; color:#e18018; letter-spacing:0.5px;">COMPROBANTE DE VENTA</td>
+            <td style="text-align:right; font-size:9px; color:#bbb;">Ref: {{ $reference }}</td>
+        </tr>
+    </table>
+
+    <!-- CLIENTE -->
+    <div class="section-label">Cliente</div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
+        <tr>
+            <td width="49%" style="padding-right:5px; padding-bottom:5px; vertical-align:top;">
+                <div class="info-cell">
                     <div class="info-label">Nombre</div>
-                    <div class="info-value">{{ $order->user->first()?->full_name ?? 'No especificado' }}</div>
+                    <div class="info-value">{{ $order->user->first()?->full_name ?? 'N/A' }}</div>
                 </div>
-                <div class="info-item">
+            </td>
+            <td width="49%" style="padding-left:5px; padding-bottom:5px; vertical-align:top;">
+                <div class="info-cell">
                     <div class="info-label">Email</div>
-                    <div class="info-value">{{ $order->user->first()?->email ?? 'No especificado' }}</div>
+                    <div class="info-value">{{ $order->user->first()?->email ?? 'N/A' }}</div>
                 </div>
-                <div class="info-item">
+            </td>
+        </tr>
+        <tr>
+            <td width="49%" style="padding-right:5px; vertical-align:top;">
+                <div class="info-cell">
                     <div class="info-label">Teléfono</div>
-                    <div class="info-value">{{ $order->user->first()?->phone ?? 'No especificado' }}</div>
+                    <div class="info-value">{{ $order->user->first()?->phone ?? 'N/A' }}</div>
                 </div>
-                <div class="info-item">
+            </td>
+            <td width="49%" style="padding-left:5px; vertical-align:top;">
+                <div class="info-cell">
                     <div class="info-label">Local</div>
-                    <div class="info-value">{{ $order->local?->name ?? 'No especificado' }}</div>
+                    <div class="info-value">{{ $order->local?->name ?? 'N/A' }}</div>
                 </div>
-            </div>
-        </div>
+            </td>
+        </tr>
+    </table>
 
-        <!-- Detalle de ítems -->
-        <div class="section">
-            <div class="section-title">Detalle de Productos</div>
-            <table class="items-table">
-                <thead>
+    <!-- PRODUCTOS -->
+    <div class="section-label">Detalle de productos</div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="font-size:10px; margin-bottom:14px;">
+        <colgroup>
+            <col width="46%"><col width="14%"><col width="20%"><col width="20%">
+        </colgroup>
+        <thead>
+            <tr>
+                <th style="padding:6px 4px 6px 0; text-align:left; font-weight:bold; color:#555; font-size:9px; border-bottom:1.5px solid #333;">Producto</th>
+                <th style="padding:6px 4px; text-align:center; font-weight:bold; color:#555; font-size:9px; border-bottom:1.5px solid #333;">Cant.</th>
+                <th style="padding:6px 4px; text-align:right; font-weight:bold; color:#555; font-size:9px; border-bottom:1.5px solid #333;">Precio</th>
+                <th style="padding:6px 0 6px 4px; text-align:right; font-weight:bold; color:#555; font-size:9px; border-bottom:1.5px solid #333;">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($order->items as $item)
+                @php
+                    $localProduct = $item->product->locals->where('local_id', $order->local_id)->first();
+                    $price = $localProduct ? $localProduct->pivot->price : 0;
+                    $subtotal = $price * $item->quantity;
+                @endphp
+                <tr>
+                    <td style="padding:6px 4px 6px 0; border-bottom:0.5px solid #f0f0f0;">{{ $item->product->name }}</td>
+                    <td style="padding:6px 4px; text-align:center; color:#888; border-bottom:0.5px solid #f0f0f0;">{{ $item->quantity }}</td>
+                    <td style="padding:6px 4px; text-align:right; color:#888; border-bottom:0.5px solid #f0f0f0;">&#8353;{{ number_format($price, 2, '.', ',') }}</td>
+                    <td style="padding:6px 0 6px 4px; text-align:right; font-weight:bold; border-bottom:0.5px solid #f0f0f0;">&#8353;{{ number_format($subtotal, 2, '.', ',') }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    <!-- TOTALES -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
+        <tr>
+            <td></td>
+            <td width="44%">
+                <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <th style="width: 50%">Producto</th>
-                        <th style="width: 15%; text-align: center;">Cantidad</th>
-                        <th style="width: 17.5%; text-align: right;">Precio Unit.</th>
-                        <th style="width: 17.5%; text-align: right;">Subtotal</th>
+                        <td style="font-size:9px; color:#888; padding-bottom:4px;">Subtotal</td>
+                        <td style="font-size:9px; color:#888; text-align:right; padding-bottom:4px;">&#8353;{{ number_format($order->total_amount, 2, '.', ',') }}</td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach($order->items as $item)
-                        @php
-                            $localProduct = $item->product->locals->where('local_id', $order->local_id)->first();
-                            $price = $localProduct ? $localProduct->pivot->price : 0;
-                            $subtotal = $price * $item->quantity;
-                        @endphp
-                        <tr>
-                            <td class="item-name">{{ $item->product->name }}</td>
-                            <td class="item-quantity">{{ $item->quantity }}</td>
-                            <td class="item-price">₡{{ number_format($price, 2, '.', ',') }}</td>
-                            <td class="item-subtotal">₡{{ number_format($subtotal, 2, '.', ',') }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+                    <tr>
+                        <td colspan="2" style="border-top:0.5px solid #e8e8e8; padding:0; line-height:0; font-size:0;">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td style="font-size:11px; font-weight:bold; color:#222; padding-top:5px;">Total a pagar</td>
+                        <td style="font-size:11px; font-weight:bold; color:#e18018; text-align:right; padding-top:5px;">&#8353;{{ number_format($order->total_amount, 2, '.', ',') }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 
-        <!-- Totales -->
-        <div class="totals-section">
-            <div class="total-row">
-                <span class="total-label">Subtotal:</span>
-                <span class="total-value">₡{{ number_format($order->total_amount, 2, '.', ',') }}</span>
-            </div>
-            <div class="final-total">
-                <span class="total-label">TOTAL A PAGAR:</span>
-                <span class="total-value">₡{{ number_format($order->total_amount, 2, '.', ',') }}</span>
-            </div>
-        </div>
+    <!-- PAGO -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafafa; border:0.5px solid #e8e8e8; margin-bottom:14px;">
+        <tr>
+            <td style="padding:7px 10px 3px 10px; font-size:10px; color:#888;">Método de pago</td>
+            <td style="padding:7px 10px 3px 10px; font-size:10px; font-weight:bold; color:#222; text-align:right;">{{ $paymentMethod }}</td>
+        </tr>
+        <tr>
+            <td style="padding:3px 10px 7px 10px; font-size:10px; color:#888;">Referencia de pago</td>
+            <td style="padding:3px 10px 7px 10px; font-size:10px; font-weight:bold; color:#222; text-align:right;">{{ $receiptReference ?: '&mdash;' }}</td>
+        </tr>
+    </table>
 
-        <!-- Información de pago -->
-        <div class="payment-info">
-            <div class="payment-method">
-                <strong>Método de Pago:</strong> {{ $paymentMethod }}
-            </div>
-            <div class="payment-method">
-                <strong>Número de Referencia:</strong> {{ $receiptReference }}
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="receipt-footer">
-            <div class="footer-text">
-                Gracias por su compra en La Comarca Gastropark
-            </div>
-            <div class="footer-text">
-                Este comprobante es válido como constancia de pago
-            </div>
-            <div class="footer-text" style="margin-top: 15px; color: #c9690f;">
+    <!-- FOOTER -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-top:0.5px solid #e8e8e8;">
+        <tr>
+            <td style="padding-top:10px; font-size:9px; color:#bbb; line-height:1.8;">
+                <div>Gracias por su compra en La Comarca Gastropark</div>
+                <div>Este comprobante es válido como constancia de pago</div>
+            </td>
+            <td style="padding-top:10px; text-align:right; font-size:9px; color:#e18018; font-weight:bold; white-space:nowrap; vertical-align:bottom;">
                 {{ now()->format('d/m/Y H:i:s') }}
-            </div>
-        </div>
-    </div>
+            </td>
+        </tr>
+    </table>
+
+</div>
 </body>
 </html>
