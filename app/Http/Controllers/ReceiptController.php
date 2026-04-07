@@ -129,6 +129,66 @@ class ReceiptController extends Controller
     }
 
     /**
+     * Regenerar comprobante PDF (reemplazar si existe, crear si no)
+     */
+    public function regenerateReceiptAction(Order $order)
+    {
+        try {
+            // Obtener el recibo más reciente
+            $receipt = Receipt::where('order_id', $order->order_id)
+                ->latest('receipt_id')
+                ->first();
+
+            // Variables para guardar datos del recibo anterior
+            $paymentMethod = 'Efectivo'; // valor por defecto
+            $receiptReference = null;
+
+            // Si existe un comprobante anterior
+            if ($receipt) {
+                // Obtener datos del recibo anterior
+                $paymentMethod = $receipt->payment_method;
+                $receiptReference = $receipt->receipt_reference;
+
+                // Eliminar archivo PDF anterior si existe
+                if ($receipt->pdf_path && file_exists(public_path($receipt->pdf_path))) {
+                    unlink(public_path($receipt->pdf_path));
+                }
+
+                // Eliminar registro anterior de Receipt
+                $receipt->delete();
+            }
+
+            // Cargar relaciones necesarias de la orden
+            $order->load(['items.product', 'user', 'local']);
+
+            // Generar nuevo comprobante
+            $result = $this->generateReceipt($order, $paymentMethod, $receiptReference);
+
+            if (!$result['success']) {
+                return response()->json($result, 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $receipt ? 'Comprobante regenerado y guardado correctamente' : 'Comprobante creado y guardado correctamente',
+                'receipt_id' => $result['receipt_id'],
+                'pdf_path' => $result['pdf_path']
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al regenerar comprobante', [
+                'order_id' => $order->order_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al regenerar comprobante: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Reenviar comprobante al email
      */
     public function resendReceipt(Order $order)
@@ -282,6 +342,131 @@ class ReceiptController extends Controller
     private function generateReference()
     {
         return strtoupper(substr(md5(uniqid() . time()), 0, 12));
+    }
+
+    /**
+     * Ver historial de órdenes entregadas y canceladas
+     */
+    public function viewOrderHistory()
+    {
+        try {
+            // Obtener órdenes de hoy y hace 5 días
+            $fiveDaysAgo = now()->subDays(5)->startOfDay();
+            $today = now()->endOfDay();
+
+            // Obtener órdenes entregadas (del día actual y últimos 5 días)
+            $deliveredOrders = Order::where('status', 'Delivered')
+                ->whereBetween('updated_at', [$fiveDaysAgo, $today])
+                ->with(['items.product', 'user', 'local', 'receipts'])
+                ->orderBy('updated_at', 'desc')
+                ->get()
+                ->groupBy(function($order) {
+                    $date = $order->updated_at->toDateString();
+                    $today = now()->toDateString();
+                    return $date === $today ? 'Hoy' : $order->updated_at->format('d/m/Y');
+                });
+
+            // Obtener órdenes canceladas (del día actual y últimos 5 días)
+            $cancelledOrders = Order::where('status', 'Cancelled')
+                ->whereBetween('updated_at', [$fiveDaysAgo, $today])
+                ->with(['items.product', 'user', 'local', 'receipts'])
+                ->orderBy('updated_at', 'desc')
+                ->get()
+                ->groupBy(function($order) {
+                    $date = $order->updated_at->toDateString();
+                    $today = now()->toDateString();
+                    return $date === $today ? 'Hoy' : $order->updated_at->format('d/m/Y');
+                });
+
+            $statuses = [
+                'Pending' => 'Pendiente',
+                'In Progress' => 'En Preparación',
+                'Ready' => 'Listo',
+                'Delivered' => 'Entregado',
+                'Cancelled' => 'Cancelada',
+            ];
+
+            return view('orders.history', compact('deliveredOrders', 'cancelledOrders', 'statuses'));
+
+        } catch (\Exception $e) {
+            Log::error('Error al cargar historial de órdenes', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            abort(500, 'Error al cargar historial de órdenes');
+        }
+    }
+
+    /**
+     * Buscar órdenes con filtros (endpoint AJAX)
+     */
+    public function searchOrderHistory(Request $request)
+    {
+        try {
+            $orderNumber = $request->input('orderNumber');
+            $customerName = $request->input('customerName');
+            $dateFrom = $request->input('dateFrom');
+            $dateTo = $request->input('dateTo');
+
+            // Si no hay filtros, devolver error
+            if (!$orderNumber && !$customerName && !$dateFrom && !$dateTo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Debe proporcionar al menos un filtro'
+                ], 400);
+            }
+
+            $query = Order::whereIn('status', ['Delivered', 'Cancelled'])
+                ->with(['items.product', 'user', 'local', 'receipts']);
+
+            // Filtro por número de orden
+            if ($orderNumber) {
+                $query->where('order_number', 'like', "%$orderNumber%");
+            }
+
+            // Filtro por nombre de cliente
+            if ($customerName) {
+                $query->whereHas('user', function($q) use ($customerName) {
+                    $q->where('full_name', 'like', "%$customerName%");
+                });
+            }
+
+            // Filtro por rango de fechas
+            if ($dateFrom) {
+                $query->whereDate('updated_at', '>=', $dateFrom);
+            }
+            if ($dateTo) {
+                $query->whereDate('updated_at', '<=', $dateTo);
+            }
+
+            $orders = $query->orderBy('updated_at', 'desc')->get();
+
+            // Agrupar por estado y fecha
+            $groupedOrders = $orders->groupBy('status')->map(function($statusOrders, $status) {
+                return $statusOrders->groupBy(function($order) {
+                    $date = $order->updated_at->toDateString();
+                    $today = now()->toDateString();
+                    return $date === $today ? 'Hoy' : $order->updated_at->format('d/m/Y');
+                });
+            });
+
+            return response()->json([
+                'success' => true,
+                'orders' => $orders,
+                'grouped' => $groupedOrders,
+                'count' => $orders->count(),
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al buscar órdenes', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al buscar órdenes: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
 
