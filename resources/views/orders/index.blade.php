@@ -32,6 +32,513 @@
             max-height: 500px;
             overflow-y: auto;
         }
+
+        /* ===== RESPONSIVE STYLES ===== */
+        .orders-dashboard {
+            padding: 15px;
+        }
+
+        /* Header responsivo */
+        .orders-dashboard > .d-flex {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .orders-dashboard > .d-flex > div:first-child {
+            width: 100%;
+        }
+
+        .orders-dashboard > .d-flex > div:last-child {
+            width: 100%;
+            justify-content: flex-start !important;
+            flex-wrap: wrap;
+        }
+
+        .orders-dashboard h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .orders-dashboard p {
+            font-size: 13px;
+        }
+
+        /* Botón Nueva Orden responsivo */
+        #newOrderBtn {
+            width: 100%;
+            justify-content: center;
+            padding: 12px 16px !important;
+            font-size: 13px;
+        }
+
+        /* Grid de estadísticas responsivo */
+        .order-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .order-stat-card {
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            border: 1px solid #e5e7eb;
+        }
+
+        .order-stat-icon {
+            font-size: 24px;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .order-stat-number {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .order-stat-label {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        /* Tabs header responsivo */
+        .orders-tabs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .orders-tabs-header > div:first-child {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .order-tab {
+            padding: 8px 12px;
+            font-size: 12px;
+            white-space: nowrap;
+            border-radius: 6px;
+        }
+
+        /* Main layout responsivo */
+        .orders-main-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .orders-list-container,
+        .order-details-panel-large {
+            min-height: 300px;
+            border-radius: 8px;
+            background: white;
+            border: 1px solid #e5e7eb;
+        }
+
+        .orders-list-search {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .orders-list-search input {
+            font-size: 13px;
+            padding: 8px 12px !important;
+        }
+
+        .orders-grid-list {
+            max-height: 400px;
+        }
+
+        .order-card-item {
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 13px;
+        }
+
+        .order-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .order-card-number {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 13px;
+        }
+
+        .order-card-customer {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+
+        .order-card-time {
+            font-size: 11px;
+            color: #9ca3af;
+            white-space: nowrap;
+        }
+
+        .order-card-status {
+            margin: 8px 0;
+        }
+
+        .order-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .order-card-amount {
+            font-weight: 600;
+            color: #e18018;
+            font-size: 13px;
+        }
+
+        .order-card-items {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .order-details-panel-large {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            min-height: 400px;
+        }
+
+        /* ===== TABLET (768px+) ===== */
+        @media (min-width: 768px) {
+            .orders-dashboard {
+                padding: 20px;
+            }
+
+            .orders-dashboard > .d-flex {
+                flex-direction: row;
+            }
+
+            .orders-dashboard > .d-flex > div:first-child {
+                width: auto;
+            }
+
+            .orders-dashboard > .d-flex > div:last-child {
+                width: auto;
+                justify-content: flex-end !important;
+            }
+
+            #newOrderBtn {
+                width: auto;
+                padding: 10px 20px !important;
+            }
+
+            .order-stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 15px;
+            }
+
+            .orders-main-layout {
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+
+            .orders-grid-list {
+                max-height: 500px;
+            }
+
+            .orders-list-container {
+                min-height: 500px;
+            }
+
+            .order-details-panel-large {
+                min-height: 500px;
+                padding: 30px 20px;
+            }
+
+            .order-tab {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+        }
+
+        /* ===== DESKTOP (1024px+) ===== */
+        @media (min-width: 1024px) {
+            .orders-dashboard {
+                padding: 25px;
+            }
+
+            .order-stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+            }
+
+            .order-stat-card {
+                padding: 15px;
+            }
+
+            .order-stat-icon {
+                font-size: 28px;
+            }
+
+            .order-stat-number {
+                font-size: 18px;
+            }
+
+            .order-tab {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            .orders-main-layout {
+                grid-template-columns: 1.2fr 1fr;
+                gap: 25px;
+            }
+
+            .orders-list-container {
+                min-height: 600px;
+            }
+
+            .order-details-panel-large {
+                min-height: 600px;
+                padding: 40px;
+                margin-right: 10px;
+                margin-left: -118px;
+            }
+
+            .orders-grid-list {
+                max-height: 550px;
+            }
+        }
+
+        /* ===== LARGE DESKTOP (1440px+) ===== */
+        @media (min-width: 1440px) {
+            .orders-main-layout {
+                grid-template-columns: 1.3fr 1fr;
+            }
+        }
+
+        /* ===== MOBILE PEQUEÑO (<480px) ===== */
+        @media (max-width: 479px) {
+            .orders-dashboard {
+                padding: 10px;
+            }
+
+            .orders-dashboard h1 {
+                font-size: 20px;
+            }
+
+            .order-stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .order-stat-card {
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .order-stat-icon {
+                font-size: 20px;
+                min-width: 30px;
+            }
+
+            .order-stat-number {
+                font-size: 14px;
+            }
+
+            .order-stat-label {
+                font-size: 10px;
+            }
+
+            .orders-list-search input {
+                font-size: 12px;
+            }
+
+            .order-card-item {
+                padding: 10px;
+            }
+
+            .order-card-number {
+                font-size: 12px;
+            }
+
+            .btn-history-responsive {
+                padding: 6px 10px !important;
+                font-size: 11px !important;
+            }
+
+            .btn-history-responsive span {
+                display: none;
+            }
+
+            .btn-history-responsive i {
+                margin: 0 !important;
+            }
+
+            .order-details-panel-large {
+                padding: 20px 15px;
+                min-height: auto;
+            }
+
+            .orders-grid-list {
+                max-height: 300px;
+            }
+        }
+
+        @media (min-width: 480px) and (max-width: 767px) {
+            .btn-history-responsive {
+                padding: 7px 12px !important;
+                font-size: 12px !important;
+            }
+        }
+
+        /* Paginación Responsive */
+        .pagination {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 20px;
+        }
+
+        .pagination a,
+        .pagination span {
+            padding: 8px 12px;
+            font-size: 13px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 35px;
+        }
+
+        @media (max-width: 480px) {
+            .pagination a,
+            .pagination span {
+                padding: 6px 10px;
+                font-size: 12px;
+                min-width: 32px;
+            }
+
+            .d-flex.justify-content-center {
+                margin-top: 15px;
+            }
+        }
+
+        /* Modal Responsive */
+        #createOrderModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none !important;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 10px;
+        }
+
+        #createOrderModal.show {
+            display: flex !important;
+        }
+
+        .create-order-modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 480px) {
+            .create-order-modal-content {
+                max-width: 600px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .create-order-modal-content {
+                max-width: 800px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .create-order-modal-content {
+                max-width: 1000px;
+            }
+        }
+
+        /* Ajustes generales para touch/mobile */
+        @media (hover: none) and (pointer: coarse) {
+            button,
+            a {
+                min-height: 44px;
+                min-width: 44px;
+                padding: 12px !important;
+            }
+
+            .order-tab {
+                min-height: 40px;
+                min-width: 70px;
+            }
+        }
+
+        /* Scroll suave en mobile */
+        @media (max-width: 767px) {
+            .orders-grid-list,
+            .order-details-panel-large {
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        /* Status badge responsive */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Dropdown responsive */
+        .status-dropdown {
+            min-width: 160px !important;
+            z-index: 1000;
+        }
+
+        @media (max-width: 640px) {
+            .status-dropdown {
+                min-width: 140px !important;
+            }
+
+            .status-dropdown-item {
+                font-size: 12px;
+                padding: 8px 10px !important;
+            }
+        }
     </style>
 @endpush
 
@@ -45,9 +552,11 @@
             </h1>
             <p class="text-muted mb-0">Gestión de órdenes del establecimiento</p>
         </div>
-        <button type="button" class="btn btn-warning" id="newOrderBtn" style="background: linear-gradient(135deg, #e18018, #c9690f); border: none; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-            <i class="fas fa-plus"></i> Nueva Orden
-        </button>
+        <div style="display: flex; gap: 10px;">
+            <button type="button" class="btn btn-warning" id="newOrderBtn" style="background: linear-gradient(135deg, #e18018, #c9690f); border: none; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-plus"></i> Nueva Orden
+            </button>
+        </div>
     </div>
 
     <!-- Estadísticas de órdenes -->
@@ -106,13 +615,18 @@
     <!-- Contenedor de órdenes con Tabs -->
     <div class="orders-container-tabs">
         <!-- Tabs de estados -->
-        <div class="orders-tabs-header">
-            @foreach($statuses as $key => $label)
-                <button class="order-tab {{ $loop->first ? 'active' : '' }}" data-status="{{ $key }}">
-                    <span class="order-tab-label">{{ $label }}</span>
-                    <span class="order-tab-count">{{ $counts[$key] ?? 0 }}</span>
-                </button>
-            @endforeach
+        <div class="orders-tabs-header" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; flex: 1; min-width: 0;">
+                @foreach($statuses as $key => $label)
+                    <button class="order-tab {{ $loop->first ? 'active' : '' }}" data-status="{{ $key }}">
+                        <span class="order-tab-label">{{ $label }}</span>
+                        <span class="order-tab-count">{{ $counts[$key] ?? 0 }}</span>
+                    </button>
+                @endforeach
+            </div>
+            <a href="{{ route('orders.receipt.history') }}" class="btn-history-responsive" style="background: linear-gradient(135deg, #e18018, #c9690f); color: white; padding: 7px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: 13px; white-space: nowrap; transition: transform 0.2s ease, box-shadow 0.2s ease; flex-shrink: 0;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(225, 128, 24, 0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                <i class="fas fa-history"></i> <span>Ver Historial</span>
+            </a>
         </div>
 
         <!-- Contenedor con lista central y detalles -->
@@ -304,7 +818,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!receiptButtonsContainer) {
             receiptButtonsContainer = document.createElement('div');
             receiptButtonsContainer.className = 'receipt-buttons-container';
-            receiptButtonsContainer.style.cssText = 'margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; display: flex; gap: 10px;';
+            receiptButtonsContainer.style.cssText = 'margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; display: flex; gap: 10px; flex-wrap: wrap;';
             
             // Agregar después del último elemento del panel
             detailsWrapper.appendChild(receiptButtonsContainer);
@@ -315,19 +829,27 @@ document.addEventListener('DOMContentLoaded', function() {
         // Botón de Descargar Comprobante
         const downloadBtn = document.createElement('button');
         downloadBtn.className = 'btn btn-info';
-        downloadBtn.style.cssText = 'flex: 1; background: #3b82f6; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px;';
+        downloadBtn.style.cssText = 'flex: 1; min-width: 150px; background: #3b82f6; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px;';
         downloadBtn.innerHTML = '<i class="fas fa-download"></i> Descargar Comprobante';
         downloadBtn.addEventListener('click', () => downloadReceipt(orderId));
 
         // Botón de Reenviar Comprobante
         const resendBtn = document.createElement('button');
         resendBtn.className = 'btn btn-warning';
-        resendBtn.style.cssText = 'flex: 1; background: #10b981; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px;';
+        resendBtn.style.cssText = 'flex: 1; min-width: 150px; background: #10b981; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px;';
         resendBtn.innerHTML = '<i class="fas fa-envelope"></i> Reenviar al Email';
         resendBtn.addEventListener('click', (e) => resendReceipt(orderId, e.target.closest('button')));
 
+        // Botón Ver Historial
+        const historyBtn = document.createElement('a');
+        historyBtn.className = 'btn btn-secondary';
+        historyBtn.href = '{{ route("orders.receipt.history") }}';
+        historyBtn.style.cssText = 'flex: 1; min-width: 150px; background: #8b5cf6; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none;';
+        historyBtn.innerHTML = '<i class="fas fa-history"></i> Ver Historial';
+
         receiptButtonsContainer.appendChild(downloadBtn);
         receiptButtonsContainer.appendChild(resendBtn);
+        receiptButtonsContainer.appendChild(historyBtn);
     }
 
     function downloadReceipt(orderId) {
