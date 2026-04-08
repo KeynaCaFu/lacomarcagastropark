@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Data\OrderData;
 use App\Models\Order;
+use App\Models\Receipt;
 use App\Http\Controllers\ReceiptController;
 
 class OrderController extends Controller
@@ -162,26 +163,53 @@ class OrderController extends Controller
                 // Cambiar estado primero
                 $this->orderData->changeStatus($orderId, $newStatus);
 
+                // Verificar si debe saltar la generación de comprobante (para Gerentes)
+                $skipReceiptGeneration = $request->input('skip_receipt_generation', false);
+                
                 // Generar comprobante
-                $receiptController = app(ReceiptController::class);
-                $receiptResult = $receiptController->generateReceipt(
-                    $order,
-                    $paymentMethod,
-                    $receiptReference
-                );
+                if ($skipReceiptGeneration) {
+                    // Para Gerentes: guardar los datos en tbreceipt pero sin PDF
+                    
+                    // Generar número de comprobante
+                    $receiptNumber = \Carbon\Carbon::now()->format('Ymd') . '-' . str_pad(
+                        Receipt::count() + 1,
+                        6,
+                        '0',
+                        STR_PAD_LEFT
+                    );
+                    
+                    // Crear registro sin PDF
+                    Receipt::create([
+                        'order_id' => $orderId,
+                        'receipt_number' => $receiptNumber,
+                        'payment_method' => $paymentMethod,
+                        'receipt_reference' => $receiptReference,
+                        'pdf_path' => null,
+                        'sent_to_email' => false,
+                    ]);
+                } else {
+                    // Para Clientes: generar comprobante completo con PDF
+                    $receiptController = app(ReceiptController::class);
+                    $receiptResult = $receiptController->generateReceipt(
+                        $order,
+                        $paymentMethod,
+                        $receiptReference
+                    );
 
-                if (!$receiptResult['success']) {
-                    return response()->json([
-                        'success' => false,
-                        'error' => 'Estado actualizado pero error al generar comprobante: ' . $receiptResult['message']
-                    ], 500);
+                    if (!$receiptResult['success']) {
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'Estado actualizado pero error al generar comprobante: ' . $receiptResult['message']
+                        ], 500);
+                    }
                 }
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Estado actualizado y comprobante generado',
-                    'status' => $newStatus,
-                    'receipt' => $receiptResult['receipt'] ?? null
+                    'message' => $skipReceiptGeneration 
+                        ? 'Estado actualizado. Para generar el comprobante, dirígete al Historial de Órdenes.'
+                        : 'Estado actualizado y comprobante generado',
+                    'status' => $newStatus
                 ]);
             }
 

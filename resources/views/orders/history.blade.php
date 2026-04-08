@@ -1096,7 +1096,18 @@
                                     <i class="fas fa-check"></i> Entregada
                                 </span>
                                 <span id="receipt-badge-{{ $order->order_id }}">
-                                    @if($order->receipts && count($order->receipts) > 0)
+                                    @php
+                                        $hasPdf = false;
+                                        if($order->receipts && count($order->receipts) > 0) {
+                                            foreach($order->receipts as $receipt) {
+                                                if($receipt->pdf_path !== null) {
+                                                    $hasPdf = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    @endphp
+                                    @if($hasPdf)
                                         <span class="status-badge" style=" color: #065f46; margin-left: 5px;">
                                             <i class="fas fa-file-pdf"></i> PDF
                                         </span>
@@ -1161,7 +1172,18 @@
                                     <i class="fas fa-ban"></i> Cancelada
                                 </span>
                                 <span id="receipt-badge-{{ $order->order_id }}">
-                                    @if($order->receipts && count($order->receipts) > 0)
+                                    @php
+                                        $hasPdf = false;
+                                        if($order->receipts && count($order->receipts) > 0) {
+                                            foreach($order->receipts as $receipt) {
+                                                if($receipt->pdf_path !== null) {
+                                                    $hasPdf = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    @endphp
+                                    @if($hasPdf)
                                         <span class="status-badge" style="background: #d1fae5; color: #065f46; margin-left: 5px;">
                                             <i class="fas fa-file-pdf"></i> PDF
                                         </span>
@@ -1560,9 +1582,13 @@ function checkClientAndProceed(orderId, action) {
             'Content-Type': 'application/json'
         }
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.hasValidClient) {
+        .then(response => response.json().then(data => ({
+            ok: response.ok,
+            status: response.status,
+            data: data
+        })))
+        .then(({ ok, status, data }) => {
+            if (ok && data.hasValidClient) {
                 // Cliente válido, proceder directamente sin datos temporales
                 if (action === 'resend') {
                     proceedResendWithoutModal(orderId);
@@ -1571,7 +1597,7 @@ function checkClientAndProceed(orderId, action) {
                 } else if (action === 'regenerate') {
                     proceedRegenerateReceipt(orderId);
                 }
-            } else {
+            } else if (ok && !data.hasValidClient) {
                 // No hay cliente válido, pedir datos
                 clientDataTemp.pendingAction = action;
                 clientDataTemp.orderId = orderId;
@@ -1579,6 +1605,8 @@ function checkClientAndProceed(orderId, action) {
                 // Mostrar modal
                 document.getElementById('clientDataModal').style.display = 'flex';
                 document.getElementById('modalClientName').focus();
+            } else {
+                Swal.fire('Error', 'Error al validar los datos del cliente', 'error');
             }
         })
         .catch(error => {
@@ -1605,12 +1633,16 @@ function proceedResendWithoutModal(orderId) {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         }
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
+        .then(response => response.json().then(data => ({
+            ok: response.ok,
+            status: response.status,
+            data: data
+        })))
+        .then(({ ok, status, data }) => {
+            if (ok && data.success) {
                 swToast({icon: 'success', title: data.message});
             } else {
-                Swal.fire('Error', data.message, 'error');
+                Swal.fire('Error', data.message || 'Error al reenviar el comprobante', 'error');
             }
         })
         .catch(error => {
@@ -1644,12 +1676,16 @@ function proceedResendReceipt(orderId, customerEmail, customerName) {
         },
         body: JSON.stringify(payload)
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
+        .then(response => response.json().then(data => ({
+            ok: response.ok,
+            status: response.status,
+            data: data
+        })))
+        .then(({ ok, status, data }) => {
+            if (ok && data.success) {
                 swToast({icon: 'success', title: data.message});
             } else {
-                Swal.fire('Error', data.message, 'error');
+                Swal.fire('Error', data.message || 'Error al reenviar el comprobante', 'error');
             }
         })
         .catch(error => {
@@ -1665,7 +1701,12 @@ function proceedDownloadReceipt(orderId) {
             'X-Requested-With': 'XMLHttpRequest',
         }
     })
-        .then(response => response.blob())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.blob();
+        })
         .then(blob => {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1678,7 +1719,7 @@ function proceedDownloadReceipt(orderId) {
         })
         .catch(error => {
             console.error('Error:', error);
-            Swal.fire('Error', 'No se pudo descargar el comprobante', 'error');
+            Swal.fire('Error', 'No se pudo descargar el comprobante. Intenta regenerarlo primero.', 'error');
         });
 }
 
@@ -1706,13 +1747,17 @@ function proceedRegenerateReceipt(orderId, customerEmail = null, customerName = 
         },
         body: JSON.stringify(payload)
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
+        .then(response => response.json().then(data => ({
+            ok: response.ok,
+            status: response.status,
+            data: data
+        })))
+        .then(({ ok, status, data }) => {
+            if (ok && data.success) {
                 swToast({icon: 'success', title: data.message});
                 updateReceiptBadge(orderId);
             } else {
-                Swal.fire('Error', data.message, 'error');
+                Swal.fire('Error', data.message || 'Error al regenerar el comprobante', 'error');
             }
         })
         .catch(error => {

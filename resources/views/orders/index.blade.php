@@ -135,7 +135,7 @@
 
                     <div class="orders-grid-list">
                         @foreach($orders as $order)
-                            <div class="order-card-item" data-order-id="{{ $order->order_id }}" data-status="{{ $order->status }}">
+                            <div class="order-card-item" data-order-id="{{ $order->order_id }}" data-status="{{ $order->status }}" data-user-role-id="{{ $order->user->first()?->role_id ?? 'null' }}">
                                 <div class="order-card-header">
                                     <div>
                                         <div class="order-card-number">{{ $order->order_number }}</div>
@@ -738,6 +738,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             if (status === 'Delivered' && result.value) {
+                // Obtener el rol del usuario de la orden
+                const orderCard = document.querySelector(`.order-card-item[data-order-id="${orderId}"]`);
+                const userRoleId = orderCard ? orderCard.dataset.userRoleId : null;
+                
+                // Si el usuario es Gerente (role_id 2), no crear comprobante automático
+                if (userRoleId === '2') {
+                    payload.skip_receipt_generation = true;
+                }
+                
                 // Agregar datos de pago para Delivered
                 payload.payment_method = result.value.paymentMethod;
                 payload.receipt_reference = result.value.receiptReference;
