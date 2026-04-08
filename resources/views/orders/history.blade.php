@@ -6,12 +6,11 @@
     <style>
         .history-container {
             padding: 20px;
-            background: #f8f9fa;
             min-height: 100vh;
         }
 
         .history-header {
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             padding: 20px;
             background: white;
             border-radius: 8px;
@@ -19,6 +18,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-right: 79px;
+            margin-left: 52px;
         }
 
         .history-title {
@@ -28,93 +29,57 @@
             margin: 0;
         }
 
-        .history-subtitle {
+        .breadcrumb-nav {
             font-size: 13px;
-            color: #999;
-            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0;
         }
 
-        .btn-back {
-            background: #e18018;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 6px;
-            cursor: pointer;
+        .breadcrumb-link {
+            color: #e18018;
+            text-decoration: none;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            transition: background 0.3s ease;
+            gap: 6px;
+            transition: color 0.3s ease;
         }
 
-        .btn-back:hover {
-            background: #c9690f;
-            color: white;
+        .breadcrumb-link:hover {
+            color: #c9690f;
+            text-decoration: underline;
         }
 
-        /* Filtros */
-        .filter-panel {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        .breadcrumb-separator {
+            color: #ccc;
+            display: inline-flex;
+            align-items: center;
+            font-size: 11px;
         }
 
-        .filter-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .filter-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .filter-label {
-            font-size: 12px;
-            font-weight: 600;
+        .breadcrumb-current {
             color: #666;
-            text-transform: uppercase;
+            font-weight: 500;
         }
 
-        .filter-input {
-            padding: 10px 12px;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 13px;
-            font-family: inherit;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .filter-input:focus {
-            outline: none;
-            border-color: #e18018;
-            box-shadow: 0 0 0 2px rgba(225, 128, 24, 0.1);
+        .history-subtitle {
+            font-size: 12px;
+            color: #e18018;
+            margin-top: 5px;
+            font-weight: 500;
         }
 
         .tab-buttons {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
-            background: white;
+            /* background: white; */
             padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            /* border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); */
+            margin-left: 39px;
         }
 
         .tab-btn {
@@ -141,12 +106,14 @@
 
         .history-section {
             margin-bottom: 20px;
+            margin-right: 83px;
+            margin-left: 59px;
         }
 
         .section-title {
             background: linear-gradient(135deg, #e18018, #c9690f);
             color: white;
-            padding: 15px 20px;
+            padding: 9px 20px;
             border-radius: 8px 8px 0 0;
             font-size: 16px;
             font-weight: 700;
@@ -280,7 +247,8 @@
 
         .action-btn {
             padding: 6px 10px;
-            border: none;
+            border: 2px solid;
+            background: transparent;
             border-radius: 5px;
             cursor: pointer;
             font-size: 10px;
@@ -294,30 +262,33 @@
         }
 
         .btn-download {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .btn-download:hover {
             background: #3b82f6;
             color: white;
         }
 
-        .btn-download:hover {
-            background: #2563eb;
+        .btn-resend {
+            border-color: #10b981;
+            color: #10b981;
         }
 
-        .btn-resend {
+        .btn-resend:hover {
             background: #10b981;
             color: white;
         }
 
-        .btn-resend:hover {
-            background: #059669;
-        }
-
         .btn-regenerate {
-            background: #f59e0b;
-            color: white;
+            border-color: #f59e0b;
+            color: #f59e0b;
         }
 
         .btn-regenerate:hover {
-            background: #d97706;
+            background: #f59e0b;
+            color: white;
         }
 
         .empty-state {
@@ -348,7 +319,7 @@
         }
 
         .badge-delivered {
-            background: #d1fae5;
+            background: #e6f3ed;;
             color: #065f46;
         }
 
@@ -358,13 +329,88 @@
         }
 
         .results-info {
-            padding: 10px 20px;
+            padding: 12px 16px;
             background: #f0f9ff;
             border-left: 4px solid #3b82f6;
             border-radius: 4px;
             font-size: 12px;
             color: #1e40af;
             margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .default-info {
+            padding: 12px 18px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #92400e;
+            margin-bottom: -4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 46px;
+        }
+
+        /* Paginación */
+        .pagination-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 0 0 8px 8px;
+            margin-bottom: 20px;
+        }
+
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.2s ease;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            border-color: #e18018;
+            background: #fff8f0;
+            color: #e18018;
+        }
+
+        .pagination-btn.active {
+            background: #e18018;
+            color: white;
+            border-color: #e18018;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: #e18018;
+            padding: 0 15px;
+            font-weight: 600;
+        }
+
+        .pagination-summary {
+            font-size: 13px;
+            color: #666;
+            padding: 0;
+            font-weight: 500;
+            margin-top: 8px;
+            text-align: center;
         }
 
         /* TABLET - Large (1024px+) */
@@ -986,22 +1032,39 @@
 
 @section('content')
 <div class="history-container">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-nav" style="margin-bottom: 20px;">
+        <a href="{{ route('orders.index') }}" class="breadcrumb-link">
+            <i class="fas fa-list"></i> Órdenes
+        </a>
+        <span class="breadcrumb-separator">
+            <i class="fas fa-chevron-right"></i>
+        </span>
+        <span class="breadcrumb-current">Historial de Hoy</span>
+    </div>
+
     <!-- Header -->
     <div class="history-header" style="gap: 15px; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 0;">
-            <h1 class="history-title">Historial de Órdenes</h1>
-            <p class="history-subtitle">Órdenes entregadas y canceladas con búsqueda y filtros</p>
+            <h1 class="history-title">Órdenes de Hoy</h1>
+            <p class="history-subtitle"><i class="fas fa-calendar-day"></i> <span id="todayDate"></span></p>
         </div>
-        <a href="{{ route('orders.index') }}" class="btn-back" style="flex-shrink: 0; align-self: center;">
-            <i class="fas fa-arrow-left"></i> <span>Volver</span>
-        </a>
     </div>
 
-    <!-- Tabs de Filtro -->
+    <!-- Información por Defecto -->
+    <div id="defaultInfo" class="default-info">
+        <i class="fas fa-info-circle"></i>
+        <span><strong>Solo muestra:</strong> Órdenes entregadas y canceladas del día de hoy</span>
+    </div>
+
+    <!-- Información de Búsqueda/Filtros Activos -->
+    <div class="results-info" id="resultsInfo" style="display: none;">
+        <i class="fas fa-check-circle"></i>
+        <span id="resultsCount"></span>
+    </div>
+
+    <!-- Tabs para Elegir Vista -->
     <div class="tab-buttons" style="flex-wrap: wrap; justify-content: flex-start;">
-        <button class="tab-btn" data-tab="all" style="flex-shrink: 0;">
-            <i class="fas fa-list"></i> <span>Todas</span>
-        </button>
         <button class="tab-btn active" data-tab="delivered" style="flex-shrink: 0;">
             <i class="fas fa-check-circle"></i> <span>Entregadas</span>
         </button>
@@ -1010,213 +1073,192 @@
         </button>
     </div>
 
-    <!-- Panel de Filtros -->
-    <div class="filter-panel">
-        <div class="filter-title">
-            <i class="fas fa-filter" style="margin-right: 8px;"></i> Filtrar y Buscar
-        </div>
-        <div class="filter-grid">
-            <div class="filter-group">
-                <label class="filter-label">Número de Orden</label>
-                <input type="text" class="filter-input" id="searchOrderNumber" placeholder="Ej: ORD-3405">
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Nombre del Cliente</label>
-                <input type="text" class="filter-input" id="searchCustomer" placeholder="Buscar por nombre">
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Desde (Fecha)</label>
-                <input type="date" class="filter-input" id="filterDateFrom">
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Hasta (Fecha)</label>
-                <input type="date" class="filter-input" id="filterDateTo">
-            </div>
-        </div>
-        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0; display: flex; gap: 10px; flex-wrap: wrap;">
-            <button id="searchBtn" class="btn-back" style="background: #ecb133; flex: 1; min-width: 150px; justify-content: center;">
-                <i class="fas fa-search"></i> <span>Buscar en Historial</span>
-            </button>
-            <button id="clearBtn" class="btn-back" style="background: #6b7280; display: none; flex: 1; min-width: 150px; justify-content: center;">
-                <i class="fas fa-times"></i> <span>Limpiar Filtros</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Información de Resultados -->
-    <div class="results-info" id="resultsInfo" style="display: none;">
-        <i class="fas fa-info-circle"></i> <span id="resultsCount"></span> <button style="background: none; border: none; color: #1e40af; cursor: pointer; text-decoration: underline; margin-left: 10px;" onclick="clearLocalFilters()">Limpiar</button>
-    </div>
-
-    <!-- Información de Alcance Por Defecto -->
-    <div class="results-info" id="defaultInfo" style="background: #fef3c7; border-left-color: #f59e0b; color: #92400e;">
-        <i class="fas fa-calendar"></i> <strong>Mostrando:</strong> Órdenes de hoy y últimos 5 días. Completa fechas fuera de este rango o busca en el historial completo.
-    </div>
-
-    <!-- Órdenes Entregadas (TAB 1 y 3) -->
+    <!-- Órdenes Entregadas -->
     <div id="tab-delivered" class="history-section">
         <div class="section-title">
-            <span class="section-icon"><i class="fas fa-check-circle"></i></span>
-            Órdenes Entregadas
+            <span class="section-icon"><i class="fas fa-box-open"></i></span>
+            <span>Órdenes Entregadas</span>
+            <span class="accordion-count" id="deliveredCount">0</span>
         </div>
-
         <div class="orders-wrapper" id="deliveredContent">
             @if($deliveredOrders->isEmpty())
                 <div class="empty-state">
                     <div class="empty-state-icon">📦</div>
-                    <p class="empty-state-text">No hay órdenes entregadas</p>
+                    <p class="empty-state-text">No hay órdenes entregadas hoy</p>
                 </div>
             @else
                 @foreach($deliveredOrders as $date => $orders)
-                    <div class="accordion-item" data-section="delivered">
-                        <div class="accordion-header" onclick="toggleAccordion(this)">
-                            <div class="accordion-header-left">
-                                <i class="fas fa-calendar-alt"></i>
-                                {{ $date }}
-                                <span class="accordion-count">{{ count($orders) }}</span>
+                    @foreach($orders as $order)
+                        <div class="order-row" data-order-id="{{ $order->order_id }}" data-order-number="{{ $order->order_number }}" data-customer="{{ $order->user->first()?->full_name ?? 'N/A' }}" data-status="delivered">
+                            <div class="order-col-number">
+                                <span>{{ $order->order_number }}</span>
+                                <span class="status-badge badge-delivered">
+                                    <i class="fas fa-check"></i> Entregada
+                                </span>
+                                <span id="receipt-badge-{{ $order->order_id }}">
+                                    @if($order->receipts && count($order->receipts) > 0)
+                                        <span class="status-badge" style=" color: #065f46; margin-left: 5px;">
+                                            <i class="fas fa-file-pdf"></i> PDF
+                                        </span>
+                                    @else
+                                        <span class="status-badge" style=" color: #991b1b; margin-left: 5px;">
+                                            <i class="fas fa-exclamation-circle"></i> Sin PDF
+                                        </span>
+                                    @endif
+                                </span>
                             </div>
-                            <div class="accordion-toggle collapsed">
-                                <i class="fas fa-chevron-right"></i>
+                            <div class="order-col-client">
+                                <div style="font-weight: 600;">{{ $order->user->first()?->full_name ?? 'N/A' }}</div>
+                                <div style="font-size: 11px; color: #999;">{{ $order->local?->name ?? 'N/A' }}</div>
+                            </div>
+                            <div class="order-col-meta">
+                                {{ $order->updated_at->format('H:i') }}<br>
+                                <span style="font-size: 11px;">{{ $order->items->count() }} prod.</span>
+                            </div>
+                            <div class="order-col-total">
+                                ₡{{ number_format($order->total_amount, 2) }}
+                            </div>
+                            <div class="order-col-actions">
+                                <button class="action-btn btn-download" onclick="downloadReceipt({{ $order->order_id }})" title="Descargar">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button class="action-btn btn-regenerate" onclick="regenerateReceipt({{ $order->order_id }})" title="Regenerar">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                                <button class="action-btn btn-resend" onclick="resendReceiptMail({{ $order->order_id }})" title="Reenviar">
+                                    <i class="fas fa-envelope"></i>
+                                </button>
                             </div>
                         </div>
-                        <div class="accordion-content collapsed">
-                            @foreach($orders as $order)
-                                <div class="order-row" data-order-id="{{ $order->order_id }}" data-order-number="{{ $order->order_number }}" data-customer="{{ $order->user->first()?->full_name ?? '' }}" data-status="delivered">
-                                    <div class="order-col-number">
-                                        <span>{{ $order->order_number }}</span>
-                                        <span class="status-badge badge-delivered">
-                                            <i class="fas fa-check"></i> Entregada
-                                        </span>
-                                        <span id="receipt-badge-{{ $order->order_id }}">
-                                            @if($order->receipts && count($order->receipts) > 0)
-                                                <span class="status-badge" style="background: #d1fae5; color: #065f46; margin-left: 5px;">
-                                                    <i class="fas fa-file-pdf"></i> PDF
-                                                </span>
-                                            @else
-                                                <span class="status-badge" style="background: #f0eeec;  color: #de7528;  margin-left: 5px;">
-                                                    <i class="fas fa-exclamation-circle"></i> Sin PDF
-                                                </span>
-                                            @endif
-                                        </span>
-                                    </div>
-                                    <div class="order-col-client">
-                                        <div style="font-weight: 600;">{{ $order->user->first()?->full_name ?? 'N/A' }}</div>
-                                        <div style="font-size: 11px; color: #999;">{{ $order->local?->name ?? 'N/A' }}</div>
-                                    </div>
-                                    <div class="order-col-meta">
-                                        {{ $order->updated_at->format('H:i') }}<br>
-                                        <span style="font-size: 11px;">{{ $order->items->count() }} prod.</span>
-                                    </div>
-                                    <div class="order-col-total">
-                                        ₡{{ number_format($order->total_amount, 2) }}
-                                    </div>
-                                    <div class="order-col-meta">
-                                        <span style="font-size: 11px; color: #666;">{{ $order->quantity }} unid.</span>
-                                    </div>
-                                    <div class="order-col-actions">
-                                        <button class="action-btn btn-download" onclick="downloadReceipt({{ $order->order_id }})" title="Descargar">
-                                            <i class="fas fa-download"></i>
-                                        </button>
-                                        <button class="action-btn btn-regenerate" onclick="regenerateReceipt({{ $order->order_id }})" title="Regenerar">
-                                            <i class="fas fa-redo"></i>
-                                        </button>
-                                        <button class="action-btn btn-resend" onclick="resendReceiptMail({{ $order->order_id }})" title="Reenviar">
-                                            <i class="fas fa-envelope"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
+                    @endforeach
                 @endforeach
             @endif
         </div>
+        <!-- Paginación Entregadas -->
+        <div class="pagination-container" id="deliveredPagination"></div>
     </div>
 
-    <!-- Órdenes Canceladas (TAB 1 y 2) -->
-    <div id="tab-cancelled" class="history-section">
+    <!-- Órdenes Canceladas -->
+    <div id="tab-cancelled" class="history-section" style="display: none;">
         <div class="section-title">
-            <span class="section-icon"><i class="fas fa-times-circle"></i></span>
-            Órdenes Canceladas
+            <span class="section-icon"><i class="fas fa-trash-alt"></i></span>
+            <span>Órdenes Canceladas</span>
+            <span class="accordion-count" id="cancelledCount">0</span>
         </div>
-
         <div class="orders-wrapper" id="cancelledContent">
             @if($cancelledOrders->isEmpty())
                 <div class="empty-state">
                     <div class="empty-state-icon">🚫</div>
-                    <p class="empty-state-text">No hay órdenes canceladas</p>
+                    <p class="empty-state-text">No hay órdenes canceladas hoy</p>
                 </div>
             @else
                 @foreach($cancelledOrders as $date => $orders)
-                    <div class="accordion-item" data-section="cancelled">
-                        <div class="accordion-header" onclick="toggleAccordion(this)">
-                            <div class="accordion-header-left">
-                                <i class="fas fa-calendar-alt"></i>
-                                {{ $date }}
-                                <span class="accordion-count">{{ count($orders) }}</span>
+                    @foreach($orders as $order)
+                        <div class="order-row" data-order-id="{{ $order->order_id }}" data-order-number="{{ $order->order_number }}" data-customer="{{ $order->user->first()?->full_name ?? 'N/A' }}" data-status="cancelled">
+                            <div class="order-col-number">
+                                <span>{{ $order->order_number }}</span>
+                                <span class="status-badge badge-cancelled">
+                                    <i class="fas fa-ban"></i> Cancelada
+                                </span>
+                                <span id="receipt-badge-{{ $order->order_id }}">
+                                    @if($order->receipts && count($order->receipts) > 0)
+                                        <span class="status-badge" style="background: #d1fae5; color: #065f46; margin-left: 5px;">
+                                            <i class="fas fa-file-pdf"></i> PDF
+                                        </span>
+                                    @else
+                                        <span class="status-badge" style="background: #fee2e2; color: #991b1b; margin-left: 5px;">
+                                            <i class="fas fa-exclamation-circle"></i> Sin PDF
+                                        </span>
+                                    @endif
+                                </span>
                             </div>
-                            <div class="accordion-toggle collapsed">
-                                <i class="fas fa-chevron-right"></i>
+                            <div class="order-col-client">
+                                <div style="font-weight: 600;">{{ $order->user->first()?->full_name ?? 'N/A' }}</div>
+                                <div style="font-size: 11px; color: #999;">{{ $order->local?->name ?? 'N/A' }}</div>
+                                @if($order->cancellation_reason)
+                                    <div style="font-size: 10px; color: #d32f2f; margin-top: 4px;">
+                                        <strong>Razón:</strong> {{ $order->cancellation_reason }}
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="order-col-meta">
+                                {{ $order->updated_at->format('H:i') }}<br>
+                                <span style="font-size: 11px;">{{ $order->items->count() }} prod.</span>
+                            </div>
+                            <div class="order-col-total">
+                                ₡{{ number_format($order->total_amount, 2) }}
+                            </div>
+                            <div class="order-col-meta">
+                                <span style="font-size: 11px; color: #666;">{{ $order->quantity }} unid.</span>
+                            </div>
+                            <div class="order-col-actions">
+                                <span style="color: #999; font-size: 11px;">-</span>
                             </div>
                         </div>
-                        <div class="accordion-content collapsed">
-                            @foreach($orders as $order)
-                                <div class="order-row" data-order-id="{{ $order->order_id }}" data-order-number="{{ $order->order_number }}" data-customer="{{ $order->user->first()?->full_name ?? '' }}" data-status="cancelled">
-                                    <div class="order-col-number">
-                                        <span>{{ $order->order_number }}</span>
-                                        <span class="status-badge badge-cancelled">
-                                            <i class="fas fa-ban"></i> Cancelada
-                                        </span>
-                                        <span id="receipt-badge-{{ $order->order_id }}">
-                                            @if($order->receipts && count($order->receipts) > 0)
-                                                <span class="status-badge" style="background: #d1fae5; color: #065f46; margin-left: 5px;">
-                                                    <i class="fas fa-file-pdf"></i> PDF
-                                                </span>
-                                            @else
-                                                <span class="status-badge" style="background: #fee2e2; color: #991b1b; margin-left: 5px;">
-                                                    <i class="fas fa-exclamation-circle"></i> Sin PDF
-                                                </span>
-                                            @endif
-                                        </span>
-                                    </div>
-                                    <div class="order-col-client">
-                                        <div style="font-weight: 600;">{{ $order->user->first()?->full_name ?? 'N/A' }}</div>
-                                        <div style="font-size: 11px; color: #999;">{{ $order->local?->name ?? 'N/A' }}</div>
-                                        @if($order->cancellation_reason)
-                                            <div style="font-size: 10px; color: #d32f2f; margin-top: 4px;">
-                                                <strong>Razón:</strong> {{ $order->cancellation_reason }}
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <div class="order-col-meta">
-                                        {{ $order->updated_at->format('H:i') }}<br>
-                                        <span style="font-size: 11px;">{{ $order->items->count() }} prod.</span>
-                                    </div>
-                                    <div class="order-col-total">
-                                        ₡{{ number_format($order->total_amount, 2) }}
-                                    </div>
-                                    <div class="order-col-meta">
-                                        <span style="font-size: 11px; color: #666;">{{ $order->quantity }} unid.</span>
-                                    </div>
-                                    <div class="order-col-actions">
-                                        <span style="color: #999; font-size: 11px;">-</span>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
+                    @endforeach
                 @endforeach
             @endif
         </div>
+        <!-- Paginación Canceladas -->
+        <div class="pagination-container" id="cancelledPagination"></div>
+    </div>
+</div>
+
+<!-- Modal para datos del cliente (sin cliente registrado) -->
+<div id="clientDataModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; padding: 30px; max-width: 450px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+        <h3 style="margin: 0 0 10px; color: #111; font-size: 18px;">
+            <i class="fas fa-user-plus" style="margin-right: 8px; color: #e18018;"></i>
+            Datos del Cliente
+        </h3>
+        <p style="margin: 0 0 20px; color: #666; font-size: 13px; line-height: 1.6;">
+            Esta orden no tiene un cliente registrado. Por favor proporciona los datos del cliente para crear y enviar el comprobante.
+        </p>
+        
+        <form id="clientDataForm" style="display: flex; flex-direction: column; gap: 15px;">
+            <div>
+                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 13px;">
+                    Nombre del Cliente <span style="color: #ef4444;">*</span>
+                </label>
+                <input type="text" id="modalClientName" placeholder="Ej: Juan Pérez" required style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 13px;">
+                    Correo Electrónico <span style="color: #ef4444;">*</span>
+                </label>
+                <input type="email" id="modalClientEmail" placeholder="Ej: cliente@email.com" required style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
+            </div>
+            
+            <div style="display: flex; gap: 12px; margin-top: 10px;">
+                <button type="button" id="cancelClientModal" style="flex: 1; padding: 10px 16px; border: 2px solid #e5e7eb; background: white; color: #666; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                    Cancelar
+                </button>
+                <button type="submit" style="flex: 1; padding: 10px 16px; background: linear-gradient(135deg, #e18018, #c9690f); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                    Continuar
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 @push('scripts')
 <script>
-let isSearchActive = false;
-let isLocalFilterActive = false;
-const fiveDaysAgo = new Date();
-fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+// Variable global para almacenar los datos del cliente temporal y la acción pendiente
+let clientDataTemp = {
+    pendingAction: null,
+    orderId: null,
+    customerName: null,
+    customerEmail: null
+};
+
+// Mostrar fecha actual
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('es-ES', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+});
 
 // Sistema de Tabs
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1228,28 +1270,19 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         this.classList.add('active');
 
         // Mostrar/ocultar secciones
-        showTab(tab);
+        document.getElementById('tab-delivered').style.display = tab === 'delivered' ? 'block' : 'none';
+        document.getElementById('tab-cancelled').style.display = tab === 'cancelled' ? 'block' : 'none';
     });
 });
 
-function showTab(tab) {
-    const delivered = document.getElementById('tab-delivered');
-    const cancelled = document.getElementById('tab-cancelled');
-
-    if (tab === 'all') {
-        delivered.style.display = 'block';
-        cancelled.style.display = 'block';
-    } else if (tab === 'delivered') {
-        delivered.style.display = 'block';
-        cancelled.style.display = 'none';
-    } else if (tab === 'cancelled') {
-        delivered.style.display = 'none';
-        cancelled.style.display = 'block';
-    }
+// Contar órdenes
+function updateOrderCounts() {
+    const deliveredCount = document.querySelectorAll('#deliveredContent .order-row').length;
+    const cancelledCount = document.querySelectorAll('#cancelledContent .order-row').length;
+    
+    document.getElementById('deliveredCount').textContent = deliveredCount;
+    document.getElementById('cancelledCount').textContent = cancelledCount;
 }
-
-// Inicializar mostrando las órdenes entregadas
-showTab('delivered');
 
 // Acordeón
 function toggleAccordion(header) {
@@ -1260,340 +1293,372 @@ function toggleAccordion(header) {
     toggle.classList.toggle('collapsed');
 }
 
-// FILTROS EN TIEMPO REAL (Hoy + 5 días)
-document.getElementById('searchOrderNumber').addEventListener('input', applyLocalFilters);
-document.getElementById('searchCustomer').addEventListener('input', applyLocalFilters);
-document.getElementById('filterDateFrom').addEventListener('change', handleDateFilter);
-document.getElementById('filterDateTo').addEventListener('change', handleDateFilter);
+// Paginación
+const ITEMS_PER_PAGE = 5;
+let currentPageDelivered = 1;
+let currentPageCancelled = 1;
 
-function applyLocalFilters() {
-    const orderNumber = document.getElementById('searchOrderNumber').value.toLowerCase().trim();
-    const customerName = document.getElementById('searchCustomer').value.toLowerCase().trim();
+function renderPagination(containerId, currentPage, totalItems) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (totalItems === 0) return;
+    
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    
+    // Crear contenedor para los botones
+    const btnContainer = document.createElement('div');
+    btnContainer.style.display = 'flex';
+    btnContainer.style.justifyContent = 'center';
+    btnContainer.style.alignItems = 'center';
+    btnContainer.style.gap = '4px';
+    
+    if (totalPages > 1) {
+        // Botón Anterior
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'pagination-btn';
+        prevBtn.textContent = '‹';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.style.fontSize = '18px';
+        prevBtn.style.padding = '8px 10px';
+        prevBtn.onclick = () => {
+            if (containerId === 'deliveredPagination' && currentPageDelivered > 1) {
+                currentPageDelivered--;
+                updatePaginationDisplay();
+            } else if (containerId === 'cancelledPagination' && currentPageCancelled > 1) {
+                currentPageCancelled--;
+                updatePaginationDisplay();
+            }
+        };
+        btnContainer.appendChild(prevBtn);
+        
+        // Números de página
+        let startPage = Math.max(1, currentPage - 1);
+        let endPage = Math.min(totalPages, currentPage + 1);
+        
+        if (startPage > 1) {
+            const firstBtn = document.createElement('button');
+            firstBtn.className = 'pagination-btn';
+            firstBtn.textContent = '1';
+            firstBtn.onclick = () => changePage(1, containerId);
+            btnContainer.appendChild(firstBtn);
+            
+            if (startPage > 2) {
+                const dots = document.createElement('span');
+                dots.className = 'pagination-info';
+                dots.textContent = '...';
+                btnContainer.appendChild(dots);
+            }
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const btn = document.createElement('button');
+            btn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
+            btn.textContent = i;
+            btn.onclick = () => changePage(i, containerId);
+            btnContainer.appendChild(btn);
+        }
+        
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                const dots = document.createElement('span');
+                dots.className = 'pagination-info';
+                dots.textContent = '...';
+                btnContainer.appendChild(dots);
+            }
+            
+            const lastBtn = document.createElement('button');
+            lastBtn.className = 'pagination-btn';
+            lastBtn.textContent = totalPages;
+            lastBtn.onclick = () => changePage(totalPages, containerId);
+            btnContainer.appendChild(lastBtn);
+        }
+        
+        // Botón Siguiente
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'pagination-btn';
+        nextBtn.textContent = '›';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.style.fontSize = '18px';
+        nextBtn.style.padding = '8px 10px';
+        nextBtn.onclick = () => {
+            if (containerId === 'deliveredPagination' && currentPageDelivered < totalPages) {
+                currentPageDelivered++;
+                updatePaginationDisplay();
+            } else if (containerId === 'cancelledPagination' && currentPageCancelled < totalPages) {
+                currentPageCancelled++;
+                updatePaginationDisplay();
+            }
+        };
+        btnContainer.appendChild(nextBtn);
+    }
+    
+    container.appendChild(btnContainer);
+    
+    // Agregar texto de resumen
+    const pageStart = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+    const pageEnd = Math.min(currentPage * ITEMS_PER_PAGE, totalItems);
+    const summaryText = document.createElement('div');
+    summaryText.className = 'pagination-summary';
+    const label = containerId === 'deliveredPagination' ? 'órdenes entregadas' : 'órdenes canceladas';
+    summaryText.textContent = `Mostrando ${pageStart} a ${pageEnd} de ${totalItems} ${label}`;
+    container.appendChild(summaryText);
+}
 
+function changePage(pageNumber, containerId) {
+    if (containerId === 'deliveredPagination') currentPageDelivered = pageNumber;
+    if (containerId === 'cancelledPagination') currentPageCancelled = pageNumber;
+    updatePaginationDisplay();
+}
+
+function updatePaginationDisplay() {
+    // Actualizar órdenes entregadas
+    const allDeliveredRows = Array.from(document.querySelectorAll('#deliveredContent .order-row'));
+    const visibleBySearchDelivered = allDeliveredRows.filter(row => row.dataset.searchVisible !== 'false');
+    const totalDelivered = visibleBySearchDelivered.length;
+    
+    allDeliveredRows.forEach((row) => {
+        const visibleIndex = visibleBySearchDelivered.indexOf(row);
+        const pageStart = (currentPageDelivered - 1) * ITEMS_PER_PAGE;
+        const pageEnd = pageStart + ITEMS_PER_PAGE;
+        
+        const isVisibleBySearch = row.dataset.searchVisible !== 'false';
+        const isInPage = isVisibleBySearch && visibleIndex >= pageStart && visibleIndex < pageEnd;
+        
+        row.style.display = isInPage ? '' : 'none';
+    });
+    
+    renderPagination('deliveredPagination', currentPageDelivered, totalDelivered);
+    
+    // Actualizar órdenes canceladas
+    const allCancelledRows = Array.from(document.querySelectorAll('#cancelledContent .order-row'));
+    const visibleBySearchCancelled = allCancelledRows.filter(row => row.dataset.searchVisible !== 'false');
+    const totalCancelled = visibleBySearchCancelled.length;
+    
+    allCancelledRows.forEach((row) => {
+        const visibleIndex = visibleBySearchCancelled.indexOf(row);
+        const pageStart = (currentPageCancelled - 1) * ITEMS_PER_PAGE;
+        const pageEnd = pageStart + ITEMS_PER_PAGE;
+        
+        const isVisibleBySearch = row.dataset.searchVisible !== 'false';
+        const isInPage = isVisibleBySearch && visibleIndex >= pageStart && visibleIndex < pageEnd;
+        
+        row.style.display = isInPage ? '' : 'none';
+    });
+    
+    renderPagination('cancelledPagination', currentPageCancelled, totalCancelled);
+}
+
+// Filtros en TIEMPO REAL usando el buscador del top-navbar
+const topSearchInput = document.getElementById('topSearchInput');
+if (topSearchInput) {
+    topSearchInput.addEventListener('input', applyFiltersFromTopBar);
+}
+
+function applyFiltersFromTopBar() {
+    const searchValue = document.getElementById('topSearchInput').value.toLowerCase().trim();
+    applyFilters(searchValue);
+}
+
+function applyFilters(searchValue = '') {
     let visibleCount = 0;
 
-    document.querySelectorAll('.order-row').forEach(row => {
+    // Filtrar órdenes entregadas
+    document.querySelectorAll('#deliveredContent .order-row').forEach(row => {
         const rowOrderNumber = row.dataset.orderNumber.toLowerCase();
         const rowCustomer = row.dataset.customer.toLowerCase();
         let visible = true;
 
-        // Aplicar filtros
-        if (orderNumber && !rowOrderNumber.includes(orderNumber)) {
-            visible = false;
-        }
-        if (customerName && !rowCustomer.includes(customerName)) {
+        if (searchValue && !rowOrderNumber.includes(searchValue) && !rowCustomer.includes(searchValue)) {
             visible = false;
         }
 
-        row.style.display = visible ? '' : 'none';
+        row.dataset.searchVisible = visible ? 'true' : 'false';
         if (visible) visibleCount++;
     });
 
-    // Actualizar UI
-    if (orderNumber || customerName) {
-        isLocalFilterActive = true;
-        document.getElementById('resultsInfo').style.display = 'block';
-        document.getElementById('defaultInfo').style.display = 'none';
-        document.getElementById('resultsCount').textContent = `Se encontraron ${visibleCount} órdenes en los últimos 5 días`;
-    } else {
-        isLocalFilterActive = false;
-        document.getElementById('resultsInfo').style.display = 'none';
-        document.getElementById('defaultInfo').style.display = 'block';
-    }
-}
+    // Filtrar órdenes canceladas
+    document.querySelectorAll('#cancelledContent .order-row').forEach(row => {
+        const rowOrderNumber = row.dataset.orderNumber.toLowerCase();
+        const rowCustomer = row.dataset.customer.toLowerCase();
+        let visible = true;
 
-function handleDateFilter() {
-    const dateFrom = document.getElementById('filterDateFrom').value;
-    const dateTo = document.getElementById('filterDateTo').value;
-
-    if (!dateFrom && !dateTo) {
-        applyLocalFilters();
-        return;
-    }
-
-    // Verificar si alguna fecha está fuera del rango de 5 días
-    let isOutOfRange = false;
-
-    if (dateFrom) {
-        const fromDate = new Date(dateFrom);
-        if (fromDate < fiveDaysAgo) {
-            isOutOfRange = true;
+        if (searchValue && !rowOrderNumber.includes(searchValue) && !rowCustomer.includes(searchValue)) {
+            visible = false;
         }
-    }
 
-    if (dateTo) {
-        const toDate = new Date(dateTo);
-        if (toDate < fiveDaysAgo) {
-            isOutOfRange = true;
-        }
-    }
-
-    // Si está fuera de rango, mostrar mensaje y habilitar búsqueda
-    if (isOutOfRange) {
-        document.getElementById('resultsInfo').style.display = 'block';
-        document.getElementById('defaultInfo').style.display = 'none';
-        document.getElementById('resultsCount').innerHTML = `
-            <span style="color: #1e40af;">Las fechas seleccionadas están fuera del rango de 5 días. 
-            <button style="background: none; border: none; color: #3b82f6; cursor: pointer; text-decoration: underline; margin-left: 5px; font-weight: 600;" onclick="triggerAdvancedSearch()">Busca en historial completo</button></span>
-        `;
-    } else {
-        applyLocalFilters();
-    }
-}
-
-function clearLocalFilters() {
-    document.getElementById('searchOrderNumber').value = '';
-    document.getElementById('searchCustomer').value = '';
-    document.getElementById('filterDateFrom').value = '';
-    document.getElementById('filterDateTo').value = '';
-
-    isLocalFilterActive = false;
-    isSearchActive = false;
-
-    document.getElementById('resultsInfo').style.display = 'none';
-    document.getElementById('defaultInfo').style.display = 'block';
-
-    // Mostrar todas las órdenes
-    document.querySelectorAll('.order-row').forEach(row => {
-        row.style.display = '';
+        row.dataset.searchVisible = visible ? 'true' : 'false';
     });
+
+    // Resetear a página 1 cuando se filtra
+    currentPageDelivered = 1;
+    currentPageCancelled = 1;
+
+    // Actualizar UI
+    if (searchValue) {
+        document.getElementById('resultsInfo').style.display = 'flex';
+        document.getElementById('defaultInfo').style.display = 'none';
+        document.getElementById('resultsCount').textContent = `Se encontraron ${visibleCount} órdenes en el día actual`;
+    } else {
+        document.getElementById('resultsInfo').style.display = 'none';
+        document.getElementById('defaultInfo').style.display = 'flex';
+    }
+    
+    // Actualizar paginación
+    updatePaginationDisplay();
 }
 
-// BÚSQUEDA AVANZADA (Historial Completo)
-document.getElementById('searchBtn').addEventListener('click', function() {
-    const orderNumber = document.getElementById('searchOrderNumber').value.trim();
-    const customerName = document.getElementById('searchCustomer').value.trim();
-    const dateFrom = document.getElementById('filterDateFrom').value;
-    const dateTo = document.getElementById('filterDateTo').value;
+// Funciones de Acciones para Comprobantes
+// Manejadores del modal de datos de cliente
+document.getElementById('cancelClientModal').addEventListener('click', () => {
+    document.getElementById('clientDataModal').style.display = 'none';
+    clientDataTemp = { pendingAction: null, orderId: null, customerName: null, customerEmail: null };
+});
 
-    // Validar que al menos un filtro esté completo
-    if (!orderNumber && !customerName && !dateFrom && !dateTo) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Filtro Requerido',
-            text: 'Debes completar al menos un filtro (número, cliente o rango de fechas)',
-            confirmButtonColor: '#e18018'
-        });
+document.getElementById('clientDataForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const customerName = document.getElementById('modalClientName').value.trim();
+    const customerEmail = document.getElementById('modalClientEmail').value.trim();
+    
+    if (!customerName || !customerEmail) {
+        alert('Por favor completa todos los campos');
         return;
     }
-
-    performSearch(orderNumber, customerName, dateFrom, dateTo);
+    
+    // Guardar datos y ejecutar acción pendiente
+    clientDataTemp.customerName = customerName;
+    clientDataTemp.customerEmail = customerEmail;
+    
+    // Cerrar modal
+    document.getElementById('clientDataModal').style.display = 'none';
+    
+    // Ejecutar acción pendiente
+    if (clientDataTemp.pendingAction === 'resend') {
+        proceedResendReceipt(clientDataTemp.orderId, customerEmail, customerName);
+    } else if (clientDataTemp.pendingAction === 'download') {
+        proceedDownloadReceipt(clientDataTemp.orderId);
+    } else if (clientDataTemp.pendingAction === 'regenerate') {
+        proceedRegenerateReceipt(clientDataTemp.orderId, customerEmail, customerName);
+    }
+    
+    // Limpiar formulario
+    document.getElementById('clientDataForm').reset();
+    clientDataTemp = { pendingAction: null, orderId: null, customerName: null, customerEmail: null };
 });
 
-function triggerAdvancedSearch() {
-    const orderNumber = document.getElementById('searchOrderNumber').value.trim();
-    const customerName = document.getElementById('searchCustomer').value.trim();
-    const dateFrom = document.getElementById('filterDateFrom').value;
-    const dateTo = document.getElementById('filterDateTo').value;
-
-    performSearch(orderNumber, customerName, dateFrom, dateTo);
+// Función para validar cliente y abrir modal si es necesario
+function checkClientAndProceed(orderId, action) {
+    fetch(`{{ url('ordenes') }}/${orderId}/comprobante/validar-cliente`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.hasValidClient) {
+                // Cliente válido, proceder directamente sin datos temporales
+                if (action === 'resend') {
+                    proceedResendWithoutModal(orderId);
+                } else if (action === 'download') {
+                    proceedDownloadReceipt(orderId);
+                } else if (action === 'regenerate') {
+                    proceedRegenerateReceipt(orderId);
+                }
+            } else {
+                // No hay cliente válido, pedir datos
+                clientDataTemp.pendingAction = action;
+                clientDataTemp.orderId = orderId;
+                
+                // Mostrar modal
+                document.getElementById('clientDataModal').style.display = 'flex';
+                document.getElementById('modalClientName').focus();
+            }
+        })
+        .catch(error => {
+            console.error('Error validando cliente:', error);
+            Swal.fire('Error', 'No se pudo validar los datos del cliente', 'error');
+        });
 }
 
-// Botón de limpiar
-document.getElementById('clearBtn').addEventListener('click', function() {
-    clearLocalFilters();
-    document.getElementById('searchBtn').style.display = 'inline-flex';
-    document.getElementById('clearBtn').style.display = 'none';
-    location.reload();
-});
-
-// Realizar búsqueda AJAX
-function performSearch(orderNumber, customerName, dateFrom, dateTo) {
+// Función para reenviar sin datos modales (cliente válido)
+function proceedResendWithoutModal(orderId) {
     Swal.fire({
-        title: 'Buscando...',
+        title: 'Procesando...',
         allowOutsideClick: false,
         didOpen: () => {
             Swal.showLoading();
         }
     });
 
-    fetch(`{{ route('orders.receipt.search') }}?orderNumber=${orderNumber}&customerName=${customerName}&dateFrom=${dateFrom}&dateTo=${dateTo}`, {
+    fetch(`{{ url('ordenes') }}/${orderId}/comprobante/reenviar`, {
+        method: 'POST',
         headers: {
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         }
     })
         .then(response => response.json())
         .then(data => {
-            Swal.close();
-
-            if (!data.success) {
+            if (data.success) {
+                swToast({icon: 'success', title: data.message});
+            } else {
                 Swal.fire('Error', data.message, 'error');
-                return;
             }
-
-            if (data.count === 0) {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Sin Resultados',
-                    text: 'No se encontraron órdenes que coincidan con los filtros',
-                    confirmButtonColor: '#e18018'
-                });
-                return;
-            }
-
-            // Mostrar resultados
-            renderSearchResults(data);
-            isSearchActive = true;
-            
-            // Mostrar/ocultar botones
-            document.getElementById('searchBtn').style.display = 'none';
-            document.getElementById('clearBtn').style.display = 'inline-flex';
-            document.getElementById('resultsInfo').style.display = 'block';
-            document.getElementById('defaultInfo').style.display = 'none';
-            document.getElementById('resultsCount').innerHTML = `Se encontraron ${data.count} órdenes en el historial completo`;
-
-            // Hacer scroll al resultado
-            setTimeout(() => {
-                document.getElementById('tab-delivered').scrollIntoView({ behavior: 'smooth' });
-            }, 300);
         })
         .catch(error => {
             console.error('Error:', error);
-            Swal.fire('Error', 'Error al buscar órdenes', 'error');
+            Swal.fire('Error', 'No se pudo reenviar el comprobante', 'error');
         });
 }
 
-// Renderizar resultados de búsqueda
-function renderSearchResults(data) {
-    // Limpiar contenido previo
-    const deliveredContent = document.getElementById('deliveredContent');
-    const cancelledContent = document.getElementById('cancelledContent');
-
-    // Separar por estado
-    const delivered = data.orders.filter(o => o.status === 'Delivered');
-    const cancelled = data.orders.filter(o => o.status === 'Cancelled');
-
-    // Renderizar entregadas
-    if (delivered.length === 0) {
-        deliveredContent.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">📦</div>
-                <p class="empty-state-text">No hay órdenes entregadas que coincidan</p>
-            </div>
-        `;
-    } else {
-        deliveredContent.innerHTML = renderOrderGroups(delivered);
-    }
-
-    // Renderizar canceladas
-    if (cancelled.length === 0) {
-        cancelledContent.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">🚫</div>
-                <p class="empty-state-text">No hay órdenes canceladas que coincidan</p>
-            </div>
-        `;
-    } else {
-        cancelledContent.innerHTML = renderOrderGroups(cancelled);
-    }
-}
-
-// Agrupar y renderizar órdenes
-function renderOrderGroups(orders) {
-    const grouped = {};
-    
-    orders.forEach(order => {
-        const dateStr = new Date(order.updated_at).toLocaleDateString('es-ES');
-        const today = new Date().toLocaleDateString('es-ES');
-        const dateLabel = dateStr === today ? 'Hoy' : dateStr;
-        
-        if (!grouped[dateLabel]) {
-            grouped[dateLabel] = [];
+// Función para reenviar CON datos modales (cliente inválido)
+function proceedResendReceipt(orderId, customerEmail, customerName) {
+    Swal.fire({
+        title: 'Procesando...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
         }
-        grouped[dateLabel].push(order);
     });
 
-    let html = '';
-    Object.entries(grouped).forEach(([date, dateOrders]) => {
-        html += `
-            <div class="accordion-item" data-section="${orders[0].status === 'Delivered' ? 'delivered' : 'cancelled'}">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    <div class="accordion-header-left">
-                        <i class="fas fa-calendar-alt"></i>
-                        ${date}
-                        <span class="accordion-count">${dateOrders.length}</span>
-                    </div>
-                    <div class="accordion-toggle collapsed">
-                        <i class="fas fa-chevron-right"></i>
-                    </div>
-                </div>
-                <div class="accordion-content collapsed">
-                    ${dateOrders.map(order => renderOrderRow(order)).join('')}
-                </div>
-            </div>
-        `;
-    });
+    const payload = {
+        customer_email: customerEmail,
+        customer_name: customerName
+    };
 
-    return html;
+    fetch(`{{ url('ordenes') }}/${orderId}/comprobante/reenviar`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                swToast({icon: 'success', title: data.message});
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudo reenviar el comprobante', 'error');
+        });
 }
 
-// Renderizar fila de orden
-function renderOrderRow(order) {
-    const status = order.status === 'Delivered' ? 'delivered' : 'cancelled';
-    const statusClass = status === 'delivered' ? 'badge-delivered' : 'badge-cancelled';
-    const statusText = status === 'delivered' ? 'Entregada' : 'Cancelada';
-    const statusIcon = status === 'delivered' ? 'fa-check' : 'fa-ban';
-    const customerName = order.user && order.user.length > 0 ? order.user[0].full_name : 'N/A';
-    const localName = order.local ? order.local.name : 'N/A';
-    const hour = new Date(order.updated_at).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
-    
-    // Verificar si tiene comprobante
-    const hasReceipt = order.receipts && order.receipts.length > 0;
-    const receiptBadge = hasReceipt 
-        ? '<span class="status-badge" style="background: #d1fae5; color: #065f46; margin-left: 5px;"><i class="fas fa-file-pdf"></i> PDF</span>'
-        : '<span class="status-badge" style="background: #fee2e2; color: #991b1b; margin-left: 5px;"><i class="fas fa-exclamation-circle"></i> Sin PDF</span>';
-    
-    let actions = '';
-    if (status === 'delivered') {
-        actions = `
-            <button class="action-btn btn-download" onclick="downloadReceipt(${order.order_id})" title="Descargar">
-                <i class="fas fa-download"></i>
-            </button>
-            <button class="action-btn btn-regenerate" onclick="regenerateReceipt(${order.order_id})" title="Regenerar">
-                <i class="fas fa-redo"></i>
-            </button>
-            <button class="action-btn btn-resend" onclick="resendReceiptMail(${order.order_id})" title="Reenviar">
-                <i class="fas fa-envelope"></i>
-            </button>
-        `;
-    } else {
-        actions = '<span style="color: #999; font-size: 11px;">-</span>';
-    }
-
-    return `
-        <div class="order-row" data-order-id="${order.order_id}" data-order-number="${order.order_number}" data-customer="${customerName}" data-status="${status}">
-            <div class="order-col-number">
-                <span>${order.order_number}</span>
-                <span class="status-badge ${statusClass}">
-                    <i class="fas ${statusIcon}"></i> ${statusText}
-                </span>
-                <span id="receipt-badge-${order.order_id}">${receiptBadge}</span>
-            </div>
-            <div class="order-col-client">
-                <div style="font-weight: 600;">${customerName}</div>
-                <div style="font-size: 11px; color: #999;">${localName}</div>
-                ${order.cancellation_reason ? `<div style="font-size: 10px; color: #d32f2f; margin-top: 4px;"><strong>Razón:</strong> ${order.cancellation_reason}</div>` : ''}
-            </div>
-            <div class="order-col-meta">
-                ${hour}<br>
-                <span style="font-size: 11px;">${order.items.length} prod.</span>
-            </div>
-            <div class="order-col-total">
-                ₡${parseFloat(order.total_amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-            </div>
-            <div class="order-col-meta">
-                <span style="font-size: 11px; color: #666;">${order.quantity} unid.</span>
-            </div>
-            <div class="order-col-actions">
-                ${actions}
-            </div>
-        </div>
-    `;
-}
-
-// Funciones de Acciones
-function downloadReceipt(orderId) {
+function proceedDownloadReceipt(orderId) {
     fetch(`{{ url('ordenes') }}/${orderId}/comprobante/descargar`, {
         headers: {
             'Accept': 'application/json',
@@ -1617,6 +1682,50 @@ function downloadReceipt(orderId) {
         });
 }
 
+function proceedRegenerateReceipt(orderId, customerEmail = null, customerName = null) {
+    Swal.fire({
+        title: 'Procesando...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    const payload = {
+        customer_email: customerEmail || null,
+        customer_name: customerName || null
+    };
+
+    fetch(`{{ url('ordenes') }}/${orderId}/comprobante/regenerar`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                swToast({icon: 'success', title: data.message});
+                updateReceiptBadge(orderId);
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudo regenerar el comprobante', 'error');
+        });
+}
+
+function downloadReceipt(orderId) {
+    // Primero validar que haya cliente, si no, pedir datos
+    checkClientAndProceed(orderId, 'download');
+}
+
 function regenerateReceipt(orderId) {
     Swal.fire({
         icon: 'question',
@@ -1629,34 +1738,8 @@ function regenerateReceipt(orderId) {
         cancelButtonColor: '#6b7280',
     }).then((result) => {
         if (result.isConfirmed) {
-            Swal.fire({
-                title: 'Procesando...',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            fetch(`{{ url('ordenes') }}/${orderId}/comprobante/regenerar`, {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire('Éxito', data.message, 'success');
-                        // Actualizar el badge del comprobante
-                        updateReceiptBadge(orderId);
-                    } else {
-                        Swal.fire('Error', data.message, 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'No se pudo regenerar el comprobante', 'error');
-                });
+            // Primero validar que haya cliente, si no, pedir datos
+            checkClientAndProceed(orderId, 'regenerate');
         }
     });
 }
@@ -1673,38 +1756,32 @@ function resendReceiptMail(orderId) {
         cancelButtonColor: '#6b7280',
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`{{ url('ordenes') }}/${orderId}/comprobante/reenviar`, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire('Éxito', data.message, 'success');
-                    } else {
-                        Swal.fire('Error', data.message, 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'No se pudo reenviar el comprobante', 'error');
-                });
+            // Primero validar que haya cliente, si no, pedir datos
+            checkClientAndProceed(orderId, 'resend');
         }
     });
 }
 
-// Actualizar badge de comprobante por AJAX
+
 function updateReceiptBadge(orderId) {
     const badgeElement = document.getElementById(`receipt-badge-${orderId}`);
     if (!badgeElement) return;
-
-    // Actualizar el badge inmediatamente a verde (PDF)
     badgeElement.innerHTML = '<span class="status-badge" style="background: #d1fae5; color: #065f46; margin-left: 5px;"><i class="fas fa-file-pdf"></i> PDF</span>';
 }
+
+// Inicializar conteos y paginación
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar data-search-visible en todas las órdenes
+    document.querySelectorAll('#deliveredContent .order-row').forEach(row => {
+        row.dataset.searchVisible = 'true';
+    });
+    document.querySelectorAll('#cancelledContent .order-row').forEach(row => {
+        row.dataset.searchVisible = 'true';
+    });
+    
+    updateOrderCounts();
+    updatePaginationDisplay();
+});
 </script>
 @endpush
 
