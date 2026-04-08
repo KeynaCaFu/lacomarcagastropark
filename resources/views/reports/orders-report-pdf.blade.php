@@ -6,7 +6,7 @@
     <style>
         @page {
             size: letter;
-            margin: 1.5cm;
+            margin: 1.5cm 1.5cm 1.5cm 1.5cm;
         }
         
         * {
@@ -17,53 +17,55 @@
         
         body {
             font-family: 'DejaVu Sans', 'Segoe UI', Tahoma, sans-serif;
-            font-size: 11pt;
-            line-height: 1.5;
+            font-size: 9pt;
+            line-height: 1.3;
             color: #333;
+            margin: 1.5cm;
+            padding: 0;
         }
         
         .container {
             width: 100%;
         }
         
-        /* Header */
+        /* HEADER */
         .header {
             text-align: center;
-            border-bottom: 3px solid #485a1a;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+            border-bottom: 2px solid #485a1a;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
         }
         
         .header h1 {
-            font-size: 22pt;
+            font-size: 15pt;
             color: #181818;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
         
         .header .local-name {
-            font-size: 14pt;
+            font-size: 11pt;
             font-weight: bold;
             color: #485a1a;
-            margin: 5px 0;
+            margin: 2px 0;
         }
         
         .header .date {
-            font-size: 9pt;
+            font-size: 8pt;
             color: #888;
         }
         
-        /* Info box */
+        /* INFO BOX */
         .info-box {
             background: #f5f5f5;
-            padding: 12px 15px;
-            margin-bottom: 20px;
-            border-left: 4px solid #b3621b;
+            padding: 6px 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #b3621b;
         }
         
         .info-row {
             display: table;
             width: 100%;
-            margin: 5px 0;
+            margin: 2px 0;
         }
         
         .info-label {
@@ -71,25 +73,27 @@
             width: 40%;
             font-weight: bold;
             color: #485a1a;
+            font-size: 8.5pt;
         }
         
         .info-value {
             display: table-cell;
             width: 60%;
+            font-size: 8.5pt;
         }
         
-        /* Cards */
+        /* CARDS */
         .cards {
             display: table;
             width: 100%;
-            margin-bottom: 25px;
+            margin-bottom: 12px;
             border-collapse: collapse;
         }
         
         .card {
             display: table-cell;
             width: 50%;
-            padding: 15px;
+            padding: 8px 10px;
             text-align: center;
             border: 1px solid #ddd;
             background: #fafafa;
@@ -97,26 +101,26 @@
         
         .card-web {
             border-right: 1px solid #485a1a;
-            border-top: 3px solid #485a1a;
+            border-top: 2px solid #485a1a;
         }
         
         .card-presential {
             border-left: 1px solid #b3621b;
-            border-top: 3px solid #b3621b;
+            border-top: 2px solid #b3621b;
         }
         
         .card-title {
-            font-size: 10pt;
+            font-size: 7.5pt;
             font-weight: bold;
             text-transform: uppercase;
             color: #666;
-            margin-bottom: 10px;
+            margin-bottom: 4px;
         }
         
         .card-value {
-            font-size: 24pt;
+            font-size: 18pt;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
         
         .card-web .card-value {
@@ -128,39 +132,40 @@
         }
         
         .card-percentage {
-            font-size: 9pt;
+            font-size: 7.5pt;
             color: #888;
         }
         
-        /* Section titles */
+        /* SECTION TITLE */
         .section-title {
-            font-size: 14pt;
+            font-size: 10pt;
             font-weight: bold;
             color: #181818;
-            margin: 20px 0 12px 0;
-            padding-bottom: 5px;
-            border-bottom: 2px solid #b3621b;
+            margin: 10px 0 6px 0;
+            padding-bottom: 3px;
+            border-bottom: 1.5px solid #b3621b;
         }
         
-        /* Tables */
+        /* TABLES */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 15px 0;
+            margin: 6px 0;
         }
         
         th {
             background: #485a1a;
             color: white;
-            padding: 10px 8px;
+            padding: 5px 6px;
             text-align: center;
-            font-size: 10pt;
+            font-size: 8pt;
         }
         
         td {
-            padding: 8px;
+            padding: 5px 6px;
             border-bottom: 1px solid #ddd;
             text-align: center;
+            font-size: 8.5pt;
         }
         
         .text-left {
@@ -178,34 +183,33 @@
         tfoot td {
             background: #f0f0f0;
             font-weight: bold;
-            border-top: 2px solid #485a1a;
+            border-top: 1.5px solid #485a1a;
         }
         
-        /* Top items table */
         .top-items-table th {
             background: #b3621b;
         }
         
-        /* Empty state */
+        /* EMPTY STATE */
         .empty-state {
             text-align: center;
-            padding: 30px;
+            padding: 15px;
             background: #fef3cd;
-            border-left: 4px solid #daa520;
-            margin: 20px 0;
+            border-left: 3px solid #daa520;
+            margin: 10px 0;
+            font-size: 9pt;
         }
         
-        /* Footer */
+        /* FOOTER */
         .footer {
-            margin-top: 30px;
-            padding-top: 10px;
+            margin-top: 15px;
+            padding-top: 6px;
             border-top: 1px solid #ddd;
             text-align: center;
-            font-size: 8pt;
+            font-size: 7pt;
             color: #999;
         }
         
-        /* Print optimization */
         @media print {
             body {
                 margin: 0;
@@ -216,7 +220,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <h1>REPORTE DE PEDIDOS</h1>
             <div class="local-name">{{ $local->name ?? 'Sin nombre' }}</div>
@@ -224,7 +227,6 @@
         </div>
 
         @if(isset($hasData) && $hasData)
-            <!-- Info -->
             <div class="info-box">
                 <div class="info-row">
                     <span class="info-label">Periodo:</span>
@@ -236,7 +238,6 @@
                 </div>
             </div>
 
-            <!-- Cards -->
             <div class="cards">
                 <div class="card card-web">
                     <div class="card-title">PEDIDOS EN LINEA</div>
@@ -250,7 +251,6 @@
                 </div>
             </div>
 
-            <!-- Summary Table -->
             <div class="section-title">RESUMEN POR TIPO DE PEDIDO</div>
             <table>
                 <thead>
@@ -258,56 +258,55 @@
                         <th>TIPO</th>
                         <th>CANTIDAD</th>
                         <th>PORCENTAJE</th>
-                        <th>INGRESOS (₡)</th>
-                        <th>PROMEDIO (₡)</th>
+                        <th>INGRESOS (&#x20A1;)</th>
+                        <th>PROMEDIO (&#x20A1;)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td class="text-left">En Linea</td>
+                        <td class="text-center">En Linea</td>
                         <td class="text-center">{{ $orderStats['web']['count'] ?? 0 }}</td>
                         <td class="text-center">{{ number_format($orderStats['web']['percentage'] ?? 0, 2) }}%</td>
-                        <td class="text-right">₡{{ number_format($revenueStats['web']['revenue'] ?? 0, 2) }}</td>
-                        <td class="text-right">
+                        <td class="text-center">&#x20A1;{{ number_format($revenueStats['web']['revenue'] ?? 0, 2) }}</td>
+                        <td class="text-center">
                             @php
                                 $webCount = $orderStats['web']['count'] ?? 0;
                                 $webRevenue = $revenueStats['web']['revenue'] ?? 0;
                             @endphp
-                            ₡{{ number_format($webCount > 0 ? $webRevenue / $webCount : 0, 2) }}
+                            &#x20A1;{{ number_format($webCount > 0 ? $webRevenue / $webCount : 0, 2) }}
                         </td>
                     </tr>
                     <tr>
-                        <td class="text-left">Presencial</td>
+                        <td class="text-center">Presencial</td>
                         <td class="text-center">{{ $orderStats['presential']['count'] ?? 0 }}</td>
                         <td class="text-center">{{ number_format($orderStats['presential']['percentage'] ?? 0, 2) }}%</td>
-                        <td class="text-right">₡{{ number_format($revenueStats['presential']['revenue'] ?? 0, 2) }}</td>
-                        <td class="text-right">
+                        <td class="text-center">&#x20A1;{{ number_format($revenueStats['presential']['revenue'] ?? 0, 2) }}</td>
+                        <td class="text-center">
                             @php
                                 $presCount = $orderStats['presential']['count'] ?? 0;
                                 $presRevenue = $revenueStats['presential']['revenue'] ?? 0;
                             @endphp
-                            ₡{{ number_format($presCount > 0 ? $presRevenue / $presCount : 0, 2) }}
+                            &#x20A1;{{ number_format($presCount > 0 ? $presRevenue / $presCount : 0, 2) }}
                         </td>
                     </tr>
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td class="text-left">TOTAL</td>
+                        <td class="text-center">TOTAL</td>
                         <td class="text-center">{{ $orderStats['total'] ?? 0 }}</td>
                         <td class="text-center">100%</td>
-                        <td class="text-right">₡{{ number_format($revenueStats['total'] ?? 0, 2) }}</td>
-                        <td class="text-right">
+                        <td class="text-center">&#x20A1;{{ number_format($revenueStats['total'] ?? 0, 2) }}</td>
+                        <td class="text-center">
                             @php
                                 $totalCount = $orderStats['total'] ?? 0;
                                 $totalRevenue = $revenueStats['total'] ?? 0;
                             @endphp
-                            ₡{{ number_format($totalCount > 0 ? $totalRevenue / $totalCount : 0, 2) }}
+                            &#x20A1;{{ number_format($totalCount > 0 ? $totalRevenue / $totalCount : 0, 2) }}
                         </td>
                     </tr>
                 </tfoot>
             </table>
 
-            <!-- Top Items -->
             @if(isset($topItems) && count($topItems) > 0)
                 <div class="section-title">PRODUCTOS MAS VENDIDOS</div>
                 <table class="top-items-table">
@@ -320,11 +319,11 @@
                     </thead>
                     <tbody>
                         @foreach($topItems as $item)
-                            <tr>
-                                <td class="text-left">{{ $item->name ?? $item['name'] ?? 'N/A' }}</td>
-                                <td class="text-center">{{ $item->total_quantity ?? $item['total_quantity'] ?? 0 }}</td>
-                                <td class="text-center">{{ $item->order_count ?? $item['order_count'] ?? 0 }}</td>
-                            </tr>
+                        <tr>
+                            <td class="text-left">{{ $item->name ?? $item['name'] ?? 'N/A' }}</td>
+                            <td class="text-center">{{ $item->total_quantity ?? $item['total_quantity'] ?? 0 }}</td>
+                            <td class="text-center">{{ $item->order_count ?? $item['order_count'] ?? 0 }}</td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
@@ -336,7 +335,6 @@
             </div>
         @endif
 
-        <!-- Footer -->
         <div class="footer">
             Reporte generado automaticamente el {{ $exportDate ?? date('d/m/Y H:i') }} | La Comarca Gastropark
         </div>
