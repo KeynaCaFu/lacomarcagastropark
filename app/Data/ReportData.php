@@ -232,4 +232,28 @@ class ReportData
             ->orderBy('date', 'desc')
             ->get();
     }
+
+    /**
+     * Obtener productos más vendidos
+     * 
+     * @param int $localId
+     * @param Carbon $startDate
+     * @param Carbon $endDate
+     * @param int $limit
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getTopSellingItems($localId, $startDate, $endDate, $limit = 5)
+    {
+        return \DB::table('tborder_item')
+            ->join('tborder', 'tborder_item.order_id', '=', 'tborder.order_id')
+            ->join('tbproduct', 'tborder_item.product_id', '=', 'tbproduct.product_id')
+            ->where('tborder.local_id', $localId)
+            ->whereDate('tborder.date', '>=', $startDate->toDateString())
+            ->whereDate('tborder.date', '<=', $endDate->toDateString())
+            ->selectRaw('tbproduct.name, SUM(tborder_item.quantity) as total_quantity, COUNT(DISTINCT tborder.order_id) as order_count')
+            ->groupBy('tbproduct.product_id', 'tbproduct.name')
+            ->orderByDesc('total_quantity')
+            ->limit($limit)
+            ->get();
+    }
 }
