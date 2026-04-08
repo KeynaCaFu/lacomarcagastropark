@@ -20,12 +20,14 @@ class ReportData
         // Contar pedidos por origen
         $webOrders = Order::where('local_id', $localId)
             ->where('origin', Order::ORIGIN_WEB)
-            ->whereBetween('date', [$startDate, $endDate])
+            ->whereDate('date', '>=', $startDate->toDateString())
+            ->whereDate('date', '<=', $endDate->toDateString())
             ->count();
 
         $presentialOrders = Order::where('local_id', $localId)
             ->where('origin', Order::ORIGIN_PRESENCIAL)
-            ->whereBetween('date', [$startDate, $endDate])
+            ->whereDate('date', '>=', $startDate->toDateString())
+            ->whereDate('date', '<=', $endDate->toDateString())
             ->count();
 
         $total = $webOrders + $presentialOrders;
@@ -75,12 +77,14 @@ class ReportData
     {
         $webRevenue = Order::where('local_id', $localId)
             ->where('origin', Order::ORIGIN_WEB)
-            ->whereBetween('date', [$startDate, $endDate])
+            ->whereDate('date', '>=', $startDate->toDateString())
+            ->whereDate('date', '<=', $endDate->toDateString())
             ->sum('total_amount');
 
         $presentialRevenue = Order::where('local_id', $localId)
             ->where('origin', Order::ORIGIN_PRESENCIAL)
-            ->whereBetween('date', [$startDate, $endDate])
+            ->whereDate('date', '>=', $startDate->toDateString())
+            ->whereDate('date', '<=', $endDate->toDateString())
             ->sum('total_amount');
 
         $totalRevenue = $webRevenue + $presentialRevenue;
@@ -109,7 +113,8 @@ class ReportData
     public function getDailyTrend($localId, $startDate, $endDate)
     {
         $orders = Order::where('local_id', $localId)
-            ->whereBetween('date', [$startDate, $endDate])
+            ->whereDate('date', '>=', $startDate->toDateString())
+            ->whereDate('date', '<=', $endDate->toDateString())
             ->selectRaw('date, origin, COUNT(*) as count')
             ->groupBy('date', 'origin')
             ->orderBy('date')
@@ -208,5 +213,23 @@ class ReportData
                 'message' => 'Formato de fecha inválido'
             ];
         }
+    }
+
+    /**
+     * Obtener órdenes individuales de un local
+     * 
+     * @param int $localId
+     * @param Carbon $startDate
+     * @param Carbon $endDate
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getOrdersByLocal($localId, $startDate, $endDate)
+    {
+        return Order::where('local_id', $localId)
+            ->whereDate('date', '>=', $startDate->toDateString())
+            ->whereDate('date', '<=', $endDate->toDateString())
+            ->with(['items', 'local'])
+            ->orderBy('date', 'desc')
+            ->get();
     }
 }

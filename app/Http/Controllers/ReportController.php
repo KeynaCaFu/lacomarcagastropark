@@ -23,11 +23,17 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $local = $user->locals()->first();
-
-        if (!$local) {
+        
+        // Obtener todos los locales del usuario
+        $userLocals = $user->locals;
+        
+        if ($userLocals->isEmpty()) {
             return redirect()->route('dashboard')->with('error', 'No tienes un local asignado');
         }
+        
+        // Obtener local seleccionado o usar el primero
+        $localId = $request->get('local_id', $userLocals->first()->local_id);
+        $local = $userLocals->firstWhere('local_id', $localId) ?? $userLocals->first();
 
         // Obtener período predefinido o personalizado
         $period = $request->get('period', 'month');
@@ -52,13 +58,16 @@ class ReportController extends Controller
         $orderStats = $this->reportData->getOrdersByOrigin($local->local_id, $start, $end);
         $revenueStats = $this->reportData->getRevenueByOrigin($local->local_id, $start, $end);
         $dailyTrend = $this->reportData->getDailyTrend($local->local_id, $start, $end);
+        $orders = $this->reportData->getOrdersByLocal($local->local_id, $start, $end);
 
         // Datos para la vista
         $data = [
             'local' => $local,
+            'userLocals' => $userLocals,
             'orderStats' => $orderStats,
             'revenueStats' => $revenueStats,
             'dailyTrend' => $dailyTrend,
+            'orders' => $orders,
             'period' => $period,
             'startDate' => $startDate ?? $start->format('Y-m-d'),
             'endDate' => $endDate ?? $end->format('Y-m-d'),
@@ -74,11 +83,14 @@ class ReportController extends Controller
     public function getData(Request $request)
     {
         $user = $request->user();
-        $local = $user->locals()->first();
+        $userLocals = $user->locals;
 
-        if (!$local) {
+        if ($userLocals->isEmpty()) {
             return response()->json(['error' => 'No local found'], 403);
         }
+
+        $localId = $request->get('local_id', $userLocals->first()->local_id);
+        $local = $userLocals->firstWhere('local_id', $localId) ?? $userLocals->first();
 
         $period = $request->get('period', 'month');
         $startDate = $request->get('start_date');
@@ -114,11 +126,14 @@ class ReportController extends Controller
     public function exportPDF(Request $request)
     {
         $user = $request->user();
-        $local = $user->locals()->first();
+        $userLocals = $user->locals;
 
-        if (!$local) {
+        if ($userLocals->isEmpty()) {
             return redirect()->back()->with('error', 'No tienes un local asignado');
         }
+
+        $localId = $request->get('local_id', $userLocals->first()->local_id);
+        $local = $userLocals->firstWhere('local_id', $localId) ?? $userLocals->first();
 
         $period = $request->get('period', 'month');
         $startDate = $request->get('start_date');
@@ -159,11 +174,14 @@ class ReportController extends Controller
     public function downloadHTML(Request $request)
     {
         $user = $request->user();
-        $local = $user->locals()->first();
+        $userLocals = $user->locals;
 
-        if (!$local) {
+        if ($userLocals->isEmpty()) {
             return redirect()->back()->with('error', 'No tienes un local asignado');
         }
+
+        $localId = $request->get('local_id', $userLocals->first()->local_id);
+        $local = $userLocals->firstWhere('local_id', $localId) ?? $userLocals->first();
 
         $period = $request->get('period', 'month');
         $startDate = $request->get('start_date');
