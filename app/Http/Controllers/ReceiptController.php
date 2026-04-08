@@ -15,7 +15,7 @@ class ReceiptController extends Controller
     /**
      * Generar y guardar comprobante PDF
      */
-    public function generateReceipt(Order $order, $paymentMethod, $receiptReference)
+    public function generateReceipt(Order $order, $paymentMethod, $receiptReference, $customerName = null, $customerEmail = null)
     {
         try {
             // Validar que la orden exista
@@ -40,6 +40,9 @@ class ReceiptController extends Controller
             $reference = $this->generateReference();
 
             // Preparar datos para la vista PDF
+            // Si hay datos personalizados, usarlos; si no, usar datos de la orden
+            $isTemporaryCustomer = $customerName && $customerEmail; // Flag para datos temporales
+            
             $data = [
                 'order' => $order,
                 'receiptNumber' => $receiptNumber,
@@ -47,6 +50,9 @@ class ReceiptController extends Controller
                 'receiptReference' => $receiptReference,
                 'reference' => $reference,
                 'generatedAt' => now(),
+                'customerName' => $customerName ?? ($order->user?->first()?->full_name ?? 'Cliente'),
+                'customerEmail' => $customerEmail ?? ($order->user?->first()?->email ?? null),
+                'isTemporaryCustomer' => $isTemporaryCustomer,
             ];
 
             // Generar PDF usando DomPDF
@@ -131,9 +137,13 @@ class ReceiptController extends Controller
     /**
      * Regenerar comprobante PDF (reemplazar si existe, crear si no)
      */
-    public function regenerateReceiptAction(Order $order)
+    public function regenerateReceiptAction(Order $order, Request $request)
     {
         try {
+            // Obtener datos del cliente (temporales u originales)
+            $customerEmail = $request->input('customer_email');
+            $customerName = $request->input('customer_name');
+
             // Obtener el recibo más reciente
             $receipt = Receipt::where('order_id', $order->order_id)
                 ->latest('receipt_id')
@@ -161,7 +171,32 @@ class ReceiptController extends Controller
             // Cargar relaciones necesarias de la orden
             $order->load(['items.product', 'user', 'local']);
 
-            // Generar nuevo comprobante
+            // Si se proporcionan datos temporales, regenerar con esos datos y enviar email
+            if ($customerEmail && $customerName) {
+                // Generar nuevo comprobante con datos personalizados
+                $result = $this->generateReceipt($order, $paymentMethod, $receiptReference, $customerName, $customerEmail);
+
+                if (!$result['success']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Error al regenerar comprobante: ' . $result['message']
+                    ], 500);
+                }
+
+                $newReceipt = Receipt::find($result['receipt_id']);
+                
+                // Enviar comprobante con datos personalizados
+                $this->sendReceiptEmailWithData($order, $newReceipt, $customerEmail, $customerName);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Comprobante regenerado y enviado exitosamente a ' . $customerEmail,
+                    'receipt_id' => $result['receipt_id'],
+                    'pdf_path' => $result['pdf_path']
+                ]);
+            }
+
+            // Si NO hay datos temporales, generar sin enviar email
             $result = $this->generateReceipt($order, $paymentMethod, $receiptReference);
 
             if (!$result['success']) {
@@ -191,10 +226,54 @@ class ReceiptController extends Controller
     /**
      * Reenviar comprobante al email
      */
-    public function resendReceipt(Order $order)
+    public function resendReceipt(Order $order, Request $request)
     {
         try {
-            // Obtener el recibo más reciente
+            // Obtener datos del cliente (temporales u originales)
+            $customerEmail = $request->input('customer_email');
+            $customerName = $request->input('customer_name');
+            
+            // Si se proporcionan datos temporales, REGENERAR el PDF con esos datos
+            if ($customerEmail && $customerName) {
+                // Obtener recibo existente para reutilizar datos de método de pago
+                $existingReceipt = Receipt::where('order_id', $order->order_id)
+                    ->latest('receipt_id')
+                    ->first();
+
+                $paymentMethod = $existingReceipt ? $existingReceipt->payment_method : 'Efectivo';
+                $receiptReference = $existingReceipt ? $existingReceipt->receipt_reference : null;
+
+                // Si existe un recibo anterior, eliminar el archivo PDF
+                if ($existingReceipt && $existingReceipt->pdf_path && file_exists(public_path($existingReceipt->pdf_path))) {
+                    unlink(public_path($existingReceipt->pdf_path));
+                    $existingReceipt->delete();
+                }
+
+                // Cargar relaciones necesarias
+                $order->load(['items.product', 'user', 'local']);
+
+                // REGENERAR comprobante con datos personalizados
+                $result = $this->generateReceipt($order, $paymentMethod, $receiptReference, $customerName, $customerEmail);
+
+                if (!$result['success']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Error al regenerar comprobante: ' . $result['message']
+                    ], 500);
+                }
+
+                $receipt = Receipt::find($result['receipt_id']);
+                
+                // Enviar con datos personalizados
+                $this->sendReceiptEmailWithData($order, $receipt, $customerEmail, $customerName);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Comprobante generado y reenviado exitosamente a ' . $customerEmail
+                ]);
+            }
+            
+            // Si NO hay datos temporales, reenviar comprobante existente con datos de BD
             $receipt = Receipt::where('order_id', $order->order_id)
                 ->latest('receipt_id')
                 ->first();
@@ -206,15 +285,30 @@ class ReceiptController extends Controller
                 ], 404);
             }
 
+            // Obtener datos del cliente de la BD
             $customer = $order->user->first();
-            if (!$customer || !$customer->email) {
+            
+            // Validar que el cliente tenga rol Cliente (role_id = 3)
+            if (!$customer || $customer->role_id != 3) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'El cliente no tiene email registrado'
+                    'message' => 'Esta orden no tiene un cliente válido registrado. Por favor proporciona los datos del cliente.'
+                ], 400);
+            }
+            
+            // Validar que tenga email
+            if (!$customer->email) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El cliente no tiene email registrado. Por favor proporciona un email para enviar el comprobante.'
                 ], 400);
             }
 
-            $this->sendReceiptEmail($order, $receipt);
+            $customerEmail = $customer->email;
+            $customerName = $customer->full_name;
+
+            // Enviar comprobante existente
+            $this->sendReceiptEmailWithData($order, $receipt, $customerEmail, $customerName);
 
             // Actualizar timestamp de envío en tbreceipt
             $receipt->update([
@@ -224,7 +318,7 @@ class ReceiptController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Comprobante reenviado exitosamente al correo del cliente'
+                'message' => 'Comprobante reenviado exitosamente a ' . $customerEmail
             ]);
 
         } catch (\Exception $e) {
@@ -232,6 +326,85 @@ class ReceiptController extends Controller
                 'success' => false,
                 'message' => 'Error al reenviar comprobante: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Verificar si una orden tiene un cliente válido (role_id = 3)
+     */
+    public function checkValidClient(Order $order)
+    {
+        try {
+            $order->load('user');
+            $customer = $order->user->first();
+            
+            // Si no hay cliente o el cliente no es de rol Cliente (3), es inválido
+            if (!$customer || $customer->role_id != 3) {
+                return response()->json([
+                    'hasValidClient' => false,
+                    'message' => 'Esta orden no tiene un cliente válido registrado. Por favor proporciona los datos del cliente.'
+                ]);
+            }
+            
+            return response()->json([
+                'hasValidClient' => true,
+                'customerName' => $customer->full_name,
+                'customerEmail' => $customer->email
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al verificar cliente: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Enviar comprobante por email con datos personalizados
+     */
+    private function sendReceiptEmailWithData(Order $order, Receipt $receipt, $customerEmail, $customerName)
+    {
+        try {
+            // Validar que el PDF existe
+            $fullPdfPath = public_path($receipt->pdf_path);
+            if (!file_exists($fullPdfPath)) {
+                Log::error('PDF de comprobante no encontrado', [
+                    'receipt_id' => $receipt->receipt_id,
+                    'pdf_path' => $receipt->pdf_path,
+                    'full_path' => $fullPdfPath,
+                ]);
+                return false;
+            }
+
+            Log::info('Enviando comprobante por email (datos personalizados)', [
+                'order_id' => $order->order_id,
+                'receipt_id' => $receipt->receipt_id,
+                'customer_email' => $customerEmail,
+                'pdf_path' => $fullPdfPath,
+            ]);
+
+            // Enviar con datos personalizados
+            Mail::to($customerEmail)
+                ->send(new ReceiptMail($order, $receipt, $fullPdfPath, $customerName, $customerEmail));
+
+            Log::info('Comprobante enviado exitosamente', [
+                'receipt_id' => $receipt->receipt_id,
+                'sent_to' => $customerEmail,
+                'sent_at' => now(),
+            ]);
+
+            return true;
+
+        } catch (\Exception $e) {
+            Log::error('Error enviando email de comprobante', [
+                'receipt_id' => $receipt->receipt_id ?? null,
+                'order_id' => $order->order_id ?? null,
+                'customer_email' => $customerEmail ?? null,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return false;
         }
     }
 
@@ -350,32 +523,50 @@ class ReceiptController extends Controller
     public function viewOrderHistory()
     {
         try {
-            // Obtener órdenes de hoy y hace 5 días
-            $fiveDaysAgo = now()->subDays(5)->startOfDay();
-            $today = now()->endOfDay();
+            // Obtener usuario logueado
+            $currentUser = auth()->user();
+            
+            // Obtener local_id del usuario a través de la relación locals()
+            // El usuario se relaciona con múltiples locales a través de tbuser_local
+            $userLocal = $currentUser->locals()->first();
+            $localId = $userLocal?->local_id ?? null;
 
-            // Obtener órdenes entregadas (del día actual y últimos 5 días)
-            $deliveredOrders = Order::where('status', 'Delivered')
-                ->whereBetween('updated_at', [$fiveDaysAgo, $today])
+            // Obtener órdenes SOLO del día actual Y del local del usuario
+            $today = now()->startOfDay();
+            $endOfDay = now()->endOfDay();
+
+            // Query para órdenes entregadas
+            $deliveredQuery = Order::where('status', 'Delivered')
+                ->whereBetween('updated_at', [$today, $endOfDay])
                 ->with(['items.product', 'user', 'local', 'receipts'])
-                ->orderBy('updated_at', 'desc')
-                ->get()
+                ->orderBy('updated_at', 'desc');
+
+            // Si el usuario tiene local asignado (gerente), filtrar por ese local
+            if ($localId) {
+                $deliveredQuery->where('local_id', $localId);
+            }
+
+            // Obtener órdenes entregadas
+            $deliveredOrders = $deliveredQuery->get()
                 ->groupBy(function($order) {
-                    $date = $order->updated_at->toDateString();
-                    $today = now()->toDateString();
-                    return $date === $today ? 'Hoy' : $order->updated_at->format('d/m/Y');
+                    return 'Hoy';
                 });
 
-            // Obtener órdenes canceladas (del día actual y últimos 5 días)
-            $cancelledOrders = Order::where('status', 'Cancelled')
-                ->whereBetween('updated_at', [$fiveDaysAgo, $today])
+            // Query para órdenes canceladas
+            $cancelledQuery = Order::where('status', 'Cancelled')
+                ->whereBetween('updated_at', [$today, $endOfDay])
                 ->with(['items.product', 'user', 'local', 'receipts'])
-                ->orderBy('updated_at', 'desc')
-                ->get()
+                ->orderBy('updated_at', 'desc');
+
+            // Si el usuario tiene local asignado, filtrar por ese local
+            if ($localId) {
+                $cancelledQuery->where('local_id', $localId);
+            }
+
+            // Obtener órdenes canceladas
+            $cancelledOrders = $cancelledQuery->get()
                 ->groupBy(function($order) {
-                    $date = $order->updated_at->toDateString();
-                    $today = now()->toDateString();
-                    return $date === $today ? 'Hoy' : $order->updated_at->format('d/m/Y');
+                    return 'Hoy';
                 });
 
             $statuses = [
@@ -403,6 +594,13 @@ class ReceiptController extends Controller
     public function searchOrderHistory(Request $request)
     {
         try {
+            // Obtener usuario logueado
+            $currentUser = auth()->user();
+            
+            // Obtener local_id del usuario a través de la relación locals()
+            $userLocal = $currentUser->locals()->first();
+            $localId = $userLocal?->local_id ?? null;
+
             $orderNumber = $request->input('orderNumber');
             $customerName = $request->input('customerName');
             $dateFrom = $request->input('dateFrom');
@@ -418,6 +616,11 @@ class ReceiptController extends Controller
 
             $query = Order::whereIn('status', ['Delivered', 'Cancelled'])
                 ->with(['items.product', 'user', 'local', 'receipts']);
+
+            // Si el usuario tiene local asignado, filtrar por ese local
+            if ($localId) {
+                $query->where('local_id', $localId);
+            }
 
             // Filtro por número de orden
             if ($orderNumber) {
