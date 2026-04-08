@@ -103,13 +103,13 @@
             <td width="49%" style="padding-right:5px; padding-bottom:5px; vertical-align:top;">
                 <div class="info-cell">
                     <div class="info-label">Nombre</div>
-                    <div class="info-value">{{ $order->user->first()?->full_name ?? 'N/A' }}</div>
+                    <div class="info-value">{{ $customerName ?? ($order->user->first()?->full_name ?? 'N/A') }}</div>
                 </div>
             </td>
             <td width="49%" style="padding-left:5px; padding-bottom:5px; vertical-align:top;">
                 <div class="info-cell">
                     <div class="info-label">Email</div>
-                    <div class="info-value">{{ $order->user->first()?->email ?? 'N/A' }}</div>
+                    <div class="info-value">{{ $customerEmail ?? ($order->user->first()?->email ?? 'N/A') }}</div>
                 </div>
             </td>
         </tr>
@@ -117,7 +117,7 @@
             <td width="49%" style="padding-right:5px; vertical-align:top;">
                 <div class="info-cell">
                     <div class="info-label">Teléfono</div>
-                    <div class="info-value">{{ $order->user->first()?->phone ?? 'N/A' }}</div>
+                    <div class="info-value">{{ $isTemporaryCustomer ? '' : ($order->user->first()?->phone ?? 'N/A') }}</div>
                 </div>
             </td>
             <td width="49%" style="padding-left:5px; vertical-align:top;">
