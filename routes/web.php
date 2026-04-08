@@ -206,6 +206,7 @@ Route::prefix('resenas')->name('reviews.')->group(function () {
         Route::get('/api/pedidos', [\App\Http\Controllers\ReportController::class, 'getData'])->name('orders.data');
         Route::get('/descargar/html', [\App\Http\Controllers\ReportController::class, 'downloadHTML'])->name('download-html');
         Route::get('/exportar/pdf', [\App\Http\Controllers\ReportController::class, 'exportPDF'])->name('export-pdf');
+        Route::get('/exportar/excel', [\App\Http\Controllers\ReportController::class, 'exportExcel'])->name('export-excel');
     });
 });
 
