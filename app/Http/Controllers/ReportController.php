@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use App\Data\ReportData;
 use App\Models\Order;
 use Carbon\Carbon;
@@ -128,7 +129,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Exportar reporte a PDF
+     * Exportar reporte a PDF descargable
      */
     public function exportPDF(Request $request)
     {
@@ -170,14 +171,19 @@ class ReportController extends Controller
             'revenueStats' => $revenueStats,
             'topItems' => $topItems,
             'hasData' => $hasData,
+            'startDate' => $startDate ?? $start->format('Y-m-d'),
+            'endDate' => $endDate ?? $end->format('Y-m-d'),
             'exportDate' => Carbon::now()->format('d/m/Y H:i'),
         ];
 
-        return view('reports.orders-report-pdf', $data);
+        $filename = 'reporte_' . Str::slug($local->name) . '_' . now()->format('Y-m-d_His') . '.pdf';
+        $pdf = PDF::loadView('reports.orders-report-pdf', $data);
+        
+        return $pdf->download($filename);
     }
 
     /**
-     * Descargar reporte como HTML imprimible
+     * Descargar reporte como HTML descargable
      */
     public function downloadHTML(Request $request)
     {
@@ -219,12 +225,17 @@ class ReportController extends Controller
             'revenueStats' => $revenueStats,
             'topItems' => $topItems,
             'hasData' => $hasData,
+            'startDate' => $startDate ?? $start->format('Y-m-d'),
+            'endDate' => $endDate ?? $end->format('Y-m-d'),
             'exportDate' => Carbon::now()->format('d/m/Y H:i'),
         ];
 
-        $filename = 'reporte_pedidos_' . $local->name . '_' . now()->format('Y-m-d_His') . '.html';
+        $filename = 'reporte_pedidos_' . Str::slug($local->name) . '_' . now()->format('Y-m-d_His') . '.html';
+        $html = view('reports.orders-report-export', $data)->render();
 
-        return view('reports.orders-report-export', $data);
+        return response($html)
+            ->header('Content-Type', 'text/html; charset=utf-8')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
     }
 
     /**
@@ -264,7 +275,7 @@ class ReportController extends Controller
         $topItems = $this->reportData->getTopSellingItems($local->local_id, $start, $end);
 
         // Construir datos para Excel
-        $filename = 'reporte_pedidos_' . $local->name . '_' . now()->format('Y-m-d_His') . '.xlsx';
+        $filename = 'reporte_pedidos_' . Str::slug($local->name) . '_' . now()->format('Y-m-d_His') . '.xlsx';
 
         return Excel::download(
             new \App\Exports\OrdersReportExport($local, $orderStats, $revenueStats, $topItems, $start, $end),
