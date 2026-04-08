@@ -983,7 +983,6 @@
         ══════════════════════════════════════ */
         .footer-v2 {
             position: relative;
-            background: #5a2e02;
             background-image: url('{{ asset("images/fondomadera1.webp") }}');
             background-size: cover;
             background-position: center;
