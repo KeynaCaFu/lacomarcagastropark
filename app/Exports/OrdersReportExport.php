@@ -2,15 +2,13 @@
 
 namespace App\Exports;
 
-use Maatwebsite\Excel\Concerns\FromApplication;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PHPExcel\Style\Font;
-use PhpOffice\PHPExcel\Style\Alignment;
-use PhpOffice\PHPExcel\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Illuminate\Support\Collection;
 
-class OrdersReportExport implements FromApplication, WithHeadings, WithStyles, ShouldAutoSize
+class OrdersReportExport implements FromCollection, WithHeadings, WithStyles
 {
     protected $local;
     protected $orderStats;
@@ -29,115 +27,79 @@ class OrdersReportExport implements FromApplication, WithHeadings, WithStyles, S
         $this->endDate = $endDate;
     }
 
-    public function collection()
-    {
-        $rows = [];
-
-        // Encabezado
-        $rows[] = ['REPORTE DE PEDIDOS - ' . strtoupper($this->local->name)];
-        $rows[] = [];
-        $rows[] = ['Período: ' . $this->startDate->format('d/m/Y') . ' a ' . $this->endDate->format('d/m/Y')];
-        $rows[] = ['Generado: ' . \Carbon\Carbon::now()->format('d/m/Y H:i')];
-        $rows[] = [];
-
-        // Resumen de pedidos
-        $rows[] = ['RESUMEN DE PEDIDOS'];
-        $rows[] = [];
-        $rows[] = [
-            'Total de Pedidos',
-            'En Línea',
-            'Presencial',
-            '% En Línea',
-            '% Presencial'
-        ];
-        $rows[] = [
-            $this->orderStats['total'],
-            $this->orderStats['web']['count'],
-            $this->orderStats['presential']['count'],
-            $this->orderStats['web']['percentage'] . '%',
-            $this->orderStats['presential']['percentage'] . '%',
-        ];
-        $rows[] = [];
-
-        // Resumen de ingresos
-        $rows[] = ['RESUMEN DE INGRESOS'];
-        $rows[] = [];
-        $rows[] = [
-            'Total Ingresos',
-            'En Línea',
-            'Presencial',
-            '% En Línea',
-            '% Presencial',
-            'Ticket Promedio'
-        ];
-        
-        $avgTicket = $this->orderStats['total'] > 0 
-            ? round($this->revenueStats['total'] / $this->orderStats['total'], 2)
-            : 0;
-
-        $rows[] = [
-            '₡' . number_format($this->revenueStats['total'], 2),
-            '₡' . number_format($this->revenueStats['web']['revenue'], 2),
-            '₡' . number_format($this->revenueStats['presential']['revenue'], 2),
-            $this->revenueStats['web']['percentage'] . '%',
-            $this->revenueStats['presential']['percentage'] . '%',
-            '₡' . number_format($avgTicket, 2),
-        ];
-        $rows[] = [];
-
-        // Productos más vendidos
-        if ($this->topItems->count() > 0) {
-            $rows[] = ['PRODUCTOS MÁS VENDIDOS'];
-            $rows[] = [];
-            $rows[] = [
-                'Producto',
-                'Cantidad Vendida',
-                'Número de Órdenes'
-            ];
-
-            foreach ($this->topItems as $item) {
-                $rows[] = [
-                    $item->name,
-                    $item->total_quantity,
-                    $item->order_count
-                ];
-            }
-        }
-
-        return collect($rows);
-    }
-
     public function headings(): array
     {
-        return [];
+        return [
+            ['REPORTE DE PEDIDOS'],
+            [$this->local->name],
+            ['Período: ' . $this->startDate->format('d/m/Y') . ' - ' . $this->endDate->format('d/m/Y')],
+            [],
+            ['RESUMEN POR TIPO DE PEDIDO'],
+            ['Tipo', 'Cantidad', 'Porcentaje', 'Ingresos (₡)', 'Promedio (₡)'],
+        ];
     }
 
-    public function styles($sheet)
+    public function collection(): Collection
     {
-        // Estilos para el título
-        $sheet->mergeCells('A1:F1');
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('A1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('485a1a');
-        $sheet->getStyle('A1')->getFont()->getColor()->setRGB('ffffff');
+        $webAvg = $this->orderStats['web']['count'] > 0 
+            ? $this->revenueStats['web']['revenue'] / $this->orderStats['web']['count'] 
+            : 0;
+        
+        $presentialAvg = $this->orderStats['presential']['count'] > 0 
+            ? $this->revenueStats['presential']['revenue'] / $this->orderStats['presential']['count'] 
+            : 0;
+        
+        $totalAvg = $this->orderStats['total'] > 0 
+            ? $this->revenueStats['total'] / $this->orderStats['total'] 
+            : 0;
 
-        return [
-            // Estilos para encabezados de secciones
-            9 => [
-                'font' => ['bold' => true, 'size' => 12, 'color' => ['rgb' => 'ffffff']],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '485a1a']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
+        $data = [
+            ['En Línea', 
+                $this->orderStats['web']['count'], 
+                $this->orderStats['web']['percentage'] . '%',
+                $this->revenueStats['web']['revenue'],
+                round($webAvg, 2)
             ],
-            14 => [
-                'font' => ['bold' => true, 'size' => 12, 'color' => ['rgb' => 'ffffff']],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '485a1a']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
+            ['Presencial', 
+                $this->orderStats['presential']['count'], 
+                $this->orderStats['presential']['percentage'] . '%',
+                $this->revenueStats['presential']['revenue'],
+                round($presentialAvg, 2)
             ],
-            19 => [
-                'font' => ['bold' => true, 'size' => 12, 'color' => ['rgb' => 'ffffff']],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '485a1a']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
-            ]
+            ['TOTAL', 
+                $this->orderStats['total'], 
+                '100%',
+                $this->revenueStats['total'],
+                round($totalAvg, 2)
+            ],
+            [],
+            ['PRODUCTOS MÁS VENDIDOS'],
+            ['Producto', 'Cantidad Vendida', 'Transacciones'],
         ];
+
+        foreach ($this->topItems as $item) {
+            $data[] = [
+                $item->name,
+                $item->total_quantity,
+                $item->order_count,
+            ];
+        }
+
+        return collect($data);
+    }
+
+    public function styles(Worksheet $sheet)
+    {
+        // Aplicar negritas a los encabezados
+        $sheet->getStyle('A1:A3')->getFont()->setBold(true);
+        $sheet->getStyle('A5:A6')->getFont()->setBold(true);
+        $sheet->getStyle('A6:E6')->getFont()->setBold(true);
+        
+        // Autoajustar columnas
+        foreach (range('A', 'E') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        
+        return [];
     }
 }
