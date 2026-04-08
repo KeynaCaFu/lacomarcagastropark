@@ -85,6 +85,82 @@
     .textarea-wrap textarea {
         padding-top: 28px !important;
     }
+
+    /* ── FILTROS ── */
+    .reviews-filters-wrapper {
+        margin-bottom: 20px;
+    }
+    .reviews-filters-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border: 1.5px solid #d1d5db;
+        border-radius: 8px;
+        background: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .reviews-filters-toggle:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+    }
+    .reviews-filters-chevron {
+        margin-left: 4px;
+        transition: transform 0.2s ease;
+        font-size: 11px;
+    }
+    .reviews-filters-toggle.open .reviews-filters-chevron {
+        transform: rotate(180deg);
+    }
+    .reviews-filters-panel {
+        border: 1.5px solid #e5e7eb;
+        border-top: none;
+        border-radius: 0 0 10px 10px;
+        background: #fafafa;
+        padding: 16px 20px;
+        margin-top: -1px;
+    }
+    .reviews-filters-panel.hidden {
+        display: none;
+    }
+    .reviews-filters-body {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 160px;
+    }
+    .filter-group label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .filter-group select {
+        padding: 8px 12px;
+        border: 1.5px solid #d1d5db;
+        border-radius: 7px;
+        font-size: 14px;
+        color: #374151;
+        background: #fff;
+        cursor: pointer;
+        transition: border-color 0.2s;
+    }
+    .filter-group select:hover,
+    .filter-group select:focus {
+        border-color: #915016;
+        outline: none;
+    }
 </style>
 @endpush
 
@@ -102,6 +178,47 @@
             <p class="reviews-module-subtitle">
                 Administra las reseñas de tu local y de tus productos.
             </p>
+        </div>
+    </div>
+
+    {{-- FILTROS COLAPSABLES --}}
+    <div class="reviews-filters-wrapper">
+        <button class="reviews-filters-toggle" type="button" onclick="toggleFilters(this)">
+            <i class="fas fa-sliders-h"></i>
+            Filtros
+            <i class="fas fa-chevron-down reviews-filters-chevron"></i>
+        </button>
+        <div class="reviews-filters-panel hidden" id="filtersPanel">
+            <div class="reviews-filters-body">
+                <div class="filter-group">
+                    <label>Calificación</label>
+                    <select name="rating">
+                        <option value="">Todas</option>
+                        <option value="5">5 estrellas</option>
+                        <option value="4">4 estrellas</option>
+                        <option value="3">3 estrellas</option>
+                        <option value="2">2 estrellas</option>
+                        <option value="1">1 estrella</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Tipo</label>
+                    <select name="tipo">
+                        <option value="">Todos</option>
+                        <option value="positive">Positivas</option>
+                        <option value="neutral">Neutras</option>
+                        <option value="negative">Negativas</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Con respuesta</label>
+                    <select name="respondida">
+                        <option value="">Todas</option>
+                        <option value="1">Con respuesta</option>
+                        <option value="0">Sin respuesta</option>
+                    </select>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -170,7 +287,7 @@
                              data-modal-tipo-clase="{{ $tipoClase }}"
                              data-modal-respuesta="{{ $respuesta ?? '' }}"
                              data-modal-producto=""
-                             onclick="openReviewModal(this)">
+                             onclick="openReviewModal(this, event)">
 
                             <div class="review-card-header">
                                 <div class="review-user-box">
@@ -345,7 +462,7 @@
                              data-modal-tipo-clase="{{ $tipoClase }}"
                              data-modal-respuesta="{{ $respuesta ?? '' }}"
                              data-modal-producto="{{ $nombreProducto }}"
-                             onclick="openReviewModal(this)">
+                             onclick="openReviewModal(this, event)">
 
                             <div class="review-mini-label">Producto: {{ $nombreProducto }}</div>
 
@@ -756,10 +873,26 @@
         }
     }
 
+    // Toggle filtros colapsables
+    function toggleFilters(btn) {
+        const panel = document.getElementById('filtersPanel');
+        const isOpen = !panel.classList.contains('hidden');
+        if (isOpen) {
+            panel.classList.add('hidden');
+            btn.classList.remove('open');
+        } else {
+            panel.classList.remove('hidden');
+            btn.classList.add('open');
+        }
+    }
+
     // Abrir modal de detalles de reseña
-    function openReviewModal(element) {
+    // Solo se abre si el click NO viene de un elemento interactivo interno
+    function openReviewModal(element, event) {
+        if (event.target.closest('button, a, input, textarea, select, form')) return;
+
         const modal = document.getElementById('reviewModal');
-        
+
         // Recopilar datos del elemento
         const nombre = element.getAttribute('data-modal-nombre') || 'Cliente';
         const iniciales = element.getAttribute('data-modal-iniciales') || 'CL';
