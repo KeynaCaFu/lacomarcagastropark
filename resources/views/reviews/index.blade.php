@@ -86,15 +86,12 @@
         padding-top: 28px !important;
     }
 
-    /* ── FILTROS ── */
-    .reviews-filters-wrapper {
-        margin-bottom: 20px;
-    }
+    /* ── FILTROS COLAPSABLES ── */
     .reviews-filters-toggle {
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 10px 18px;
+        padding: 9px 16px;
         border: 1.5px solid #d1d5db;
         border-radius: 8px;
         background: #fff;
@@ -102,64 +99,91 @@
         font-weight: 600;
         color: #374151;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: background 0.2s, border-color 0.2s;
+        margin-bottom: 16px;
     }
     .reviews-filters-toggle:hover {
         background: #f9fafb;
         border-color: #9ca3af;
     }
-    .reviews-filters-chevron {
-        margin-left: 4px;
-        transition: transform 0.2s ease;
+    .reviews-filters-toggle i.chevron {
         font-size: 11px;
+        transition: transform 0.2s ease;
     }
-    .reviews-filters-toggle.open .reviews-filters-chevron {
+    .reviews-filters-toggle.open i.chevron {
         transform: rotate(180deg);
     }
-    .reviews-filters-panel {
-        border: 1.5px solid #e5e7eb;
-        border-top: none;
-        border-radius: 0 0 10px 10px;
-        background: #fafafa;
-        padding: 16px 20px;
-        margin-top: -1px;
-    }
-    .reviews-filters-panel.hidden {
-        display: none;
-    }
-    .reviews-filters-body {
+
+    .reviews-filters-bar {
         display: flex;
-        gap: 20px;
-        flex-wrap: wrap;
         align-items: flex-end;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 22px;
+        padding: 16px 18px;
+        background: #f9fafb;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
     }
+
     .filter-group {
         display: flex;
         flex-direction: column;
-        gap: 6px;
-        min-width: 160px;
+        gap: 5px;
     }
+
     .filter-group label {
-        font-size: 12px;
-        font-weight: 600;
+        font-size: 11px;
+        font-weight: 700;
         color: #6b7280;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.05em;
     }
-    .filter-group select {
-        padding: 8px 12px;
+
+    .filter-group select,
+    .filter-group input[type="date"] {
+        height: 36px;
+        padding: 0 10px;
         border: 1.5px solid #d1d5db;
-        border-radius: 7px;
-        font-size: 14px;
+        border-radius: 8px;
+        font-size: 13px;
         color: #374151;
         background: #fff;
         cursor: pointer;
-        transition: border-color 0.2s;
-    }
-    .filter-group select:hover,
-    .filter-group select:focus {
-        border-color: #915016;
         outline: none;
+        transition: border-color 0.2s;
+        min-width: 140px;
+    }
+
+    .filter-group select:focus,
+    .filter-group input[type="date"]:focus {
+        border-color: #915016;
+    }
+
+    .filter-clear-btn {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        height: 36px;
+        padding: 0 18px;
+        border: 1.5px solid #d1d5db;
+        border-radius: 8px;
+        background: #fff;
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        align-self: flex-end;
+    }
+    .filter-clear-btn:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+    }
+    .filter-clear-btn i {
+        font-size: 13px;
+        color: #6b7280;
     }
 </style>
 @endpush
@@ -178,47 +202,6 @@
             <p class="reviews-module-subtitle">
                 Administra las reseñas de tu local y de tus productos.
             </p>
-        </div>
-    </div>
-
-    {{-- FILTROS COLAPSABLES --}}
-    <div class="reviews-filters-wrapper">
-        <button class="reviews-filters-toggle" type="button" onclick="toggleFilters(this)">
-            <i class="fas fa-sliders-h"></i>
-            Filtros
-            <i class="fas fa-chevron-down reviews-filters-chevron"></i>
-        </button>
-        <div class="reviews-filters-panel hidden" id="filtersPanel">
-            <div class="reviews-filters-body">
-                <div class="filter-group">
-                    <label>Calificación</label>
-                    <select name="rating">
-                        <option value="">Todas</option>
-                        <option value="5">5 estrellas</option>
-                        <option value="4">4 estrellas</option>
-                        <option value="3">3 estrellas</option>
-                        <option value="2">2 estrellas</option>
-                        <option value="1">1 estrella</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Tipo</label>
-                    <select name="tipo">
-                        <option value="">Todos</option>
-                        <option value="positive">Positivas</option>
-                        <option value="neutral">Neutras</option>
-                        <option value="negative">Negativas</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Con respuesta</label>
-                    <select name="respondida">
-                        <option value="">Todas</option>
-                        <option value="1">Con respuesta</option>
-                        <option value="0">Sin respuesta</option>
-                    </select>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -260,8 +243,37 @@
                 <h2 class="reviews-block-title">RESEÑAS DE LOCAL</h2>
             </div>
 
+            {{-- BOTÓN COLAPSABLE DE FILTROS --}}
+            <button class="reviews-filters-toggle" type="button" id="local-filters-toggle" onclick="toggleLocalFilters()">
+                <i class="fas fa-chevron-down chevron"></i>
+                Filtros de búsqueda
+            </button>
+
+            {{-- PANEL DE FILTROS (oculto por defecto) --}}
+            <div class="reviews-filters-bar" id="local-filters-panel" style="display:none;">
+                <div class="filter-group">
+                    <label>Fecha</label>
+                    <input type="date" id="local-filter-fecha" onchange="applyFilters()">
+                </div>
+                <div class="filter-group">
+                    <label>Calificación</label>
+                    <select id="local-filter-rating" onchange="applyFilters()">
+                        <option value="">Todas</option>
+                        <option value="5">5 estrellas</option>
+                        <option value="4">4 estrellas</option>
+                        <option value="3">3 estrellas</option>
+                        <option value="2">2 estrellas</option>
+                        <option value="1">1 estrella</option>
+                    </select>
+                </div>
+                <button class="filter-clear-btn" type="button" onclick="clearFilters()">
+                    <i class="fas fa-redo-alt"></i>
+                    Limpiar
+                </button>
+            </div>
+
             @if($localReviews->count() > 0)
-                <div class="reviews-grid">
+                <div class="reviews-grid" id="grid-locales">
                     @foreach($localReviews as $item)
                         @php
                             $nombre     = $item->user->full_name ?? 'Cliente';
@@ -275,12 +287,14 @@
                             if ($rating >= 4)     { $tipoTexto = 'Positiva'; $tipoClase = 'positive'; }
                             elseif ($rating == 3) { $tipoTexto = 'Neutra';   $tipoClase = 'neutral';  }
                             else                  { $tipoTexto = 'Negativa'; $tipoClase = 'negative'; }
+                            $fechaRaw = $item->review->date ? \Carbon\Carbon::parse($item->review->date)->format('Y-m-d') : '';
                         @endphp
 
                         <div class="review-card review-card-clickable"
                              data-modal-nombre="{{ $nombre }}"
                              data-modal-iniciales="{{ $iniciales ?: 'CL' }}"
                              data-modal-fecha="{{ $fecha }}"
+                             data-modal-fecha-raw="{{ $fechaRaw }}"
                              data-modal-rating="{{ $rating }}"
                              data-modal-comentario="{{ $comentario }}"
                              data-modal-tipo-texto="{{ $tipoTexto }}"
@@ -396,6 +410,9 @@
 
                         </div>
                     @endforeach
+                </div>
+                <div class="reviews-empty-state hidden" id="local-no-results">
+                    No hay reseñas que coincidan con los filtros aplicados.
                 </div>
             @else
                 <div class="reviews-empty-state">No hay reseñas de local registradas para este gerente.</div>
@@ -873,68 +890,54 @@
         }
     }
 
-    // Toggle filtros colapsables
-    function toggleFilters(btn) {
-        const panel = document.getElementById('filtersPanel');
-        const isOpen = !panel.classList.contains('hidden');
-        if (isOpen) {
-            panel.classList.add('hidden');
-            btn.classList.remove('open');
-        } else {
-            panel.classList.remove('hidden');
-            btn.classList.add('open');
-        }
+    // ── Toggle filtros colapsables (solo locales) ──
+    function toggleLocalFilters() {
+        const panel   = document.getElementById('local-filters-panel');
+        const toggle  = document.getElementById('local-filters-toggle');
+        const isOpen  = panel.style.display !== 'none';
+
+        panel.style.display = isOpen ? 'none' : 'flex';
+        toggle.classList.toggle('open', !isOpen);
     }
 
     // Abrir modal de detalles de reseña
-    // Solo se abre si el click NO viene de un elemento interactivo interno
     function openReviewModal(element, event) {
         if (event.target.closest('button, a, input, textarea, select, form')) return;
 
         const modal = document.getElementById('reviewModal');
 
-        // Recopilar datos del elemento
-        const nombre = element.getAttribute('data-modal-nombre') || 'Cliente';
-        const iniciales = element.getAttribute('data-modal-iniciales') || 'CL';
-        const fecha = element.getAttribute('data-modal-fecha') || '-';
-        const rating = parseInt(element.getAttribute('data-modal-rating')) || 0;
-        const comentario = element.getAttribute('data-modal-comentario') || 'Sin comentario.';
+        const nombre    = element.getAttribute('data-modal-nombre')     || 'Cliente';
+        const iniciales = element.getAttribute('data-modal-iniciales')  || 'CL';
+        const fecha     = element.getAttribute('data-modal-fecha')      || '-';
+        const rating    = parseInt(element.getAttribute('data-modal-rating')) || 0;
+        const comentario= element.getAttribute('data-modal-comentario') || 'Sin comentario.';
         const tipoTexto = element.getAttribute('data-modal-tipo-texto') || 'Neutra';
         const tipoClase = element.getAttribute('data-modal-tipo-clase') || 'neutral';
-        const respuesta = element.getAttribute('data-modal-respuesta') || '';
-        const producto = element.getAttribute('data-modal-producto') || '';
+        const respuesta = element.getAttribute('data-modal-respuesta')  || '';
+        const producto  = element.getAttribute('data-modal-producto')   || '';
 
-        // Actualizar contenido del modal
-        document.getElementById('modalAvatar').textContent = iniciales;
-        document.getElementById('modalNombre').textContent = nombre;
-        document.getElementById('modalFecha').textContent = fecha;
+        document.getElementById('modalAvatar').textContent   = iniciales;
+        document.getElementById('modalNombre').textContent   = nombre;
+        document.getElementById('modalFecha').textContent    = fecha;
         document.getElementById('modalComentario').textContent = comentario;
 
-        // Mostrar/ocultar comentario con su título
         const comentarioContainer = document.getElementById('modalComentarioContainer');
-        if (comentario && comentario.trim() && comentario !== 'Sin comentario.') {
-            comentarioContainer.style.display = 'block';
-        } else {
-            comentarioContainer.style.display = 'none';
-        }
+        comentarioContainer.style.display = (comentario && comentario.trim() && comentario !== 'Sin comentario.') ? 'block' : 'none';
 
-        // Actualizar badge
         const badge = document.getElementById('modalBadge');
         badge.textContent = tipoTexto;
-        badge.className = 'review-modal-badge';
+        badge.className   = 'review-modal-badge';
         badge.classList.add(tipoClase);
 
-        // Actualizar rating (estrellas)
         const starsContainer = document.querySelector('.review-modal-rating');
         starsContainer.innerHTML = '';
         for (let i = 1; i <= 5; i++) {
             const star = document.createElement('span');
-            star.className = 'star' + (i <= rating ? ' filled' : '');
+            star.className  = 'star' + (i <= rating ? ' filled' : '');
             star.textContent = '★';
             starsContainer.appendChild(star);
         }
 
-        // Mostrar/ocultar producto
         const productContainer = document.getElementById('modalProducto');
         if (producto) {
             document.getElementById('modalProductoNombre').textContent = producto;
@@ -943,7 +946,6 @@
             productContainer.style.display = 'none';
         }
 
-        // Mostrar/ocultar respuesta
         const respuestaContainer = document.getElementById('modalRespuestaContainer');
         if (respuesta) {
             document.getElementById('modalRespuesta').textContent = respuesta;
@@ -952,16 +954,12 @@
             respuestaContainer.style.display = 'none';
         }
 
-        // Mostrar modal
         modal.classList.remove('hidden');
     }
 
-    // Cerrar modal de detalles de reseña
     function closeReviewModal() {
         const modal = document.getElementById('reviewModal');
-        if (modal) {
-            modal.classList.add('hidden');
-        }
+        if (modal) modal.classList.add('hidden');
     }
 
     function updateCounter(textarea, counterId) {
@@ -971,14 +969,10 @@
         const max = parseInt(textarea.getAttribute('maxlength')) || 1000;
         counter.textContent = len + '/' + max;
         counter.classList.remove('warn', 'limit');
-        if (len >= max) {
-            counter.classList.add('limit');
-        } else if (len >= max * 0.8) {
-            counter.classList.add('warn');
-        }
+        if (len >= max)          counter.classList.add('limit');
+        else if (len >= max * 0.8) counter.classList.add('warn');
     }
 
-    // Toggle reply box
     function toggleReplyBox(button) {
         const container = button.closest('.review-action-area');
         const box = container.querySelector('.reply-box');
@@ -987,12 +981,11 @@
         button.style.display = 'none';
     }
 
-    // Cancelar nueva respuesta
     function cancelNewResponse(btn) {
-        const container = btn.closest('.review-action-area');
-        const box = container.querySelector('.reply-box');
+        const container  = btn.closest('.review-action-area');
+        const box        = container.querySelector('.reply-box');
         const respondBtn = container.querySelector('.respond-toggle-btn');
-        box.style.display = 'none';
+        box.style.display    = 'none';
         box.classList.add('hidden');
         respondBtn.style.display = '';
         const textarea = box.querySelector('textarea');
@@ -1006,7 +999,6 @@
         }
     }
 
-    // Edit response
     function editResponse(type, id) {
         document.getElementById(type + '-response-text-' + id).classList.add('hidden');
         document.getElementById(type + '-response-actions-' + id).classList.add('hidden');
@@ -1019,9 +1011,8 @@
         document.getElementById(type + '-edit-form-' + id).classList.add('hidden');
     }
 
-    // Confirmar guardar nueva respuesta
     function confirmSaveResponse(btn) {
-        const form = btn.closest('form');
+        const form     = btn.closest('form');
         const textarea = form.querySelector('textarea');
         if (!textarea.value.trim()) {
             window.swToast && window.swToast.fire({ icon: 'warning', title: 'Por favor escribe una respuesta.' });
@@ -1037,17 +1028,12 @@
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#915016',
                 cancelButtonColor: '#6b7280',
-            }).then(result => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
+            }).then(result => { if (result.isConfirmed) form.submit(); });
         });
     }
 
-    // Confirmar guardar edición
     function confirmSaveEdit(btn) {
-        const form = btn.closest('form');
+        const form     = btn.closest('form');
         const textarea = form.querySelector('textarea');
         if (!textarea.value.trim()) {
             window.swToast && window.swToast.fire({ icon: 'warning', title: 'Por favor escribe una respuesta.' });
@@ -1063,15 +1049,10 @@
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#915016',
                 cancelButtonColor: '#6b7280',
-            }).then(result => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
+            }).then(result => { if (result.isConfirmed) form.submit(); });
         });
     }
 
-    // Confirmar eliminar respuesta — igual que proveedores
     function confirmDeleteResponse(btn) {
         const form = btn.closest('form');
         waitForSwal(() => {
@@ -1095,6 +1076,45 @@
                 }
             });
         });
+    }
+
+    // ── FILTROS (solo locales) ──
+    function applyFilters() {
+        const fecha  = document.getElementById('local-filter-fecha')?.value  || '';
+        const rating = document.getElementById('local-filter-rating')?.value || '';
+
+        const grid = document.getElementById('grid-locales');
+        if (!grid) return;
+
+        let visible = 0;
+
+        grid.querySelectorAll('.review-card').forEach(card => {
+            const cardFecha  = card.getAttribute('data-modal-fecha-raw') || '';
+            const cardRating = card.getAttribute('data-modal-rating')    || '';
+
+            let show = true;
+            if (fecha  && cardFecha  !== fecha)  show = false;
+            if (rating && cardRating !== rating) show = false;
+
+            card.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        const noRes = document.getElementById('local-no-results');
+        if (noRes) noRes.classList.toggle('hidden', visible > 0);
+    }
+
+    function clearFilters() {
+        const fechaEl  = document.getElementById('local-filter-fecha');
+        const ratingEl = document.getElementById('local-filter-rating');
+        if (fechaEl)  fechaEl.value  = '';
+        if (ratingEl) ratingEl.value = '';
+
+        const grid = document.getElementById('grid-locales');
+        if (grid) grid.querySelectorAll('.review-card').forEach(c => c.style.display = '');
+
+        const noRes = document.getElementById('local-no-results');
+        if (noRes) noRes.classList.add('hidden');
     }
 </script>
 @endpush
