@@ -22,7 +22,9 @@ class ReceiptMail extends Mailable
     public function __construct(
         private Order $order,
         private Receipt $receipt,
-        private string $pdfPath
+        private string $pdfPath,
+        private ?string $customerName = null,
+        private ?string $customerEmail = null
     ) {}
 
     /**
@@ -45,7 +47,7 @@ class ReceiptMail extends Mailable
             with: [
                 'order' => $this->order,
                 'receipt' => $this->receipt,
-                'customerName' => $this->order->user?->first()?->full_name ?? 'Cliente',
+                'customerName' => $this->customerName ?? ($this->order->user?->first()?->full_name ?? 'Cliente'),
             ],
         );
     }
