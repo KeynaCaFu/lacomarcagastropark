@@ -1640,7 +1640,9 @@ function proceedResendWithoutModal(orderId) {
         })))
         .then(({ ok, status, data }) => {
             if (ok && data.success) {
-                swToast({icon: 'success', title: data.message});
+                if (window.swToast) {
+                    swToast.fire({icon: 'success', title: data.message});
+                }
             } else {
                 Swal.fire('Error', data.message || 'Error al reenviar el comprobante', 'error');
             }
@@ -1683,7 +1685,9 @@ function proceedResendReceipt(orderId, customerEmail, customerName) {
         })))
         .then(({ ok, status, data }) => {
             if (ok && data.success) {
-                swToast({icon: 'success', title: data.message});
+                if (window.swToast) {
+                    swToast.fire({icon: 'success', title: data.message});
+                }
             } else {
                 Swal.fire('Error', data.message || 'Error al reenviar el comprobante', 'error');
             }
@@ -1754,7 +1758,9 @@ function proceedRegenerateReceipt(orderId, customerEmail = null, customerName = 
         })))
         .then(({ ok, status, data }) => {
             if (ok && data.success) {
-                swToast({icon: 'success', title: data.message});
+                if (window.swToast) {
+                    swToast.fire({icon: 'success', title: data.message});
+                }
                 updateReceiptBadge(orderId);
             } else {
                 Swal.fire('Error', data.message || 'Error al regenerar el comprobante', 'error');
