@@ -77,14 +77,6 @@ class Order extends Model
     }
 
     /**
-     * Relación: Comprobantes/Recibos de la orden
-     */
-    public function receipts()
-    {
-        return $this->hasMany(Receipt::class, 'order_id', 'order_id');
-    }
-
-    /**
      * Relación: Locales asociados a la orden
      */
     public function locals()

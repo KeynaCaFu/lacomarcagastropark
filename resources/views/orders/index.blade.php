@@ -47,11 +47,9 @@
             </h1>
             <p class="text-muted mb-0">Gestión de órdenes del establecimiento</p>
         </div>
-        <div style="display: flex; gap: 10px;">
-            <button type="button" class="btn btn-warning" id="newOrderBtn" style="background: linear-gradient(135deg, #e18018, #c9690f); border: none; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-plus"></i> Nueva Orden
-            </button>
-        </div>
+        <button type="button" class="btn btn-warning" id="newOrderBtn" style="background: linear-gradient(135deg, #e18018, #c9690f); border: none; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-plus"></i> Nueva Orden
+        </button>
     </div>
 
     <!-- Estadísticas de órdenes -->
@@ -592,99 +590,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
-        } else if (status === 'Delivered') {
-            // Para DELIVERED, pedir método de pago y número de comprobante
-            swalPromise = Swal.fire({
-                title: 'Registrar Pago y Comprobante',
-                html: `
-                    <div style="text-align: left; margin: 20px 0;">
-                        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">Método de Pago</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                            <button type="button" class="payment-option" data-value="Efectivo" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: left; font-size: 13px; font-weight: 500;">
-                                <i class="fas fa-money-bill" style="color: #10b981; margin-right: 8px; font-size: 16px;"></i> Efectivo
-                            </button>
-                            <button type="button" class="payment-option" data-value="Tarjeta de Crédito" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: left; font-size: 13px; font-weight: 500;">
-                                <i class="fas fa-credit-card" style="color: #3b82f6; margin-right: 8px; font-size: 16px;"></i> Crédito
-                            </button>
-                            <button type="button" class="payment-option" data-value="Tarjeta de Débito" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: left; font-size: 13px; font-weight: 500;">
-                                <i class="fas fa-credit-card" style="color: #8b5cf6; margin-right: 8px; font-size: 16px;"></i> Débito
-                            </button>
-                            <button type="button" class="payment-option" data-value="Transferencia Bancaria" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: left; font-size: 13px; font-weight: 500;">
-                                <i class="fas fa-university" style="color: #f59e0b; margin-right: 8px; font-size: 16px;"></i> Transf. Banco
-                            </button>
-                            <button type="button" class="payment-option" data-value="Sinpe Movil" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: left; font-size: 13px; font-weight: 500;">
-                                <i class="fas fa-mobile-alt" style="color: #ec4899; margin-right: 8px; font-size: 16px;"></i> Sinpe Movil
-                            </button>
-                            <button type="button" class="payment-option" data-value="Billetera Digital" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: left; font-size: 13px; font-weight: 500;">
-                                <i class="fas fa-wallet" style="color: #6366f1; margin-right: 8px; font-size: 16px;"></i> Billetera
-                            </button>
-                            <button type="button" class="payment-option" data-value="Cheque" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: left; font-size: 13px; font-weight: 500; grid-column: 1;">
-                                <i class="fas fa-file-invoice-dollar" style="color: #64748b; margin-right: 8px; font-size: 16px;"></i> Cheque
-                            </button>
-                        </div>
-                        <input type="hidden" id="paymentMethod" value="">
-                        
-                        <label style="display: block; margin: 15px 0 10px 0; font-weight: 600; color: #333;">Número de Comprobante/Factura</label>
-                        <input type="text" id="receiptReference" placeholder="Ej: FAC-001-2026, 12345678, etc..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-                    </div>
-                    <style>
-                        .payment-option:hover {
-                            border-color: #e18018 !important;
-                            background: #fff7ed !important;
-                        }
-                        .payment-option.selected {
-                            border-color: #e18018 !important;
-                            background: #fff7ed !important;
-                            font-weight: 600;
-                        }
-                    </style>
-                `,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Marcar como Entregado',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#e18018',
-                cancelButtonColor: '#6b7280',
-                reverseButtons: true,
-                allowOutsideClick: false,
-                didOpen: () => {
-                    // Agregar event listeners a los botones de métodos de pago
-                    const paymentButtons = document.querySelectorAll('.payment-option');
-                    
-                    paymentButtons.forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            
-                            // Remover la clase selected de todos los botones
-                            paymentButtons.forEach(btn => btn.classList.remove('selected'));
-                            
-                            // Agregar la clase selected al botón clickeado
-                            button.classList.add('selected');
-                            
-                            // Establecer el valor del input hidden
-                            document.getElementById('paymentMethod').value = button.getAttribute('data-value');
-                        });
-                    });
-                },
-                preConfirm: () => {
-                    const paymentMethod = document.getElementById('paymentMethod').value;
-                    const receiptReference = document.getElementById('receiptReference').value;
-                    
-                    if (!paymentMethod) {
-                        Swal.showValidationMessage('Debe seleccionar un método de pago');
-                        return false;
-                    }
-                    if (!receiptReference || !receiptReference.trim()) {
-                        Swal.showValidationMessage('Debe ingresar un número de comprobante/factura');
-                        return false;
-                    }
-                    
-                    return {
-                        paymentMethod: paymentMethod,
-                        receiptReference: receiptReference.trim()
-                    };
-                }
-            });
         } else {
             // Para otros estados, confirmación simple
             swalPromise = Swal.fire({
@@ -706,78 +611,36 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        swalPromise.then(async (result) => {
-            if (!result.isConfirmed) {
-                return { shouldProceed: false };
-            }
-            
-            // Preparar payload
-            const payload = { status };
-            
-            if (status === 'Cancelled' && result.value) {
-                payload.cancellation_reason = result.value.trim();
-                
-                // Mostrar confirmación final antes de cancelar
-                const confirmResult = await Swal.fire({
-                    title: '⚠️ ¿Estás seguro?',
-                    text: 'Esta acción cancelará la orden. ¿Deseas continuar?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, cancelar orden',
-                    cancelButtonText: 'No, atrás',
-                    confirmButtonColor: '#dc2626',
-                    cancelButtonColor: '#6b7280',
-                    reverseButtons: true,
-                    allowOutsideClick: false
-                });
-                
-                if (confirmResult.isConfirmed) {
-                    return { shouldProceed: true, payload };
-                }
-                return { shouldProceed: false };
-            }
-            
-            if (status === 'Delivered' && result.value) {
-                // Obtener el rol del usuario de la orden
-                const orderCard = document.querySelector(`.order-card-item[data-order-id="${orderId}"]`);
-                const userRoleId = orderCard ? orderCard.dataset.userRoleId : null;
-                
-                // Si el usuario es Gerente (role_id 2), no crear comprobante automático
-                if (userRoleId === '2') {
-                    payload.skip_receipt_generation = true;
+        swalPromise.then((result) => {
+            if (result.isConfirmed) {
+                // Preparar payload
+                const payload = { status };
+                if (status === 'Cancelled' && result.value) {
+                    payload.cancellation_reason = result.value.trim();
+                    
+                    // Mostrar confirmación final antes de cancelar
+                    return Swal.fire({
+                        title: '⚠️ ¿Estás seguro?',
+                        text: 'Esta acción cancelará la orden. ¿Deseas continuar?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, cancelar orden',
+                        cancelButtonText: 'No, atrás',
+                        confirmButtonColor: '#dc2626',
+                        cancelButtonColor: '#6b7280',
+                        reverseButtons: true,
+                        allowOutsideClick: false
+                    }).then((confirmResult) => {
+                        if (confirmResult.isConfirmed) {
+                            return { shouldProceed: true, payload };
+                        }
+                        return { shouldProceed: false };
+                    });
                 }
                 
-                // Agregar datos de pago para Delivered
-                payload.payment_method = result.value.paymentMethod;
-                payload.receipt_reference = result.value.receiptReference;
-                
-                // Mostrar confirmación final antes de marcar como entregado
-                const confirmResult = await swConfirm({
-                    title: '✅ ¿Confirmar entrega?',
-                    html: `
-                        <div style="text-align: left; margin: 15px 0;">
-                            <p style="margin: 10px 0; font-size: 15px;">
-                                <strong>Método de pago:</strong> ${result.value.paymentMethod}
-                            </p>
-                            <p style="margin: 10px 0; font-size: 15px;">
-                                <strong>Comprobante:</strong> ${result.value.receiptReference}
-                            </p>
-                        </div>
-                        <p style="color: #666; margin-top: 15px;">¿Deseas marcar la orden como entregada con esta información?</p>
-                    `,
-                    confirmButtonText: 'Sí, marcar como entregado',
-                    cancelButtonText: 'No, cancelar',
-                    reverseButtons: true,
-                    allowOutsideClick: false
-                });
-                
-                if (confirmResult.isConfirmed) {
-                    return { shouldProceed: true, payload };
-                }
-                return { shouldProceed: false };
+                return { shouldProceed: true, payload };
             }
-            
-            return { shouldProceed: true, payload };
+            return { shouldProceed: false };
         }).then((result) => {
             if (!result || !result.shouldProceed) return;
             
@@ -1228,7 +1091,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let total = 0;
 
         if (items.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 12px 8px; color: #999; font-size: 12px;">Sin productos seleccionados</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 12px 8px; color: #999; font-size: 12px;">Sin productos seleccionados</td></tr>';
             document.getElementById('orderTotal').textContent = '0.00';
             return;
         }
@@ -1238,92 +1101,12 @@ document.addEventListener('DOMContentLoaded', function() {
             total += subtotal;
             return `
                 <tr>
-                    <td style="padding: 8px;">${item.name}</td>
-                    <td style="text-align: center; padding: 8px;">
-                        <input type="number" class="summary-quantity-input" data-product-id="${item.product_id}" value="${item.quantity}" min="1" max="99" style="width: 50px; text-align: center; padding: 4px; border: 1px solid #e5e7eb; border-radius: 4px; font-size: 12px; font-weight: 600;">
-                    </td>
-                    <td style="text-align: right; padding: 8px; font-weight: 600;">₡${subtotal.toFixed(2)}</td>
-                    <td style="text-align: center; padding: 8px;">
-                        <button type="button" class="remove-summary-item" data-product-id="${item.product_id}" style="background: #e18018; color: white; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: all 0.2s;">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </td>
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td>₡${subtotal.toFixed(2)}</td>
                 </tr>
             `;
         }).join('');
-
-        // Event listeners para inputs de cantidad
-        tbody.querySelectorAll('.summary-quantity-input').forEach(input => {
-            input.addEventListener('change', function() {
-                const productId = this.dataset.productId;
-                const newQuantity = parseInt(this.value) || 1;
-
-                // Validar que sea al menos 1
-                if (newQuantity < 1) {
-                    this.value = 1;
-                    return;
-                }
-
-                // Actualizar el objeto
-                if (orderInProgress.items[productId]) {
-                    orderInProgress.items[productId].quantity = newQuantity;
-                }
-
-                // Actualizar el input del product card si existe
-                document.querySelectorAll('.product-quantity-input').forEach(qtyInput => {
-                    if (qtyInput.dataset.productId == productId) {
-                        qtyInput.value = newQuantity;
-                    }
-                });
-
-                // Recalcular resumen
-                updateOrderSummary();
-            });
-
-            // Agregar estilo al focus
-            input.addEventListener('focus', function() {
-                this.style.borderColor = '#e18018';
-                this.style.boxShadow = '0 0 0 3px rgba(225, 128, 24, 0.1)';
-            });
-
-            input.addEventListener('blur', function() {
-                this.style.borderColor = '#e5e7eb';
-                this.style.boxShadow = 'none';
-            });
-        });
-
-        // Agregar event listeners a los botones de eliminar
-        tbody.querySelectorAll('.remove-summary-item').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const productId = this.dataset.productId;
-                // Eliminar del objeto
-                delete orderInProgress.items[productId];
-                // Deseleccionar el card visual
-                document.querySelectorAll('.product-card').forEach(card => {
-                    if (card.classList.contains('selected')) {
-                        const inputs = card.querySelectorAll('[data-product-id]');
-                        inputs.forEach(input => {
-                            if (input.dataset.productId == productId) {
-                                card.classList.remove('selected');
-                            }
-                        });
-                    }
-                });
-                // Actualizar resumen
-                updateOrderSummary();
-            });
-
-            btn.addEventListener('mouseenter', function() {
-                this.style.background = '#d97c13';
-                this.style.transform = 'scale(1.1)';
-            });
-
-            btn.addEventListener('mouseleave', function() {
-                this.style.background = '#e18018';
-                this.style.transform = 'scale(1)';
-            });
-        });
 
         document.getElementById('orderTotal').textContent = total.toFixed(2);
     }
