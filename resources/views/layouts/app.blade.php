@@ -617,7 +617,7 @@
                             toast.addEventListener('mouseleave', Swal.resumeTimer);
                         }
                     });
-                    window.swToast = (config) => new SwToastClass(config);
+                    window.swToast = SwToastClass;
                 }
             };
 
