@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <!-- Favicon -->
+    <link rel="icon" type="image/ico" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
     <title>@yield('title', 'La Comarca - Admin')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -603,7 +606,7 @@
             // Toast para notificaciones pequeñas en la esquina superior derecha
             const initSwToast = () => {
                 if (typeof Swal !== 'undefined' && !window.swToast) {
-                    window.swToast = Swal.mixin({
+                    const SwToastClass = Swal.mixin({
                         toast: true,
                         position: 'top-end',
                         showConfirmButton: false,
@@ -614,6 +617,7 @@
                             toast.addEventListener('mouseleave', Swal.resumeTimer);
                         }
                     });
+                    window.swToast = SwToastClass;
                 }
             };
 
@@ -1095,27 +1099,61 @@
             
             const message = confirmMessages[status] || '¿Cambiar estado?';
             
-            // Mostrar confirmación
-            const result = await window.swConfirm({
-                title: 'Confirmar cambio',
-                text: message,
-                icon: status === 'Cancelled' ? 'warning' : 'info'
-            });
-            
-            // Si no confirmó, salir
-            if (!result.isConfirmed) return;
+            // Si es cancelación, pedir motivo
+            let cancellationReason = null;
+            if (status === 'Cancelled') {
+                const inputResult = await Swal.fire({
+                    title: 'Cancelar Orden',
+                    text: 'Por favor, indique el motivo de la cancelación:',
+                    input: 'textarea',
+                    inputPlaceholder: 'Ej: Cliente lo solicita, error en pedido, etc...',
+                    inputAttributes: {
+                        maxlength: 500
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Cancelar orden',
+                    cancelButtonText: 'Atrás',
+                    confirmButtonColor: '#e18018',
+                    cancelButtonColor: '#6b7280',
+                    icon: 'warning',
+                    inputValidator: (value) => {
+                        if (!value || !value.trim()) {
+                            return 'Debe ingresar un motivo para cancelar'
+                        }
+                    }
+                });
+                
+                if (!inputResult.isConfirmed) return;
+                cancellationReason = inputResult.value.trim();
+            } else {
+                // Para otros estados, confirmación simple
+                const result = await window.swConfirm({
+                    title: 'Confirmar cambio',
+                    text: message,
+                    icon: 'info'
+                });
+                
+                if (!result.isConfirmed) return;
+            }
             
             try {
+                const payload = { status };
+                if (cancellationReason) {
+                    payload.cancellation_reason = cancellationReason;
+                }
+
                 const response = await fetch(`{{ url('ordenes') }}/${orderId}/cambiar-estado`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
-                    body: JSON.stringify({ status })
+                    body: JSON.stringify(payload)
                 });
                 
-                if (response.ok) {
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
                     // Recargar órdenes después de cambiar el estado
                     if (window.loadPendingOrdersNotif) {
                         window.loadPendingOrdersNotif();
@@ -1130,9 +1168,25 @@
                             title: `Estado cambiado a ${statusNames[status]}`
                         });
                     }
+                } else {
+                    // Error del servidor
+                    if (window.swAlert) {
+                        window.swAlert({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.error || 'No se pudo cambiar el estado'
+                        });
+                    }
                 }
             } catch (error) {
                 console.error('Error al cambiar estado:', error);
+                if (window.swAlert) {
+                    window.swAlert({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Hubo un error al procesar la solicitud'
+                    });
+                }
             }
         }
 
