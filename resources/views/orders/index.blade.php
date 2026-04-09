@@ -601,7 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Mostrar confirmación final antes de marcar como entregado
                 const confirmResult = await swConfirm({
-                    title: '✅ ¿Confirmar entrega?',
+                    title: '¿Confirmar entrega?',
                     html: `
                         <div style="text-align: left; margin: 15px 0;">
                             <p style="margin: 10px 0; font-size: 15px;">
