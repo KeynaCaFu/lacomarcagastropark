@@ -603,7 +603,7 @@
             // Toast para notificaciones pequeñas en la esquina superior derecha
             const initSwToast = () => {
                 if (typeof Swal !== 'undefined' && !window.swToast) {
-                    window.swToast = Swal.mixin({
+                    const SwToastClass = Swal.mixin({
                         toast: true,
                         position: 'top-end',
                         showConfirmButton: false,
@@ -614,6 +614,7 @@
                             toast.addEventListener('mouseleave', Swal.resumeTimer);
                         }
                     });
+                    window.swToast = SwToastClass;
                 }
             };
 
