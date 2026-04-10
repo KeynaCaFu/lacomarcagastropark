@@ -65,5 +65,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'admin.global' => \App\Http\Middleware\IsAdminGlobal::class,
         'admin.local' => \App\Http\Middleware\IsAdminLocal::class,
+        'preserve.admin.session' => \App\Http\Middleware\PreserveAdminSessionForPlaza::class,
     ];
 }

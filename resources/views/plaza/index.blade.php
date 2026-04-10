@@ -6,6 +6,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Plaza Gastronómica - La Comarca</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/ico" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1247,6 +1252,26 @@
             </div>
         </div>
     </header>
+
+    <!-- ══ ADMIN PREVIEW BANNER ══ -->
+    @if(session('plaza_admin_preview'))
+    <div style="background: linear-gradient(135deg, #c9690f 0%, #a85010 100%); color: white; padding: 13px 20px; border-bottom: 2px solid #f59e0b; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+        <div class="container">
+            <div style="display: flex; align-items: center; gap: 12px; justify-content: space-between; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <i class="fas fa-eye" style="font-size: 18px;"></i>
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;">Vista Previa - Administrador</div>
+                        <div style="font-size: 12px; opacity: 0.9;">Estás viendo la plaza en modo preview. Tu sesión administrativa se mantiene activa en otro tab.</div>
+                    </div>
+                </div>
+                <button onclick="window.history.back()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s; white-space: nowrap;">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- ══ HERO ══ -->
     <section class="hero" id="hero-section">
