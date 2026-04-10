@@ -210,6 +210,15 @@ Route::prefix('resenas')->name('reviews.')->group(function () {
         Route::get('/comprobante/historial', [ReceiptController::class, 'viewOrderHistory'])->name('receipt.history');
         Route::get('/comprobante/buscar', [ReceiptController::class, 'searchOrderHistory'])->name('receipt.search');
     });
+
+    // REPORTES (GERENTE) - Análisis de pedidos online vs presenciales
+    Route::prefix('reportes')->name('reports.')->group(function () {
+        Route::get('/pedidos', [\App\Http\Controllers\ReportController::class, 'index'])->name('orders');
+        Route::get('/api/pedidos', [\App\Http\Controllers\ReportController::class, 'getData'])->name('orders.data');
+        Route::get('/descargar/html', [\App\Http\Controllers\ReportController::class, 'downloadHTML'])->name('download-html');
+        Route::get('/exportar/pdf', [\App\Http\Controllers\ReportController::class, 'exportPDF'])->name('export-pdf');
+        Route::get('/exportar/excel', [\App\Http\Controllers\ReportController::class, 'exportExcel'])->name('export-excel');
+    });
 });
 
 // ============================================================================
