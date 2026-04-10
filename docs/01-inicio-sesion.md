@@ -11,7 +11,7 @@ La Comarca GastroPark cuenta con un sistema de autenticación robusto que permit
 ###  Administrador
 
 **Email:** `admin@gmail.com`  
-**Contraseña:** `admin`
+**Contraseña:** `****`
 
 **Permisos:**
 - Acceso completo al dashboard
@@ -23,16 +23,16 @@ La Comarca GastroPark cuenta con un sistema de autenticación robusto que permit
 ### Gerente de Local
 
 **Email:** `gerente.leskas@gmail.com`  
-**Contraseña:** `local`
+**Contraseña:** `****`
 
 **Email:** `gerente.cevichito@gmail.com`  
-**Contraseña:** `local`
+**Contraseña:** `****`
 
 **Email:** `gerente.donchente@gmail.com`  
-**Contraseña:** `local`
+**Contraseña:** `****`
 
 **Email:** `gerente.muu@gmail.com`  
-**Contraseña:** `local`
+**Contraseña:** `****`
 
 **Permisos:**
 - Ver dashboard del local (estadísticas específicas)

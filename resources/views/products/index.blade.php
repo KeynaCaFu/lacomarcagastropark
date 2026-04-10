@@ -83,13 +83,13 @@
     </div>
 
     <!-- Paginación -->
-    @if(method_exists($products, 'links'))
+    {{-- @if(method_exists($products, 'links'))
     <div style="margin-top: 20px; display: flex; justify-content: center;">
         <div id="productsPagination">
             {{ $products->onEachSide(1)->links() }}
         </div>
     </div>
-    @endif
+    @endif --}}
 </div>
 
 @push('scripts')
