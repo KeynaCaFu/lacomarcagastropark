@@ -63,17 +63,19 @@
 
             <!-- Resumen de Orden -->
             <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 12px 0; color: #111; font-size: 14px; font-weight: 600;">Resumen de Orden</h4>
                 <table style="width: 100%; font-size: 12px;">
                     <thead>
                         <tr style="border-bottom: 2px solid #e5e7eb;">
                             <th style="text-align: left; padding: 6px 8px; font-weight: 700; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Producto</th>
                             <th style="text-align: center; padding: 6px 8px; font-weight: 700; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 45px;">Cant.</th>
                             <th style="text-align: right; padding: 6px 8px; font-weight: 700; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 70px;">Subtotal</th>
+                            <th style="text-align: center; padding: 6px 8px; font-weight: 700; color: #666; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 35px;"></th>
                         </tr>
                     </thead>
                     <tbody id="orderItemsSummary">
                         <tr>
-                            <td colspan="3" style="text-align: center; padding: 12px 8px; color: #999; font-size: 12px;">Sin productos seleccionados</td>
+                            <td colspan="4" style="text-align: center; padding: 12px 8px; color: #999; font-size: 12px;">Sin productos seleccionados</td>
                         </tr>
                     </tbody>
                 </table>

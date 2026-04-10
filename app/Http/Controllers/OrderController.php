@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Data\OrderData;
 use App\Models\Order;
+use App\Models\Receipt;
+use App\Http\Controllers\ReceiptController;
 
 class OrderController extends Controller
 {
@@ -137,6 +139,78 @@ class OrderController extends Controller
 
                 // Guardar el motivo de cancelación
                 $order->update(['cancellation_reason' => $cancellationReason]);
+            }
+
+            // Validaciones para cambio a DELIVERED - requiere datos de pago
+            if ($newStatus === Order::STATUS_DELIVERED && $order->status === Order::STATUS_READY) {
+                $paymentMethod = $request->input('payment_method', '');
+                $receiptReference = $request->input('receipt_reference', '');
+
+                if (empty(trim($paymentMethod))) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Debe seleccionar un método de pago.'
+                    ], 422);
+                }
+
+                if (empty(trim($receiptReference))) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Debe proporcionar un número de comprobante/factura.'
+                    ], 422);
+                }
+
+                // Cambiar estado primero
+                $this->orderData->changeStatus($orderId, $newStatus);
+
+                // Verificar si debe saltar la generación de comprobante (para Gerentes)
+                $skipReceiptGeneration = $request->input('skip_receipt_generation', false);
+                
+                // Generar comprobante
+                if ($skipReceiptGeneration) {
+                    // Para Gerentes: guardar los datos en tbreceipt pero sin PDF
+                    
+                    // Generar número de comprobante
+                    $receiptNumber = \Carbon\Carbon::now()->format('Ymd') . '-' . str_pad(
+                        Receipt::count() + 1,
+                        6,
+                        '0',
+                        STR_PAD_LEFT
+                    );
+                    
+                    // Crear registro sin PDF
+                    Receipt::create([
+                        'order_id' => $orderId,
+                        'receipt_number' => $receiptNumber,
+                        'payment_method' => $paymentMethod,
+                        'receipt_reference' => $receiptReference,
+                        'pdf_path' => null,
+                        'sent_to_email' => false,
+                    ]);
+                } else {
+                    // Para Clientes: generar comprobante completo con PDF
+                    $receiptController = app(ReceiptController::class);
+                    $receiptResult = $receiptController->generateReceipt(
+                        $order,
+                        $paymentMethod,
+                        $receiptReference
+                    );
+
+                    if (!$receiptResult['success']) {
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'Estado actualizado pero error al generar comprobante: ' . $receiptResult['message']
+                        ], 500);
+                    }
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => $skipReceiptGeneration 
+                        ? 'Estado actualizado. Para generar el comprobante, dirígete al Historial de Órdenes.'
+                        : 'Estado actualizado y comprobante generado',
+                    'status' => $newStatus
+                ]);
             }
 
             $this->orderData->changeStatus($orderId, $newStatus);

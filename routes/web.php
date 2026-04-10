@@ -13,6 +13,7 @@ use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\PlazaController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ReceiptController;
 use Illuminate\Http\Request;
 
 /*
@@ -199,6 +200,33 @@ Route::prefix('resenas')->name('reviews.')->group(function () {
         Route::post('/{order}/actualizar', [OrderController::class, 'update'])->name('update');
         Route::get('/{order}/edit', [OrderController::class, 'edit'])->name('edit');   
         Route::delete('/{order}', [OrderController::class, 'destroy'])->name('destroy');
+        
+        // Rutas para comprobantes
+        Route::get('/{order}/comprobante/descargar', [ReceiptController::class, 'downloadReceipt'])->name('receipt.download');
+        Route::post('/{order}/comprobante/regenerar', [ReceiptController::class, 'regenerateReceiptAction'])->name('receipt.regenerate');
+        Route::get('/{order}/comprobante/ver', [ReceiptController::class, 'viewReceipt'])->name('receipt.view');
+        Route::post('/{order}/comprobante/reenviar', [ReceiptController::class, 'resendReceipt'])->name('receipt.resend');
+        Route::post('/{order}/comprobante/validar-cliente', [ReceiptController::class, 'checkValidClient'])->name('receipt.check-client');
+        Route::get('/comprobante/historial', [ReceiptController::class, 'viewOrderHistory'])->name('receipt.history');
+        Route::get('/comprobante/buscar', [ReceiptController::class, 'searchOrderHistory'])->name('receipt.search');
+    });
+
+    // REPORTES (GERENTE) - Análisis de pedidos online vs presenciales
+    Route::prefix('reportes')->name('reports.')->group(function () {
+        Route::get('/pedidos', [\App\Http\Controllers\ReportController::class, 'index'])->name('orders');
+        Route::get('/api/pedidos', [\App\Http\Controllers\ReportController::class, 'getData'])->name('orders.data');
+        Route::get('/descargar/html', [\App\Http\Controllers\ReportController::class, 'downloadHTML'])->name('download-html');
+        Route::get('/exportar/pdf', [\App\Http\Controllers\ReportController::class, 'exportPDF'])->name('export-pdf');
+        Route::get('/exportar/excel', [\App\Http\Controllers\ReportController::class, 'exportExcel'])->name('export-excel');
+    });
+
+    // REPORTES (GERENTE) - Análisis de pedidos online vs presenciales
+    Route::prefix('reportes')->name('reports.')->group(function () {
+        Route::get('/pedidos', [\App\Http\Controllers\ReportController::class, 'index'])->name('orders');
+        Route::get('/api/pedidos', [\App\Http\Controllers\ReportController::class, 'getData'])->name('orders.data');
+        Route::get('/descargar/html', [\App\Http\Controllers\ReportController::class, 'downloadHTML'])->name('download-html');
+        Route::get('/exportar/pdf', [\App\Http\Controllers\ReportController::class, 'exportPDF'])->name('export-pdf');
+        Route::get('/exportar/excel', [\App\Http\Controllers\ReportController::class, 'exportExcel'])->name('export-excel');
     });
 });
 
