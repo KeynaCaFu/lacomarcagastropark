@@ -17,7 +17,7 @@
 
             <!-- CANTIDAD -->
             <div class="form-group">
-                <label>Cantidad</label>
+                <label>Cantidad *</label>
                 <div class="quantity-control">
                     <button @click="decreaseQuantity" :disabled="quantity <= 1">
                         <i class="fas fa-minus"></i>
@@ -27,17 +27,24 @@
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
+                <small v-if="quantity < 1" style="color: #e0ab5c;">Cantidad debe ser mayor a 0</small>
             </div>
 
             <!-- ESPECIFICACIONES DEL PRODUCTO -->
             <div class="form-group">
-                <label>Notas o Especificaciones (Opcional)</label>
+                <label>Notas o Especificaciones 
+                    <span style="font-size: 0.65rem; color: var(--muted); font-weight: 400;">(Opcional)</span>
+                </label>
                 <textarea 
                     v-model="customization"
                     placeholder="Ej: Sin cebolla, extra queso, alergias, etc."
                     maxlength="500"
-                    rows="3"></textarea>
-                <small>@{{ customization.length }}/500</small>
+                    rows="3"
+                    @input="validateCustomization"></textarea>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 3px;">
+                    <small v-if="customization.length > 0" style="color: var(--primary);">✓ Notas agregadas</small>
+                    <small style="color: var(--muted);">@{{ customization.length }}/500</small>
+                </div>
             </div>
 
             <!-- SUBTOTAL -->
@@ -49,7 +56,7 @@
 
         <div class="modal-footer">
             <button class="btn-cancel" @click="closeAddToCartModal">Cancelar</button>
-            <button class="btn-confirm" @click="proceedAddToCart" :disabled="isAddingToCart">
+            <button class="btn-confirm" @click="proceedAddToCart" :disabled="isAddingToCart || quantity < 1">
                 <span v-if="!isAddingToCart"><i class="fas fa-shopping-cart"></i> Agregar al Carrito</span>
                 <span v-else><i class="fas fa-spinner fa-spin"></i> Agregando...</span>
             </button>

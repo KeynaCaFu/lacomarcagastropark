@@ -1516,6 +1516,14 @@
                     this.quantity = Math.floor(this.quantity);
                 }
             },
+            validateCustomization() {
+                // Trim espacios al final
+                this.customization = this.customization.trimEnd();
+                // Limitar a 500 caracteres (aunque el textarea ya lo hace)
+                if (this.customization.length > 500) {
+                    this.customization = this.customization.substring(0, 500);
+                }
+            },
             async proceedAddToCart() {
                 if (this.isAddingToCart) return;
 
