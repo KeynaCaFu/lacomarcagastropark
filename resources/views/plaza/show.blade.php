@@ -1517,12 +1517,11 @@
                 }
             },
             validateCustomization() {
-                // Trim espacios al final
-                this.customization = this.customization.trimEnd();
-                // Limitar a 500 caracteres (aunque el textarea ya lo hace)
+                // Solo limitar a 500 caracteres (el textarea ya lo hace)
                 if (this.customization.length > 500) {
                     this.customization = this.customization.substring(0, 500);
                 }
+                // Los espacios se limpiarán al enviar (en proceedAddToCart)
             },
             async proceedAddToCart() {
                 if (this.isAddingToCart) return;
@@ -1559,12 +1558,12 @@
                             product_id: this.currentProduct.product_id,
                             local_id: this.currentProduct.local_id,
                             quantity: this.quantity,
-                            customization: this.customization,
+                            customization: this.customization.trim(), // Limpiar espacios al inicio y final
                             // Datos del cliente
                             customer_name: this.customerName,
                             customer_email: this.customerEmail,
                             customer_phone: this.customerPhone,
-                            additional_notes: this.additionalNotes
+                            additional_notes: this.additionalNotes.trim() // Limpiar espacios también aquí
                         })
                     });
 
