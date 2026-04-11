@@ -8,7 +8,8 @@ use App\Data\ReportData;
 use App\Models\Order;
 use Carbon\Carbon;
 use PDF;
-use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ReportController extends Controller
 {
@@ -615,12 +616,91 @@ class ReportController extends Controller
 
         $topItems = $this->reportData->getTopSellingItems($local->local_id, $start, $end);
 
-        // Construir datos para Excel
+        // Crear spreadsheet con PhpSpreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        // Encabezados
+        $sheet->setCellValue('A1', 'REPORTE DE PEDIDOS');
+        $sheet->setCellValue('A2', $local->name);
+        $sheet->setCellValue('A3', 'Período: ' . $start->format('d/m/Y') . ' - ' . $end->format('d/m/Y'));
+        
+        // Hacer encabezados negrita
+        $sheet->getStyle('A1:A3')->getFont()->setBold(true);
+        
+        // Resumen
+        $sheet->setCellValue('A5', 'RESUMEN POR TIPO DE PEDIDO');
+        $sheet->getStyle('A5')->getFont()->setBold(true);
+        
+        $sheet->setCellValue('A6', 'Tipo');
+        $sheet->setCellValue('B6', 'Cantidad');
+        $sheet->setCellValue('C6', 'Porcentaje');
+        $sheet->setCellValue('D6', 'Ingresos (₡)');
+        $sheet->setCellValue('E6', 'Promedio (₡)');
+        $sheet->getStyle('A6:E6')->getFont()->setBold(true);
+        
+        // Datos de resumen
+        $webAvg = $orderStats['web']['count'] > 0 
+            ? $revenueStats['web']['revenue'] / $orderStats['web']['count'] 
+            : 0;
+        $presentialAvg = $orderStats['presential']['count'] > 0 
+            ? $revenueStats['presential']['revenue'] / $orderStats['presential']['count'] 
+            : 0;
+        $totalAvg = $orderStats['total'] > 0 
+            ? $revenueStats['total'] / $orderStats['total'] 
+            : 0;
+        
+        $sheet->setCellValue('A7', 'En Línea');
+        $sheet->setCellValue('B7', $orderStats['web']['count']);
+        $sheet->setCellValue('C7', $orderStats['web']['percentage'] . '%');
+        $sheet->setCellValue('D7', $revenueStats['web']['revenue']);
+        $sheet->setCellValue('E7', round($webAvg, 2));
+        
+        $sheet->setCellValue('A8', 'Presencial');
+        $sheet->setCellValue('B8', $orderStats['presential']['count']);
+        $sheet->setCellValue('C8', $orderStats['presential']['percentage'] . '%');
+        $sheet->setCellValue('D8', $revenueStats['presential']['revenue']);
+        $sheet->setCellValue('E8', round($presentialAvg, 2));
+        
+        $sheet->setCellValue('A9', 'TOTAL');
+        $sheet->setCellValue('B9', $orderStats['total']);
+        $sheet->setCellValue('C9', '100%');
+        $sheet->setCellValue('D9', $revenueStats['total']);
+        $sheet->setCellValue('E9', round($totalAvg, 2));
+        $sheet->getStyle('A9:E9')->getFont()->setBold(true);
+        
+        // Productos más vendidos
+        $sheet->setCellValue('A11', 'PRODUCTOS MÁS VENDIDOS');
+        $sheet->getStyle('A11')->getFont()->setBold(true);
+        
+        $sheet->setCellValue('A12', 'Producto');
+        $sheet->setCellValue('B12', 'Cantidad Vendida');
+        $sheet->setCellValue('C12', 'Transacciones');
+        $sheet->getStyle('A12:C12')->getFont()->setBold(true);
+        
+        $row = 13;
+        foreach ($topItems as $item) {
+            $sheet->setCellValue('A' . $row, $item->name);
+            $sheet->setCellValue('B' . $row, $item->total_quantity);
+            $sheet->setCellValue('C' . $row, $item->order_count);
+            $row++;
+        }
+        
+        // Autoajustar columnas
+        $sheet->getColumnDimension('A')->setAutoSize(true);
+        $sheet->getColumnDimension('B')->setAutoSize(true);
+        $sheet->getColumnDimension('C')->setAutoSize(true);
+        $sheet->getColumnDimension('D')->setAutoSize(true);
+        $sheet->getColumnDimension('E')->setAutoSize(true);
+        
+        // Descargar archivo
         $filename = 'reporte_pedidos_' . Str::slug($local->name) . '_' . now()->format('Y-m-d_His') . '.xlsx';
-
-        return Excel::download(
-            new \App\Exports\OrdersReportExport($local, $orderStats, $revenueStats, $topItems, $start, $end),
-            $filename
-        );
+        $writer = new Xlsx($spreadsheet);
+        
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        
+        $writer->save('php://output');
+        exit;
     }
 }

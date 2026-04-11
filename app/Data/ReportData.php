@@ -20,12 +20,14 @@ class ReportData
         // Contar pedidos por origen
         $webOrders = Order::where('local_id', $localId)
             ->where('origin', Order::ORIGIN_WEB)
+            ->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
             ->whereDate('date', '>=', $startDate->toDateString())
             ->whereDate('date', '<=', $endDate->toDateString())
             ->count();
 
         $presentialOrders = Order::where('local_id', $localId)
             ->where('origin', Order::ORIGIN_PRESENCIAL)
+            ->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
             ->whereDate('date', '>=', $startDate->toDateString())
             ->whereDate('date', '<=', $endDate->toDateString())
             ->count();
@@ -77,12 +79,14 @@ class ReportData
     {
         $webRevenue = Order::where('local_id', $localId)
             ->where('origin', Order::ORIGIN_WEB)
+            ->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
             ->whereDate('date', '>=', $startDate->toDateString())
             ->whereDate('date', '<=', $endDate->toDateString())
             ->sum('total_amount');
 
         $presentialRevenue = Order::where('local_id', $localId)
             ->where('origin', Order::ORIGIN_PRESENCIAL)
+            ->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
             ->whereDate('date', '>=', $startDate->toDateString())
             ->whereDate('date', '<=', $endDate->toDateString())
             ->sum('total_amount');
@@ -113,6 +117,7 @@ class ReportData
     public function getDailyTrend($localId, $startDate, $endDate)
     {
         $orders = Order::where('local_id', $localId)
+            ->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
             ->whereDate('date', '>=', $startDate->toDateString())
             ->whereDate('date', '<=', $endDate->toDateString())
             ->selectRaw('date, origin, COUNT(*) as count')
@@ -226,6 +231,7 @@ class ReportData
     public function getOrdersByLocal($localId, $startDate, $endDate)
     {
         return Order::where('local_id', $localId)
+            ->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
             ->whereDate('date', '>=', $startDate->toDateString())
             ->whereDate('date', '<=', $endDate->toDateString())
             ->with(['items', 'local'])
@@ -248,6 +254,7 @@ class ReportData
             ->join('tborder', 'tborder_item.order_id', '=', 'tborder.order_id')
             ->join('tbproduct', 'tborder_item.product_id', '=', 'tbproduct.product_id')
             ->where('tborder.local_id', $localId)
+            ->whereIn('tborder.status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
             ->whereDate('tborder.date', '>=', $startDate->toDateString())
             ->whereDate('tborder.date', '<=', $endDate->toDateString())
             ->selectRaw('tbproduct.name, tbproduct.price, SUM(tborder_item.quantity) as total_quantity, COUNT(DISTINCT tborder.order_id) as order_count, SUM(tborder_item.quantity * tbproduct.price) as total_revenue')
@@ -269,9 +276,10 @@ class ReportData
      */
     public function getOrdersByOriginByProduct($localId, $productId, $startDate, $endDate)
     {
-        // Contar pedidos por origen que contengan el producto
+        // Contar pedidos por origen que contengan el producto - Solo Entregados y Cancelados
         $webOrders = Order::where('local_id', $localId)
             ->where('origin', Order::ORIGIN_WEB)
+            ->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
             ->whereDate('date', '>=', $startDate->toDateString())
             ->whereDate('date', '<=', $endDate->toDateString())
             ->whereHas('items', function ($query) use ($productId) {
@@ -281,6 +289,7 @@ class ReportData
 
         $presentialOrders = Order::where('local_id', $localId)
             ->where('origin', Order::ORIGIN_PRESENCIAL)
+            ->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
             ->whereDate('date', '>=', $startDate->toDateString())
             ->whereDate('date', '<=', $endDate->toDateString())
             ->whereHas('items', function ($query) use ($productId) {
@@ -337,6 +346,7 @@ class ReportData
     {
         $webRevenue = Order::where('local_id', $localId)
             ->where('origin', Order::ORIGIN_WEB)
+            ->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
             ->whereDate('date', '>=', $startDate->toDateString())
             ->whereDate('date', '<=', $endDate->toDateString())
             ->whereHas('items', function ($query) use ($productId) {
@@ -346,6 +356,7 @@ class ReportData
 
         $presentialRevenue = Order::where('local_id', $localId)
             ->where('origin', Order::ORIGIN_PRESENCIAL)
+            ->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
             ->whereDate('date', '>=', $startDate->toDateString())
             ->whereDate('date', '<=', $endDate->toDateString())
             ->whereHas('items', function ($query) use ($productId) {
@@ -384,6 +395,7 @@ class ReportData
             ->join('tborder', 'tborder_item.order_id', '=', 'tborder.order_id')
             ->where('tborder.local_id', $localId)
             ->where('tborder_item.product_id', $productId)
+            ->whereIn('tborder.status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
             ->whereDate('tborder.date', '>=', $startDate->toDateString())
             ->whereDate('tborder.date', '<=', $endDate->toDateString())
             ->selectRaw('tborder.date, tborder.origin, COUNT(*) as count')
