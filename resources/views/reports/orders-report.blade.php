@@ -24,6 +24,8 @@
         padding: 2rem 1.5rem;
         font-family: system-ui, sans-serif;
         color: var(--dark);
+        box-sizing: border-box;
+        overflow-x: hidden;
     }
 
     /* ── Header ── */
@@ -46,6 +48,9 @@
         border-radius: 10px;
         padding: 1.75rem;
         margin-bottom: 2rem;
+        box-sizing: border-box;
+        width: 100%;
+        overflow: hidden;
     }
     .rp-card h2 {
         font-size: 1.1rem;
@@ -187,6 +192,8 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 1.5rem;
         margin-bottom: 2rem;
+        width: 100%;
+        box-sizing: border-box;
     }
     @media (max-width: 1024px) {
         .rp-charts { grid-template-columns: 1fr; }
@@ -195,6 +202,9 @@
         position: relative;
         height: 340px;
         margin-bottom: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     /* ── Chart legend pills ── */
@@ -507,8 +517,8 @@
                 <div class="rp-stat__label">Ingresos Totales</div>
                 <div class="rp-stat__value rp-color--gold" style="font-size:1.4rem;">₡{{ number_format($revenueStats['total'], 2) }}</div>
             </div>
-            <div class="rp-stat__icon rp-stat__icon--gold">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="rp-stat__icon rp-stat__icon--gold" style="font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center;">
+                ₡
             </div>
         </div>
     </div>

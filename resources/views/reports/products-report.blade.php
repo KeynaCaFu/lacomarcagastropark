@@ -24,6 +24,8 @@
         padding: 2rem 1.5rem;
         font-family: system-ui, sans-serif;
         color: var(--dark);
+        box-sizing: border-box;
+        overflow-x: hidden;
     }
 
     /* ── Header ── */
@@ -46,6 +48,9 @@
         border-radius: 10px;
         padding: 1.75rem;
         margin-bottom: 2rem;
+        box-sizing: border-box;
+        width: 100%;
+        overflow: hidden;
     }
     .rp-card h2 {
         font-size: 1.1rem;
@@ -119,6 +124,13 @@
     .rp-btn--green:hover {
         background: var(--green-2);
     }
+    .rp-btn--orange {
+        background: var(--orange);
+        color: #fff;
+    }
+    .rp-btn--orange:hover {
+        background: var(--orange-2);
+    }
     .rp-btn--full {
         width: 100%;
     }
@@ -126,18 +138,24 @@
     /* ── Stats grid ── */
     .rp-stats {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.2rem;
         margin-bottom: 2rem;
+    }
+    @media (max-width: 1200px) {
+        .rp-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+        .rp-stats { grid-template-columns: 1fr; }
     }
     .rp-stat {
         background: #fff;
         border: 1px solid #e0ddd6;
         border-radius: 10px;
-        padding: 1.5rem;
+        padding: 1.25rem 1.5rem;
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
         gap: 1rem;
     }
     .rp-stat__label {
@@ -157,6 +175,7 @@
     .rp-color--dark   { color: var(--dark); }
     .rp-color--green  { color: var(--green); }
     .rp-color--orange { color: var(--orange); }
+    .rp-color--gold   { color: #8a6200; }
     .rp-stat__sub {
         font-size: .8rem;
         color: #888;
@@ -172,9 +191,10 @@
         color: #fff;
         flex-shrink: 0;
     }
-    .rp-stat__icon--dark   { background: var(--dark); }
-    .rp-stat__icon--green  { background: var(--green); }
-    .rp-stat__icon--orange { background: var(--orange); }
+    .rp-stat__icon--dark   { background: #e8e8e8; color: var(--dark); }
+    .rp-stat__icon--green  { background: #e8edda; color: var(--green); }
+    .rp-stat__icon--orange { background: #f5e8db; color: var(--orange); }
+    .rp-stat__icon--gold   { background: #fef3cd; color: #8a6200; }
     .rp-stat__icon svg {
         width: 32px;
         height: 32px;
@@ -186,10 +206,15 @@
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         gap: 1.5rem;
         margin-bottom: 2rem;
+        width: 100%;
+        box-sizing: border-box;
     }
     .rp-chart-canvas-wrap {
         position: relative;
         height: 350px;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
     .rp-chart-canvas-wrap canvas {
         position: absolute;
@@ -491,10 +516,10 @@
         <div class="rp-stat">
             <div>
                 <div class="rp-stat__label">Ingreso Total</div>
-                <div class="rp-stat__value rp-color--green" id="stat-revenue">₡{{ number_format($revenueStats['total'], 2) }}</div>
+                <div class="rp-stat__value rp-color--gold" id="stat-revenue">₡{{ number_format($revenueStats['total'], 2) }}</div>
             </div>
-            <div class="rp-stat__icon rp-stat__icon--green">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="rp-stat__icon rp-stat__icon--gold" style="font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center;">
+                ₡
             </div>
         </div>
     </div>
