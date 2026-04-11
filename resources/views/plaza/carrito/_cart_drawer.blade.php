@@ -12,8 +12,65 @@
 
     <!-- Body -->
     <div class="drawer-body">
+        <!-- Confirmación de Vaciar Carrito -->
+        <div v-if="showConfirmClear" class="drawer-confirm-order">
+            <div class="confirm-header">
+                <i class="fas fa-exclamation-circle"></i>
+                <h4>¿Vaciar carrito?</h4>
+            </div>
+            <div class="confirm-body">
+                <p class="confirm-text">Se eliminarán todos los items del carrito. Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="confirm-actions">
+                <button class="btn-confirm-no" @click="cancelClearCart">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button class="btn-confirm-yes btn-confirm-danger" @click="confirmClearCart">
+                    <i class="fas fa-trash"></i> Vaciar
+                </button>
+            </div>
+        </div>
+
+        <!-- Confirmación de Orden (Reemplaza el contenido del carrito) -->
+        <div v-else-if="showConfirmOrder" class="drawer-confirm-order">
+            <div class="confirm-header">
+                <i class="fas fa-check-circle"></i>
+                <h4>¿Confirmar orden?</h4>
+            </div>
+            <div class="confirm-body">
+                <!-- Resumen de Items -->
+                <div class="confirm-items-summary">
+                    <div v-for="(item, index) in drawerCart" :key="index" class="confirm-item">
+                        <div class="confirm-item-left">
+                            <div class="confirm-item-name">@{{ item.name }}</div>
+                            <div class="confirm-item-qty">x@{{ item.quantity }}</div>
+                        </div>
+                        <div class="confirm-item-price">
+                            ₡@{{ (parseFloat(item.price) * item.quantity).toFixed(2) }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total -->
+                <div class="confirm-total">
+                    <span>Total:</span>
+                    <strong>₡@{{ totalDrawerPrice.toFixed(2) }}</strong>
+                </div>
+                <p class="confirm-text">¿Deseas proceder con esta orden?</p>
+            </div>
+            <div class="confirm-actions">
+                <button class="btn-confirm-no" @click="cancelConfirmOrder">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button class="btn-confirm-yes" @click="processCheckout" :disabled="isCheckingOut">
+                    <span v-if="!isCheckingOut"><i class="fas fa-check"></i> Confirmar</span>
+                    <span v-else><i class="fas fa-spinner fa-spin"></i> Procesando...</span>
+                </button>
+            </div>
+        </div>
+
         <!-- Empty State -->
-        <div v-if="drawerCart.length === 0" class="drawer-empty">
+        <div v-else-if="drawerCart.length === 0" class="drawer-empty">
             <i class="fas fa-shopping-cart"></i>
             <p>Tu carrito está vacío</p>
             <p class="empty-hint">Agrega productos para comenzar</p>
@@ -74,7 +131,7 @@
     </div>
 
     <!-- Footer -->
-    <div class="drawer-footer" v-if="drawerCart.length > 0">
+    <div class="drawer-footer" v-if="!showConfirmOrder && !showConfirmClear && drawerCart.length > 0">
         <!-- Summary -->
         <div class="drawer-summary">
             <div class="summary-line">
@@ -93,7 +150,7 @@
 
         <!-- Buttons -->
         <div class="drawer-actions">
-            <button class="btn-drawer-clear" @click="clearDrawerCart">
+            <button class="btn-drawer-clear" @click="goToClearCart">
                 <i class="fas fa-trash"></i> Vaciar Carrito
             </button>
             <button class="btn-drawer-checkout" @click="goToCheckout" :disabled="isCheckingOut">
@@ -102,4 +159,5 @@
             </button>
         </div>
     </div>
+
 </div>
