@@ -1217,6 +1217,10 @@
                 </div>
                 <div class="header-auth">
                     @auth
+                        <a href="{{ route('plaza.view.cart') }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--primary); position: relative; text-decoration: none; transition: all 0.2s;">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span id="cart-count">{{ count(session('cart', [])) }}</span>
+                        </a>
                         <div class="user-menu-top">
                             <button class="user-menu-btn" id="userMenuBtn">
                                 @if(auth()->user()->avatar)

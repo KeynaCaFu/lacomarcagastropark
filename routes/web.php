@@ -256,6 +256,12 @@ Route::prefix('plaza')->name('plaza.')->middleware('preserve.admin.session')->gr
     Route::get('/', [\App\Http\Controllers\PlazaController::class, 'index'])->name('index');
     Route::get('api/productos', [\App\Http\Controllers\PlazaController::class, 'getProductosByCategory'])->name('get.productos');
     Route::get('{id}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show')->where('id', '[0-9]+');
+    
+    // Carrito (requiere autenticación)
+    Route::middleware('auth')->group(function () {
+        Route::get('carrito', [\App\Http\Controllers\PlazaController::class, 'viewCart'])->name('view.cart');
+        Route::post('carrito/agregar', [\App\Http\Controllers\PlazaController::class, 'addToCart'])->name('add.cart');
+    });
 });
 
 // ==========================================

@@ -9,9 +9,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="{{ asset('css/carrito.css') }}">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
     <style>
+        /* V-CLOAK - Hide Vue elements during compilation */
+        [v-cloak] { display: none; }
+
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
@@ -800,10 +806,234 @@
             .footer-col p { justify-content: center; }
             .social-row { justify-content: center; }
         }
+
+        /* ── MODAL OVERLAY FIXES ──────────────────── */
+        /* Asegurar que el modal no sea cortado por elementos padre */
+        #plaza-app { position: static; }
+        
+        /* Forzar que el modal overlay siempre sea fixed cuando existe */
+        .modal-overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            z-index: 9999 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-end !important;
+            align-items: center !important;
+            overflow-y: auto !important;
+            padding: 20px !important;
+        }
+
+        /* ── CUSTOM TOAST STYLES ──────────────────── */
+        .custom-toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000 !important;
+            pointer-events: none;
+        }
+
+        .custom-toast-popup {
+            background: linear-gradient(135deg, #161310 0%, #1D1914 100%);
+            border: 1px solid #252018;
+            border-radius: 10px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(212, 119, 58, 0.15);
+            padding: 14px 20px !important;
+            animation: slideInRight 0.4s cubic-bezier(0.22, 0.68, 0, 1.2);
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .custom-toast-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #F5F0E8;
+            margin: 0;
+        }
+
+        .custom-toast-icon {
+            width: 24px !important;
+            height: 24px !important;
+            margin-right: 10px !important;
+        }
+
+        /* ── CUSTOM AUTH NOTIFICATION ────── */
+        #auth-notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        .auth-notification {
+            background: linear-gradient(135deg, #161310 0%, #1D1914 100%);
+            border: 1px solid rgba(212, 119, 58, 0.6);
+            border-radius: 6px;
+            padding: 6px 8px;
+            box-shadow: 0 6px 24px rgba(212, 119, 58, 0.25), 0 0 16px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            animation: slideInRight 0.35s cubic-bezier(0.22, 0.68, 0, 1.2);
+            pointer-events: auto;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .auth-notify-btn {
+            background: linear-gradient(135deg, #D4773A 0%, #c06830 100%);
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            text-decoration: none;
+            white-space: nowrap;
+            flex-shrink: 0;
+            display: inline-block;
+            transition: all 0.2s;
+            box-shadow: 0 3px 10px rgba(212, 119, 58, 0.3);
+        }
+
+        .auth-notify-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(212, 119, 58, 0.4);
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .auth-notify-btn:active {
+            transform: translateY(0);
+        }
+
+        .auth-notification.fade-out {
+            animation: fadeOut 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+        }
+
+        /* Colores por tipo de alert */
+        .swal2-icon.swal2-success {
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .swal2-icon.swal2-error {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .swal2-icon.swal2-warning {
+            border-color: #D4773A;
+            color: #D4773A;
+        }
+
+        .swal2-icon.swal2-info {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        /* Estilos personalizados para alerts modales */
+        .swal2-modal {
+            background: linear-gradient(135deg, #0A0908 0%, #111009 100%);
+            border: 1px solid #252018;
+            border-radius: 14px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 50px rgba(212, 119, 58, 0.1);
+        }
+
+        .custom-alert-title {
+            font-family: 'Cormorant Garamond', serif !important;
+            font-size: 1.4rem !important;
+            font-weight: 700 !important;
+            color: #F5F0E8 !important;
+        }
+
+        .custom-alert-text {
+            font-family: 'DM Sans', sans-serif !important;
+            font-size: 0.95rem !important;
+            color: rgba(245, 240, 232, 0.85) !important;
+        }
+
+        .swal2-confirm {
+            background: linear-gradient(135deg, #D4773A 0%, #c06830 100%) !important;
+            border: 1px solid #D4773A !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            box-shadow: 0 6px 20px rgba(212, 119, 58, 0.35) !important;
+            transition: all 0.3s !important;
+        }
+
+        .swal2-confirm:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 26px rgba(212, 119, 58, 0.45) !important;
+        }
+
+        .swal2-cancel {
+            background: #252018 !important;
+            border: 1px solid #302820 !important;
+            border-radius: 8px !important;
+            color: #F5F0E8 !important;
+            font-weight: 600 !important;
+            transition: all 0.3s !important;
+        }
+
+        .swal2-cancel:hover {
+            background: #302820 !important;
+            border-color: #3A3228 !important;
+        }
+
+        /* Progress bar personalizada */
+        .swal2-progress-steps-container {
+            display: none;
+        }
+
+        .swal2-timer-progress-bar-container {
+            background: rgba(212, 119, 58, 0.2);
+            height: 3px;
+        }
+
+        .swal2-timer-progress-bar {
+            background: linear-gradient(90deg, #D4773A, #c06830);
+            height: 100%;
+        }
+
+        /* Animación de entrada */
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+        }
     </style>
+
 </head>
 <body>
-<div id="plaza-app">
+<div id="plaza-app" v-cloak>
 
     <!-- ── HEADER ── -->
     <header class="site-header">
@@ -813,38 +1043,46 @@
                     <i class="fas fa-chevron-left"></i> Atrás
                 </a>
                 <span class="header-label">Menú</span>
-                <div>
+                <div style="display: flex; align-items: center; gap: 12px;">
                     @auth
-                        <div class="user-menu-top">
-                            <button class="user-menu-btn" id="userMenuBtn">
-                                @if(auth()->user()->avatar)
-                                    <img src="{{ asset(auth()->user()->avatar) }}" alt="" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">
-                                @else
-                                    <i class="fas fa-user-circle" style="font-size:17px;"></i>
-                                @endif
-                                <span style="color:var(--text);font-size:0.72rem;">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
-                            </button>
-                            <div class="user-menu-dropdown" id="userMenuDropdown">
-                                <div class="dropdown-header">
-                                    <div class="dropdown-name">{{ auth()->user()->full_name ?? auth()->user()->name }}</div>
-                                    <div class="dropdown-email">{{ auth()->user()->email }}</div>
-                                </div>
-                                <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
-                                    <i class="fas fa-user-edit" style="color:var(--muted);"></i> Editar perfil
-                                </a>
-                                <form method="POST" action="{{ route('logout') }}" style="margin:0;">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item danger">
-                                        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    @else
-                        <a href="{{ route('login') }}" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--border-light);border-radius:var(--radius-sm);font-size:0.78rem;color:var(--primary);">
-                            <i class="fas fa-sign-in-alt"></i>
+                        <a href="{{ route('plaza.view.cart') }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--primary); position: relative; text-decoration: none; transition: all 0.2s;">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span id="cart-count">{{ count(session('cart', [])) }}</span>
                         </a>
                     @endauth
+                    <div>
+                        @auth
+                            <div class="user-menu-top">
+                                <button class="user-menu-btn" id="userMenuBtn">
+                                    @if(auth()->user()->avatar)
+                                        <img src="{{ asset(auth()->user()->avatar) }}" alt="" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">
+                                    @else
+                                        <i class="fas fa-user-circle" style="font-size:17px;"></i>
+                                    @endif
+                                    <span style="color:var(--text);font-size:0.72rem;">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
+                                </button>
+                                <div class="user-menu-dropdown" id="userMenuDropdown">
+                                    <div class="dropdown-header">
+                                        <div class="dropdown-name">{{ auth()->user()->full_name ?? auth()->user()->name }}</div>
+                                        <div class="dropdown-email">{{ auth()->user()->email }}</div>
+                                    </div>
+                                    <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
+                                        <i class="fas fa-user-edit" style="color:var(--muted);"></i> Editar perfil
+                                    </a>
+                                    <form method="POST" action="{{ route('logout') }}" style="margin:0;">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item danger">
+                                            <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @else
+                            <a href="{{ route('login') }}" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--border-light);border-radius:var(--radius-sm);font-size:0.78rem;color:var(--primary);">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </a>
+                        @endauth
+                    </div>
                 </div>
             </div>
         </div>
@@ -977,9 +1215,16 @@
                                 <span class="p-card-price">
                                     <sup>₡</sup>{{ number_format($producto->price, 2) }}
                                 </span>
-                                <span class="p-card-icon">
-                                    <i class="fas fa-arrow-right"></i>
-                                </span>
+                                <button 
+                                    class="btn-add-cart"
+                                    @click="openAddToCartModal({
+                                        product_id: {{ $producto->product_id }},
+                                        local_id: {{ $local->local_id }},
+                                        name: '{{ addslashes($producto->name) }}',
+                                        price: {{ $producto->price }}
+                                    })">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -988,6 +1233,9 @@
             @endif
         </div>
     </main>
+
+    <!-- ═══ MODAL: AGREGAR AL CARRITO ═══ -->
+    @include('plaza.carrito._add_to_cart_modal')
 
      <!-- ══ FOOTER ══ -->
     <footer class="footer-v2">
@@ -1081,8 +1329,81 @@
 </div>
 
 <script>
+    // Validar si el usuario está autenticado
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+
+    // Inyectar datos del usuario autenticado si existe
+    @auth
+    window.authData = {
+        name: '{{ auth()->user()->name ?? explode("@", auth()->user()->email)[0] }}',
+        email: '{{ auth()->user()->email }}',
+        phone: '{{ auth()->user()->phone ?? "" }}'
+    };
+    @endauth
+
+    // Función helper para mostrar toasts personalizados
+    const showToast = (config) => {
+        if (window.swToast) {
+            window.swToast.fire(config);
+        } else if (typeof Swal !== 'undefined') {
+            Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 7000,
+                timerProgressBar: true,
+                background: '#161310',
+                color: '#F5F0E8',
+                customClass: {
+                    container: 'custom-toast-container',
+                    popup: 'custom-toast-popup',
+                    title: 'custom-toast-title',
+                    icon: 'custom-toast-icon'
+                },
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            }).fire(config);
+        }
+    };
+
+    // Inicializar SweetAlert Toast
+    const initSwToast = () => {
+        if (typeof Swal !== 'undefined' && !window.swToast) {
+            const SwToastClass = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 7000,
+                timerProgressBar: true,
+                background: '#161310',
+                color: '#F5F0E8',
+                customClass: {
+                    container: 'custom-toast-container',
+                    popup: 'custom-toast-popup',
+                    title: 'custom-toast-title',
+                    icon: 'custom-toast-icon'
+                },
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+            window.swToast = SwToastClass;
+        }
+    };
+
+    // Inicializar swToast cuando esté listo
+    if (typeof Swal !== 'undefined') {
+        initSwToast();
+    }
+
     // User menu toggle
     document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar swToast si no está ya
+        initSwToast();
+        
         const menuBtn = document.getElementById('userMenuBtn');
         const menuDropdown = document.getElementById('userMenuDropdown');
 
@@ -1101,7 +1422,184 @@
     const { createApp } = Vue;
     createApp({
         data() {
-            return { activeCategory: null };
+            return {
+                activeCategory: null,
+                showAddToCartModal: false,
+                currentProduct: {
+                    name: '',
+                    price: 0,
+                    product_id: 0,
+                    local_id: 0
+                },
+                quantity: 1,
+                customization: '',
+                isAddingToCart: false,
+                // Datos del cliente
+                customerName: '',
+                customerEmail: '',
+                customerPhone: '',
+                additionalNotes: ''
+            };
+        },
+        methods: {
+            openAddToCartModal(product) {
+                // Validar que el usuario esté autenticado
+                if (!window.isAuthenticated) {
+                    this.showAuthNotification();
+                    return;
+                }
+
+                this.currentProduct = product;
+                this.quantity = 1;
+                this.customization = '';
+                // Rellenar datos del cliente si está autenticado
+                const authData = window.authData || null;
+                if (authData) {
+                    this.customerName = authData.name || '';
+                    this.customerEmail = authData.email || '';
+                    this.customerPhone = authData.phone || '';
+                }
+                this.showAddToCartModal = true;
+            },
+            closeAddToCartModal() {
+                this.showAddToCartModal = false;
+                setTimeout(() => {
+                    this.currentProduct = { name: '', price: 0, product_id: 0, local_id: 0 };
+                    this.quantity = 1;
+                    this.customization = '';
+                    this.customerName = '';
+                    this.customerEmail = '';
+                    this.customerPhone = '';
+                    this.additionalNotes = '';
+                }, 300);
+            },
+            showAuthNotification() {
+                // Crear contenedor si no existe
+                let container = document.getElementById('auth-notification-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'auth-notification-container';
+                    document.body.appendChild(container);
+                }
+
+                // Crear notificación
+                const notification = document.createElement('div');
+                notification.className = 'auth-notification';
+                notification.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 6px; width: 100%;">
+                        <i class="fas fa-lock" style="width: 16px; color: #D4773A; flex-shrink: 0;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600; color: #F5F0E8; white-space: nowrap;">Debes iniciar sesión para agregar al carrito</span>
+                        <a href="{{ route('login') }}" class="auth-notify-btn">Login</a>
+                    </div>
+                `;
+                
+                container.appendChild(notification);
+
+                // Remover después de 5 segundos
+                setTimeout(() => {
+                    notification.classList.add('fade-out');
+                    setTimeout(() => notification.remove(), 400);
+                }, 5000);
+            },
+            increaseQuantity() {
+                this.quantity++;
+            },
+            decreaseQuantity() {
+                if (this.quantity > 1) {
+                    this.quantity--;
+                }
+            },
+            validateQuantity() {
+                if (this.quantity < 1) {
+                    this.quantity = 1;
+                } else if (!Number.isInteger(this.quantity)) {
+                    this.quantity = Math.floor(this.quantity);
+                }
+            },
+            validateCustomization() {
+                // Solo limitar a 500 caracteres (el textarea ya lo hace)
+                if (this.customization.length > 500) {
+                    this.customization = this.customization.substring(0, 500);
+                }
+                // Los espacios se limpiarán al enviar (en proceedAddToCart)
+            },
+            async proceedAddToCart() {
+                if (this.isAddingToCart) return;
+
+                // Sincronizar notas: ambos campos lleven lo mismo
+                this.additionalNotes = this.customization;
+
+                // Rellenar datos del cliente desde usuario autenticado
+                if (window.authData) {
+                    this.customerName = window.authData.name || this.customerName;
+                    this.customerEmail = window.authData.email || this.customerEmail;
+                    this.customerPhone = window.authData.phone || this.customerPhone;
+                }
+
+                // Validar que tenemos datos requeridos
+                if (!this.customerName || !this.customerEmail || !this.customerPhone) {
+                    console.error('Datos incompletos:', {name: this.customerName, email: this.customerEmail, phone: this.customerPhone});
+                    alert('Error: Datos del usuario incompletos. Por favor, recarga la página.');
+                    this.isAddingToCart = false;
+                    return;
+                }
+
+                this.isAddingToCart = true;
+
+                try {
+                    const response = await fetch('{{ route("plaza.add.cart") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            product_id: this.currentProduct.product_id,
+                            local_id: this.currentProduct.local_id,
+                            quantity: this.quantity,
+                            customization: this.customization.trim(), // Limpiar espacios al inicio y final
+                            // Datos del cliente
+                            customer_name: this.customerName,
+                            customer_email: this.customerEmail,
+                            customer_phone: this.customerPhone,
+                            additional_notes: this.additionalNotes.trim() // Limpiar espacios también aquí
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        // Mostrar toast de éxito
+                        showToast({
+                            icon: 'success',
+                            title: data.message
+                        });
+
+                        // Actualizar contador del carrito
+                        const cartCountElement = document.getElementById('cart-count');
+                        if (cartCountElement) {
+                            cartCountElement.textContent = data.cart_count;
+                        }
+
+                        // Cerrar modal
+                        this.closeAddToCartModal();
+                    } else {
+                        showToast({
+                            icon: 'error',
+                            title: data.message || 'Error al agregar al carrito'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast({
+                        icon: 'error',
+                        title: 'Error al agregar al carrito'
+                    });
+                } finally {
+                    this.isAddingToCart = false;
+                }
+            }
         }
     }).mount('#plaza-app');
 </script>
