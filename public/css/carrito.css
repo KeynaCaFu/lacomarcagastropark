@@ -1377,6 +1377,11 @@ header {
     animation: notificationSlideOut 0.4s cubic-bezier(0.22, 0.68, 0, 1.2);
 }
 
+.notification-item.fade-out .notification-progress {
+    animation: none !important;
+    opacity: 0;
+}
+
 .notification-item.success {
     border-left-color: #D4773A;
 }
