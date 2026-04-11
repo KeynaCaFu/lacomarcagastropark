@@ -250,7 +250,7 @@ class ReportData
             ->where('tborder.local_id', $localId)
             ->whereDate('tborder.date', '>=', $startDate->toDateString())
             ->whereDate('tborder.date', '<=', $endDate->toDateString())
-            ->selectRaw('tbproduct.name, tbproduct.price, SUM(tborder_item.quantity) as total_quantity, COUNT(DISTINCT tborder.order_id) as order_count, SUM(tborder_item.quantity * tborder_item.unit_price) as total_revenue')
+            ->selectRaw('tbproduct.name, tbproduct.price, SUM(tborder_item.quantity) as total_quantity, COUNT(DISTINCT tborder.order_id) as order_count, SUM(tborder_item.quantity * tbproduct.price) as total_revenue')
             ->groupBy('tbproduct.product_id', 'tbproduct.name', 'tbproduct.price')
             ->orderByDesc('total_quantity')
             ->limit($limit)

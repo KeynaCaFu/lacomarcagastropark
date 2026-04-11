@@ -347,12 +347,40 @@
         .rp-rev-legend { grid-template-columns: 1fr; }
     }
 
-    /* ── Print ── */
-    @media print {
-        .rp-filters, .rp-actions { display: none !important; }
-        .rp-card { page-break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
-        .rp-container { padding: 1rem; }
+    /* ── View Toggle ── */
+    .rp-view-toggle {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        border-bottom: 2px solid #e0ddd6;
+        padding-bottom: 1rem;
     }
+    .rp-view-btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #999;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+        position: relative;
+        bottom: -2px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .rp-view-btn.active {
+        color: var(--green);
+        border-bottom-color: var(--green);
+    }
+    .rp-view-btn:hover {
+        color: var(--dark);
+    }
+
+
 </style>
 @endpush
 
@@ -362,6 +390,16 @@
     <div class="rp-header" style="margin-bottom:1.75rem;">
         <h1>Reportes de Pedidos</h1>
         <p>Análisis de pedidos en línea vs. presenciales — {{ $local->name }}</p>
+    </div>
+
+    <!-- Navigation: Local vs Productos -->
+    <div class="rp-view-toggle">
+        <span class="rp-view-btn active" style="cursor: default; pointer-events: none;">
+            <i class="fas fa-store"></i> Reportes del Local
+        </span>
+        <a href="{{ route('reports.products') }}?local_id={{ $local->local_id }}" class="rp-view-btn">
+            <i class="fas fa-box"></i> Reportes por Producto
+        </a>
     </div>
 
     {{-- Filters --}}
@@ -397,25 +435,6 @@
                 <div id="endDateDiv" style="display:{{ $period==='custom' ? 'block' : 'none' }};">
                     <label for="end_date">Hasta</label>
                     <input type="date" name="end_date" id="end_date" value="{{ $endDate }}">
-                </div>
-                <!-- Selector de Producto -->
-                <div>
-                    <label for="product_id">Producto (Opcional)</label>
-                    <select name="product_id" id="product_id">
-                        <option value="">Todos los productos</option>
-                        @foreach($availableProducts as $product)
-                        <option value="{{ $product->product_id }}" 
-                                @if($productId == $product->product_id) selected @endif
-                                @if($product->price <= 0) disabled @endif>
-                            {{ $product->name }}
-                            @if($product->price > 0)
-                                (₡{{ number_format($product->price, 2) }})
-                            @else
-                                (Sin costo)
-                            @endif
-                        </option>
-                        @endforeach
-                    </select>
                 </div>
                 <div>
                     <label style="visibility:hidden;">–</label>
@@ -599,8 +618,9 @@
         </div>
     </div>
 
-    {{-- Top Selling Items --}}
-    @if($hasData && $topItems->count() > 0)
+
+    {{-- Top Selling Items (Original Location - Hidden in Local View) --}}
+    @if(false)
     <div class="rp-card rp-card--orange" style="padding: 1.25rem; margin-bottom: 1.5rem;">
         <h2 style="font-size: 0.95rem; margin: 0 0 0.75rem; font-weight: 700; color: var(--dark);">Productos Más Vendidos</h2>
         <div style="overflow-x:auto;">
