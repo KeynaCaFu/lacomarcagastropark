@@ -266,7 +266,7 @@
     }
     .rp-table th {
         padding: .75rem 1rem;
-        text-align: left;
+        text-align: center;
         font-size: .8rem;
         font-weight: 700;
         text-transform: uppercase;
@@ -278,6 +278,7 @@
         font-size: .9rem;
         border-bottom: 1px solid #eee;
         color: var(--dark);
+        text-align: center;
     }
     .rp-table tr.rp-table__total {
         background: #f5f3ee;
@@ -811,9 +812,9 @@
                 <table class="rp-table" style="font-size: 0.85rem;">
                     <thead>
                         <tr>
-                            <th style="padding: 0.5rem 0.75rem; font-size: 0.75rem; text-align: left;">Producto</th>
-                            <th style="padding: 0.5rem 0.75rem; font-size: 0.75rem; text-align: right;">Cantidad Vendida</th>
-                            <th style="padding: 0.5rem 0.75rem; font-size: 0.75rem; text-align: right;">Eventos de Compra</th>
+                            <th style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">Producto</th>
+                            <th style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">Cantidad Vendida</th>
+                            <th style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">Eventos de Compra</th>
                         </tr>
                     </thead>
                     <tbody>`;
@@ -822,8 +823,8 @@
             html += `
                         <tr>
                             <td style="padding: 0.4rem 0.75rem;"><strong>${index + 1}. ${item.name}</strong></td>
-                            <td style="padding: 0.4rem 0.75rem; text-align: right;">${item.total_quantity}</td>
-                            <td style="padding: 0.4rem 0.75rem; text-align: right;">${item.order_count}</td>
+                            <td style="padding: 0.4rem 0.75rem;">${item.total_quantity}</td>
+                            <td style="padding: 0.4rem 0.75rem;">${item.order_count}</td>
                         </tr>`;
         });
 
@@ -852,10 +853,10 @@
                 <table class="rp-table" style="font-size: 0.85rem;">
                     <thead>
                         <tr>
-                            <th style="padding: 0.5rem 0.75rem; font-size: 0.75rem; text-align: left;">Origen</th>
-                            <th style="padding: 0.5rem 0.75rem; font-size: 0.75rem; text-align: right;">Cantidad</th>
-                            <th style="padding: 0.5rem 0.75rem; font-size: 0.75rem; text-align: right;">Ingresos</th>
-                            <th style="padding: 0.5rem 0.75rem; font-size: 0.75rem; text-align: right;">Prom. Evento</th>
+                            <th style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">Origen</th>
+                            <th style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">Cantidad</th>
+                            <th style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">Ingresos</th>
+                            <th style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">Prom. Evento</th>
                         </tr>
                     </thead>
                     <tbody>`;
@@ -864,10 +865,10 @@
             const avgPerOrder = item.order_count > 0 ? (item.total_quantity / item.order_count).toFixed(2) : 0;
             html += `
                         <tr>
-                            <td style="padding: 0.4rem 0.75rem;"><strong>${item.type === 'web' ? '💻 En Línea' : '🏪 Presencial'}</strong></td>
-                            <td style="padding: 0.4rem 0.75rem; text-align: right;">${item.total_quantity}</td>
-                            <td style="padding: 0.4rem 0.75rem; text-align: right;">₡${new Intl.NumberFormat('es-CR').format(Math.round(item.revenue))}</td>
-                            <td style="padding: 0.4rem 0.75rem; text-align: right;">${avgPerOrder} unid.</td>
+                            <td style="padding: 0.4rem 0.75rem;"><strong>${item.type === 'web' ? 'En Línea' : 'Presencial'}</strong></td>
+                            <td style="padding: 0.4rem 0.75rem;">${item.total_quantity}</td>
+                            <td style="padding: 0.4rem 0.75rem;">₡${new Intl.NumberFormat('es-CR').format(Math.round(item.revenue))}</td>
+                            <td style="padding: 0.4rem 0.75rem;">${avgPerOrder} unid.</td>
                         </tr>`;
         });
 
