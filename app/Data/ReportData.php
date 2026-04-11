@@ -4,6 +4,7 @@ namespace App\Data;
 
 use App\Models\Order;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ReportData
 {
@@ -244,7 +245,7 @@ class ReportData
      */
     public function getTopSellingItems($localId, $startDate, $endDate, $limit = 5)
     {
-        return \DB::table('tborder_item')
+        return DB::table('tborder_item')
             ->join('tborder', 'tborder_item.order_id', '=', 'tborder.order_id')
             ->join('tbproduct', 'tborder_item.product_id', '=', 'tbproduct.product_id')
             ->where('tborder.local_id', $localId)
