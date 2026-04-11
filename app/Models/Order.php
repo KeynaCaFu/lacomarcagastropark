@@ -28,7 +28,12 @@ class Order extends Model
         'cancellation_reason',
         'status',
         'origin',
-        'local_id'
+        'local_id',
+        'payment_method',
+        'receipt_reference',
+        'receipt_number',
+        'receipt_sent_to_email',
+        'receipt_sent_at',
     ];
 
     protected $casts = [
@@ -64,11 +69,19 @@ class Order extends Model
     }
 
     /**
-     * Relación: Usuario que hizo la orden (cliente o gerente)
+     * Relación: Usuarios que hicieron la orden (cliente o gerente)
      */
     public function user()
     {
         return $this->belongsToMany(User::class, 'tbuser_order', 'order_id', 'user_id');
+    }
+
+    /**
+     * Relación: Comprobantes/Recibos de la orden
+     */
+    public function receipts()
+    {
+        return $this->hasMany(Receipt::class, 'order_id', 'order_id');
     }
 
     /**
