@@ -266,7 +266,7 @@
     }
     .rp-table th {
         padding: .75rem 1rem;
-        text-align: left;
+        text-align: center;
         font-size: .8rem;
         font-weight: 700;
         text-transform: uppercase;
@@ -278,6 +278,7 @@
         font-size: .9rem;
         border-bottom: 1px solid #eee;
         color: var(--dark);
+        text-align: center;
     }
     .rp-table tr.rp-table__total {
         background: #f5f3ee;
