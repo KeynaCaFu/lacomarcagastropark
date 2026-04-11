@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/carrito.css') }}">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
     <style>
@@ -1213,10 +1214,10 @@
                 </div>
                 <div class="header-auth">
                     @auth
-                        <a href="{{ route('plaza.view.cart') }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--primary); position: relative; text-decoration: none; transition: all 0.2s;">
+                        <button @click="openCartDrawer" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--primary); background: none; cursor: pointer; transition: all 0.2s;" :style="{ borderColor: showCartDrawer ? 'var(--primary)' : 'var(--border-light)' }">
                             <i class="fas fa-shopping-cart"></i>
-                            <span id="cart-count">{{ count(session('cart', [])) }}</span>
-                        </a>
+                            <span id="cart-count">@{{ totalDrawerQty }}</span>
+                        </button>
                         <div class="user-menu-top">
                             <button class="user-menu-btn" id="userMenuBtn">
                                 @if(auth()->user()->avatar)
@@ -1646,6 +1647,9 @@
         </div>
     </footer>
 
+    <!-- ══ CART DRAWER ══ -->
+    @include('plaza.carrito._cart_drawer')
+
 </div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
@@ -1675,6 +1679,10 @@
                 categoriaSelectNombre: 'Todos',
                 productosFiltrados: [],
                 cargandoProductos: false,
+                // Cart drawer data
+                showCartDrawer: false,
+                drawerCart: [],
+                isCheckingOut: false,
             };
         },
 
@@ -1682,6 +1690,7 @@
             this.buildParticles();
             document.addEventListener('mousemove', this.onMouseMove);
             window.addEventListener('scroll', this.onScroll, { passive: true });
+            this.loadCartDrawer();
         },
 
         beforeUnmount() {
@@ -1776,7 +1785,79 @@
                     this.cargandoProductos = false;
                 }
             },
+
+            // ── DRAWER METHODS ──
+            openCartDrawer() {
+                this.showCartDrawer = true;
+                this.loadCartDrawer();
+            },
+            closeCartDrawer() {
+                this.showCartDrawer = false;
+            },
+            loadCartDrawer() {
+                fetch('{{ route("plaza.cart.get") }}', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    this.drawerCart = (data.cart || []).map(item => ({
+                        ...item,
+                        price: parseFloat(item.price),
+                        quantity: parseInt(item.quantity)
+                    }));
+                })
+                .catch(error => console.error('Error loading cart:', error));
+            },
+            updateItemQty(index, newQty) {
+                if (newQty < 1) newQty = 1;
+                if (this.drawerCart[index]) {
+                    this.drawerCart[index].quantity = newQty;
+                }
+            },
+            removeFromCart(index) {
+                this.drawerCart.splice(index, 1);
+            },
+            clearDrawerCart() {
+                this.drawerCart = [];
+            },
+            goToCheckout() {
+                this.isCheckingOut = true;
+                fetch('{{ route("plaza.order.create") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ items: this.drawerCart })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Orden confirmada');
+                        this.drawerCart = [];
+                        this.showCartDrawer = false;
+                    }
+                })
+                .catch(error => console.error('Error confirming order:', error))
+                .finally(() => {
+                    this.isCheckingOut = false;
+                });
+            },
         },
+
+        computed: {
+            totalDrawerQty() {
+                return this.drawerCart.reduce((sum, item) => sum + parseInt(item.quantity), 0);
+            },
+            totalDrawerPrice() {
+                return this.drawerCart.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0);
+            }
+        }
     }).mount('#plaza-app');
 </script>
 
