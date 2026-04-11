@@ -398,6 +398,25 @@
                     <label for="end_date">Hasta</label>
                     <input type="date" name="end_date" id="end_date" value="{{ $endDate }}">
                 </div>
+                <!-- Selector de Producto -->
+                <div>
+                    <label for="product_id">Producto (Opcional)</label>
+                    <select name="product_id" id="product_id">
+                        <option value="">Todos los productos</option>
+                        @foreach($availableProducts as $product)
+                        <option value="{{ $product->product_id }}" 
+                                @if($productId == $product->product_id) selected @endif
+                                @if($product->price <= 0) disabled @endif>
+                            {{ $product->name }}
+                            @if($product->price > 0)
+                                (₡{{ number_format($product->price, 2) }})
+                            @else
+                                (Sin costo)
+                            @endif
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div>
                     <label style="visibility:hidden;">–</label>
                     <button type="submit" class="rp-btn rp-btn--green rp-btn--full">Filtrar</button>
@@ -406,8 +425,20 @@
         </form>
     </div>
 
+    <!-- Mensaje de error de validación de costo -->
+    @if($productError)
+    <div class="rp-card" style="background: #f8d7da; border-left: 4px solid #dc3545; border-radius: 8px;">
+        <p style="color: #721c24; font-size: 1rem; margin: 0; font-weight: 600;">
+            ⚠️ {{ $productError }}
+        </p>
+        <p style="color: #721c24; font-size: 0.9rem; margin: 8px 0 0 0;">
+            Por favor selecciona otro producto que tenga costo registrado en el inventario.
+        </p>
+    </div>
+    @endif
+
     {{-- Empty data message --}}
-    @if(!$hasData)
+    @if(!$hasData && !$productError)
     <div class="rp-card" style="background: #fef3cd; border-left: 4px solid #8a6200;">
         <p style="color: #333; font-size: 1rem; margin: 0;">
             <strong>No hay ventas registradas en este período</strong>
