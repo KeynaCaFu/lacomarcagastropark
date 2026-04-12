@@ -1,12 +1,11 @@
 <!-- ═══ CART DRAWER: PANEL LATERAL ═══ -->
-<div class="cart-drawer-overlay" v-if="showCartDrawer" @click="closeCartDrawer"></div>
-
 <div class="cart-drawer" :class="{ open: showCartDrawer }">
     <!-- Header -->
     <div class="drawer-header">
         <button class="btn-back-drawer" @click="closeCartDrawer" title="Volver">
             <i class="fas fa-chevron-left"></i>
         </button>
+        <button class="drawer-handle" @click="closeCartDrawer" title="Deslizar para cerrar"></button>
         <h3>Mi Carrito</h3>
     </div>
 
@@ -27,6 +26,28 @@
                 </button>
                 <button class="btn-confirm-yes btn-confirm-danger" @click="confirmClearCart">
                     <i class="fas fa-trash"></i> Vaciar
+                </button>
+            </div>
+        </div>
+
+        <!-- Confirmación de Eliminar Item -->
+        <div v-else-if="showConfirmRemove" class="drawer-confirm-order">
+            <div class="confirm-header">
+                <i class="fas fa-trash"></i>
+                <h4>¿Eliminar item?</h4>
+            </div>
+            <div class="confirm-body">
+                <div v-if="itemToRemoveIndex !== null && drawerCart[itemToRemoveIndex]" class="confirm-item-detail">
+                    <p class="confirm-text"><strong>@{{ drawerCart[itemToRemoveIndex].name }}</strong></p>
+                    <p class="confirm-text">¿Estás seguro de que deseas eliminar este producto del carrito?</p>
+                </div>
+            </div>
+            <div class="confirm-actions">
+                <button class="btn-confirm-no" @click="cancelRemoveItem">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button class="btn-confirm-yes btn-confirm-danger" @click="confirmRemoveItem">
+                    <i class="fas fa-trash"></i> Eliminar
                 </button>
             </div>
         </div>
@@ -161,3 +182,6 @@
     </div>
 
 </div>
+
+<!-- Overlay aparece después del drawer para que los selectores CSS de hermanos funcionen -->
+<div class="cart-drawer-overlay" v-if="showCartDrawer" @click="closeCartDrawer"></div>

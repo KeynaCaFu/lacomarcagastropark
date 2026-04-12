@@ -1935,6 +1935,8 @@
                 showCartDrawer: false,
                 showConfirmOrder: false,
                 showConfirmClear: false,
+                showConfirmRemove: false,
+                itemToRemoveIndex: null,
                 drawerCart: [],
                 isCheckingOut: false
             }
@@ -2043,10 +2045,12 @@
             // ── DRAWER METHODS ──
             openCartDrawer() {
                 this.showCartDrawer = true;
+                document.body.classList.add('cart-drawer-open');
                 this.loadCartDrawer();
             },
             closeCartDrawer() {
                 this.showCartDrawer = false;
+                document.body.classList.remove('cart-drawer-open');
             },
             loadCartDrawer() {
                 fetch('{{ route("plaza.cart.get") }}', {
@@ -2069,11 +2073,80 @@
             updateItemQty(index, newQty) {
                 if (newQty < 1) newQty = 1;
                 if (this.drawerCart[index]) {
+                    // Actualizar localmente
                     this.drawerCart[index].quantity = newQty;
+                    
+                    // Guardar en servidor
+                    fetch('{{ route("plaza.cart.update.qty") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            item_index: index,
+                            quantity: newQty
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            console.error('Error updating quantity:', data.message);
+                            this.loadCartDrawer(); // Recargar si hay error
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.loadCartDrawer(); // Recargar si hay error
+                    });
                 }
             },
             removeFromCart(index) {
+                // Mostrar diálogo de confirmación
+                this.itemToRemoveIndex = index;
+                this.showConfirmRemove = true;
+            },
+            cancelRemoveItem() {
+                this.showConfirmRemove = false;
+                this.itemToRemoveIndex = null;
+            },
+            confirmRemoveItem() {
+                if (this.itemToRemoveIndex === null) return;
+                
+                const index = this.itemToRemoveIndex;
+                const itemKey = this.drawerCart[index].item_key;
+                
+                // Remover localmente
                 this.drawerCart.splice(index, 1);
+                this.showConfirmRemove = false;
+                this.itemToRemoveIndex = null;
+                
+                // Guardar en servidor usando item_key
+                fetch('{{ route("plaza.cart.remove") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        item_key: itemKey
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast({ icon: 'success', title: 'Item eliminado', message: 'El producto ha sido removido del carrito', timer: 5500 });
+                    } else {
+                        console.error('Error removing item:', data.message);
+                        this.loadCartDrawer(); // Recargar si hay error
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    this.loadCartDrawer(); // Recargar si hay error
+                });
             },
             goToClearCart() {
                 this.showConfirmClear = true;
@@ -2082,10 +2155,34 @@
                 this.showConfirmClear = false;
             },
             confirmClearCart() {
+                // Limpiar localmente
                 this.drawerCart = [];
                 this.showConfirmClear = false;
-                showToast({ icon: 'success', title: '¡Carrito vaciado!', message: 'Todos los items han sido eliminados', timer: 5500 });
+                
+                // Guardar en servidor
+                fetch('{{ route("plaza.cart.clear") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast({ icon: 'success', title: '¡Carrito vaciado!', message: 'Todos los items han sido eliminados', timer: 5500 });
+                    } else {
+                        console.error('Error clearing cart:', data.message);
+                        this.loadCartDrawer();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    this.loadCartDrawer();
+                });
             },
+
             goToCheckout() {
                 if (this.drawerCart.length === 0) {
                     showToast({ icon: 'warning', title: 'El carrito está vacío' });

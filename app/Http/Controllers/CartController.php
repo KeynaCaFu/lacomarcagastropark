@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Helpers\CartHelper;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
@@ -41,12 +42,17 @@ class CartController extends Controller
         // Obtener carrito actual de sesión
         $cart = session()->get('cart', []);
 
-        // Crear identificador único para el item basado en producto y customización
-        $itemKey = $product->product_id . '_' . md5($validated['customization'] ?? '');
+        // Normalizar customization para comparación consistente
+        $normalizedCustomization = CartHelper::normalizeCustomization($validated['customization'] ?? '');
+
+        // Crear identificador único para el item usando customización normalizada
+        $itemKey = CartHelper::generateItemKey($product->product_id, $validated['customization'] ?? '');
 
         // Verificar si el item ya existe en el carrito
         $existingItem = null;
         foreach ($cart as $key => $item) {
+            // Comparar por item_key y local_id
+            // El item_key ya contiene la customización normalizada, así que detecta duplicados correctamente
             if ($item['item_key'] === $itemKey && $item['local_id'] === $validated['local_id']) {
                 $existingItem = $key;
                 break;
@@ -56,7 +62,9 @@ class CartController extends Controller
         // Si existe, incrementar cantidad; si no, agregar nuevo item
         if ($existingItem !== null) {
             $cart[$existingItem]['quantity'] += $validated['quantity'];
+            $message = 'Cantidad actualizada en el carrito';
         } else {
+            // Guardar la customización original pero usar la normalizada para comparaciones
             $newItem = [
                 'item_key' => $itemKey,
                 'product_id' => $product->product_id,
@@ -65,7 +73,8 @@ class CartController extends Controller
                 'description' => $product->description ?? '',
                 'price' => $product->price,
                 'quantity' => $validated['quantity'],
-                'customization' => $validated['customization'] ?? '',
+                'customization' => $validated['customization'] ?? '', // Customización original
+                'customization_normalized' => $normalizedCustomization, // Normalizada para referencia
                 'photo_url' => $product->photo_url ?? asset('images/product-placeholder.png'),
                 'added_at' => now()->toIso8601String(),
                 // Datos del cliente
@@ -76,6 +85,7 @@ class CartController extends Controller
                 'additional_notes' => $validated['additional_notes'] ?? '',
             ];
             $cart[] = $newItem;
+            $message = 'Producto agregado al carrito';
         }
 
         // Guardar carrito en sesión
@@ -83,7 +93,7 @@ class CartController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => $existingItem !== null ? 'Cantidad actualizada en el carrito' : 'Producto agregado al carrito',
+            'message' => $message,
             'cart_count' => count($cart),
             'cart' => $cart,
         ]);
@@ -108,6 +118,115 @@ class CartController extends Controller
             'success' => true,
             'cart' => $cart
         ]);
+    }
+
+    /**
+     * Actualizar cantidad de un item en el carrito
+     */
+    public function updateItemQuantity(Request $request)
+    {
+        $validated = $request->validate([
+            'item_index' => 'required|integer|min:0',
+            'quantity' => 'required|integer|min:1',
+        ]);
+
+        try {
+            $cart = session()->get('cart', []);
+            $index = $validated['item_index'];
+
+            if (!isset($cart[$index])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Item no encontrado en el carrito'
+                ], 422);
+            }
+
+            // Actualizar cantidad
+            $cart[$index]['quantity'] = $validated['quantity'];
+            session()->put('cart', $cart);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cantidad actualizada',
+                'cart' => $cart,
+                'cart_count' => count($cart)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Remover un item del carrito por item_key
+     */
+    public function removeItem(Request $request)
+    {
+        $validated = $request->validate([
+            'item_key' => 'required|string',
+        ]);
+
+        try {
+            $cart = session()->get('cart', []);
+            $itemKeyToRemove = $validated['item_key'];
+            $found = false;
+
+            // Buscar por item_key
+            foreach ($cart as $index => $item) {
+                if ($item['item_key'] === $itemKeyToRemove) {
+                    unset($cart[$index]);
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (!$found) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Item no encontrado en el carrito'
+                ], 422);
+            }
+
+            // Re-indexar el array
+            $cart = array_values($cart);
+            session()->put('cart', $cart);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Item eliminado del carrito',
+                'cart' => $cart,
+                'cart_count' => count($cart)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Limpiar carrito completamente
+     */
+    public function clearCart(Request $request)
+    {
+        try {
+            session()->forget('cart');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Carrito vaciado',
+                'cart' => [],
+                'cart_count' => 0
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
