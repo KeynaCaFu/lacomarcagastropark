@@ -51,7 +51,8 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
-
+        //tempralmente deshabilitado para evitar conflictos con errores de conexión a BD
+ /*
         // Manejar errores de conexión a la base de datos
         $this->renderable(function (Throwable $e, Request $request) {
             // Detectar errores de conexión a BD
@@ -90,7 +91,8 @@ class Handler extends ExceptionHandler
             }
 
             return null;
-        });
+        }); 
+        */
     }
 
     /**
