@@ -29,6 +29,13 @@ Route::middleware('guest')->group(function () {
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
                 ->name('password.email');
 
+    // Recovery Password Routes
+    Route::get('recovery-password', [\App\Http\Controllers\Auth\RecoveryPasswordController::class, 'create'])
+                ->name('password.recovery.create');
+
+    Route::post('recovery-password', [\App\Http\Controllers\Auth\RecoveryPasswordController::class, 'store'])
+                ->name('password.recovery');
+
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
                 ->name('password.reset');
 

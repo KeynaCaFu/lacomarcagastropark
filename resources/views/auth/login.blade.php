@@ -71,9 +71,11 @@
 
                 <button type="submit" class="btn-login">Iniciar sesión</button>
 
-                 @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" class="forgot-password">¿Olvidaste tu contraseña?</a>
-                @endif
+                <div class="password-recovery-options">
+                    <button type="button" id="switchRecoveryBtn" class="forgot-password" title="Recuperar contraseña">
+                        <i class="fa-solid fa-key"></i> Recuperar contraseña
+                    </button>
+                </div>
 
                 <div class="divider-social">
                     <span>O continúa con</span>
@@ -224,6 +226,59 @@
             </div>
         </div>
 
+        {{-- PANEL RECUPERACIÓN DE CONTRASEÑA --}}
+        <div class="recovery-panel" id="recoveryPanel">
+            <div class="recovery-header">
+                <img src="{{ asset('images/iconoblanco.png') }}" alt="Logo La Comarca" class="recovery-logo">
+            </div>
+            <h2 class="recovery-title">Recuperar Contraseña</h2>
+            <p class="recovery-subtitle">Te enviaremos una contraseña temporal a tu correo</p>
+
+            @if (session('recovery-status'))
+                <div class="alert alert-success" role="alert">
+                    {{ session('recovery-status') }}
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('password.recovery') }}" class="recovery-form">
+                @csrf
+
+                <div class="form-group">
+                    <label for="recovery_email" class="sr-only">Correo electrónico</label>
+                    <div class="input-icon">
+                        <input
+                            id="recovery_email"
+                            type="email"
+                            name="email"
+                            placeholder="Correo electrónico"
+                            value="{{ old('email') }}"
+                            required
+                            autocomplete="email"
+                        >
+                        <i class="fa-solid fa-envelope"></i>
+                    </div>
+                    @error('email')
+                        <span class="form-error">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="info-box">
+                    <i class="fa-solid fa-info-circle"></i>
+                    <span>Recibirás una contraseña temporal en tu correo</span>
+                </div>
+
+                <button type="submit" class="btn-recovery">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    Enviar Contraseña Temporal
+                </button>
+            </form>
+
+            <!-- Botón para cambiar a login en responsivo -->
+            <div class="responsive-footer" id="recoveryFooter">
+                <p><button type="button" class="switch-btn" id="switchLoginFromRecoveryResponsive">Volver al login</button></p>
+            </div>
+        </div>
+
         {{-- OVERLAY ANIMATED --}}
         <div class="auth-overlay" id="authOverlay">
             {{-- Contenido para LOGIN --}}
@@ -257,8 +312,7 @@
     .login-wrapper {
         position: relative;
         width: 100%;
-        height: auto;
-        min-height: 650px;
+        height: 650px;
         background: #fff;
         border-radius: 20px;
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
@@ -268,7 +322,8 @@
 
     /* ===== PANELES ===== */
     .login-panel,
-    .register-panel {
+    .register-panel,
+    .recovery-panel {
         position: absolute;
         width: 50%;
         height: 100%;
@@ -291,12 +346,26 @@
         transform: translateX(-100%);
     }
 
+    .recovery-panel {
+        left: 0;
+        background: #0C0C0E;
+        transform: translateX(-100%);
+    }
+
     /* Panel visible */
     .login-container.show-register .login-panel {
         transform: translateX(100%);
     }
 
     .login-container.show-register .register-panel {
+        transform: translateX(0);
+    }
+
+    .login-container.show-recovery .login-panel {
+        transform: translateX(100%);
+    }
+
+    .login-container.show-recovery .recovery-panel {
         transform: translateX(0);
     }
 
@@ -379,12 +448,14 @@
 
     /* ===== HEADERS ===== */
     .login-header,
-    .register-header {
+    .register-header,
+    .recovery-header {
         text-align: center;
         margin-bottom: 20px;
     }
 
-    .login-logo {
+    .login-logo,
+    .recovery-logo {
         max-width: 171px;
         height: auto;
         margin: 0;
@@ -397,7 +468,8 @@
         margin: 0;
         margin-top: -22px;;
 }
-    .login-title {
+    .login-title,
+    .recovery-title {
         font-size: 28px;
         font-weight: 700;
         color: #fff;
@@ -407,6 +479,17 @@
     .login-panel .login-title {
         color: #fff;
         margin-top: 0;
+    }
+
+    .recovery-panel .recovery-title {
+        color: #fff;
+        margin-top: 0;
+    }
+
+    .recovery-subtitle {
+        font-size: 14px;
+        color: #b0b0b0;
+        margin: 5px 0 0;
     }
 
     .register-panel .login-title {
@@ -617,7 +700,8 @@
 
     /* ===== BOTONES ===== */
     .btn-login,
-    .btn-register {
+    .btn-register,
+    .btn-recovery {
         width: 100%;
         padding: 12px;
         margin-bottom: 12px;
@@ -637,6 +721,48 @@
     .btn-login:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 16px rgba(225, 128, 24, 0.3);
+    }
+
+    .btn-register {
+        background: linear-gradient(135deg, #e18018, #915016);
+        color: #fff;
+    }
+
+    .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(225, 128, 24, 0.3);
+    }
+
+    .btn-recovery {
+        background: linear-gradient(135deg, #e18018, #915016);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-recovery:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(225, 128, 24, 0.3);
+    }
+
+    .info-box {
+        background-color: rgba(225, 128, 24, 0.1);
+        border-left: 4px solid #e18018;
+        padding: 12px 14px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: #d0d0d0;
+    }
+
+    .info-box i {
+        color: #e18018;
+        flex-shrink: 0;
     }
 
     .btn-register {
@@ -714,6 +840,22 @@
     .forgot-password:hover {
         text-decoration: underline;
         color: #f09030;
+    }
+
+    .password-recovery-options {
+        display: flex;
+        justify-content: center;
+        margin: 15px 0;
+    }
+
+    .password-recovery-options .forgot-password {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        background: none;
+        border: none;
+        padding: 0;
     }
 
     /* ===== FOOTER (SWITCH) ===== */
@@ -839,7 +981,7 @@
     /* ===== RESPONSIVE ===== */
     @media (max-width: 1200px) {
         .login-wrapper {
-            height: 550px;
+            height: 650px;
         }
 
         .login-panel,
@@ -855,8 +997,7 @@
         }
 
         .login-wrapper {
-            height: auto;
-            min-height: 600px;
+            height: 650px;
             border-radius: 0;
             box-shadow: none;
             display: block;
@@ -865,7 +1006,8 @@
         }
 
         .login-panel,
-        .register-panel {
+        .register-panel,
+        .recovery-panel {
             width: 100%;
             position: relative;
             padding: 40px 30px;
@@ -887,6 +1029,10 @@
             display: none;
         }
 
+        .recovery-panel {
+            display: none;
+        }
+
         .login-container.show-register .login-panel {
             display: none;
         }
@@ -895,17 +1041,27 @@
             display: block;
         }
 
+        .login-container.show-recovery .login-panel {
+            display: none;
+        }
+
+        .login-container.show-recovery .recovery-panel {
+            display: block;
+        }
+
         .responsive-footer {
             display: block;
         }
 
         .login-header,
-        .register-header {
+        .register-header,
+        .recovery-header {
             margin-bottom: 20px;
         }
 
         .login-logo,
-        .login-logoRegister {
+        .login-logoRegister,
+        .recovery-logo {
             max-width: 140px;
             margin-top: 0 !important;
         }
@@ -921,7 +1077,8 @@
         }
 
         .btn-login,
-        .btn-register {
+        .btn-register,
+        .btn-recovery {
             padding: 10px;
             font-size: 15px;
         }
@@ -934,8 +1091,7 @@
 
         .login-wrapper {
             border-radius: 15px;
-            min-height: 500px;
-            height: auto;
+            height: 650px;
         }
 
         .login-panel,
@@ -1023,7 +1179,7 @@
         }
 
         .login-wrapper {
-            min-height: 520px;
+            height: 620px;
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
@@ -1078,7 +1234,8 @@
         }
 
         .btn-login,
-        .btn-register {
+        .btn-register,
+        .btn-recovery {
             padding: 9px;
             font-size: 13px;
             margin-bottom: 8px;
@@ -1124,12 +1281,13 @@
         }
 
         .login-wrapper {
-            min-height: 480px;
+            height: 600px;
             border-radius: 10px;
         }
 
         .login-panel,
-        .register-panel {
+        .register-panel,
+        .recovery-panel {
             padding: 20px 16px;
         }
 
@@ -1140,7 +1298,7 @@
 
         .login-title {
             font-size: 18px;
-            margin: 10px 0 0;
+            margin: 11px 2px 31px;
         }
 
         .form-group input {
@@ -1149,7 +1307,8 @@
         }
 
         .btn-login,
-        .btn-register {
+        .btn-register,
+        .btn-recovery {
             padding: 8px;
             font-size: 12px;
         }
@@ -1169,11 +1328,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const authContainer = document.getElementById('authContainer');
     const loginPanel = document.getElementById('loginPanel');
     const registerPanel = document.getElementById('registerPanel');
+    const recoveryPanel = document.getElementById('recoveryPanel');
     const loginWrapper = document.getElementById('authWrapper');
     const switchRegisterBtn = document.getElementById('switchRegister');
     const switchLoginBtn = document.getElementById('switchLogin');
     const switchRegisterResponsiveBtn = document.getElementById('switchRegisterResponsive');
     const switchLoginResponsiveBtn = document.getElementById('switchLoginResponsive');
+    const switchRecoveryBtn = document.getElementById('switchRecoveryBtn');
+    const switchLoginFromRecoveryResponsiveBtn = document.getElementById('switchLoginFromRecoveryResponsive');
     const overlayRegisterBtn = document.getElementById('overlayRegisterBtn');
     const overlayLoginBtn = document.getElementById('overlayLoginBtn');
     const togglePasswordBtn = document.getElementById('togglePassword');
@@ -1183,8 +1345,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Función para cambiar a registro
     const switchToRegister = () => {
+        // Remover clase de recuperación primero
+        authContainer.classList.remove('show-recovery');
+        
         if (isResponsive()) {
-            // En responsivo: slide out left del login, slide in left del registro
             loginWrapper.classList.add('transitioning');
             loginPanel.classList.add('slide-out-left');
             loginPanel.classList.remove('slide-in-right');
@@ -1208,16 +1372,19 @@ document.addEventListener('DOMContentLoaded', function () {
     // Función para cambiar a login
     const switchToLogin = () => {
         if (isResponsive()) {
-            // En responsivo: slide out right del registro, slide in right del login
             loginWrapper.classList.add('transitioning');
             registerPanel.classList.add('slide-out-right');
             registerPanel.classList.remove('slide-in-left');
+            recoveryPanel.classList.add('slide-out-right');
+            recoveryPanel.classList.remove('slide-in-left');
             
             setTimeout(() => {
                 authContainer.classList.remove('show-register');
+                authContainer.classList.remove('show-recovery');
                 loginPanel.classList.add('slide-in-right');
                 loginPanel.classList.remove('slide-out-left');
                 registerPanel.classList.remove('slide-out-right');
+                recoveryPanel.classList.remove('slide-out-right');
             }, 400);
             
             setTimeout(() => {
@@ -1225,6 +1392,33 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 800);
         } else {
             authContainer.classList.remove('show-register');
+            authContainer.classList.remove('show-recovery');
+        }
+        window.scrollTo(0, 0);
+    };
+
+    // Función para cambiar a recuperación
+    const switchToRecovery = () => {
+        // Remover clase de registro primero
+        authContainer.classList.remove('show-register');
+        
+        if (isResponsive()) {
+            loginWrapper.classList.add('transitioning');
+            loginPanel.classList.add('slide-out-left');
+            loginPanel.classList.remove('slide-in-right');
+            
+            setTimeout(() => {
+                authContainer.classList.add('show-recovery');
+                recoveryPanel.classList.add('slide-in-left');
+                recoveryPanel.classList.remove('slide-out-right');
+                loginPanel.classList.remove('slide-out-left');
+            }, 400);
+            
+            setTimeout(() => {
+                loginWrapper.classList.remove('transitioning');
+            }, 800);
+        } else {
+            authContainer.classList.add('show-recovery');
         }
         window.scrollTo(0, 0);
     };
@@ -1263,6 +1457,19 @@ document.addEventListener('DOMContentLoaded', function () {
     // Switch a login desde botón en overlay
     if (overlayLoginBtn) {
         overlayLoginBtn.addEventListener('click', switchToLogin);
+    }
+
+    // Switch a recuperación de contraseña desde botón en panel login
+    if (switchRecoveryBtn) {
+        switchRecoveryBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchToRecovery();
+        });
+    }
+
+    // Switch a login desde panel de recuperación en responsivo
+    if (switchLoginFromRecoveryResponsiveBtn) {
+        switchLoginFromRecoveryResponsiveBtn.addEventListener('click', switchToLogin);
     }
 
     // Toggle contraseña
