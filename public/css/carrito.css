@@ -93,6 +93,13 @@
     display: none;
 }
 
+@media (max-width: 768px) {
+    .modal-overlay {
+        padding: 0 !important;
+        align-items: stretch !important;
+    }
+}
+
 .modal-content {
     background: var(--bg);
     border: 2px solid var(--primary);
@@ -108,6 +115,19 @@
     min-height: 0;
 }
 
+@media (max-width: 768px) {
+    .modal-content {
+        border: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        border-radius: 20px 20px 0 0;
+        width: 100vw;
+        max-width: 100vw;
+        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
+        margin-left: calc(-50vw + 50%);
+        margin-right: calc(-50vw + 50%);
+    }
+}
+
 .modal-header {
     display: flex;
     align-items: center;
@@ -115,6 +135,25 @@
     padding: 14px 16px;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .modal-header {
+        padding: 16px 16px;
+    }
+}
+
+/* Body lock cuando modal está abierto en mobile */
+body.modal-open {
+    overflow: hidden;
+    height: 100vh;
+}
+
+@media (min-width: 769px) {
+    body.modal-open {
+        overflow: auto;
+        height: auto;
+    }
 }
 
 .modal-header h3 {
@@ -142,6 +181,48 @@
 
 .modal-close:hover {
     color: var(--text);
+}
+
+/* Modal Handle - Línea para cerrar en mobile (WhatsApp style) */
+.modal-handle {
+    display: none;
+}
+
+.modal-handle::before {
+    content: '';
+    position: absolute;
+    width: 40px;
+    height: 4px;
+    background: var(--primary);
+    border-radius: 2px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: background 0.2s;
+}
+
+.modal-handle:active::before {
+    background: var(--primary-light);
+}
+
+/* Desktop: ocultar flecha, mostrar línea */
+@media (min-width: 769px) {
+    .modal-close-arrow {
+        display: none;
+    }
+    .modal-handle {
+        display: block;
+    }
+}
+
+/* Mobile: ocultar flecha, mostrar línea */
+@media (max-width: 768px) {
+    .modal-close-arrow {
+        display: none;
+    }
+    .modal-handle {
+        display: block;
+    }
 }
 
 .modal-body {
@@ -691,33 +772,79 @@ header {
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
-    z-index: 8998;
-    animation: fadeIn 0.3s ease;
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .cart-drawer {
     position: fixed;
-    right: -400px;
-    top: 0;
-    width: 100%;
-    max-width: 400px;
-    height: 100vh;
     background: var(--bg);
-    border-left: 1px solid var(--border);
-    z-index: 8999;
+    z-index: 1000;
     display: flex;
     flex-direction: column;
-    transition: right 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.cart-drawer.open {
-    right: 0;
-}
-
-@media (max-width: 480px) {
+/* En Desktop: Drawer lateral (derecha) */
+@media (min-width: 769px) {
     .cart-drawer {
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: auto;
+        width: 400px;
         max-width: 100%;
-        right: -100%;
+        max-height: 100vh;
+        transform: translateX(100%);
+        border-left: 1px solid var(--border);
+    }
+
+    .cart-drawer.open {
+        transform: translateX(0);
+    }
+
+    .cart-drawer-overlay {
+        display: block;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .cart-drawer.open ~ .cart-drawer-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+/* En Móvil: Bottom Sheet (desde abajo) */
+@media (max-width: 768px) {
+    .cart-drawer {
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        width: 100%;
+        height: 85vh;
+        max-height: 85vh;
+        transform: translateY(100%);
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
+        border: none;
+    }
+
+    .cart-drawer.open {
+        transform: translateY(0);
+    }
+
+    .cart-drawer-overlay {
+        display: block;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .cart-drawer.open ~ .cart-drawer-overlay {
+        opacity: 1;
+        pointer-events: auto;
     }
 }
 
@@ -729,6 +856,13 @@ header {
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
     gap: 12px;
+    position: relative;
+}
+
+@media (max-width: 768px) {
+    .drawer-header {
+        justify-content: center;
+    }
 }
 
 .drawer-header h3 {
@@ -739,6 +873,12 @@ header {
     margin: 0;
     flex: 1;
     text-align: center;
+}
+
+@media (max-width: 768px) {
+    .drawer-header h3 {
+        display: none;
+    }
 }
 
 .btn-close-drawer {
@@ -778,6 +918,59 @@ header {
 .btn-back-drawer:hover {
     transform: translateX(-3px);
     opacity: 0.8;
+}
+
+/* Drawer Handle - Línea para cerrar (WhatsApp style) */
+.drawer-handle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+
+.drawer-handle::before {
+    content: '';
+    position: absolute;
+    width: 40px;
+    height: 4px;
+    background: var(--primary);
+    border-radius: 2px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: background 0.2s;
+}
+
+.drawer-handle:active::before {
+    background: var(--primary-light);
+}
+
+/* Desktop: mostrar flecha, ocultar línea */
+@media (min-width: 769px) {
+    .btn-back-drawer {
+        display: flex;
+    }
+    .drawer-handle {
+        display: none !important;
+    }
+}
+
+/* Mobile: ocultar flecha, mostrar línea */
+@media (max-width: 768px) {
+    .btn-back-drawer {
+        display: none;
+    }
+    .drawer-handle {
+        display: block;
+    }
 }
 
 .drawer-body {
@@ -1505,5 +1698,15 @@ header {
         max-width: calc(100vw - 32px);
         margin-left: 16px;
         margin-right: 16px;
+    }
+}
+
+/* ══════════════════════════════════════
+   BLOQUEAR SCROLL DEL BODY EN MÓVIL
+══════════════════════════════════════ */
+@media (max-width: 768px) {
+    body.cart-drawer-open {
+        overflow: hidden;
+        height: 100vh;
     }
 }

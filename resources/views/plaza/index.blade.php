@@ -2045,10 +2045,12 @@
             // ── DRAWER METHODS ──
             openCartDrawer() {
                 this.showCartDrawer = true;
+                document.body.classList.add('cart-drawer-open');
                 this.loadCartDrawer();
             },
             closeCartDrawer() {
                 this.showCartDrawer = false;
+                document.body.classList.remove('cart-drawer-open');
             },
             loadCartDrawer() {
                 fetch('{{ route("plaza.cart.get") }}', {
@@ -2144,6 +2146,40 @@
                 .catch(error => {
                     console.error('Error:', error);
                     this.loadCartDrawer(); // Recargar si hay error
+                });
+            },
+            goToClearCart() {
+                this.showConfirmClear = true;
+            },
+            cancelClearCart() {
+                this.showConfirmClear = false;
+            },
+            confirmClearCart() {
+                // Limpiar localmente
+                this.drawerCart = [];
+                this.showConfirmClear = false;
+                
+                // Guardar en servidor
+                fetch('{{ route("plaza.cart.clear") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast({ icon: 'success', title: '¡Carrito vaciado!', message: 'Todos los items han sido eliminados', timer: 5500 });
+                    } else {
+                        console.error('Error clearing cart:', data.message);
+                        this.loadCartDrawer();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    this.loadCartDrawer();
                 });
             },
 
