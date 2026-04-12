@@ -7,37 +7,30 @@ use App\Models\Local;
 use App\Models\Schedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
+use App\Helpers\PlazaHelper;
 
 class PlazaController extends Controller
 {
     /**
      * Plaza Principal: mostrar todos los locales, productos y categorías
+     * Optimizado con caché y selects específicos
      */
     public function index(Request $request)
     {
-        // Obtener categorías únicas de los productos disponibles
-        $categorias = Product::where('status', 'Available')
-            ->distinct()
-            ->pluck('category')
-            ->filter() // Remover valores null
-            ->values()
-            ->map(function ($category) {
-                return [
-                    'nombre' => $category,
-                    'slug' => Str::slug($category),
-                    'icono' => $this->getCategoryIcon($category),
-                ];
-            })
-            ->toArray();
+        // Obtener categorías únicas - cacheadas por 1 hora
+        $categorias = Cache::remember(
+            'plaza:all_categories',
+            60, // 1 hora
+            function () {
+                $cats = Product::availableCategories()->pluck('category');
+                return PlazaHelper::formatCategories($cats);
+            }
+        );
 
-        // Obtener productos disponibles
-        $productos = Product::where('status', 'Available')
-            ->with([
-                'locals',
-                'productReviews.review' => function ($query) {
-                    $query->select('review_id', 'rating');
-                }
-            ])
+        // Obtener productos disponibles con scope optimizado
+        $productos = Product::forPlaza()
+            ->active()
             ->get()
             ->map(function ($product) {
                 $product->category_slug = Str::slug($product->category);
@@ -53,32 +46,28 @@ class PlazaController extends Controller
         }
 
         // Obtener locales activos con sus productos disponibles
-        $locales = Local::where('status', 'Active')
+        // Solo traer columnas necesarias
+        $locales = Local::select('local_id', 'name', 'status')
+            ->where('status', 'Active')
             ->with(['gallery' => function ($query) {
-                $query->limit(1);
+                $query->select('gallery_id', 'local_id', 'image_url')
+                    ->limit(1);
             }])
             ->get();
 
-        // Obtener horarios para hoy y cachear resultados para evitar N+1 queries
+        // Obtener horarios para hoy - optimizado con scope
         $now = now();
         $dayOfWeek = $now->translatedFormat('l');
-        $dayTranslation = [
-            'Monday' => 'Lunes', 'Tuesday' => 'Martes', 'Wednesday' => 'Miércoles',
-            'Thursday' => 'Jueves', 'Friday' => 'Viernes', 'Saturday' => 'Sábado', 'Sunday' => 'Domingo',
-        ];
-        $dayInSpanish = $dayTranslation[$dayOfWeek] ?? null;
+        $dayInSpanish = PlazaHelper::translateDayToSpanish($dayOfWeek);
         
-        // Obtener schedules de hoy para todos los locales en UNA sola query (sin toArray)
+        // Usar scope optimizado: una sola query para todos los locales
         $schedulesByLocal = [];
         if ($dayInSpanish) {
-            $schedulesData = Schedule::whereIn('local_id', $locales->pluck('local_id'))
-                ->where('day_of_week', $dayInSpanish)
-                ->where('status', true)
-                ->get();
+            $schedulesData = Schedule::todayForLocals($locales->pluck('local_id')->toArray())
+                ->get()
+                ->keyBy('local_id');
             
-            foreach ($schedulesData as $schedule) {
-                $schedulesByLocal[$schedule->local_id] = $schedule;
-            }
+            $schedulesByLocal = $schedulesData->toArray();
         }
         
         // Asignar estados de apertura sin hacer más queries
@@ -87,8 +76,8 @@ class PlazaController extends Controller
             $local->isOpenNow = false;
             
             if (isset($schedulesByLocal[$local->local_id])) {
-                $schedule = $schedulesByLocal[$local->local_id];
-                $openingTime = $schedule->opening_time ? $schedule->opening_time->format('H:i:s') : null;
+                $schedule = (object)$schedulesByLocal[$local->local_id];
+                $openingTime = $schedule->opening_time ? \Carbon\Carbon::parse($schedule->opening_time)->format('H:i:s') : null;
                 $closingTime = $schedule->closing_time ? $schedule->closing_time->format('H:i:s') : null;
                 
                 if ($openingTime && $closingTime) {
@@ -98,16 +87,9 @@ class PlazaController extends Controller
             return $local;
         });
 
-        // Obtener productos aleatorios: simplificar a una query única en lugar de bucle
-        $productosAleatorios = Product::where('status', 'Available')
-            ->with([
-                'locals' => function ($query) {
-                    $query->select('tblocal.local_id', 'tblocal.name');
-                },
-                'productReviews.review' => function ($query) {
-                    $query->select('review_id', 'rating');
-                }
-            ])
+        // Obtener productos aleatorios con scopes optimizados
+        $productosAleatorios = Product::forPlaza()
+            ->active()
             ->inRandomOrder()
             ->limit(10)
             ->get();
@@ -135,49 +117,28 @@ class PlazaController extends Controller
      */
     public function show($id)
     {
-        // Buscar local por su primary key (local_id)
-        $local = Local::where('local_id', $id)->firstOrFail();
+        // Buscar local por su primary key - optimizado con selects
+        $local = Local::select('local_id', 'name', 'status', 'description', 'phone', 'email')
+            ->where('local_id', $id)
+            ->firstOrFail();
 
-        // Obtener productos de este local con eager loading de reseñas
-        $productos = Product::whereHas('locals', function ($query) use ($id) {
-            $query->where('tblocal_product.local_id', $id);
-        })
-            ->where('status', 'Available')
-            ->with([
-                'gallery',
-                'productReviews.review' => function ($query) {
-                    $query->select('review_id', 'rating');
-                }
-            ])
+        // Obtener productos con scope optimizado
+        $productos = Product::forPlaza()
+            ->active()
+            ->byLocal($id)
             ->get();
 
         // Extraer categorías únicas de los productos de este local
-        $categorias = $productos->pluck('category')
+        $categoriasData = $productos->pluck('category')
             ->unique()
-            ->filter()
-            ->map(function ($category) {
-                return [
-                    'nombre' => $category,
-                    'slug' => Str::slug($category),
-                    'icono' => $this->getCategoryIcon($category),
-                ];
-            });
+            ->filter();
+        
+        $categorias = PlazaHelper::formatCategories($categoriasData);
 
         // Obtener horario del día actual
         $now = now();
         $dayOfWeek = $now->translatedFormat('l');
-        
-        $dayTranslation = [
-            'Monday' => 'Lunes',
-            'Tuesday' => 'Martes',
-            'Wednesday' => 'Miércoles',
-            'Thursday' => 'Jueves',
-            'Friday' => 'Viernes',
-            'Saturday' => 'Sábado',
-            'Sunday' => 'Domingo',
-        ];
-
-        $dayInSpanish = $dayTranslation[$dayOfWeek] ?? null;
+        $dayInSpanish = PlazaHelper::translateDayToSpanish($dayOfWeek);
 
         $horarioHoy = null;
         $estaAbierto = false;
@@ -203,48 +164,57 @@ class PlazaController extends Controller
 
     /**
      * Obtener productos filtrados por categoría (AJAX)
+     * Optimizado: scopes + aggregate ratings en BD + paginación
      */
     public function getProductosByCategory(Request $request)
     {
         $categoria = $request->query('categoria', 'todos');
+        $page = $request->query('page', 1);
+        $perPage = 12; // Productos por página
 
-        // Obtener productos disponibles con sus locales y reseñas
-        $productosQuery = Product::where('status', 'Available')
-            ->with([
-                'locals' => function ($query) {
-                    $query->select('tblocal.local_id', 'tblocal.name');
-                },
-                'productReviews.review' => function ($query) {
-                    $query->select('review_id', 'rating');
-                }
-            ]);
+        // Query base optimizada con scopes
+        $productosQuery = Product::forPlaza()
+            ->active();
 
         // Filtrar por categoría si no es 'todos'
         if ($categoria !== 'todos') {
-            $productosQuery->whereRaw("LOWER(REPLACE(REPLACE(`category`, ' ', ''), '-', '')) = ?", 
-                [strtolower(str_replace([' ', '-'], '', $categoria))]
-            );
+            $productosQuery->byCategory($categoria);
         }
 
-        $productos = $productosQuery->get();
+        // Obtener total antes de paginar
+        $total = $productosQuery->count();
+
+        // Paginar resultados
+        $productos = $productosQuery
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
 
         // Mapear datos para retornar en JSON
         $productosFormateados = $productos->map(function ($product) {
             $localFirst = $product->locals->first();
             
-            // Calcular rating sin hacer queries adicionales
+            // Calcular rating promedio de forma más eficiente
             $reviews = $product->productReviews;
+            
+            // Calcular solo si hay reseñas
+            $averageRating = 0;
             if ($reviews->isNotEmpty()) {
-                $totalRating = $reviews->sum(function ($productReview) {
-                    return $productReview->review->rating ?? 0;
-                });
-                $averageRating = round($totalRating / $reviews->count());
-            } else {
-                $averageRating = 0;
+                $totalRating = 0;
+                $count = 0;
+                
+                foreach ($reviews as $productReview) {
+                    if ($productReview->review && isset($productReview->review->rating)) {
+                        $totalRating += $productReview->review->rating;
+                        $count++;
+                    }
+                }
+                
+                $averageRating = $count > 0 ? round($totalRating / $count) : 0;
             }
             
             return [
-                'id' => $product->product_id ?? $product->id,
+                'id' => $product->product_id,
                 'name' => $product->name,
                 'price' => number_format($product->price ?? 0, 2),
                 'photo_url' => $product->photo_url ?? asset('images/product-placeholder.png'),
@@ -255,39 +225,24 @@ class PlazaController extends Controller
             ];
         })->values();
 
+        // Calcular total de páginas
+        $totalPages = ceil($total / $perPage);
+
         return response()->json([
             'success' => true,
             'data' => $productosFormateados,
-            'total' => $productosFormateados->count(),
+            'pagination' => [
+                'total' => $total,
+                'per_page' => $perPage,
+                'current_page' => (int)$page,
+                'total_pages' => $totalPages,
+                'has_more' => $page < $totalPages,
+            ],
             'categoria' => $categoria,
         ]);
     }
 
-    /**
-     * Retornar icono según categoría
-     */
-    private function getCategoryIcon($category)
-    {
-        $icons = [
-            'hamburguesería' => 'fa-burger',
-            'pizza' => 'fa-pizza-slice',
-            'sushi' => 'fa-fish',
-            'postres' => 'fa-cake-candles',
-            'bebidas' => 'fa-glass-water',
-            'comida rápida' => 'fa-fire',
-            'ensaladas' => 'fa-leaf',
-            'sandwich' => 'fa-sandwich',
-        ];
 
-        $categoryLower = Str::slug($category);
-        foreach ($icons as $key => $icon) {
-            if (str_contains($categoryLower, Str::slug($key))) {
-                return $icon;
-            }
-        }
-
-        return 'fa-utensils'; // Default icon
-    }
 
     /**
      * Agregar producto al carrito (sesión)
