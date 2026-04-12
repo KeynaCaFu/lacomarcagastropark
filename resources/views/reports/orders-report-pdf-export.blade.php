@@ -318,7 +318,7 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td><span class="badge badge-web">🌐 En Línea</span></td>
+                        <td><span class="badge badge-web"> En Línea</span></td>
                         <td class="center"><strong>{{ $orderStats['web']['count'] ?? 0 }}</strong></td>
                         <td class="center">{{ $orderStats['web']['percentage'] ?? 0 }}%</td>
                         <td class="right"><strong>₡{{ number_format($revenueStats['web']['revenue'] ?? 0, 2) }}</strong></td>
@@ -335,7 +335,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td><span class="badge badge-presential">🏪 Presencial</span></td>
+                        <td><span class="badge badge-presential">Presencial </span></td>
                         <td class="center"><strong>{{ $orderStats['presential']['count'] ?? 0 }}</strong></td>
                         <td class="center">{{ $orderStats['presential']['percentage'] ?? 0 }}%</td>
                         <td class="right"><strong>₡{{ number_format($revenueStats['presential']['revenue'] ?? 0, 2) }}</strong></td>

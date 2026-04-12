@@ -57,26 +57,60 @@ class PlazaController extends Controller
             ->with(['gallery' => function ($query) {
                 $query->limit(1);
             }])
-            ->get()
-            ->map(function ($local) {
-                // Calcular si el local está abierto en este momento
-                $local->isOpenNow = Schedule::isCurrentlyOpen($local->local_id);
-                return $local;
-            });
+            ->get();
 
-        // Obtener 2 productos aleatorios de cada local con eager loading de reseñas
-        $productosAleatorios = collect();
-        foreach ($locales as $local) {
-            $productosLocal = $local->products()
-                ->where('tbproduct.status', 'Available')
-                ->with(['productReviews.review' => function ($query) {
-                    $query->select('review_id', 'rating');
-                }])
-                ->inRandomOrder()
-                ->limit(2)
+        // Obtener horarios para hoy y cachear resultados para evitar N+1 queries
+        $now = now();
+        $dayOfWeek = $now->translatedFormat('l');
+        $dayTranslation = [
+            'Monday' => 'Lunes', 'Tuesday' => 'Martes', 'Wednesday' => 'Miércoles',
+            'Thursday' => 'Jueves', 'Friday' => 'Viernes', 'Saturday' => 'Sábado', 'Sunday' => 'Domingo',
+        ];
+        $dayInSpanish = $dayTranslation[$dayOfWeek] ?? null;
+        
+        // Obtener schedules de hoy para todos los locales en UNA sola query (sin toArray)
+        $schedulesByLocal = [];
+        if ($dayInSpanish) {
+            $schedulesData = Schedule::whereIn('local_id', $locales->pluck('local_id'))
+                ->where('day_of_week', $dayInSpanish)
+                ->where('status', true)
                 ->get();
-            $productosAleatorios = $productosAleatorios->merge($productosLocal);
+            
+            foreach ($schedulesData as $schedule) {
+                $schedulesByLocal[$schedule->local_id] = $schedule;
+            }
         }
+        
+        // Asignar estados de apertura sin hacer más queries
+        $currentTime = $now->format('H:i:s');
+        $locales = $locales->map(function ($local) use ($schedulesByLocal, $currentTime) {
+            $local->isOpenNow = false;
+            
+            if (isset($schedulesByLocal[$local->local_id])) {
+                $schedule = $schedulesByLocal[$local->local_id];
+                $openingTime = $schedule->opening_time ? $schedule->opening_time->format('H:i:s') : null;
+                $closingTime = $schedule->closing_time ? $schedule->closing_time->format('H:i:s') : null;
+                
+                if ($openingTime && $closingTime) {
+                    $local->isOpenNow = $currentTime >= $openingTime && $currentTime < $closingTime;
+                }
+            }
+            return $local;
+        });
+
+        // Obtener productos aleatorios: simplificar a una query única en lugar de bucle
+        $productosAleatorios = Product::where('status', 'Available')
+            ->with([
+                'locals' => function ($query) {
+                    $query->select('tblocal.local_id', 'tblocal.name');
+                },
+                'productReviews.review' => function ($query) {
+                    $query->select('review_id', 'rating');
+                }
+            ])
+            ->inRandomOrder()
+            ->limit(10)
+            ->get();
 
         // Obtener estadísticas
         $stats = [
@@ -253,5 +287,92 @@ class PlazaController extends Controller
         }
 
         return 'fa-utensils'; // Default icon
+    }
+
+    /**
+     * Agregar producto al carrito (sesión)
+     */
+    public function addToCart(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|integer|exists:tbproduct,product_id',
+            'local_id' => 'required|integer|exists:tblocal,local_id',
+            'quantity' => 'required|integer|min:1',
+            'customization' => 'nullable|string|max:500',
+            'customer_name' => 'required|string|max:255',
+            'customer_email' => 'required|email|max:255',
+            'customer_phone' => 'required|string|max:20',
+            'delivery_address' => 'nullable|string|max:500',
+            'additional_notes' => 'nullable|string|max:500',
+        ]);
+
+        // Obtener producto para validar que existe en el local
+        $product = Product::where('product_id', $validated['product_id'])
+            ->whereHas('locals', function ($query) use ($validated) {
+                $query->where('tblocal.local_id', $validated['local_id']);
+            })
+            ->first();
+
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Producto no disponible en este local'
+            ], 422);
+        }
+
+        // Obtener carrito actual de sesión
+        $cart = session()->get('cart', []);
+
+        // Crear identificador único para el item basado en producto y customización
+        $itemKey = $product->product_id . '_' . md5($validated['customization'] ?? '');
+
+        // Verificar si el item ya existe en el carrito
+        $existingItem = null;
+        foreach ($cart as $key => $item) {
+            if ($item['item_key'] === $itemKey && $item['local_id'] === $validated['local_id']) {
+                $existingItem = $key;
+                break;
+            }
+        }
+
+        // Si existe, incrementar cantidad; si no, agregar nuevo item
+        if ($existingItem !== null) {
+            $cart[$existingItem]['quantity'] += $validated['quantity'];
+        } else {
+            $newItem = [
+                'item_key' => $itemKey,
+                'product_id' => $product->product_id,
+                'local_id' => $validated['local_id'],
+                'name' => $product->name,
+                'price' => $product->price,
+                'quantity' => $validated['quantity'],
+                'customization' => $validated['customization'] ?? '',
+                'photo_url' => $product->photo_url ?? asset('images/product-placeholder.png'),
+                'added_at' => now()->toIso8601String(),
+                // Datos del cliente
+                'customer_name' => $validated['customer_name'],
+                'customer_email' => $validated['customer_email'],
+                'customer_phone' => $validated['customer_phone'],
+                'delivery_address' => $validated['delivery_address'] ?? '',
+                'additional_notes' => $validated['additional_notes'] ?? '',
+            ];
+            $cart[] = $newItem;
+        }
+
+        // Guardar carrito en sesión
+        session()->put('cart', $cart);
+
+        return response()->json([
+            'success' => true,
+            'message' => $existingItem !== null ? 'Cantidad actualizada en el carrito' : 'Producto agregado al carrito',
+            'cart_count' => count($cart),
+            'cart' => $cart,
+        ]);
+    }
+
+    public function viewCart()
+    {
+        $cart = session()->get('cart', []);
+        return view('plaza.carrito.view', compact('cart'));
     }
 }

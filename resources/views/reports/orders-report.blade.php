@@ -24,6 +24,8 @@
         padding: 2rem 1.5rem;
         font-family: system-ui, sans-serif;
         color: var(--dark);
+        box-sizing: border-box;
+        overflow-x: hidden;
     }
 
     /* ── Header ── */
@@ -46,6 +48,9 @@
         border-radius: 10px;
         padding: 1.75rem;
         margin-bottom: 2rem;
+        box-sizing: border-box;
+        width: 100%;
+        overflow: hidden;
     }
     .rp-card h2 {
         font-size: 1.1rem;
@@ -187,6 +192,8 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 1.5rem;
         margin-bottom: 2rem;
+        width: 100%;
+        box-sizing: border-box;
     }
     @media (max-width: 1024px) {
         .rp-charts { grid-template-columns: 1fr; }
@@ -195,6 +202,9 @@
         position: relative;
         height: 340px;
         margin-bottom: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     /* ── Chart legend pills ── */
@@ -266,7 +276,7 @@
     }
     .rp-table th {
         padding: .75rem 1rem;
-        text-align: left;
+        text-align: center;
         font-size: .8rem;
         font-weight: 700;
         text-transform: uppercase;
@@ -278,6 +288,7 @@
         font-size: .9rem;
         border-bottom: 1px solid #eee;
         color: var(--dark);
+        text-align: center;
     }
     .rp-table tr.rp-table__total {
         background: #f5f3ee;
@@ -347,12 +358,40 @@
         .rp-rev-legend { grid-template-columns: 1fr; }
     }
 
-    /* ── Print ── */
-    @media print {
-        .rp-filters, .rp-actions { display: none !important; }
-        .rp-card { page-break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
-        .rp-container { padding: 1rem; }
+    /* ── View Toggle ── */
+    .rp-view-toggle {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        border-bottom: 2px solid #e0ddd6;
+        padding-bottom: 1rem;
     }
+    .rp-view-btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #999;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+        position: relative;
+        bottom: -2px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .rp-view-btn.active {
+        color: var(--green);
+        border-bottom-color: var(--green);
+    }
+    .rp-view-btn:hover {
+        color: var(--dark);
+    }
+
+
 </style>
 @endpush
 
@@ -362,6 +401,16 @@
     <div class="rp-header" style="margin-bottom:1.75rem;">
         <h1>Reportes de Pedidos</h1>
         <p>Análisis de pedidos en línea vs. presenciales — {{ $local->name }}</p>
+    </div>
+
+    <!-- Navigation: Local vs Productos -->
+    <div class="rp-view-toggle">
+        <span class="rp-view-btn active" style="cursor: default; pointer-events: none;">
+            <i class="fas fa-store"></i> Reportes del Local
+        </span>
+        <a href="{{ route('reports.products') }}?local_id={{ $local->local_id }}" class="rp-view-btn">
+            <i class="fas fa-box"></i> Reportes por Producto
+        </a>
     </div>
 
     {{-- Filters --}}
@@ -406,8 +455,20 @@
         </form>
     </div>
 
+    <!-- Mensaje de error de validación de costo -->
+    @if($productError)
+    <div class="rp-card" style="background: #f8d7da; border-left: 4px solid #dc3545; border-radius: 8px;">
+        <p style="color: #721c24; font-size: 1rem; margin: 0; font-weight: 600;">
+            ⚠️ {{ $productError }}
+        </p>
+        <p style="color: #721c24; font-size: 0.9rem; margin: 8px 0 0 0;">
+            Por favor selecciona otro producto que tenga costo registrado en el inventario.
+        </p>
+    </div>
+    @endif
+
     {{-- Empty data message --}}
-    @if(!$hasData)
+    @if(!$hasData && !$productError)
     <div class="rp-card" style="background: #fef3cd; border-left: 4px solid #8a6200;">
         <p style="color: #333; font-size: 1rem; margin: 0;">
             <strong>No hay ventas registradas en este período</strong>
@@ -456,8 +517,8 @@
                 <div class="rp-stat__label">Ingresos Totales</div>
                 <div class="rp-stat__value rp-color--gold" style="font-size:1.4rem;">₡{{ number_format($revenueStats['total'], 2) }}</div>
             </div>
-            <div class="rp-stat__icon rp-stat__icon--gold">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="rp-stat__icon rp-stat__icon--gold" style="font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center;">
+                ₡
             </div>
         </div>
     </div>
@@ -568,8 +629,9 @@
         </div>
     </div>
 
-    {{-- Top Selling Items --}}
-    @if($hasData && $topItems->count() > 0)
+
+    {{-- Top Selling Items (Original Location - Hidden in Local View) --}}
+    @if(false)
     <div class="rp-card rp-card--orange" style="padding: 1.25rem; margin-bottom: 1.5rem;">
         <h2 style="font-size: 0.95rem; margin: 0 0 0.75rem; font-weight: 700; color: var(--dark);">Productos Más Vendidos</h2>
         <div style="overflow-x:auto;">

@@ -213,17 +213,15 @@ Route::prefix('resenas')->name('reviews.')->group(function () {
 
     // REPORTES (GERENTE) - Análisis de pedidos online vs presenciales
     Route::prefix('reportes')->name('reports.')->group(function () {
+        // Vistas
         Route::get('/pedidos', [\App\Http\Controllers\ReportController::class, 'index'])->name('orders');
+        Route::get('/productos', [\App\Http\Controllers\ReportController::class, 'products'])->name('products');
+        
+        // APIs
         Route::get('/api/pedidos', [\App\Http\Controllers\ReportController::class, 'getData'])->name('orders.data');
-        Route::get('/descargar/html', [\App\Http\Controllers\ReportController::class, 'downloadHTML'])->name('download-html');
-        Route::get('/exportar/pdf', [\App\Http\Controllers\ReportController::class, 'exportPDF'])->name('export-pdf');
-        Route::get('/exportar/excel', [\App\Http\Controllers\ReportController::class, 'exportExcel'])->name('export-excel');
-    });
-
-    // REPORTES (GERENTE) - Análisis de pedidos online vs presenciales
-    Route::prefix('reportes')->name('reports.')->group(function () {
-        Route::get('/pedidos', [\App\Http\Controllers\ReportController::class, 'index'])->name('orders');
-        Route::get('/api/pedidos', [\App\Http\Controllers\ReportController::class, 'getData'])->name('orders.data');
+        Route::get('/api/productos', [\App\Http\Controllers\ReportController::class, 'getProductData'])->name('api.products');
+        
+        // Exportación
         Route::get('/descargar/html', [\App\Http\Controllers\ReportController::class, 'downloadHTML'])->name('download-html');
         Route::get('/exportar/pdf', [\App\Http\Controllers\ReportController::class, 'exportPDF'])->name('export-pdf');
         Route::get('/exportar/excel', [\App\Http\Controllers\ReportController::class, 'exportExcel'])->name('export-excel');
@@ -256,6 +254,11 @@ Route::prefix('plaza')->name('plaza.')->middleware('preserve.admin.session')->gr
     Route::get('/', [\App\Http\Controllers\PlazaController::class, 'index'])->name('index');
     Route::get('api/productos', [\App\Http\Controllers\PlazaController::class, 'getProductosByCategory'])->name('get.productos');
     Route::get('{id}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show')->where('id', '[0-9]+');
+    
+    // Carrito API (las rutas existen para todos, el controller maneja autenticación)
+    Route::post('carrito/agregar', [\App\Http\Controllers\CartController::class, 'addToCart'])->name('add.cart');
+    Route::get('carrito/api/get', [\App\Http\Controllers\CartController::class, 'getCart'])->name('cart.get');
+    Route::post('carrito/api/confirmar', [\App\Http\Controllers\CartController::class, 'confirmOrder'])->name('order.create');
 });
 
 // ==========================================
