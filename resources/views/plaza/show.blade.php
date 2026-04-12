@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -503,8 +503,7 @@
             .p-card.featured { 
                 grid-column: 1 / -1;
                 flex-direction: column; 
-            }
-        }
+            },        }
 
         .p-card.featured .p-card-img {
             flex: 0 0 40%;
@@ -620,11 +619,9 @@
             position: relative; z-index: 3;
         }
         @media (max-width: 900px) {
-            .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
-        }
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; },        }
         @media (max-width: 600px) {
-            .footer-grid { grid-template-columns: 1fr; gap: 28px; text-align: center; }
-        }
+            .footer-grid { grid-template-columns: 1fr; gap: 28px; text-align: center; },        }
 
         /* Brand column */
         .footer-brand-logo {
@@ -804,8 +801,7 @@
             .footer-col { text-align: center; }
             .footer-col h4 { justify-content: center; }
             .footer-col p { justify-content: center; }
-            .social-row { justify-content: center; }
-        }
+            .social-row { justify-content: center; },        }
 
         /* ── MODAL OVERLAY FIXES ──────────────────── */
         /* Asegurar que el modal no sea cortado por elementos padre */
@@ -919,8 +915,7 @@
             to {
                 opacity: 0;
                 transform: translateX(20px);
-            }
-        }
+            },        }
 
         /* Colores por tipo de alert */
         .swal2-icon.swal2-success {
@@ -1016,8 +1011,7 @@
             to {
                 opacity: 1;
                 transform: translateX(0);
-            }
-        }
+            },        }
 
         @keyframes slideOutRight {
             from {
@@ -1027,8 +1021,7 @@
             to {
                 opacity: 0;
                 transform: translateX(100px);
-            }
-        }
+            },        }
     </style>
 
 </head>
@@ -1045,10 +1038,10 @@
                 <span class="header-label">Menú</span>
                 <div style="display: flex; align-items: center; gap: 12px;">
                     @auth
-                        <a href="{{ route('plaza.view.cart') }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--primary); position: relative; text-decoration: none; transition: all 0.2s;">
+                        <button @click="openCartDrawer" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--primary); background: none; cursor: pointer; transition: all 0.2s;" :style="{ borderColor: showCartDrawer ? 'var(--primary)' : 'var(--border-light)' }">
                             <i class="fas fa-shopping-cart"></i>
-                            <span id="cart-count">{{ count(session('cart', [])) }}</span>
-                        </a>
+                            <span id="cart-count">@{{ totalDrawerQty }}</span>
+                        </button>
                     @endauth
                     <div>
                         @auth
@@ -1221,8 +1214,9 @@
                                         product_id: {{ $producto->product_id }},
                                         local_id: {{ $local->local_id }},
                                         name: '{{ addslashes($producto->name) }}',
-                                        price: {{ $producto->price }}
-                                    })">
+                                        description: '{{ addslashes($producto->description ?? '') }}',
+                                        photo_url: '{{ $producto->photo_url ?? asset('images/product-placeholder.png') }}',
+                                        price: {{ $producto->price }},                                    })">
                                     <i class="fas fa-shopping-cart"></i>
                                 </button>
                             </div>
@@ -1236,6 +1230,9 @@
 
     <!-- ═══ MODAL: AGREGAR AL CARRITO ═══ -->
     @include('plaza.carrito._add_to_cart_modal')
+
+    <!-- ═══ DRAWER: CARRITO (PANEL LATERAL) ═══ -->
+    @include('plaza.carrito._cart_drawer')
 
      <!-- ══ FOOTER ══ -->
     <footer class="footer-v2">
@@ -1328,6 +1325,9 @@
 
 </div>
 
+<!-- ═══ TOAST NOTIFICATIONS (OUTSIDE TEMPLATE) ═══ -->
+@include('plaza.carrito._toast-notifications')
+
 <script>
     // Validar si el usuario está autenticado
     window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
@@ -1342,31 +1342,7 @@
     @endauth
 
     // Función helper para mostrar toasts personalizados
-    const showToast = (config) => {
-        if (window.swToast) {
-            window.swToast.fire(config);
-        } else if (typeof Swal !== 'undefined') {
-            Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 7000,
-                timerProgressBar: true,
-                background: '#161310',
-                color: '#F5F0E8',
-                customClass: {
-                    container: 'custom-toast-container',
-                    popup: 'custom-toast-popup',
-                    title: 'custom-toast-title',
-                    icon: 'custom-toast-icon'
-                },
-                didOpen: (toast) => {
-                    toast.addEventListener('mouseenter', Swal.stopTimer);
-                    toast.addEventListener('mouseleave', Swal.resumeTimer);
-                }
-            }).fire(config);
-        }
-    };
+    const showToast = (config) => { if (window.showNotification) { window.showNotification(config); } };
 
     // Inicializar SweetAlert Toast
     const initSwToast = () => {
@@ -1425,8 +1401,15 @@
             return {
                 activeCategory: null,
                 showAddToCartModal: false,
+                showCartDrawer: false,
+                showConfirmOrder: false,
+                showConfirmClear: false,
+                drawerCart: [],
+                isCheckingOut: false,
                 currentProduct: {
                     name: '',
+                    description: '',
+                    photo_url: '',
                     price: 0,
                     product_id: 0,
                     local_id: 0
@@ -1439,7 +1422,7 @@
                 customerEmail: '',
                 customerPhone: '',
                 additionalNotes: ''
-            };
+            }
         },
         methods: {
             openAddToCartModal(product) {
@@ -1464,7 +1447,7 @@
             closeAddToCartModal() {
                 this.showAddToCartModal = false;
                 setTimeout(() => {
-                    this.currentProduct = { name: '', price: 0, product_id: 0, local_id: 0 };
+                    this.currentProduct = { name: '', description: '', photo_url: '', price: 0, product_id: 0, local_id: 0 };
                     this.quantity = 1;
                     this.customization = '';
                     this.customerName = '';
@@ -1558,36 +1541,37 @@
                             product_id: this.currentProduct.product_id,
                             local_id: this.currentProduct.local_id,
                             quantity: this.quantity,
-                            customization: this.customization.trim(), // Limpiar espacios al inicio y final
-                            // Datos del cliente
+                            customization: this.customization.trim(),
                             customer_name: this.customerName,
                             customer_email: this.customerEmail,
                             customer_phone: this.customerPhone,
-                            additional_notes: this.additionalNotes.trim() // Limpiar espacios también aquí
+                            additional_notes: this.additionalNotes.trim()
                         })
                     });
 
                     const data = await response.json();
+                    console.log('Add to cart response:', data);
 
                     if (response.ok && data.success) {
-                        // Mostrar toast de éxito
+                        // Mostrar toast de �xito
                         showToast({
                             icon: 'success',
-                            title: data.message
+                            title: '¡Producto agregado!',
+                            message: this.currentProduct.name + ' se agregó al carrito correctamente',
+                            timer: 5500
                         });
 
-                        // Actualizar contador del carrito
-                        const cartCountElement = document.getElementById('cart-count');
-                        if (cartCountElement) {
-                            cartCountElement.textContent = data.cart_count;
-                        }
+                        // Cargar carrito actualizado para que Vue reaccione
+                        this.loadCartDrawer();
 
                         // Cerrar modal
                         this.closeAddToCartModal();
                     } else {
                         showToast({
                             icon: 'error',
-                            title: data.message || 'Error al agregar al carrito'
+                            title: 'Oops, algo salió mal',
+                            message: data.message || 'No pudimos agregar el producto al carrito',
+                            timer: 5500
                         });
                     }
                 } catch (error) {
@@ -1599,6 +1583,123 @@
                 } finally {
                     this.isAddingToCart = false;
                 }
+            },
+            // ── DRAWER METHODS ──
+            openCartDrawer() {
+                this.showCartDrawer = true;
+                this.loadCartDrawer();
+            },
+            closeCartDrawer() {
+                this.showCartDrawer = false;
+            },
+            loadCartDrawer() {
+                // Cargar carrito desde sesión
+                fetch('{{ route("plaza.cart.get") }}', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Convertir precios y cantidades a números
+                    this.drawerCart = (data.cart || []).map(item => ({
+                        ...item,
+                        price: parseFloat(item.price),
+                        quantity: parseInt(item.quantity)
+                    }));
+                    console.log('Cart loaded:', {
+                        items: this.drawerCart.length,
+                        total: this.totalDrawerQty,
+                        cart: this.drawerCart
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading cart:', error);
+                });
+            },
+            updateItemQty(index, newQty) {
+                if (newQty < 1) newQty = 1;
+                if (this.drawerCart[index]) {
+                    this.drawerCart[index].quantity = newQty;
+                }
+            },
+            removeFromCart(index) {
+                this.drawerCart.splice(index, 1);
+            },
+            clearDrawerCart() {
+                if (confirm('¿estás seguro de que deseas vaciar el carrito?')) {
+                    this.drawerCart = [];
+                }
+            },
+            truncateText(text, length) {
+                if (text.length > length) {
+                    return text.substring(0, length) + '...';
+                }
+                return text;
+            },
+            goToCheckout() {
+                if (this.drawerCart.length === 0) {
+                    showToast({ icon: 'warning', title: 'El carrito está vacío' });
+                    return;
+                }
+                this.showConfirmOrder = true;
+            },
+            cancelConfirmOrder() {
+                this.showConfirmOrder = false;
+            },
+            processCheckout() {
+                this.isCheckingOut = true;
+                fetch('{{ route("plaza.order.create") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ items: this.drawerCart })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.showConfirmOrder = false;
+                        showToast({ icon: 'success', title: '¡Orden confirmada!', message: 'Tu orden se ha procesado correctamente', timer: 6000 });
+                        this.drawerCart = [];
+                        this.closeCartDrawer();
+                    } else {
+                        showToast({ icon: 'error', title: 'No se pudo procesar', message: data.message || 'Hubo un problema', timer: 5500 });
+                    }
+                })
+                .catch(error => {
+                    showToast({ icon: 'error', title: 'Oops', message: 'Problema de conexión', timer: 5500 });
+                })
+                .finally(() => { this.isCheckingOut = false; });
+            },
+            goToClearCart() {
+                this.showConfirmClear = true;
+            },
+            cancelClearCart() {
+                this.showConfirmClear = false;
+            },
+            confirmClearCart() {
+                this.drawerCart = [];
+                this.showConfirmClear = false;
+                showToast({ icon: 'success', title: '¡Carrito vaciado!', message: 'Todos los items han sido eliminados', timer: 5500 });
+            }
+        },
+
+        mounted() {
+            // Cargar carrito al iniciar la aplicación
+            this.loadCartDrawer();
+        },
+
+        computed: {
+            totalDrawerQty() {
+                return this.drawerCart.length;
+            },
+            totalDrawerPrice() {
+                return this.drawerCart.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0);
             }
         }
     }).mount('#plaza-app');

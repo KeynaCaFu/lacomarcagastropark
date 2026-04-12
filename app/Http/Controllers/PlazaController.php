@@ -57,26 +57,60 @@ class PlazaController extends Controller
             ->with(['gallery' => function ($query) {
                 $query->limit(1);
             }])
-            ->get()
-            ->map(function ($local) {
-                // Calcular si el local está abierto en este momento
-                $local->isOpenNow = Schedule::isCurrentlyOpen($local->local_id);
-                return $local;
-            });
+            ->get();
 
-        // Obtener 2 productos aleatorios de cada local con eager loading de reseñas
-        $productosAleatorios = collect();
-        foreach ($locales as $local) {
-            $productosLocal = $local->products()
-                ->where('tbproduct.status', 'Available')
-                ->with(['productReviews.review' => function ($query) {
-                    $query->select('review_id', 'rating');
-                }])
-                ->inRandomOrder()
-                ->limit(2)
+        // Obtener horarios para hoy y cachear resultados para evitar N+1 queries
+        $now = now();
+        $dayOfWeek = $now->translatedFormat('l');
+        $dayTranslation = [
+            'Monday' => 'Lunes', 'Tuesday' => 'Martes', 'Wednesday' => 'Miércoles',
+            'Thursday' => 'Jueves', 'Friday' => 'Viernes', 'Saturday' => 'Sábado', 'Sunday' => 'Domingo',
+        ];
+        $dayInSpanish = $dayTranslation[$dayOfWeek] ?? null;
+        
+        // Obtener schedules de hoy para todos los locales en UNA sola query (sin toArray)
+        $schedulesByLocal = [];
+        if ($dayInSpanish) {
+            $schedulesData = Schedule::whereIn('local_id', $locales->pluck('local_id'))
+                ->where('day_of_week', $dayInSpanish)
+                ->where('status', true)
                 ->get();
-            $productosAleatorios = $productosAleatorios->merge($productosLocal);
+            
+            foreach ($schedulesData as $schedule) {
+                $schedulesByLocal[$schedule->local_id] = $schedule;
+            }
         }
+        
+        // Asignar estados de apertura sin hacer más queries
+        $currentTime = $now->format('H:i:s');
+        $locales = $locales->map(function ($local) use ($schedulesByLocal, $currentTime) {
+            $local->isOpenNow = false;
+            
+            if (isset($schedulesByLocal[$local->local_id])) {
+                $schedule = $schedulesByLocal[$local->local_id];
+                $openingTime = $schedule->opening_time ? $schedule->opening_time->format('H:i:s') : null;
+                $closingTime = $schedule->closing_time ? $schedule->closing_time->format('H:i:s') : null;
+                
+                if ($openingTime && $closingTime) {
+                    $local->isOpenNow = $currentTime >= $openingTime && $currentTime < $closingTime;
+                }
+            }
+            return $local;
+        });
+
+        // Obtener productos aleatorios: simplificar a una query única en lugar de bucle
+        $productosAleatorios = Product::where('status', 'Available')
+            ->with([
+                'locals' => function ($query) {
+                    $query->select('tblocal.local_id', 'tblocal.name');
+                },
+                'productReviews.review' => function ($query) {
+                    $query->select('review_id', 'rating');
+                }
+            ])
+            ->inRandomOrder()
+            ->limit(10)
+            ->get();
 
         // Obtener estadísticas
         $stats = [

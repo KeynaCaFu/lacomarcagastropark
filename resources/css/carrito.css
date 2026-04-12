@@ -119,6 +119,14 @@
     overflow-x: hidden;
     flex: 1;
     min-height: 0;
+    /* Ocultar scrollbar pero permitir scroll */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE y Edge */
+}
+
+/* Chrome, Safari y Opera */
+.modal-body::-webkit-scrollbar {
+    display: none;
 }
 
 .product-summary {

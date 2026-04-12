@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -14,7 +14,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="{{ asset('css/carrito.css') }}">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1348,11 +1351,80 @@
             .grid-locals-v2 { grid-template-columns: 1fr; }
             .destacados-header { flex-direction: column; }
         }
-        
-        /* Animación ligera para móvil - solo horizontal */
-        @keyframes orbFloatMobile {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(-6px); }
+
+        /* ── SMALL CONFIRMATION MODAL ──*/
+        .swal-small-popup {
+            max-width: 320px !important;
+            width: 90% !important;
+            padding: 24px 20px !important;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 119, 58, 0.2) !important;
+            animation: scaleIn 0.3s cubic-bezier(0.22, 0.68, 0, 1.2);
+        }
+
+        .swal-small-title {
+            font-size: 1.1rem !important;
+            font-weight: 700 !important;
+            margin-bottom: 12px !important;
+            font-family: 'DM Sans', sans-serif !important;
+        }
+
+        .swal-small-html {
+            font-family: 'DM Sans', sans-serif !important;
+            font-size: 0.85rem !important;
+            line-height: 1.6 !important;
+        }
+
+        .swal2-confirm, .swal2-cancel {
+            font-size: 0.85rem !important;
+            padding: 8px 20px !important;
+            border-radius: 6px !important;
+            font-weight: 600 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.03em !important;
+            min-width: 120px !important;
+        }
+
+        .swal2-confirm {
+            background: #D4773A !important;
+            border: none !important;
+            box-shadow: 0 4px 12px rgba(212, 119, 58, 0.3) !important;
+        }
+
+        .swal2-confirm:hover {
+            background: #c06830 !important;
+            box-shadow: 0 6px 16px rgba(212, 119, 58, 0.4) !important;
+        }
+
+        .swal2-cancel {
+            background: #3a3531 !important;
+            border: 1px solid #4d4540 !important;
+            color: #b0a099 !important;
+        }
+
+        .swal2-cancel:hover {
+            background: #4d4540 !important;
+            color: #d4c5ba !important;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.85);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* ── SWAL2 Z-INDEX FIX ──*/
+        .swal2-container {
+            z-index: 99999 !important;
+        }
+
+        .swal2-modal {
+            z-index: 99999 !important;
         }
     </style>
 </head>
@@ -1369,10 +1441,10 @@
                 </div>
                 <div class="header-auth">
                     @auth
-                        <a href="{{ route('plaza.view.cart') }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--primary); position: relative; text-decoration: none; transition: all 0.2s;">
+                        <button @click="openCartDrawer" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--primary); background: none; cursor: pointer; transition: all 0.2s;" :style="{ borderColor: showCartDrawer ? 'var(--primary)' : 'var(--border-light)' }">
                             <i class="fas fa-shopping-cart"></i>
-                            <span id="cart-count">{{ count(session('cart', [])) }}</span>
-                        </a>
+                            <span id="cart-count">@{{ totalDrawerQty }}</span>
+                        </button>
                         <div class="user-menu-top">
                             <button class="user-menu-btn" id="userMenuBtn">
                                 @if(auth()->user()->avatar)
@@ -1822,9 +1894,17 @@
         </div>
     </footer>
 
+    <!-- ══ CART DRAWER ══ -->
+    @include('plaza.carrito._cart_drawer')
+
 </div>
 
+<!-- ═══ TOAST NOTIFICATIONS (OUTSIDE TEMPLATE) ═══ -->
+@include('plaza.carrito._toast-notifications')
+
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    // Función helper para mostrar toasts personalizados
+    const showToast = (config) => { if (window.showNotification) { window.showNotification(config); } };
     /* ── User menu ── */
     document.addEventListener('DOMContentLoaded', function() {
         const menuBtn = document.getElementById('userMenuBtn');
@@ -1851,13 +1931,20 @@
                 categoriaSelectNombre: 'Todos',
                 productosFiltrados: [],
                 cargandoProductos: false,
-            };
+                // Cart drawer data
+                showCartDrawer: false,
+                showConfirmOrder: false,
+                showConfirmClear: false,
+                drawerCart: [],
+                isCheckingOut: false
+            }
         },
 
         mounted() {
             this.buildParticles();
             document.addEventListener('mousemove', this.onMouseMove);
             window.addEventListener('scroll', this.onScroll, { passive: true });
+            this.loadCartDrawer();
         },
 
         beforeUnmount() {
@@ -1952,7 +2039,108 @@
                     this.cargandoProductos = false;
                 }
             },
+
+            // ── DRAWER METHODS ──
+            openCartDrawer() {
+                this.showCartDrawer = true;
+                this.loadCartDrawer();
+            },
+            closeCartDrawer() {
+                this.showCartDrawer = false;
+            },
+            loadCartDrawer() {
+                fetch('{{ route("plaza.cart.get") }}', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    this.drawerCart = (data.cart || []).map(item => ({
+                        ...item,
+                        price: parseFloat(item.price),
+                        quantity: parseInt(item.quantity)
+                    }));
+                })
+                .catch(error => console.error('Error loading cart:', error));
+            },
+            updateItemQty(index, newQty) {
+                if (newQty < 1) newQty = 1;
+                if (this.drawerCart[index]) {
+                    this.drawerCart[index].quantity = newQty;
+                }
+            },
+            removeFromCart(index) {
+                this.drawerCart.splice(index, 1);
+            },
+            goToClearCart() {
+                this.showConfirmClear = true;
+            },
+            cancelClearCart() {
+                this.showConfirmClear = false;
+            },
+            confirmClearCart() {
+                this.drawerCart = [];
+                this.showConfirmClear = false;
+                showToast({ icon: 'success', title: '¡Carrito vaciado!', message: 'Todos los items han sido eliminados', timer: 5500 });
+            },
+            goToCheckout() {
+                if (this.drawerCart.length === 0) {
+                    showToast({ icon: 'warning', title: 'El carrito está vacío' });
+                    return;
+                }
+
+                // Mostrar confirmación dentro del panel
+                this.showConfirmOrder = true;
+            },
+            
+            cancelConfirmOrder() {
+                this.showConfirmOrder = false;
+            },
+
+            async processCheckout() {
+                this.isCheckingOut = true;
+
+                try {
+                    const response = await fetch('{{ route("plaza.order.create") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ items: this.drawerCart })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showToast({ icon: 'success', title: '¡Orden confirmada!', message: 'Tu orden se ha procesado correctamente', timer: 6000 });
+                        this.drawerCart = [];
+                        this.showConfirmOrder = false;
+                        this.showCartDrawer = false;
+                    } else {
+                        showToast({ icon: 'error', title: 'No se pudo procesar', message: data.message || 'Hubo un problema al confirmar tu orden', timer: 5500 });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast({ icon: 'error', title: 'Oops, algo salió mal', message: 'Hubo un problema de conexión. Intenta de nuevo', timer: 5500 });
+                } finally {
+                    this.isCheckingOut = false;
+                }
+            }
         },
+
+        computed: {
+            totalDrawerQty() {
+                return this.drawerCart.length;
+            },
+            totalDrawerPrice() {
+                return this.drawerCart.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0);
+            }
+        }
     }).mount('#plaza-app');
 </script>
 

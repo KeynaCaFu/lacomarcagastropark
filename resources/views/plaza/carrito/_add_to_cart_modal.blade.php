@@ -11,7 +11,11 @@
         <div class="modal-body">
             <!-- PRODUCTO -->
             <div class="product-summary">
+                <div v-if="currentProduct.photo_url" style="margin-bottom: 12px; border-radius: 8px; overflow: hidden; height: 80px; width: 80px;">
+                    <img :src="currentProduct.photo_url" :alt="currentProduct.name" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
                 <h4>@{{ currentProduct.name }}</h4>
+                <p v-if="currentProduct.description" style="font-size: 0.8rem; color: var(--muted); margin: 6px 0 8px 0; line-height: 1.4;">@{{ currentProduct.description }}</p>
                 <p class="price"><sup>₡</sup>@{{ currentProduct.price }}</p>
             </div>
 
