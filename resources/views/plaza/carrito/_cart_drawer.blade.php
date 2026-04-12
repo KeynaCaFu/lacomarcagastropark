@@ -31,6 +31,28 @@
             </div>
         </div>
 
+        <!-- Confirmación de Eliminar Item -->
+        <div v-else-if="showConfirmRemove" class="drawer-confirm-order">
+            <div class="confirm-header">
+                <i class="fas fa-trash"></i>
+                <h4>¿Eliminar item?</h4>
+            </div>
+            <div class="confirm-body">
+                <div v-if="itemToRemoveIndex !== null && drawerCart[itemToRemoveIndex]" class="confirm-item-detail">
+                    <p class="confirm-text"><strong>@{{ drawerCart[itemToRemoveIndex].name }}</strong></p>
+                    <p class="confirm-text">¿Estás seguro de que deseas eliminar este producto del carrito?</p>
+                </div>
+            </div>
+            <div class="confirm-actions">
+                <button class="btn-confirm-no" @click="cancelRemoveItem">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button class="btn-confirm-yes btn-confirm-danger" @click="confirmRemoveItem">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+
         <!-- Confirmación de Orden (Reemplaza el contenido del carrito) -->
         <div v-else-if="showConfirmOrder" class="drawer-confirm-order">
             <div class="confirm-header">
