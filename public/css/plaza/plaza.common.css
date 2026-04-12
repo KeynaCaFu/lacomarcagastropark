@@ -98,7 +98,7 @@ a { text-decoration: none; color: inherit; }
 ══════════════════════════════════════ */
 .footer-v2 {
     position: relative;
-    background-image: url('{{ asset("images/fondomadera1.webp") }}');
+    background-image: url('/images/fondomadera1.webp');
     background-size: cover;
     background-position: center;
     overflow: hidden;
