@@ -257,12 +257,10 @@ Route::prefix('plaza')->name('plaza.')->middleware('preserve.admin.session')->gr
     Route::get('api/productos', [\App\Http\Controllers\PlazaController::class, 'getProductosByCategory'])->name('get.productos');
     Route::get('{id}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show')->where('id', '[0-9]+');
     
-    // Carrito API (requiere autenticación)
-    Route::middleware('auth')->group(function () {
-        Route::post('carrito/agregar', [\App\Http\Controllers\CartController::class, 'addToCart'])->name('add.cart');
-        Route::get('carrito/api/get', [\App\Http\Controllers\CartController::class, 'getCart'])->name('cart.get');
-        Route::post('carrito/api/confirmar', [\App\Http\Controllers\CartController::class, 'confirmOrder'])->name('order.create');
-    });
+    // Carrito API (las rutas existen para todos, el controller maneja autenticación)
+    Route::post('carrito/agregar', [\App\Http\Controllers\CartController::class, 'addToCart'])->name('add.cart');
+    Route::get('carrito/api/get', [\App\Http\Controllers\CartController::class, 'getCart'])->name('cart.get');
+    Route::post('carrito/api/confirmar', [\App\Http\Controllers\CartController::class, 'confirmOrder'])->name('order.create');
 });
 
 // ==========================================
