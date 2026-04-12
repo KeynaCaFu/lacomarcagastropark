@@ -260,6 +260,7 @@ Route::prefix('plaza')->name('plaza.')->middleware('preserve.admin.session')->gr
     Route::get('carrito/api/get', [\App\Http\Controllers\CartController::class, 'getCart'])->name('cart.get');
     Route::post('carrito/api/actualizar-cantidad', [\App\Http\Controllers\CartController::class, 'updateItemQuantity'])->name('cart.update.qty');
     Route::post('carrito/api/remover', [\App\Http\Controllers\CartController::class, 'removeItem'])->name('cart.remove');
+    Route::post('carrito/api/limpiar', [\App\Http\Controllers\CartController::class, 'clearCart'])->name('cart.clear');
     Route::post('carrito/api/confirmar', [\App\Http\Controllers\CartController::class, 'confirmOrder'])->name('order.create');
 });
 
