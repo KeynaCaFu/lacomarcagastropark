@@ -27,6 +27,7 @@ class PlazaController extends Controller
                 return PlazaHelper::formatCategories($cats);
             }
         );
+        $categorias = collect($categorias); // Convertir a Collection
 
         // Obtener productos disponibles con scope optimizado
         $productos = Product::forPlaza()
@@ -47,12 +48,8 @@ class PlazaController extends Controller
 
         // Obtener locales activos con sus productos disponibles
         // Solo traer columnas necesarias
-        $locales = Local::select('local_id', 'name', 'status')
+        $locales = Local::select('local_id', 'name', 'status', 'image_logo')
             ->where('status', 'Active')
-            ->with(['gallery' => function ($query) {
-                $query->select('gallery_id', 'local_id', 'image_url')
-                    ->limit(1);
-            }])
             ->get();
 
         // Obtener horarios para hoy - optimizado con scope
@@ -63,11 +60,9 @@ class PlazaController extends Controller
         // Usar scope optimizado: una sola query para todos los locales
         $schedulesByLocal = [];
         if ($dayInSpanish) {
-            $schedulesData = Schedule::todayForLocals($locales->pluck('local_id')->toArray())
+            $schedulesByLocal = Schedule::todayForLocals($locales->pluck('local_id')->toArray())
                 ->get()
                 ->keyBy('local_id');
-            
-            $schedulesByLocal = $schedulesData->toArray();
         }
         
         // Asignar estados de apertura sin hacer más queries
@@ -76,9 +71,9 @@ class PlazaController extends Controller
             $local->isOpenNow = false;
             
             if (isset($schedulesByLocal[$local->local_id])) {
-                $schedule = (object)$schedulesByLocal[$local->local_id];
+                $schedule = $schedulesByLocal[$local->local_id];
                 $openingTime = $schedule->opening_time ? \Carbon\Carbon::parse($schedule->opening_time)->format('H:i:s') : null;
-                $closingTime = $schedule->closing_time ? $schedule->closing_time->format('H:i:s') : null;
+                $closingTime = $schedule->closing_time ? \Carbon\Carbon::parse($schedule->closing_time)->format('H:i:s') : null;
                 
                 if ($openingTime && $closingTime) {
                     $local->isOpenNow = $currentTime >= $openingTime && $currentTime < $closingTime;
@@ -118,7 +113,7 @@ class PlazaController extends Controller
     public function show($id)
     {
         // Buscar local por su primary key - optimizado con selects
-        $local = Local::select('local_id', 'name', 'status', 'description', 'phone', 'email')
+        $local = Local::select('local_id', 'name', 'status', 'description', 'contact', 'image_logo')
             ->where('local_id', $id)
             ->firstOrFail();
 
@@ -126,6 +121,9 @@ class PlazaController extends Controller
         $productos = Product::forPlaza()
             ->active()
             ->byLocal($id)
+            ->with(['gallery' => function ($query) {
+                $query->select('product_gallery_id', 'product_id', 'image_url');
+            }])
             ->get();
 
         // Extraer categorías únicas de los productos de este local
@@ -133,7 +131,7 @@ class PlazaController extends Controller
             ->unique()
             ->filter();
         
-        $categorias = PlazaHelper::formatCategories($categoriasData);
+        $categorias = collect(PlazaHelper::formatCategories($categoriasData));
 
         // Obtener horario del día actual
         $now = now();
@@ -329,5 +327,42 @@ class PlazaController extends Controller
     {
         $cart = session()->get('cart', []);
         return view('plaza.carrito.view', compact('cart'));
+    }
+
+    /**
+     * Vista completa de detalles del producto (no modal)
+     */
+    public function showProduct($local_id, $product_id)
+    {
+        // Obtener el local
+        $local = Local::where('local_id', $local_id)->firstOrFail();
+
+        // Obtener el producto con toda su información usando whereHas para la relación
+        $product = Product::where('product_id', $product_id)
+            ->whereHas('locals', function ($query) use ($local_id) {
+                $query->where('tblocal.local_id', $local_id);
+            })
+            ->active()
+            ->with(['gallery' => function ($query) {
+                $query->orderBy('product_gallery_id', 'asc');
+            }])
+            ->firstOrFail();
+
+        // Obtener reseñas del producto
+        $reviews = $product->productReviews()
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Calcular rating promedio
+        $averageRating = $product->average_rating ?? 0;
+
+        return view('plaza.product-detail', [
+            'local' => $local,
+            'product' => $product,
+            'gallery' => $product->gallery,
+            'reviews' => $reviews,
+            'averageRating' => $averageRating,
+        ]);
     }
 }

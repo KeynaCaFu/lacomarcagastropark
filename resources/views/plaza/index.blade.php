@@ -313,7 +313,7 @@
                     @foreach($locales as $local)
                     <article class="local-card-v2">
                         <div class="local-img-wrap-v2">
-                            <img src="{{ $local->logo_url ?? 'https://via.placeholder.com/400x225/171410/D4773A?text=' . urlencode($local->name) }}"
+                            <img src="{{ $local->image_logo ? asset($local->image_logo) : 'https://via.placeholder.com/400x225/171410/D4773A?text=' . urlencode($local->name) }}"
                                  alt="{{ $local->name }}" class="local-img-v2" loading="lazy">
                             <div class="local-img-gradient"></div>
                         </div>
@@ -356,7 +356,7 @@
                     <div class="destacados-fire-badge">
                         <i class="fas fa-fire"></i> Lo Más Buscado
                     </div>
-                    <h2 class="destacados-title">Platillos Destacados</h2>
+                    <h2 class="destacados-title">Productos Destacados</h2>
                     <p class="destacados-sub">Los favoritos de nuestros clientes de todos los locales</p>
                 </div>
             </div>
