@@ -171,10 +171,21 @@
 }
 
 .product-summary .price {
-    font-size: 1.1rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.55rem;
     color: var(--primary);
     font-weight: 700;
     margin: 0;
+    line-height: 1;
+}
+
+.product-summary .price sup {
+    font-size: 0.7em;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    vertical-align: super;
+    margin-right: 1px;
+    opacity: 0.8;
 }
 
 .form-group {
@@ -359,8 +370,9 @@ input[type="number"]:disabled {
 
 .order-total span:last-child {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1rem;
+    font-size: 1.3rem;
     color: var(--primary);
+    font-weight: 700;
 }
 
 .modal-footer {
@@ -958,15 +970,17 @@ header {
 }
 
 .drawer-item-footer .info-unitario strong {
+    font-family: 'Cormorant Garamond', serif;
     color: var(--text);
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 1rem;
 }
 
 .drawer-item-footer .info-subtotal strong {
+    font-family: 'Cormorant Garamond', serif;
     color: var(--primary);
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 1.1rem;
 }
 
 .drawer-item-price {
@@ -1055,7 +1069,8 @@ header {
 }
 
 .summary-line.total {
-    font-size: 0.95rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--primary);
     margin-top: 8px;
@@ -1202,11 +1217,13 @@ header {
 }
 
 .confirm-item-price {
+    font-family: 'Cormorant Garamond', serif;
     color: var(--primary);
-    font-weight: 600;
+    font-weight: 700;
     text-align: right;
     white-space: nowrap;
     margin-left: 12px;
+    font-size: 1.05rem;
 }
 
 .confirm-total {
@@ -1229,6 +1246,7 @@ header {
 }
 
 .confirm-total strong {
+    font-family: 'Cormorant Garamond', serif;
     font-size: 1.8rem;
     color: var(--primary);
     font-weight: 700;

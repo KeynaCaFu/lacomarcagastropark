@@ -2069,23 +2069,36 @@
             updateItemQty(index, newQty) {
                 if (newQty < 1) newQty = 1;
                 if (this.drawerCart[index]) {
+                    // Actualizar localmente
                     this.drawerCart[index].quantity = newQty;
+                    
+                    // Guardar en servidor
+                    fetch('{{ route("plaza.cart.update.qty") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            item_index: index,
+                            quantity: newQty
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            console.error('Error updating quantity:', data.message);
+                            this.loadCartDrawer(); // Recargar si hay error
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.loadCartDrawer(); // Recargar si hay error
+                    });
                 }
             },
-            removeFromCart(index) {
-                this.drawerCart.splice(index, 1);
-            },
-            goToClearCart() {
-                this.showConfirmClear = true;
-            },
-            cancelClearCart() {
-                this.showConfirmClear = false;
-            },
-            confirmClearCart() {
-                this.drawerCart = [];
-                this.showConfirmClear = false;
-                showToast({ icon: 'success', title: '¡Carrito vaciado!', message: 'Todos los items han sido eliminados', timer: 5500 });
-            },
+
             goToCheckout() {
                 if (this.drawerCart.length === 0) {
                     showToast({ icon: 'warning', title: 'El carrito está vacío' });

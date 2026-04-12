@@ -392,7 +392,7 @@ class ReportData
      */
     public function getDailyTrendByProduct($localId, $productId, $startDate, $endDate)
     {
-        $orders = \DB::table('tborder_item')
+        $orders = DB::table('tborder_item')
             ->join('tborder', 'tborder_item.order_id', '=', 'tborder.order_id')
             ->where('tborder.local_id', $localId)
             ->where('tborder_item.product_id', $productId)
@@ -440,7 +440,7 @@ class ReportData
      */
     public function validateProductCost($productId, $localId)
     {
-        $localProduct = \DB::table('tblocal_product')
+        $localProduct = DB::table('tblocal_product')
             ->where('product_id', $productId)
             ->where('local_id', $localId)
             ->first();
@@ -480,7 +480,7 @@ class ReportData
      */
     public function getLocalProducts($localId)
     {
-        return \DB::table('tblocal_product')
+        return DB::table('tblocal_product')
             ->join('tbproduct', 'tblocal_product.product_id', '=', 'tbproduct.product_id')
             ->where('tblocal_product.local_id', $localId)
             ->where('tblocal_product.is_available', true)

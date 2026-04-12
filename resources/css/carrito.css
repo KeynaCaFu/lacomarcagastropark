@@ -145,10 +145,21 @@
 }
 
 .product-summary .price {
-    font-size: 1.1rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.55rem;
     color: var(--primary);
     font-weight: 700;
     margin: 0;
+    line-height: 1;
+}
+
+.product-summary .price sup {
+    font-size: 0.7em;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    vertical-align: super;
+    margin-right: 1px;
+    opacity: 0.8;
 }
 
 .form-group {
