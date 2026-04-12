@@ -1404,6 +1404,8 @@
                 showCartDrawer: false,
                 showConfirmOrder: false,
                 showConfirmClear: false,
+                showConfirmRemove: false,
+                itemToRemoveIndex: null,
                 drawerCart: [],
                 isCheckingOut: false,
                 currentProduct: {
@@ -1652,11 +1654,24 @@
                 }
             },
             removeFromCart(index) {
-                // Obtener item_key antes de eliminar
+                // Mostrar diálogo de confirmación
+                this.itemToRemoveIndex = index;
+                this.showConfirmRemove = true;
+            },
+            cancelRemoveItem() {
+                this.showConfirmRemove = false;
+                this.itemToRemoveIndex = null;
+            },
+            confirmRemoveItem() {
+                if (this.itemToRemoveIndex === null) return;
+                
+                const index = this.itemToRemoveIndex;
                 const itemKey = this.drawerCart[index].item_key;
                 
                 // Remover localmente
                 this.drawerCart.splice(index, 1);
+                this.showConfirmRemove = false;
+                this.itemToRemoveIndex = null;
                 
                 // Guardar en servidor usando item_key
                 fetch('{{ route("plaza.cart.remove") }}', {
@@ -1672,7 +1687,9 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (!data.success) {
+                    if (data.success) {
+                        showToast({ icon: 'success', title: 'Item eliminado', message: 'El producto ha sido removido del carrito', timer: 5500 });
+                    } else {
                         console.error('Error removing item:', data.message);
                         this.loadCartDrawer(); // Recargar si hay error
                     }
