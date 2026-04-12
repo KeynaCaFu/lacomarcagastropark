@@ -2,7 +2,7 @@
 <div id="modalEditarLocal"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1050;align-items:center;justify-content:center;padding:16px;">
     <div style="background:#fff;border-radius:14px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #e5e7eb;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px; border-bottom: 3px solid #f90;">
             <h5 style="margin:0;font-weight:700;font-size:17px;color:#111827;">
                 <i class="fas fa-edit" style="color:#c9690f;margin-right:8px;"></i>Editar Local
             </h5>
