@@ -2098,6 +2098,37 @@
                     });
                 }
             },
+            removeFromCart(index) {
+                // Obtener item_key antes de eliminar
+                const itemKey = this.drawerCart[index].item_key;
+                
+                // Remover localmente
+                this.drawerCart.splice(index, 1);
+                
+                // Guardar en servidor usando item_key
+                fetch('{{ route("plaza.cart.remove") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        item_key: itemKey
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        console.error('Error removing item:', data.message);
+                        this.loadCartDrawer(); // Recargar si hay error
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    this.loadCartDrawer(); // Recargar si hay error
+                });
+            },
 
             goToCheckout() {
                 if (this.drawerCart.length === 0) {
