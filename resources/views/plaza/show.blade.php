@@ -172,7 +172,9 @@
                 <div class="products-grid">
                     @foreach($productos as $i => $producto)
                     <div class="p-card {{ $i === 0 ? 'featured' : '' }}"
-                         v-show="activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory">
+                         v-show="activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory"
+                         @click="navigateToProduct('{{ route('plaza.product.detail', [$local->local_id, $producto->product_id]) }}')"
+                         style="cursor: pointer;">
 
                         <div class="p-card-img">
                             <img src="{{ $producto->photo_url ?? asset('images/product-placeholder.png') }}"
@@ -208,7 +210,7 @@
                                 </span>
                                 <button 
                                     class="btn-add-cart"
-                                    @click="openAddToCartModal({
+                                    @click.stop="openAddToCartModal({
                                         product_id: {{ $producto->product_id }},
                                         local_id: {{ $local->local_id }},
                                         name: '{{ addslashes($producto->name) }}',
@@ -330,6 +332,21 @@
     // Validar si el usuario está autenticado
     window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
 
+    // Datos de productos con galería
+    window.productsData = {!! json_encode($productos->map(function($p) {
+        return [
+            'product_id' => $p->product_id,
+            'local_id' => $p->local_id,
+            'name' => $p->name,
+            'description' => $p->description,
+            'category' => $p->category,
+            'photo_url' => $p->photo_url,
+            'price' => $p->price,
+            'average_rating' => $p->average_rating,
+            'gallery' => $p->gallery ?: []
+        ];
+    })->keyBy('product_id')) !!};
+
     // Inyectar datos del usuario autenticado si existe
     @auth
     window.authData = {
@@ -397,6 +414,7 @@
     createApp({
         data() {
             return {
+                isAuthenticated: {{ auth()->check() ? 'true' : 'false' }},
                 activeCategory: null,
                 showAddToCartModal: false,
                 showCartDrawer: false,
@@ -427,7 +445,7 @@
         methods: {
             openAddToCartModal(product) {
                 // Validar que el usuario esté autenticado
-                if (!window.isAuthenticated) {
+                if (!this.isAuthenticated) {
                     this.showAuthNotification();
                     return;
                 }
@@ -782,6 +800,71 @@
                     showToast({ icon: 'error', title: 'Oops', message: 'Problema de conexión', timer: 5500 });
                 })
                 .finally(() => { this.isCheckingOut = false; });
+            },
+
+            // ── PRODUCT DETAIL MODAL METHODS ──
+            navigateToProduct(url) {
+                window.location.href = url;
+            },
+
+            openProductDetailModal(productId) {
+                if (!this.isAuthenticated) {
+                    this.showAuthNotification();
+                    return;
+                }
+
+                // Obtener datos del producto desde la variable global
+                const product = window.productsData[productId];
+                if (!product) {
+                    console.error('Producto no encontrado:', productId);
+                    return;
+                }
+
+                this.selectedProduct = product;
+                this.selectedProductGallery = (product.gallery || []).map(item => ({
+                    image_url: item.image_url || item.url
+                }));
+                
+                // Si no hay galería, agregar la foto principal
+                if (this.selectedProductGallery.length === 0 && product.photo_url) {
+                    this.selectedProductGallery.push({ image_url: product.photo_url });
+                }
+
+                this.selectedGalleryIndex = 0;
+                this.detailQuantity = 1;
+                this.detailCustomization = '';
+                this.showProductDetailModal = true;
+                document.body.classList.add('modal-open');
+            },
+
+            openProductDetailModal(productId) {
+                if (!this.isAuthenticated) {
+                    this.showAuthNotification();
+                    return;
+                }
+
+                // Obtener datos del producto desde la variable global
+                const product = window.productsData[productId];
+                if (!product) {
+                    console.error('Producto no encontrado:', productId);
+                    return;
+                }
+
+                this.selectedProduct = product;
+                this.selectedProductGallery = (product.gallery || []).map(item => ({
+                    image_url: item.image_url || item.url
+                }));
+                
+                // Si no hay galería, agregar la foto principal
+                if (this.selectedProductGallery.length === 0 && product.photo_url) {
+                    this.selectedProductGallery.push({ image_url: product.photo_url });
+                }
+
+                this.selectedGalleryIndex = 0;
+                this.detailQuantity = 1;
+                this.detailCustomization = '';
+                this.showProductDetailModal = true;
+                document.body.classList.add('modal-open');
             }
         },
 
