@@ -2045,10 +2045,12 @@
             // ── DRAWER METHODS ──
             openCartDrawer() {
                 this.showCartDrawer = true;
+                document.body.classList.add('cart-drawer-open');
                 this.loadCartDrawer();
             },
             closeCartDrawer() {
                 this.showCartDrawer = false;
+                document.body.classList.remove('cart-drawer-open');
             },
             loadCartDrawer() {
                 fetch('{{ route("plaza.cart.get") }}', {

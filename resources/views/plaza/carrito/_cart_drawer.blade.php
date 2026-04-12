@@ -1,12 +1,11 @@
 <!-- ═══ CART DRAWER: PANEL LATERAL ═══ -->
-<div class="cart-drawer-overlay" v-if="showCartDrawer" @click="closeCartDrawer"></div>
-
 <div class="cart-drawer" :class="{ open: showCartDrawer }">
     <!-- Header -->
     <div class="drawer-header">
         <button class="btn-back-drawer" @click="closeCartDrawer" title="Volver">
             <i class="fas fa-chevron-left"></i>
         </button>
+        <button class="drawer-handle" @click="closeCartDrawer" title="Deslizar para cerrar"></button>
         <h3>Mi Carrito</h3>
     </div>
 
@@ -183,3 +182,6 @@
     </div>
 
 </div>
+
+<!-- Overlay aparece después del drawer para que los selectores CSS de hermanos funcionen -->
+<div class="cart-drawer-overlay" v-if="showCartDrawer" @click="closeCartDrawer"></div>

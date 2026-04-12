@@ -1,11 +1,14 @@
 <!-- ═══ MODAL: AGREGAR AL CARRITO ═══ -->
 <div id="addToCartModal" class="modal-overlay" v-if="showAddToCartModal" @click="closeAddToCartModal">
     <div class="modal-content" @click.stop>
-        <div class="modal-header">
-            <h3>Agregar al Carrito</h3>
-            <button class="modal-close" @click="closeAddToCartModal">
-                <i class="fas fa-times"></i>
+        <div class="modal-header" style="position: relative; text-align: center;">
+            <!-- Flecha para desktop -->
+            <button class="modal-close modal-close-arrow" @click="closeAddToCartModal" style="position: absolute; left: 50%; transform: translateX(-50%); top: -25px; background: none; border: none; color: var(--primary); font-size: 1.5rem; cursor: pointer; padding: 5px; z-index: 10;" title="Cerrar">
+                <i class="fas fa-chevron-up"></i>
             </button>
+            <!-- Línea para mobile (WhatsApp style) -->
+            <button class="modal-handle" @click="closeAddToCartModal" style="position: absolute; left: 50%; transform: translateX(-50%); top: 10px; background: none; border: none; cursor: pointer; padding: 0; width: 40px; height: 40px; z-index: 10;" title="Salir"></button>
+            <h3>Agregar al Carrito</h3>
         </div>
 
         <div class="modal-body">

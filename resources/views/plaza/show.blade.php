@@ -6,6 +6,12 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $local->name }} - La Comarca Gastro Park</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/ico" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1445,8 +1451,10 @@
                     this.customerPhone = authData.phone || '';
                 }
                 this.showAddToCartModal = true;
+                document.body.classList.add('modal-open');
             },
             closeAddToCartModal() {
+                document.body.classList.remove('modal-open');
                 this.showAddToCartModal = false;
                 setTimeout(() => {
                     this.currentProduct = { name: '', description: '', photo_url: '', price: 0, product_id: 0, local_id: 0 };
@@ -1589,10 +1597,12 @@
             // ── DRAWER METHODS ──
             openCartDrawer() {
                 this.showCartDrawer = true;
+                document.body.classList.add('cart-drawer-open');
                 this.loadCartDrawer();
             },
             closeCartDrawer() {
                 this.showCartDrawer = false;
+                document.body.classList.remove('cart-drawer-open');
             },
             loadCartDrawer() {
                 // Cargar carrito desde sesión
