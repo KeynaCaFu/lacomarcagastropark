@@ -208,6 +208,28 @@ class CartController extends Controller
     }
 
     /**
+     * Limpiar carrito completamente
+     */
+    public function clearCart(Request $request)
+    {
+        try {
+            session()->forget('cart');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Carrito vaciado',
+                'cart' => [],
+                'cart_count' => 0
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Confirmar orden desde drawer
      */
     public function confirmOrder(Request $request)
