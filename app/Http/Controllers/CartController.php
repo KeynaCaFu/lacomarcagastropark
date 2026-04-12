@@ -159,7 +159,53 @@ class CartController extends Controller
         }
     }
 
+    /**
+     * Remover un item del carrito por item_key
+     */
+    public function removeItem(Request $request)
+    {
+        $validated = $request->validate([
+            'item_key' => 'required|string',
+        ]);
 
+        try {
+            $cart = session()->get('cart', []);
+            $itemKeyToRemove = $validated['item_key'];
+            $found = false;
+
+            // Buscar por item_key
+            foreach ($cart as $index => $item) {
+                if ($item['item_key'] === $itemKeyToRemove) {
+                    unset($cart[$index]);
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (!$found) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Item no encontrado en el carrito'
+                ], 422);
+            }
+
+            // Re-indexar el array
+            $cart = array_values($cart);
+            session()->put('cart', $cart);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Item eliminado del carrito',
+                'cart' => $cart,
+                'cart_count' => count($cart)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 
     /**
      * Confirmar orden desde drawer
