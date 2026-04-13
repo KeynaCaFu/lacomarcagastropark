@@ -50,6 +50,52 @@ class Product extends Model
     }
 
     /**
+     * Relación: Reseñas del producto
+     */
+    public function productReviews()
+    {
+        return $this->hasMany(ProductReview::class, 'product_id', 'product_id');
+    }
+
+    /**
+     * Accessor: Obtener rating promedio del producto
+     * Uso en Blade: {{ $product->average_rating }}
+     * Optimizado para usar eager-loaded relations si están disponibles
+     */
+    public function getAverageRatingAttribute()
+    {
+        // Si ya tenemos las relaciones cargadas, úsalas
+        if ($this->relationLoaded('productReviews')) {
+            $reviews = $this->productReviews;
+            if ($reviews->isEmpty()) {
+                return 0;
+            }
+
+            $totalRating = $reviews->sum(function ($productReview) {
+                return $productReview->review->rating ?? 0;
+            });
+
+            return round($totalRating / $reviews->count(), 1);
+        }
+
+        // Si no están cargadas, haz la query (fallback)
+        $reviews = $this->productReviews()
+            ->whereHas('review')
+            ->with('review')
+            ->get();
+
+        if ($reviews->isEmpty()) {
+            return 0;
+        }
+
+        $totalRating = $reviews->sum(function ($productReview) {
+            return $productReview->review->rating ?? 0;
+        });
+
+        return round($totalRating / $reviews->count(), 1);
+    }
+
+    /**
      * Accessor: Obtener URL de la foto
      * Uso en Blade: {{ $product->photo_url }}
      */
@@ -161,5 +207,60 @@ class Product extends Model
             });
         }
         return $query;
+    }
+
+    /**
+     * Scope: Incluir rating promedio calculado en BD
+     * Mucho más eficiente que calcular en PHP
+     * Uso: Product::withAverageRating()->get()
+     * Resultado: $product->average_rating_db
+     */
+    public function scopeWithAverageRating($query)
+    {
+        return $query->selectRaw(
+            'tbproduct.*,
+            ROUND(COALESCE(AVG(tbreview.rating), 0), 1) as average_rating_db'
+        )
+        ->leftJoin('tbproduct_review', 'tbproduct.product_id', '=', 'tbproduct_review.product_id')
+        ->leftJoin('tbreview', 'tbproduct_review.review_id', '=', 'tbreview.review_id')
+        ->groupBy('tbproduct.product_id');
+    }
+
+    /**
+     * Scope: Optimización para vistas de Plaza
+     * Selects específicos + eager loading eficiente
+     * Uso: Product::forPlaza()->get()
+     */
+    public function scopeForPlaza($query)
+    {
+        return $query->select('tbproduct.product_id', 'tbproduct.name', 'tbproduct.price', 
+                             'tbproduct.photo', 'tbproduct.category', 'tbproduct.status',
+                             'tbproduct.created_at', 'tbproduct.updated_at')
+            ->with([
+                'locals' => function ($q) {
+                    $q->select('tblocal.local_id', 'tblocal.name');
+                }
+            ]);
+    }
+
+    /**
+     * Scope: Obtener solo categorías disponibles
+     * Uso: Product::availableCategories()
+     */
+    public function scopeAvailableCategories($query)
+    {
+        return $query->where('status', 'Available')
+            ->select('category')
+            ->distinct()
+            ->orderBy('category');
+    }
+
+    /**
+     * Scope: Filtrar por rango de precio
+     * Uso: Product::priceRange(10, 50)->get()
+     */
+    public function scopePriceRange($query, $min, $max)
+    {
+        return $query->whereBetween('price', [$min, $max]);
     }
 }

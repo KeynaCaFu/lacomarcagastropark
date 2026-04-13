@@ -44,10 +44,7 @@ class UserModals {
         const content = document.getElementById('editUserContent');
         if(!modal || !content) return;
         
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        
-        
+        // No mostrar el modal hasta que el contenido esté cargado
         try{
             const csrf = document.querySelector('meta[name="csrf-token"]').content;
             
@@ -64,9 +61,15 @@ class UserModals {
             const html = await partialRes.text();
             content.innerHTML = html;
             this.initEditForm(content);
+            
+            // Ahora mostrar el modal completo y listo
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         } catch(e){ 
             console.error('Error:', e);
             content.innerHTML = '<div class="p-3 text-center text-danger">Error al cargar</div>';
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         }
     }
 
@@ -274,18 +277,30 @@ class UserModals {
 }
 
 // Exponer funciones globales
-document.addEventListener('DOMContentLoaded', function(){
-    window.userModals = new UserModals();
-});
+let _userModalsInstance = null;
+
+function ensureUserModals() {
+    if (!_userModalsInstance) {
+        _userModalsInstance = new UserModals();
+    }
+    return _userModalsInstance;
+}
 
 function openUserCreateModal(){ 
-    if(window.userModals) window.userModals.openCreateModal(); 
+    ensureUserModals().openCreateModal();
 }
 
 function openUserEditModal(userId){ 
-    if(window.userModals) window.userModals.openEditModal(userId); 
+    ensureUserModals().openEditModal(userId);
 }
 
 function closeUserModal(id){ 
-    if(window.userModals) window.userModals.closeModal(id); 
+    ensureUserModals().closeModal(id);
+}
+
+// Inicializar INMEDIATAMENTE para que las funciones globales estén disponibles
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ensureUserModals);
+} else {
+    ensureUserModals();
 }

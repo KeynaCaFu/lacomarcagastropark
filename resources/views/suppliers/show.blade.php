@@ -17,7 +17,7 @@
 
         .supplier-breadcrumb .breadcrumb {
             padding: 0;
-            margin: 0;
+            margin: 19px;
             background: none;
         }
 
@@ -68,7 +68,7 @@
             font-size: 16px;
             font-weight: 700;
             color: #1f2937;
-            border-bottom: 1px solid #e5e7eb;
+           border-bottom: 3px solid #ea8c27;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -215,7 +215,7 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{ route('suppliers.index') }}">
-                    <i class="fas fa-truck"></i> Proveedores
+                    <i class="fas fa-users"></i> Proveedores
                 </a>
             </li>
             <li class="breadcrumb-item active" style="color:#6b7280; font-weight:600;">
@@ -226,10 +226,10 @@
 
     <div class="supplier-title-wrap">
         <h1 class="supplier-title">
-            <i class="fas fa-store"></i>
+            <i class="fas fa-truck"></i>
             {{ $supplier->name }}
         </h1>
-        <div class="supplier-subtitle">Detalles del proveedor</div>
+        
     </div>
 
     @php
@@ -330,7 +330,7 @@
                             $isPdf = $ext === 'pdf';
                         @endphp
 
-                        <div class="supplier-gallery-item">
+                        <div class="supplier-gallery-item" style="position: relative;">
                             @if($isPdf)
                                 <div class="supplier-pdf-box">
                                     <i class="fas fa-file-pdf"></i>
@@ -339,6 +339,22 @@
                             @else
                                 <img src="{{ $path }}" alt="Factura">
                             @endif
+
+                            <!-- Botón eliminar en la esquina -->
+                            <form action="{{ route('suppliers.gallery.delete', [$supplier->supplier_id, $item->gallery_id]) }}" method="POST" style="position: absolute; top: 8px; right: 8px; z-index: 100;">
+                                @csrf
+                                @method('DELETE')
+
+                                <button type="button" 
+                                        class="btn btn-sm delete-gallery-btn" 
+                                        style="padding: 8px 10px; border-radius: 6px; font-weight: 600; font-size: 13px; border: none; background: rgba(239, 68, 68, 0.9); color: white; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(4px);"
+                                        onmouseover="this.style.background='rgba(220, 38, 38, 0.95)'"
+                                        onmouseout="this.style.background='rgba(239, 68, 68, 0.9)'"
+                                        onclick="confirmDeleteSupplierGallery(this.closest('form'));">
+                                    <i class="fas fa-trash-alt" style="font-size: 12px;"></i>
+                                    <span>Eliminar</span>
+                                </button>
+                            </form>
 
                             <div class="supplier-gallery-name">{{ $fileName }}</div>
 
@@ -438,6 +454,28 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // Función para eliminar archivos de la galería del proveedor
+    window.confirmDeleteSupplierGallery = function(form) {
+        if (window.swConfirm) {
+            swConfirm({
+                title: 'Eliminar archivo',
+                text: '¿Está seguro de que desea eliminar este archivo de la galería?',
+                icon: 'warning',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#dc2626'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        } else {
+            if (confirm('¿Está seguro de que desea eliminar este archivo?')) {
+                form.submit();
+            }
+        }
+    };
 });
 </script>
 @endpush

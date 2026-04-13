@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <!-- Favicon -->
+    <link rel="icon" type="image/ico" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
     <title>@yield('title', 'La Comarca - Admin')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -355,6 +358,24 @@
                                      <i class="fas fa-truck"></i> Proveedores
                                 </a>
                             </li>
+
+                            <li>
+                                <a href="{{ route('orders.index') }}" class="{{ request()->routeIs('orders*') ? 'active' : '' }}" data-tooltip="Órdenes">
+                                    <i class="fas fa-shopping-cart"></i> Órdenes
+                                </a>
+                            </li>
+
+                            <li>
+                                     <a href="{{ route('reviews.index') }}" class="{{ request()->routeIs('reviews*') ? 'active' : '' }}" data-tooltip="Reseñas">
+                                      <i class="fas fa-star"></i> Reseñas
+                                                    </a>
+                                            </li>
+
+                            <li>
+                                <a href="{{ route('reports.orders') }}" class="{{ request()->routeIs('reports*') ? 'active' : '' }}" data-tooltip="Reportes">
+                                    <i class="fas fa-chart-bar"></i> Reportes
+                                </a>
+                            </li>
                         @endif
                     </ul>
                 </div>
@@ -394,6 +415,54 @@
                         
                         <!-- Help Button Container (Eventos) -->
                         <div id="topHelpEventContainer"></div>
+
+                        <!-- Campana de órdenes pendientes -->
+                        @if(auth()->check() && !auth()->user()->isAdminGlobal())
+                        <div style="position: relative;">
+                            <button id="notificationBellBtn" style="background: none; border: none; cursor: pointer; padding: 8px 12px; color: #e18018; font-size: 20px; display: flex; align-items: center; justify-content: center; position: relative;" title="Órdenes pendientes">
+                                <i class="fas fa-bell"></i>
+                                <span id="pendingCountBadge" style="position: absolute; top: -5px; right: 0; background: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; border: 2px solid white; display: none;">0</span>
+                            </button>
+                            
+                            <!-- Dropdown de órdenes y reseñas pendientes -->
+                            <div id="notificationDropdown" style="position: absolute; top: 100%; right: 0; margin-top: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 360px; z-index: 1000; display: none;">
+                                <!-- Tabs -->
+                                <div style="display: flex; border-bottom: 2px solid #f3f4f6; padding: 0;">
+                                    <button class="notif-tab" data-tab="orders" style="flex: 1; padding: 12px 16px; border: none; background: none; cursor: pointer; font-weight: 600; color: #111827; font-size: 14px; border-bottom: 3px solid #e18018; transition: all 0.2s;">
+                                        Órdenes
+                                    </button>
+                                    <button class="notif-tab" data-tab="reviews" style="flex: 1; padding: 12px 16px; border: none; background: none; cursor: pointer; font-weight: 600; color: #9ca3af; font-size: 14px; border-bottom: 3px solid transparent; transition: all 0.2s;">
+                                        Reseñas
+                                    </button>
+                                </div>
+                                
+                                <!-- Contenedor de órdenes -->
+                                <div id="notificationList" class="notif-content" data-content="orders" style="max-height: 400px; overflow-y: auto;">
+                                    <div style="padding: 20px 16px; text-align: center; color: #9ca3af; font-size: 13px;">
+                                        Cargando...
+                                    </div>
+                                </div>
+                                
+                                <!-- Contenedor de reseñas -->
+                                <div id="reviewsList" class="notif-content" data-content="reviews" style="max-height: 400px; overflow-y: auto; display: none;">
+                                    <div style="padding: 40px 16px; text-align: center;">
+                                        <div style="color: #9ca3af; font-size: 14px; margin-bottom: 8px;">
+                                            <i class="fas fa-star" style="font-size: 32px; margin-bottom: 12px; display: block; color: #bfdbfe;"></i>
+                                            Aún no hay notificaciones de reseñas
+                                        </div>
+                                        <p style="color: #d1d5db; font-size: 12px;">Esta funcionalidad estará disponible próximamente</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Footer (solo para órdenes) -->
+                                <div id="notifFooter" style="padding: 12px 16px; border-top: 1px solid #f3f4f6; text-align: center;">
+                                    <a href="{{ route('orders.index') }}" style="color: #e18018; text-decoration: none; font-weight: 600; font-size: 13px;">
+                                        Ver todas las órdenes →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
 
                         <!-- User Icon Menu -->
                         <div class="user-menu-top" style="position: relative;">
@@ -439,6 +508,17 @@
                                         </a>
                                         <a href="{{ route('suppliers.index') }}" class="mobile-nav-item {{ request()->routeIs('suppliers*') ? 'active' : '' }}">
                                             <i class="fas fa-truck"></i> Proveedores
+                                        </a>
+                                        <a href="{{ route('orders.index') }}" class="mobile-nav-item {{ request()->routeIs('orders*') ? 'active' : '' }}">
+                                            <i class="fas fa-shopping-cart"></i> Órdenes
+                                        </a>
+
+                                        <a href="{{ route('reviews.index') }}" class="mobile-nav-item {{ request()->routeIs('reviews*') ? 'active' : '' }}">
+                                            <i class="fas fa-star"></i> Reseñas
+                                        </a>
+
+                                        <a href="{{ route('reports.orders') }}" class="mobile-nav-item {{ request()->routeIs('reports*') ? 'active' : '' }}">
+                                            <i class="fas fa-chart-bar"></i> Reportes
                                         </a>
                                         
                                     @endif
@@ -534,7 +614,7 @@
             // Toast para notificaciones pequeñas en la esquina superior derecha
             const initSwToast = () => {
                 if (typeof Swal !== 'undefined' && !window.swToast) {
-                    window.swToast = Swal.mixin({
+                    const SwToastClass = Swal.mixin({
                         toast: true,
                         position: 'top-end',
                         showConfirmButton: false,
@@ -545,6 +625,7 @@
                             toast.addEventListener('mouseleave', Swal.resumeTimer);
                         }
                     });
+                    window.swToast = SwToastClass;
                 }
             };
 
@@ -1011,6 +1092,231 @@
                     });
                 }
             }
+        });
+    </script>
+
+    <!-- Campana de notificaciones - Órdenes Pendientes -->
+    <script>
+        // Función global para cambiar estado desde la campanita
+        async function changeOrderStatusFromNotif(orderId, status) {
+            // Mensajes de confirmación según el estado
+            const confirmMessages = {
+                'Preparing': '¿Cambiar estado a En Preparación?',
+                'Cancelled': '¿Cancelar esta orden?'
+            };
+            
+            const message = confirmMessages[status] || '¿Cambiar estado?';
+            
+            // Si es cancelación, pedir motivo
+            let cancellationReason = null;
+            if (status === 'Cancelled') {
+                const inputResult = await Swal.fire({
+                    title: 'Cancelar Orden',
+                    text: 'Por favor, indique el motivo de la cancelación:',
+                    input: 'textarea',
+                    inputPlaceholder: 'Ej: Cliente lo solicita, error en pedido, etc...',
+                    inputAttributes: {
+                        maxlength: 500
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Cancelar orden',
+                    cancelButtonText: 'Atrás',
+                    confirmButtonColor: '#e18018',
+                    cancelButtonColor: '#6b7280',
+                    icon: 'warning',
+                    inputValidator: (value) => {
+                        if (!value || !value.trim()) {
+                            return 'Debe ingresar un motivo para cancelar'
+                        }
+                    }
+                });
+                
+                if (!inputResult.isConfirmed) return;
+                cancellationReason = inputResult.value.trim();
+            } else {
+                // Para otros estados, confirmación simple
+                const result = await window.swConfirm({
+                    title: 'Confirmar cambio',
+                    text: message,
+                    icon: 'info'
+                });
+                
+                if (!result.isConfirmed) return;
+            }
+            
+            try {
+                const payload = { status };
+                if (cancellationReason) {
+                    payload.cancellation_reason = cancellationReason;
+                }
+
+                const response = await fetch(`{{ url('ordenes') }}/${orderId}/cambiar-estado`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Recargar órdenes después de cambiar el estado
+                    if (window.loadPendingOrdersNotif) {
+                        window.loadPendingOrdersNotif();
+                    }
+                    const statusNames = {
+                        'Preparing': 'En Preparación',
+                        'Cancelled': 'Cancelada'
+                    };
+                    if (window.swToast) {
+                        window.swToast.fire({
+                            icon: 'success',
+                            title: `Estado cambiado a ${statusNames[status]}`
+                        });
+                    }
+                } else {
+                    // Error del servidor
+                    if (window.swAlert) {
+                        window.swAlert({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.error || 'No se pudo cambiar el estado'
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error al cambiar estado:', error);
+                if (window.swAlert) {
+                    window.swAlert({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Hubo un error al procesar la solicitud'
+                    });
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const bellBtn = document.getElementById('notificationBellBtn');
+            const dropdown = document.getElementById('notificationDropdown');
+            const badge = document.getElementById('pendingCountBadge');
+            const notificationList = document.getElementById('notificationList');
+
+            if (!bellBtn) return; // No mostrar en rutas de admin global
+
+            // Función para cargar órdenes pendientes
+            async function loadPendingOrders() {
+                try {
+                    const response = await fetch('{{ route("orders.pending-count") }}', {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    const count = data.count || 0;
+                    const orders = data.orders || [];
+
+                    // Actualizar badge
+                    if (count > 0) {
+                        badge.textContent = count <= 99 ? count : '99+';
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+
+                    // Actualizar lista
+                    if (orders.length > 0) {
+                        notificationList.innerHTML = orders.map(order => `
+                            <div style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; background: #fafafa; transition: background 0.2s ease;" 
+                                 onmouseover="this.style.background='#f3f4f6'" 
+                                 onmouseout="this.style.background='#fafafa'">
+                                <div style="font-weight: 600; color: #111827; font-size: 13px; margin-bottom: 6px;">Orden #${order.order_number}</div>
+                                <div style="color: #6b7280; font-size: 11px; margin-bottom: 8px;">Hace ${order.created_at}</div>
+                                <div style="display: flex; gap: 12px; align-items: flex-start;">
+                                    <div style="color: #6b7280; font-size: 12px; max-height: 50px; overflow-y: auto; flex: 1;">
+                                        ${(order.items || []).map(item => `<div>• ${item.product_name} (${item.quantity}x)</div>`).join('')}
+                                    </div>
+                                    <select onchange="if(this.value) changeOrderStatusFromNotif(${order.order_id}, this.value); this.value='';" style="padding: 5px 8px; background: #fff7ed; color: #e18018; border: 1px solid #e18018; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0; white-space: nowrap; margin-top: -53px;">
+                                        <option value=""> PENDIENTE </option>
+                                        <option value="Preparing">Preparar</option>
+                                        <option value="Cancelled">Cancelar</option>
+                                    </select>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        notificationList.innerHTML = '<div style="padding: 20px 16px; text-align: center; color: #9ca3af; font-size: 13px;">Sin órdenes pendientes</div>';
+                    }
+                } catch (error) {
+                    console.error('Error al cargar órdenes pendientes:', error);
+                }
+            }
+
+            // Guardar la función en window para acceso global desde changeOrderStatusFromNotif
+            window.loadPendingOrdersNotif = loadPendingOrders;
+
+            // Cargar órdenes al abrir el dropdown
+            bellBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                if (dropdown.style.display === 'block') {
+                    loadPendingOrders();
+                }
+            });
+
+            // Cerrar dropdown al hacer clic afuera
+            document.addEventListener('click', function(e) {
+                if (!bellBtn.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+
+            // Manejar tabs de notificaciones
+            const notificationTabs = document.querySelectorAll('.notif-tab');
+            const notificationContents = document.querySelectorAll('.notif-content');
+            const notifFooter = document.getElementById('notifFooter');
+
+            notificationTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Actualizar tabs activos
+                    notificationTabs.forEach(t => {
+                        if (t.getAttribute('data-tab') === tabName) {
+                            t.style.color = '#111827';
+                            t.style.borderBottomColor = '#e18018';
+                        } else {
+                            t.style.color = '#9ca3af';
+                            t.style.borderBottomColor = 'transparent';
+                        }
+                    });
+                    
+                    // Mostrar/ocultar contenido
+                    notificationContents.forEach(content => {
+                        if (content.getAttribute('data-content') === tabName) {
+                            content.style.display = 'block';
+                        } else {
+                            content.style.display = 'none';
+                        }
+                    });
+                    
+                    // Mostrar/ocultar footer solo en tab de órdenes
+                    if (tabName === 'orders') {
+                        notifFooter.style.display = 'block';
+                    } else {
+                        notifFooter.style.display = 'none';
+                    }
+                });
+            });
+
+            // Cargar contador inicial
+            loadPendingOrders();
+
+            // Actualizar contador cada 30 segundos
+            setInterval(loadPendingOrders, 30000);
         });
     </script>
     

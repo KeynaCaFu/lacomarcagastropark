@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <!-- Favicon -->
+    <link rel="icon" type="image/ico" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
     <title>Editar Perfil - La Comarca Gastro Park</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -455,7 +458,7 @@
                 <img src="{{ asset('images/logo_comarca.png') }}" alt="La Comarca">
             </div>
             <div class="header-actions">
-                <a href="{{ route('client.welcome') }}" class="back-btn">
+                <a href="{{ route('plaza.index') }}" class="back-btn">
                     <i class="fas fa-arrow-left"></i> Volver
                 </a>
                 <div class="position-relative">
@@ -594,7 +597,7 @@
                         <button type="submit" class="btn-custom btn-save">
                             <i class="fas fa-save"></i> Guardar cambios
                         </button>
-                        <a href="{{ route('client.welcome') }}" class="btn-custom btn-cancel">
+                        <a href="{{ route('plaza.index') }}" class="btn-custom btn-cancel">
                             <i class="fas fa-times"></i> Cancelar
                         </a>
                     </div>

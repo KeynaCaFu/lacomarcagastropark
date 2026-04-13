@@ -64,41 +64,27 @@
                     <div class="row g-4">
                         @foreach($images as $image)
                             <div class="col-md-4 col-lg-3">
-                                <div style="position: relative; border-radius: 8px; overflow: hidden; background: #f3f4f6; border: 1px solid #e5e7eb;">
+                                <div style="position: relative; border-radius: 8px; overflow: hidden; background: #f3f4f6; border: 1px solid #e5e7eb; group">
                                     <!-- Imagen -->
                                     <img src="{{ $image->image_url }}" 
                                          alt="Imagen galería" 
                                          style="width: 100%; height: 200px; object-fit: cover; display: block;">
                                     
-                                    <!-- Overlay con botón eliminar -->
-                                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; opacity: 0; transition: all 0.3s ease;"
-                                         class="image-overlay"
-                                         onmouseover="this.style.display='flex'; this.style.opacity='1';"
-                                         onmouseout="this.style.display='none'; this.style.opacity='0';">
+                                    <!-- Botón eliminar siempre visible en la esquina -->
+                                    <form action="{{ route('local.gallery.delete', $image->local_gallery_id) }}" method="POST" style="position: absolute; top: 8px; right: 8px; z-index: 100;">
+                                        @csrf
+                                        @method('DELETE')
                                         
-                                        <form action="{{ route('local.gallery.delete', $image->local_gallery_id) }}" method="POST" style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                                            @csrf
-                                            @method('DELETE')
-                                            
-                                            <button type="button" 
-                                                    onclick="this.parentElement.style.display='none'; this.parentElement.parentElement.style.display='none';"
-                                                    class="btn btn-sm" 
-                                                    style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; border: 1px solid #9ca3af; background: #f9fafb; color: #374151; cursor: pointer; transition: all 0.3s ease;"
-                                                    onmouseover="this.style.background='#f3f4f6'"
-                                                    onmouseout="this.style.background='#f9fafb'">
-                                                <i class="fas fa-times"></i> Cancelar
-                                            </button>
-                                            
-                                            <button type="button" 
-                                                    class="btn btn-sm" 
-                                                    style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; border: none; background: #ef4444; color: white; cursor: pointer; transition: all 0.3s ease;"
-                                                    onmouseover="this.style.background='#dc2626'"
-                                                    onmouseout="this.style.background='#ef4444'"
-                                                    onclick="confirmDeleteImage(this.closest('form'));">
-                                                <i class="fas fa-trash"></i> Eliminar
-                                            </button>
-                                        </form>
-                                    </div>
+                                        <button type="button" 
+                                                class="btn btn-sm delete-image-btn" 
+                                                style="padding: 8px 10px; border-radius: 6px; font-weight: 600; font-size: 13px; border: none; background: rgba(239, 68, 68, 0.9); color: white; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(4px);"
+                                                onmouseover="this.style.background='rgba(220, 38, 38, 0.95)'"
+                                                onmouseout="this.style.background='rgba(239, 68, 68, 0.9)'"
+                                                onclick="confirmDeleteImage(this.closest('form'));">
+                                            <i class="fas fa-trash-alt" style="font-size: 12px;"></i>
+                                            <span>Eliminar</span>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         @endforeach

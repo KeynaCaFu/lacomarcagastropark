@@ -37,15 +37,15 @@ class AuthenticatedSessionController extends Controller
             $user->load('role');
         }
         
+        // Solo admins globales y locales se redirigen a sus dashboards
         if ($user->isAdminGlobal()) {
             return redirect()->route('admin.dashboard');
         } elseif ($user->isAdminLocal()) {
             return redirect()->route('dashboard');
-        } elseif ($user->isClient()) {
-            return redirect()->route('client.welcome');
         }
-
-        return redirect()->intended(RouteServiceProvider::HOME);
+        
+        // Por defecto, clientes y cualquier otro usuario ve la plaza
+        return redirect()->route('plaza.index');
     }
 
     /**
@@ -53,12 +53,22 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Obtener el usuario antes de logout
+        $user = auth()->user();
+        
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
 
+        // Redirigir según el rol del usuario
+        if ($user && ($user->isAdminGlobal() || $user->isAdminLocal())) {
+            // Administrador o Gerente -> al login
+            return redirect()->route('login')->with('logged_out', 'Sesión cerrada correctamente');
+        }
+        
+        // Cliente u otros -> a la plaza
         return redirect('/')->with('logged_out', 'Sesión cerrada correctamente');
     }
 }
