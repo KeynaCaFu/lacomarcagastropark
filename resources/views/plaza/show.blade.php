@@ -961,21 +961,18 @@
                     if (emptyWrap) emptyWrap.remove();
                     grid = document.createElement('div');
                     grid.className = 'products-grid';
+                    // Remover event listener anterior si existe
+                    grid.onclick = null;
                     productsContainer.appendChild(grid);
                 }
                 
-                // Limpiar grid
-                grid.innerHTML = '';
+                // Usar DocumentFragment para mejor rendimiento
+                const fragment = document.createDocumentFragment();
+                let gridHtml = '';
                 
-                // Reconstruir productos
+                // Construir HTML en un string (más rápido que appendChild repetido)
                 productos.forEach((producto, i) => {
-                    const card = document.createElement('div');
-                    card.className = `p-card ${i === 0 ? 'featured' : ''}`;
-                    card.style.cursor = 'pointer';
-                    
-                    // Calcular URL de routing
-                    const productUrl = `/plaza/${this.currentLocalId}/producto/${producto.product_id}`;
-                    
+                    // Calcular estrellas
                     let starsHtml = '';
                     const rating = Math.round(producto.average_rating || 0);
                     for (let j = 1; j <= 5; j++) {
@@ -983,54 +980,69 @@
                         starsHtml += `<i class="fas fa-star text-xs" style="color: ${color};"></i>`;
                     }
                     
-                    let descHtml = '';
-                    if (i === 0 && producto.description) {
-                        descHtml = `<p class="featured-desc">${producto.description}</p>`;
-                    }
+                    const descHtml = i === 0 && producto.description ? `<p class="featured-desc">${producto.description}</p>` : '';
+                    const featured = i === 0 ? 'featured' : '';
+                    const featuredLabel = i === 0 ? '<p class="featured-label"><i class="fas fa-crown"></i> &nbsp;Destacado</p>' : '';
+                    const categoryTag = producto.category ? `<span class="p-card-cat">${producto.category}</span>` : '';
                     
-                    card.innerHTML = `
-                        <div class="p-card-img">
-                            <img src="${producto.photo_url}" alt="${producto.name}" loading="${i < 4 ? 'eager' : 'lazy'}">
-                            <div class="p-card-img-fade"></div>
-                            ${producto.category ? `<span class="p-card-cat">${producto.category}</span>` : ''}
-                        </div>
-                        <div class="p-card-body">
-                            ${i === 0 ? '<p class="featured-label"><i class="fas fa-crown"></i> &nbsp;Destacado</p>' : ''}
-                            <h3 class="p-card-name">${producto.name}</h3>
-                            ${descHtml}
-                            <div class="p-card-stars">
-                                ${starsHtml}
+                    gridHtml += `
+                        <div class="p-card ${featured}" data-product-id="${producto.product_id}" data-local-id="${this.currentLocalId}" style="cursor: pointer;">
+                            <div class="p-card-img">
+                                <img src="${producto.photo_url}" alt="${producto.name}" loading="${i < 4 ? 'eager' : 'lazy'}">
+                                <div class="p-card-img-fade"></div>
+                                ${categoryTag}
                             </div>
-                            <div class="p-card-footer">
-                                <span class="p-card-price">
-                                    <sup>₡</sup>${parseFloat(producto.price).toFixed(2)}
-                                </span>
-                                <button class="btn-add-cart" data-product-id="${producto.product_id}">
-                                    <i class="fas fa-shopping-cart"></i>
-                                </button>
+                            <div class="p-card-body">
+                                ${featuredLabel}
+                                <h3 class="p-card-name">${producto.name}</h3>
+                                ${descHtml}
+                                <div class="p-card-stars">
+                                    ${starsHtml}
+                                </div>
+                                <div class="p-card-footer">
+                                    <span class="p-card-price">
+                                        <sup>₡</sup>${parseFloat(producto.price).toFixed(2)}
+                                    </span>
+                                    <button class="btn-add-cart" data-product-id="${producto.product_id}">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
+                });
+                
+                // Agregar todo el HTML de una vez
+                grid.innerHTML = gridHtml;
+                
+                // Usar delegación de eventos (más eficiente que event listeners en cada card)
+                grid.onclick = (e) => {
+                    const card = e.target.closest('.p-card');
+                    if (!card) return;
                     
-                    // Event listeners
-                    card.addEventListener('click', (e) => {
-                        if (e.target.closest('.btn-add-cart')) {
-                            e.stopPropagation();
+                    const button = e.target.closest('.btn-add-cart');
+                    const productId = parseInt(card.dataset.productId);
+                    const localId = parseInt(card.dataset.localId);
+                    
+                    if (button) {
+                        e.stopPropagation();
+                        // Encontrar producto en array
+                        const producto = productos.find(p => p.product_id === productId);
+                        if (producto) {
                             this.openAddToCartModal({
-                                product_id: producto.product_id,
-                                local_id: this.currentLocalId,
+                                product_id: productId,
+                                local_id: localId,
                                 name: producto.name,
                                 description: producto.description,
                                 photo_url: producto.photo_url,
                                 price: producto.price
                             });
-                        } else {
-                            this.navigateToProduct(productUrl);
                         }
-                    });
-                    
-                    grid.appendChild(card);
-                });
+                    } else {
+                        const url = `/plaza/${localId}/producto/${productId}`;
+                        this.navigateToProduct(url);
+                    }
+                };
             },
 
             // ── PRODUCT DETAIL MODAL METHODS ──
