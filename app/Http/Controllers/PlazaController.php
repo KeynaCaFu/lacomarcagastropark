@@ -150,6 +150,12 @@ class PlazaController extends Controller
             $estaAbierto = Schedule::isCurrentlyOpen($id);
         }
 
+        // Obtener todos los locales activos para el combobox
+        $localesDisponibles = Local::select('local_id', 'name', 'status')
+            ->where('status', 'Active')
+            ->orderBy('name', 'asc')
+            ->get();
+
         return view('plaza.show', [
             'local' => $local,
             'productos' => $productos,
@@ -157,7 +163,110 @@ class PlazaController extends Controller
             'horarioHoy' => $horarioHoy,
             'diaActual' => $dayInSpanish,
             'estaAbierto' => $estaAbierto,
+            'localesDisponibles' => $localesDisponibles,
         ]);
+    }
+
+    /**
+     * Obtener datos del local (productos + categorías) en JSON para cambio sin refrescamiento
+     * Optimizado con eager loading para evitar N+1 queries
+     */
+    public function getLocalData($id)
+    {
+        try {
+            // Buscar local
+            $local = Local::select('local_id', 'name', 'status', 'description', 'contact', 'image_logo')
+                ->where('local_id', $id)
+                ->firstOrFail();
+
+            // Obtener productos del local con eager loading de relaciones
+            $productos = Product::forPlaza()
+                ->active()
+                ->byLocal($id)
+                ->with([
+                    'gallery' => function ($query) {
+                        $query->select('product_gallery_id', 'product_id', 'image_url');
+                    },
+                    'productReviews.review' => function ($query) {
+                        $query->select('review_id', 'rating');
+                    }
+                ])
+                ->get();
+
+            // Extraer categorías únicas
+            $categoriasData = $productos->pluck('category')
+                ->unique()
+                ->filter();
+            
+            $categorias = collect(PlazaHelper::formatCategories($categoriasData));
+
+            // Obtener horario
+            $now = now();
+            $dayOfWeek = $now->translatedFormat('l');
+            $dayInSpanish = PlazaHelper::translateDayToSpanish($dayOfWeek);
+
+            $horarioHoy = null;
+            $estaAbierto = false;
+            
+            if ($dayInSpanish) {
+                $horarioHoy = Schedule::where('local_id', $id)
+                    ->where('day_of_week', $dayInSpanish)
+                    ->first();
+                
+                $estaAbierto = Schedule::isCurrentlyOpen($id);
+            }
+
+            // Formatear productos para JSON
+            $productosFormateados = $productos->map(function ($product) {
+                // Calcular rating promedio
+                $reviews = $product->productReviews;
+                $averageRating = 0;
+                if ($reviews->isNotEmpty()) {
+                    $totalRating = 0;
+                    $count = 0;
+                    
+                    foreach ($reviews as $productReview) {
+                        if ($productReview->review && isset($productReview->review->rating)) {
+                            $totalRating += $productReview->review->rating;
+                            $count++;
+                        }
+                    }
+                    
+                    $averageRating = $count > 0 ? round($totalRating / $count) : 0;
+                }
+
+                return [
+                    'product_id' => $product->product_id,
+                    'name' => $product->name,
+                    'description' => $product->description,
+                    'category' => $product->category,
+                    'photo_url' => $product->photo_url ?? asset('images/product-placeholder.png'),
+                    'price' => $product->price,
+                    'average_rating' => $averageRating,
+                ];
+            })->values();
+
+            return response()->json([
+                'success' => true,
+                'local' => [
+                    'local_id' => $local->local_id,
+                    'name' => $local->name,
+                    'description' => $local->description,
+                    'logo_url' => $local->logo_url,
+                ],
+                'productos' => $productosFormateados,
+                'categorias' => $categorias->values(),
+                'horarioHoy' => $horarioHoy,
+                'diaActual' => $dayInSpanish,
+                'estaAbierto' => $estaAbierto,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo cargar el local',
+                'error' => $e->getMessage()
+            ], 404);
+        }
     }
 
     /**
