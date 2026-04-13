@@ -111,18 +111,27 @@ class PlazaController extends Controller
         // Obtener eventos activos de manera eficiente
         // Eventos de hoy y próximos (próximos 30 días sin límite de cantidad)
         $today = now()->toDateString();
+        $yesterday = now()->subDay()->toDateString();
         $oneMonthLater = now()->addDays(30)->toDateString();
 
         $eventosHoy = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
             ->active()
+            ->notExpired()
             ->whereDate('start_at', $today)
             ->orderBy('start_at', 'asc')
             ->get();
 
+        // Próximos incluye: futuros Y eventos de ayer (últimos que aún son visibles)
         $eventosProximos = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
             ->active()
-            ->whereDate('start_at', '>', $today)
-            ->whereDate('start_at', '<=', $oneMonthLater)
+            ->notExpired()
+            ->where(function($query) use ($today, $yesterday) {
+                $query->whereDate('start_at', '>', $today) // Eventos futuros
+                      ->orWhere(function($q) use ($yesterday) {
+                          $q->whereDate('start_at', '=', $yesterday); // O de ayer (últimas 24h de visibilidad)
+                      });
+            })
+            ->where('start_at', '<=', $oneMonthLater . ' 23:59:59')
             ->orderBy('start_at', 'asc')
             ->get();
 
@@ -188,18 +197,27 @@ class PlazaController extends Controller
 
         // Obtener eventos activos
         $today = now()->toDateString();
+        $yesterday = now()->subDay()->toDateString();
         $oneMonthLater = now()->addDays(30)->toDateString();
 
         $eventosHoy = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
             ->active()
+            ->notExpired()
             ->whereDate('start_at', $today)
             ->orderBy('start_at', 'asc')
             ->get();
 
+        // Próximos incluye: futuros Y eventos de ayer (últimos que aún son visibles)
         $eventosProximos = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
             ->active()
-            ->whereDate('start_at', '>', $today)
-            ->whereDate('start_at', '<=', $oneMonthLater)
+            ->notExpired()
+            ->where(function($query) use ($today, $yesterday) {
+                $query->whereDate('start_at', '>', $today) // Eventos futuros
+                      ->orWhere(function($q) use ($yesterday) {
+                          $q->whereDate('start_at', '=', $yesterday); // O de ayer (últimas 24h de visibilidad)
+                      });
+            })
+            ->where('start_at', '<=', $oneMonthLater . ' 23:59:59')
             ->orderBy('start_at', 'asc')
             ->get();
 
