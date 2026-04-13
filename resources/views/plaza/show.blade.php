@@ -544,6 +544,17 @@
                     return;
                 }
 
+                //  VALIDACIÓN: Verificar si el local está abierto
+                if (!this.estaAbierto) {
+                    showToast({
+                        icon: 'warning',
+                        title: 'Local Cerrado',
+                        message: `${this.localActual.name} está cerrado. No puedes agregar items en este momento.`,
+                        timer: 5500
+                    });
+                    return;
+                }
+
                 this.currentProduct = product;
                 this.quantity = 1;
                 this.customization = '';
