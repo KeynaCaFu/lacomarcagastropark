@@ -208,4 +208,59 @@ class Product extends Model
         }
         return $query;
     }
+
+    /**
+     * Scope: Incluir rating promedio calculado en BD
+     * Mucho más eficiente que calcular en PHP
+     * Uso: Product::withAverageRating()->get()
+     * Resultado: $product->average_rating_db
+     */
+    public function scopeWithAverageRating($query)
+    {
+        return $query->selectRaw(
+            'tbproduct.*,
+            ROUND(COALESCE(AVG(tbreview.rating), 0), 1) as average_rating_db'
+        )
+        ->leftJoin('tbproduct_review', 'tbproduct.product_id', '=', 'tbproduct_review.product_id')
+        ->leftJoin('tbreview', 'tbproduct_review.review_id', '=', 'tbreview.review_id')
+        ->groupBy('tbproduct.product_id');
+    }
+
+    /**
+     * Scope: Optimización para vistas de Plaza
+     * Selects específicos + eager loading eficiente
+     * Uso: Product::forPlaza()->get()
+     */
+    public function scopeForPlaza($query)
+    {
+        return $query->select('tbproduct.product_id', 'tbproduct.name', 'tbproduct.price', 
+                             'tbproduct.photo', 'tbproduct.category', 'tbproduct.status',
+                             'tbproduct.created_at', 'tbproduct.updated_at')
+            ->with([
+                'locals' => function ($q) {
+                    $q->select('tblocal.local_id', 'tblocal.name');
+                }
+            ]);
+    }
+
+    /**
+     * Scope: Obtener solo categorías disponibles
+     * Uso: Product::availableCategories()
+     */
+    public function scopeAvailableCategories($query)
+    {
+        return $query->where('status', 'Available')
+            ->select('category')
+            ->distinct()
+            ->orderBy('category');
+    }
+
+    /**
+     * Scope: Filtrar por rango de precio
+     * Uso: Product::priceRange(10, 50)->get()
+     */
+    public function scopePriceRange($query, $min, $max)
+    {
+        return $query->whereBetween('price', [$min, $max]);
+    }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\EventController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\PlazaController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ReceiptController;
 use Illuminate\Http\Request;
 
 /*
@@ -171,6 +173,7 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
 
     
     Route::post('/{id}/galeria', [SupplierController::class, 'storeGallery'])->name('gallery.store');
+    Route::delete('/{supplierId}/galeria/{galleryId}', [SupplierController::class, 'deleteGallery'])->name('gallery.delete');
 
 
 
@@ -198,6 +201,31 @@ Route::prefix('resenas')->name('reviews.')->group(function () {
         Route::post('/{order}/actualizar', [OrderController::class, 'update'])->name('update');
         Route::get('/{order}/edit', [OrderController::class, 'edit'])->name('edit');   
         Route::delete('/{order}', [OrderController::class, 'destroy'])->name('destroy');
+        
+        // Rutas para comprobantes
+        Route::get('/{order}/comprobante/descargar', [ReceiptController::class, 'downloadReceipt'])->name('receipt.download');
+        Route::post('/{order}/comprobante/regenerar', [ReceiptController::class, 'regenerateReceiptAction'])->name('receipt.regenerate');
+        Route::get('/{order}/comprobante/ver', [ReceiptController::class, 'viewReceipt'])->name('receipt.view');
+        Route::post('/{order}/comprobante/reenviar', [ReceiptController::class, 'resendReceipt'])->name('receipt.resend');
+        Route::post('/{order}/comprobante/validar-cliente', [ReceiptController::class, 'checkValidClient'])->name('receipt.check-client');
+        Route::get('/comprobante/historial', [ReceiptController::class, 'viewOrderHistory'])->name('receipt.history');
+        Route::get('/comprobante/buscar', [ReceiptController::class, 'searchOrderHistory'])->name('receipt.search');
+    });
+
+    // REPORTES (GERENTE) - Análisis de pedidos online vs presenciales
+    Route::prefix('reportes')->name('reports.')->group(function () {
+        // Vistas
+        Route::get('/pedidos', [\App\Http\Controllers\ReportController::class, 'index'])->name('orders');
+        Route::get('/productos', [\App\Http\Controllers\ReportController::class, 'products'])->name('products');
+        
+        // APIs
+        Route::get('/api/pedidos', [\App\Http\Controllers\ReportController::class, 'getData'])->name('orders.data');
+        Route::get('/api/productos', [\App\Http\Controllers\ReportController::class, 'getProductData'])->name('api.products');
+        
+        // Exportación
+        Route::get('/descargar/html', [\App\Http\Controllers\ReportController::class, 'downloadHTML'])->name('download-html');
+        Route::get('/exportar/pdf', [\App\Http\Controllers\ReportController::class, 'exportPDF'])->name('export-pdf');
+        Route::get('/exportar/excel', [\App\Http\Controllers\ReportController::class, 'exportExcel'])->name('export-excel');
     });
 });
 
@@ -222,12 +250,59 @@ Route::middleware('auth')->group(function () {
 });
 
 
-// RUTAS PARA PLAZA PÚBLICA (Sin autenticación)
-
-Route::prefix('plaza')->name('plaza.')->group(function () {
+// RUTAS PARA PLAZA PÚBLICA (Admins/Gerentes pueden verla sin afectar su sesión)
+Route::prefix('plaza')->name('plaza.')->middleware('preserve.admin.session')->group(function () {
     Route::get('/', [\App\Http\Controllers\PlazaController::class, 'index'])->name('index');
     Route::get('api/productos', [\App\Http\Controllers\PlazaController::class, 'getProductosByCategory'])->name('get.productos');
+    Route::get('{id}/data', [\App\Http\Controllers\PlazaController::class, 'getLocalData'])->name('local.data')->where('id', '[0-9]+');
     Route::get('{id}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show')->where('id', '[0-9]+');
+    Route::get('{local_id}/producto/{product_id}', [\App\Http\Controllers\PlazaController::class, 'showProduct'])->name('product.detail')->where(['local_id' => '[0-9]+', 'product_id' => '[0-9]+']);
+    
+    // Carrito API (las rutas existen para todos, el controller maneja autenticación)
+    Route::post('carrito/agregar', [\App\Http\Controllers\CartController::class, 'addToCart'])->name('add.cart');
+    Route::get('carrito/api/get', [\App\Http\Controllers\CartController::class, 'getCart'])->name('cart.get');
+    Route::post('carrito/api/actualizar-cantidad', [\App\Http\Controllers\CartController::class, 'updateItemQuantity'])->name('cart.update.qty');
+    Route::post('carrito/api/remover', [\App\Http\Controllers\CartController::class, 'removeItem'])->name('cart.remove');
+    Route::post('carrito/api/limpiar', [\App\Http\Controllers\CartController::class, 'clearCart'])->name('cart.clear');
+    Route::post('carrito/api/confirmar', [\App\Http\Controllers\CartController::class, 'confirmOrder'])->name('order.create');
 });
+
+// ==========================================
+// RUTAS DE PRUEBA - Errores de Conexión
+// Solo en modo desarrollo - Comentar en producción
+// ==========================================
+if (app()->environment('local')) {
+    Route::prefix('test')->group(function () {
+        // Prueba de error de base de datos
+        Route::get('db-error', function () {
+            return view('errors.db-connection');
+        })->name('test.db-error');
+
+        // Prueba de error de internet
+        Route::get('internet-error', function () {
+            return view('errors.no-internet');
+        })->name('test.internet-error');
+
+        // Prueba de error de conexión genérico
+        Route::get('connection-error', function () {
+            return view('errors.connection-error', [
+                'code' => 503,
+                'title' => 'Error de Conexión',
+                'message' => 'Esta es una prueba de vista de error genérico.'
+            ]);
+        })->name('test.connection-error');
+
+        // Forzar un error de BD real
+        Route::get('trigger-db-error', function () {
+            try {
+                // Intentar una consulta que fallará porque la tabla no existe
+                DB::select('SELECT * FROM tabla_que_no_existe_12345');
+            } catch (\Exception $e) {
+                // Capturar y relanzar para que el Handler lo procese
+                throw $e;
+            }
+        })->name('test.trigger-db-error');
+    });
+}
 
 require __DIR__.'/auth.php';

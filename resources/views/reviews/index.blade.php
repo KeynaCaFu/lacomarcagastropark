@@ -85,428 +85,107 @@
     .textarea-wrap textarea {
         padding-top: 28px !important;
     }
+
+    /* ── FILTROS COLAPSABLES ── */
+    .reviews-filters-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 16px;
+        border: 1.5px solid #d1d5db;
+        border-radius: 8px;
+        background: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        cursor: pointer;
+        transition: background 0.2s, border-color 0.2s;
+        margin-bottom: 16px;
+    }
+    .reviews-filters-toggle:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+    }
+    .reviews-filters-toggle i.chevron {
+        font-size: 11px;
+        transition: transform 0.2s ease;
+    }
+    .reviews-filters-toggle.open i.chevron {
+        transform: rotate(180deg);
+    }
+
+    .reviews-filters-bar {
+        display: flex;
+        align-items: flex-end;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 22px;
+        padding: 16px 18px;
+        background: #f9fafb;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .filter-group label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .filter-group select,
+    .filter-group input[type="date"] {
+        height: 36px;
+        padding: 0 10px;
+        border: 1.5px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #374151;
+        background: #fff;
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.2s;
+        min-width: 140px;
+    }
+
+    .filter-group select:focus,
+    .filter-group input[type="date"]:focus {
+        border-color: #915016;
+    }
+
+    .filter-clear-btn {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        height: 36px;
+        padding: 0 18px;
+        border: 1.5px solid #d1d5db;
+        border-radius: 8px;
+        background: #fff;
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        align-self: flex-end;
+    }
+    .filter-clear-btn:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+    }
+    .filter-clear-btn i {
+        font-size: 13px;
+        color: #6b7280;
+    }
 </style>
-@endpush
-
-@section('title', 'Reseñas')
-
-@section('content')
-<div class="reviews-page">
-
-    <div class="reviews-module-header">
-        <div>
-            <h1 class="reviews-module-title">
-                <i class="fas fa-star"></i>
-                Gestión de reseñas y opiniones
-            </h1>
-            <p class="reviews-module-subtitle">
-                Administra las reseñas de tu local y de tus productos.
-            </p>
-        </div>
-    </div>
-
-    <div class="reviews-tabs-wrapper">
-        <div class="reviews-tabs-header">
-            <button class="reviews-tab-btn active" type="button" data-tab="locales">Reseñas de local</button>
-            <button class="reviews-tab-btn" type="button" data-tab="productos">Reseñas de producto</button>
-        </div>
-
-        {{-- TAB LOCALES --}}
-        <div class="reviews-tab-panel active" id="tab-locales">
-
-            <div class="reviews-section-top">
-                <div class="review-stat-card">
-                    <div class="review-stat-label">PROMEDIO</div>
-                    <div class="review-stat-value">{{ number_format($localStats['average'], 1) }} <span>★</span></div>
-                    <div class="review-stat-text">Sobre 5 estrellas</div>
-                </div>
-                <div class="review-stat-card">
-                    <div class="review-stat-label">RESEÑAS</div>
-                    <div class="review-stat-value">{{ $localStats['total'] }}</div>
-                    <div class="review-stat-text">Este mes: {{ $localStats['month_total'] }}</div>
-                </div>
-                <div class="review-stat-card">
-                    <div class="review-stat-label">DISTRIBUCIÓN</div>
-                    @php $maxLocal = max($localStats['distribution']) > 0 ? max($localStats['distribution']) : 1; @endphp
-                    @for($star = 5; $star >= 1; $star--)
-                        @php $count = $localStats['distribution'][$star]; $width = ($count / $maxLocal) * 100; @endphp
-                        <div class="distribution-row">
-                            <span>{{ $star }}</span>
-                            <div class="distribution-bar"><div class="distribution-fill" style="width: {{ $width }}%;"></div></div>
-                            <strong>{{ $count }}</strong>
-                        </div>
-                    @endfor
-                </div>
-            </div>
-
-            <div class="reviews-toolbar">
-                <h2 class="reviews-block-title">RESEÑAS DE LOCAL</h2>
-            </div>
-
-            @if($localReviews->count() > 0)
-                <div class="reviews-grid">
-                    @foreach($localReviews as $item)
-                        @php
-                            $nombre     = $item->user->full_name ?? 'Cliente';
-                            $rating     = $item->review->rating ?? 0;
-                            $comentario = $item->review->comment ?? 'Sin comentario.';
-                            $fecha      = $item->review->date ?? '-';
-                            $respuesta  = $item->review->response ?? null;
-                            $partes = explode(' ', trim($nombre));
-                            $iniciales = '';
-                            foreach(array_slice($partes, 0, 2) as $p){ $iniciales .= strtoupper(substr($p, 0, 1)); }
-                            if ($rating >= 4)     { $tipoTexto = 'Positiva'; $tipoClase = 'positive'; }
-                            elseif ($rating == 3) { $tipoTexto = 'Neutra';   $tipoClase = 'neutral';  }
-                            else                  { $tipoTexto = 'Negativa'; $tipoClase = 'negative'; }
-                        @endphp
-
-                        <div class="review-card review-card-clickable"
-                             data-modal-nombre="{{ $nombre }}"
-                             data-modal-iniciales="{{ $iniciales ?: 'CL' }}"
-                             data-modal-fecha="{{ $fecha }}"
-                             data-modal-rating="{{ $rating }}"
-                             data-modal-comentario="{{ $comentario }}"
-                             data-modal-tipo-texto="{{ $tipoTexto }}"
-                             data-modal-tipo-clase="{{ $tipoClase }}"
-                             data-modal-respuesta="{{ $respuesta ?? '' }}"
-                             data-modal-producto=""
-                             onclick="openReviewModal(this)">
-
-                            <div class="review-card-header">
-                                <div class="review-user-box">
-                                    <div class="review-avatar">{{ $iniciales ?: 'CL' }}</div>
-                                    <div>
-                                        <div class="review-user-name">{{ $nombre }}</div>
-                                        <div class="review-date">{{ $fecha }}</div>
-                                    </div>
-                                </div>
-                                <span class="review-badge {{ $tipoClase }}">{{ $tipoTexto }}</span>
-                            </div>
-
-                            <div class="review-stars">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <span class="star {{ $i <= $rating ? 'filled' : '' }}">★</span>
-                                @endfor
-                            </div>
-
-                            <div class="review-comment">{{ $comentario }}</div>
-
-                            @if($respuesta)
-                                <div class="review-response-box review-response-box--orange">
-
-                                    <div class="review-response-header">
-                                        <div class="review-response-title">RESPUESTA DEL GERENTE</div>
-                                        <div class="response-icon-actions" id="local-response-actions-{{ $item->local_review_id }}">
-                                            <button type="button"
-                                                    class="response-icon-btn response-icon-edit"
-                                                    title="Editar respuesta"
-                                                    onclick="editResponse('local', {{ $item->local_review_id }})">
-                                                <i class="fas fa-pen"></i>
-                                            </button>
-                                            <form action="{{ route('reviews.response.delete', $item->review->review_id) }}"
-                                                  method="POST"
-                                                  style="display:inline;"
-                                                  class="delete-response-form">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="button"
-                                                        class="response-icon-btn response-icon-delete"
-                                                        title="Eliminar respuesta"
-                                                        onclick="confirmDeleteResponse(this)">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-
-                                    <div class="review-response-text" id="local-response-text-{{ $item->local_review_id }}">
-                                        {{ $respuesta }}
-                                    </div>
-
-                                    <form action="{{ route('reviews.response.update', $item->review->review_id) }}"
-                                          method="POST"
-                                          class="reply-box hidden edit-response-form"
-                                          id="local-edit-form-{{ $item->local_review_id }}">
-                                        @csrf
-                                        @method('PUT')
-                                        <div class="textarea-wrap">
-                                            <span class="char-counter" id="local-counter-edit-{{ $item->local_review_id }}">{{ mb_strlen($respuesta) }}/1000</span>
-                                            <textarea name="response"
-                                                      placeholder="Editar respuesta..."
-                                                      required
-                                                      maxlength="1000"
-                                                      oninput="updateCounter(this, 'local-counter-edit-{{ $item->local_review_id }}')">{{ $respuesta }}</textarea>
-                                        </div>
-                                        <div class="reply-actions">
-                                            <button class="reply-save-btn" type="button"
-                                                    onclick="confirmSaveEdit(this)">Guardar cambios</button>
-                                            <button type="button"
-                                                    class="reply-btn"
-                                                    onclick="cancelEditResponse('local', {{ $item->local_review_id }})">
-                                                Cancelar
-                                            </button>
-                                        </div>
-                                    </form>
-
-                                </div>
-                            @else
-                                <div class="review-action-area">
-                                    <button class="reply-btn respond-toggle-btn" type="button" onclick="toggleReplyBox(this)">
-                                        Responder
-                                    </button>
-
-                                    <form action="{{ route('reviews.respond', $item->local_review_id) }}" method="POST" class="reply-box hidden respond-form">
-                                        @csrf
-                                        <input type="hidden" name="review_type" value="local">
-                                        <div class="textarea-wrap">
-                                            <span class="char-counter" id="local-counter-new-{{ $item->local_review_id }}">0/1000</span>
-                                            <textarea name="response"
-                                                      placeholder="Escribir respuesta..."
-                                                      required
-                                                      maxlength="1000"
-                                                      data-counter="local-counter-new-{{ $item->local_review_id }}"
-                                                      oninput="updateCounter(this, 'local-counter-new-{{ $item->local_review_id }}')"></textarea>
-                                        </div>
-                                        <div class="reply-actions">
-                                            <button class="reply-save-btn" type="button"
-                                                    onclick="confirmSaveResponse(this)">Guardar respuesta</button>
-                                            <button class="reply-btn" type="button"
-                                                    onclick="cancelNewResponse(this)">Cancelar</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            @endif
-
-                        </div>
-                    @endforeach
-                </div>
-            @else
-                <div class="reviews-empty-state">No hay reseñas de local registradas para este gerente.</div>
-            @endif
-        </div>
-
-        {{-- TAB PRODUCTOS --}}
-        <div class="reviews-tab-panel" id="tab-productos">
-
-            <div class="reviews-section-top">
-                <div class="review-stat-card">
-                    <div class="review-stat-label">PROMEDIO</div>
-                    <div class="review-stat-value">{{ number_format($productStats['average'], 1) }} <span>★</span></div>
-                    <div class="review-stat-text">Sobre 5 estrellas</div>
-                </div>
-                <div class="review-stat-card">
-                    <div class="review-stat-label">RESEÑAS</div>
-                    <div class="review-stat-value">{{ $productStats['total'] }}</div>
-                    <div class="review-stat-text">Este mes: {{ $productStats['month_total'] }}</div>
-                </div>
-                <div class="review-stat-card">
-                    <div class="review-stat-label">DISTRIBUCIÓN</div>
-                    @php $maxProduct = max($productStats['distribution']) > 0 ? max($productStats['distribution']) : 1; @endphp
-                    @for($star = 5; $star >= 1; $star--)
-                        @php $count = $productStats['distribution'][$star]; $width = ($count / $maxProduct) * 100; @endphp
-                        <div class="distribution-row">
-                            <span>{{ $star }}</span>
-                            <div class="distribution-bar"><div class="distribution-fill" style="width: {{ $width }}%;"></div></div>
-                            <strong>{{ $count }}</strong>
-                        </div>
-                    @endfor
-                </div>
-            </div>
-
-            <div class="reviews-toolbar">
-                <h2 class="reviews-block-title">RESEÑAS DE PRODUCTO</h2>
-            </div>
-
-            @if($productReviews->count() > 0)
-                <div class="reviews-grid">
-                    @foreach($productReviews as $item)
-                        @php
-                            $nombre         = $item->user->full_name ?? 'Cliente';
-                            $rating         = $item->review->rating ?? 0;
-                            $comentario     = $item->review->comment ?? 'Sin comentario.';
-                            $fecha          = $item->review->date ?? '-';
-                            $respuesta      = $item->review->response ?? null;
-                            $nombreProducto = $item->product->name ?? ('Producto #' . $item->product_id);
-                            $partes = explode(' ', trim($nombre));
-                            $iniciales = '';
-                            foreach(array_slice($partes, 0, 2) as $p){ $iniciales .= strtoupper(substr($p, 0, 1)); }
-                            if ($rating >= 4)     { $tipoTexto = 'Positiva'; $tipoClase = 'positive'; }
-                            elseif ($rating == 3) { $tipoTexto = 'Neutra';   $tipoClase = 'neutral';  }
-                            else                  { $tipoTexto = 'Negativa'; $tipoClase = 'negative'; }
-                        @endphp
-
-                        <div class="review-card review-card-clickable"
-                             data-modal-nombre="{{ $nombre }}"
-                             data-modal-iniciales="{{ $iniciales ?: 'CL' }}"
-                             data-modal-fecha="{{ $fecha }}"
-                             data-modal-rating="{{ $rating }}"
-                             data-modal-comentario="{{ $comentario }}"
-                             data-modal-tipo-texto="{{ $tipoTexto }}"
-                             data-modal-tipo-clase="{{ $tipoClase }}"
-                             data-modal-respuesta="{{ $respuesta ?? '' }}"
-                             data-modal-producto="{{ $nombreProducto }}"
-                             onclick="openReviewModal(this)">
-
-                            <div class="review-mini-label">Producto: {{ $nombreProducto }}</div>
-
-                            <div class="review-card-header">
-                                <div class="review-user-box">
-                                    <div class="review-avatar">{{ $iniciales ?: 'CL' }}</div>
-                                    <div>
-                                        <div class="review-user-name">{{ $nombre }}</div>
-                                        <div class="review-date">{{ $fecha }}</div>
-                                    </div>
-                                </div>
-                                <span class="review-badge {{ $tipoClase }}">{{ $tipoTexto }}</span>
-                            </div>
-
-                            <div class="review-stars">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <span class="star {{ $i <= $rating ? 'filled' : '' }}">★</span>
-                                @endfor
-                            </div>
-
-                            <div class="review-comment">{{ $comentario }}</div>
-
-                            @if($respuesta)
-                                <div class="review-response-box review-response-box--orange">
-
-                                    <div class="review-response-header">
-                                        <div class="review-response-title">RESPUESTA DEL GERENTE</div>
-                                        <div class="response-icon-actions" id="product-response-actions-{{ $item->product_review_id }}">
-                                            <button type="button"
-                                                    class="response-icon-btn response-icon-edit"
-                                                    title="Editar respuesta"
-                                                    onclick="editResponse('product', {{ $item->product_review_id }})">
-                                                <i class="fas fa-pen"></i>
-                                            </button>
-                                            <form action="{{ route('reviews.response.delete', $item->review->review_id) }}"
-                                                  method="POST"
-                                                  style="display:inline;"
-                                                  class="delete-response-form">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="button"
-                                                        class="response-icon-btn response-icon-delete"
-                                                        title="Eliminar respuesta"
-                                                        onclick="confirmDeleteResponse(this)">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-
-                                    <div class="review-response-text" id="product-response-text-{{ $item->product_review_id }}">
-                                        {{ $respuesta }}
-                                    </div>
-
-                                    <form action="{{ route('reviews.response.update', $item->review->review_id) }}"
-                                          method="POST"
-                                          class="reply-box hidden edit-response-form"
-                                          id="product-edit-form-{{ $item->product_review_id }}">
-                                        @csrf
-                                        @method('PUT')
-                                        <div class="textarea-wrap">
-                                            <span class="char-counter" id="product-counter-edit-{{ $item->product_review_id }}">{{ mb_strlen($respuesta) }}/1000</span>
-                                            <textarea name="response"
-                                                      placeholder="Editar respuesta..."
-                                                      required
-                                                      maxlength="1000"
-                                                      oninput="updateCounter(this, 'product-counter-edit-{{ $item->product_review_id }}')">{{ $respuesta }}</textarea>
-                                        </div>
-                                        <div class="reply-actions">
-                                            <button class="reply-save-btn" type="button"
-                                                    onclick="confirmSaveEdit(this)">Guardar cambios</button>
-                                            <button type="button"
-                                                    class="reply-btn"
-                                                    onclick="cancelEditResponse('product', {{ $item->product_review_id }})">
-                                                Cancelar
-                                            </button>
-                                        </div>
-                                    </form>
-
-                                </div>
-                            @else
-                                <div class="review-action-area">
-                                    <button class="reply-btn respond-toggle-btn" type="button" onclick="toggleReplyBox(this)">
-                                        Responder
-                                    </button>
-
-                                    <form action="{{ route('reviews.respond', $item->product_review_id) }}" method="POST" class="reply-box hidden respond-form">
-                                        @csrf
-                                        <input type="hidden" name="review_type" value="product">
-                                        <div class="textarea-wrap">
-                                            <span class="char-counter" id="product-counter-new-{{ $item->product_review_id }}">0/1000</span>
-                                            <textarea name="response"
-                                                      placeholder="Escribir respuesta..."
-                                                      required
-                                                      maxlength="1000"
-                                                      data-counter="product-counter-new-{{ $item->product_review_id }}"
-                                                      oninput="updateCounter(this, 'product-counter-new-{{ $item->product_review_id }}')"></textarea>
-                                        </div>
-                                        <div class="reply-actions">
-                                            <button class="reply-save-btn" type="button"
-                                                    onclick="confirmSaveResponse(this)">Guardar respuesta</button>
-                                            <button class="reply-btn" type="button"
-                                                    onclick="cancelNewResponse(this)">Cancelar</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-            @else
-                <div class="reviews-empty-state">No hay reseñas de productos de este local.</div>
-            @endif
-        </div>
-    </div>
-</div>
-
-<!-- MODAL DETALLES DE RESEÑA -->
-<div id="reviewModal" class="review-modal hidden">
-    <div class="review-modal-overlay"></div>
-    <div class="review-modal-content">
-        <button class="review-modal-close" onclick="closeReviewModal()">×</button>
-
-        <div class="review-modal-header">
-            <div class="review-modal-avatar" id="modalAvatar">CL</div>
-            <div class="review-modal-info">
-                <div class="review-modal-name" id="modalNombre">Cliente</div>
-                <div class="review-modal-fecha" id="modalFecha">-</div>
-            </div>
-            <span class="review-modal-badge" id="modalBadge">Positiva</span>
-        </div>
-
-        <div class="review-modal-body">
-            <div class="review-modal-producto" id="modalProducto" style="display: none;">
-                <strong>PRODUCTO:</strong> <span id="modalProductoNombre"></span>
-            </div>
-
-            <div class="review-modal-calificacion-title">Calificación</div>
-            <div class="review-modal-rating" id="modalRating">
-                <span class="star filled">★</span>
-                <span class="star filled">★</span>
-                <span class="star filled">★</span>
-                <span class="star filled">★</span>
-                <span class="star filled">★</span>
-            </div>
-
-            <div id="modalComentarioContainer" style="display: none;">
-                <div class="review-modal-comentario-title">Comentario</div>
-                <div class="review-modal-comentario" id="modalComentario">Sin comentario.</div>
-            </div>
-
-            <div class="review-modal-respuesta" id="modalRespuestaContainer" style="display: none;">
-                <div class="review-response-box review-response-box--orange">
-                    <div class="review-response-title">RESPUESTA DEL GERENTE</div>
-                    <div class="review-response-text" id="modalRespuesta"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <style>
     /* MODAL */
     .review-modal {
@@ -694,6 +373,496 @@
         margin-top: 16px;
     }
 </style>
+@endpush
+
+@section('title', 'Reseñas')
+
+@section('content')
+<div class="reviews-page">
+
+    <div class="reviews-module-header">
+        <div>
+            <h1 class="reviews-module-title">
+                <i class="fas fa-star"></i>
+                Gestión de reseñas y opiniones
+            </h1>
+            <p class="reviews-module-subtitle">
+                Administra las reseñas de tu local y de tus productos.
+            </p>
+        </div>
+    </div>
+
+    <div class="reviews-tabs-wrapper">
+        <div class="reviews-tabs-header">
+            <button class="reviews-tab-btn active" type="button" data-tab="locales">Reseñas de local</button>
+            <button class="reviews-tab-btn" type="button" data-tab="productos">Reseñas de producto</button>
+        </div>
+
+        {{-- TAB LOCALES --}}
+        <div class="reviews-tab-panel active" id="tab-locales">
+
+            <div class="reviews-section-top">
+                <div class="review-stat-card">
+                    <div class="review-stat-label">PROMEDIO</div>
+                    <div class="review-stat-value">{{ number_format($localStats['average'], 1) }} <span>★</span></div>
+                    <div class="review-stat-text">Sobre 5 estrellas</div>
+                </div>
+                <div class="review-stat-card">
+                    <div class="review-stat-label">RESEÑAS</div>
+                    <div class="review-stat-value">{{ $localStats['total'] }}</div>
+                    <div class="review-stat-text">Este mes: {{ $localStats['month_total'] }}</div>
+                </div>
+                <div class="review-stat-card">
+                    <div class="review-stat-label">DISTRIBUCIÓN</div>
+                    @php $maxLocal = max($localStats['distribution']) > 0 ? max($localStats['distribution']) : 1; @endphp
+                    @for($star = 5; $star >= 1; $star--)
+                        @php $count = $localStats['distribution'][$star]; $width = ($count / $maxLocal) * 100; @endphp
+                        <div class="distribution-row">
+                            <span>{{ $star }}</span>
+                            <div class="distribution-bar"><div class="distribution-fill" style="width: {{ $width }}%;"></div></div>
+                            <strong>{{ $count }}</strong>
+                        </div>
+                    @endfor
+                </div>
+            </div>
+
+            <div class="reviews-toolbar">
+                <h2 class="reviews-block-title">RESEÑAS DE LOCAL</h2>
+            </div>
+
+            {{-- BOTÓN COLAPSABLE DE FILTROS --}}
+            <button class="reviews-filters-toggle" type="button" id="local-filters-toggle" onclick="toggleLocalFilters()">
+                <i class="fas fa-chevron-down chevron"></i>
+                Filtros de búsqueda
+            </button>
+
+            {{-- PANEL DE FILTROS (oculto por defecto) --}}
+            <div class="reviews-filters-bar" id="local-filters-panel" style="display:none;">
+                <div class="filter-group">
+                    <label>Fecha</label>
+                    <input type="date" id="local-filter-fecha" onchange="applyFilters('local')">
+                </div>
+                <div class="filter-group">
+                    <label>Calificación</label>
+                    <select id="local-filter-rating" onchange="applyFilters('local')">
+                        <option value="">Todas</option>
+                        <option value="5">5 estrellas</option>
+                        <option value="4">4 estrellas</option>
+                        <option value="3">3 estrellas</option>
+                        <option value="2">2 estrellas</option>
+                        <option value="1">1 estrella</option>
+                    </select>
+                </div>
+                <button class="filter-clear-btn" type="button" onclick="clearFilters('local')">
+                    <i class="fas fa-redo-alt"></i>
+                    Limpiar
+                </button>
+            </div>
+
+            @if($localReviews->count() > 0)
+                <div class="reviews-grid" id="grid-locales">
+                    @foreach($localReviews as $item)
+                        @php
+                            $nombre     = $item->user->full_name ?? 'Cliente';
+                            $rating     = $item->review->rating ?? 0;
+                            $comentario = $item->review->comment ?? 'Sin comentario.';
+                            $fecha      = $item->review->date ?? '-';
+                            $respuesta  = $item->review->response ?? null;
+                            $partes = explode(' ', trim($nombre));
+                            $iniciales = '';
+                            foreach(array_slice($partes, 0, 2) as $p){ $iniciales .= strtoupper(substr($p, 0, 1)); }
+                            if ($rating >= 4)     { $tipoTexto = 'Positiva'; $tipoClase = 'positive'; }
+                            elseif ($rating == 3) { $tipoTexto = 'Neutra';   $tipoClase = 'neutral';  }
+                            else                  { $tipoTexto = 'Negativa'; $tipoClase = 'negative'; }
+                            $fechaRaw = $item->review->date ? \Carbon\Carbon::parse($item->review->date)->format('Y-m-d') : '';
+                        @endphp
+
+                        <div class="review-card review-card-clickable"
+                             data-modal-nombre="{{ $nombre }}"
+                             data-modal-iniciales="{{ $iniciales ?: 'CL' }}"
+                             data-modal-fecha="{{ $fecha }}"
+                             data-modal-fecha-raw="{{ $fechaRaw }}"
+                             data-modal-rating="{{ $rating }}"
+                             data-modal-comentario="{{ $comentario }}"
+                             data-modal-tipo-texto="{{ $tipoTexto }}"
+                             data-modal-tipo-clase="{{ $tipoClase }}"
+                             data-modal-respuesta="{{ $respuesta ?? '' }}"
+                             data-modal-producto=""
+                             onclick="openReviewModal(this, event)">
+
+                            <div class="review-card-header">
+                                <div class="review-user-box">
+                                    <div class="review-avatar">{{ $iniciales ?: 'CL' }}</div>
+                                    <div>
+                                        <div class="review-user-name">{{ $nombre }}</div>
+                                        <div class="review-date">{{ $fecha }}</div>
+                                    </div>
+                                </div>
+                                <span class="review-badge {{ $tipoClase }}">{{ $tipoTexto }}</span>
+                            </div>
+
+                            <div class="review-stars">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <span class="star {{ $i <= $rating ? 'filled' : '' }}">★</span>
+                                @endfor
+                            </div>
+
+                            <div class="review-comment">{{ $comentario }}</div>
+
+                            @if($respuesta)
+                                <div class="review-response-box review-response-box--orange">
+
+                                    <div class="review-response-header">
+                                        <div class="review-response-title">RESPUESTA DEL GERENTE</div>
+                                        <div class="response-icon-actions" id="local-response-actions-{{ $item->local_review_id }}">
+                                            <button type="button"
+                                                    class="response-icon-btn response-icon-edit"
+                                                    title="Editar respuesta"
+                                                    onclick="editResponse('local', {{ $item->local_review_id }})">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                            <form action="{{ route('reviews.response.delete', $item->review->review_id) }}"
+                                                  method="POST"
+                                                  style="display:inline;"
+                                                  class="delete-response-form">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button"
+                                                        class="response-icon-btn response-icon-delete"
+                                                        title="Eliminar respuesta"
+                                                        onclick="confirmDeleteResponse(this)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <div class="review-response-text" id="local-response-text-{{ $item->local_review_id }}">
+                                        {{ $respuesta }}
+                                    </div>
+
+                                    <form action="{{ route('reviews.response.update', $item->review->review_id) }}"
+                                          method="POST"
+                                          class="reply-box hidden edit-response-form"
+                                          id="local-edit-form-{{ $item->local_review_id }}">
+                                        @csrf
+                                        @method('PUT')
+                                        <div class="textarea-wrap">
+                                            <span class="char-counter" id="local-counter-edit-{{ $item->local_review_id }}">{{ mb_strlen($respuesta) }}/1000</span>
+                                            <textarea name="response"
+                                                      placeholder="Editar respuesta..."
+                                                      required
+                                                      maxlength="1000"
+                                                      oninput="updateCounter(this, 'local-counter-edit-{{ $item->local_review_id }}')">{{ $respuesta }}</textarea>
+                                        </div>
+                                        <div class="reply-actions">
+                                            <button class="reply-save-btn" type="button"
+                                                    onclick="confirmSaveEdit(this)">Guardar cambios</button>
+                                            <button type="button"
+                                                    class="reply-btn"
+                                                    onclick="cancelEditResponse('local', {{ $item->local_review_id }})">
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                </div>
+                            @else
+                                <div class="review-action-area">
+                                    <button class="reply-btn respond-toggle-btn" type="button" onclick="toggleReplyBox(this)">
+                                        Responder
+                                    </button>
+
+                                    <form action="{{ route('reviews.respond', $item->local_review_id) }}" method="POST" class="reply-box hidden respond-form">
+                                        @csrf
+                                        <input type="hidden" name="review_type" value="local">
+                                        <div class="textarea-wrap">
+                                            <span class="char-counter" id="local-counter-new-{{ $item->local_review_id }}">0/1000</span>
+                                            <textarea name="response"
+                                                      placeholder="Escribir respuesta..."
+                                                      required
+                                                      maxlength="1000"
+                                                      data-counter="local-counter-new-{{ $item->local_review_id }}"
+                                                      oninput="updateCounter(this, 'local-counter-new-{{ $item->local_review_id }}')"></textarea>
+                                        </div>
+                                        <div class="reply-actions">
+                                            <button class="reply-save-btn" type="button"
+                                                    onclick="confirmSaveResponse(this)">Guardar respuesta</button>
+                                            <button class="reply-btn" type="button"
+                                                    onclick="cancelNewResponse(this)">Cancelar</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            @endif
+
+                        </div>
+                    @endforeach
+                </div>
+                <div class="reviews-empty-state hidden" id="local-no-results">
+                    No hay reseñas que coincidan con los filtros aplicados.
+                </div>
+            @else
+                <div class="reviews-empty-state">No hay reseñas de local registradas para este gerente.</div>
+            @endif
+        </div>
+
+        {{-- TAB PRODUCTOS --}}
+        <div class="reviews-tab-panel" id="tab-productos">
+
+            <div class="reviews-section-top">
+                <div class="review-stat-card">
+                    <div class="review-stat-label">PROMEDIO</div>
+                    <div class="review-stat-value">{{ number_format($productStats['average'], 1) }} <span>★</span></div>
+                    <div class="review-stat-text">Sobre 5 estrellas</div>
+                </div>
+                <div class="review-stat-card">
+                    <div class="review-stat-label">RESEÑAS</div>
+                    <div class="review-stat-value">{{ $productStats['total'] }}</div>
+                    <div class="review-stat-text">Este mes: {{ $productStats['month_total'] }}</div>
+                </div>
+                <div class="review-stat-card">
+                    <div class="review-stat-label">DISTRIBUCIÓN</div>
+                    @php $maxProduct = max($productStats['distribution']) > 0 ? max($productStats['distribution']) : 1; @endphp
+                    @for($star = 5; $star >= 1; $star--)
+                        @php $count = $productStats['distribution'][$star]; $width = ($count / $maxProduct) * 100; @endphp
+                        <div class="distribution-row">
+                            <span>{{ $star }}</span>
+                            <div class="distribution-bar"><div class="distribution-fill" style="width: {{ $width }}%;"></div></div>
+                            <strong>{{ $count }}</strong>
+                        </div>
+                    @endfor
+                </div>
+            </div>
+
+            <div class="reviews-toolbar">
+                <h2 class="reviews-block-title">RESEÑAS DE PRODUCTO</h2>
+            </div>
+
+            {{-- BOTÓN COLAPSABLE DE FILTROS PRODUCTOS --}}
+            <button class="reviews-filters-toggle" type="button" id="product-filters-toggle" onclick="toggleProductFilters()">
+                <i class="fas fa-chevron-down chevron"></i>
+                Filtros de búsqueda
+            </button>
+
+            {{-- PANEL DE FILTROS PRODUCTOS (oculto por defecto) --}}
+            <div class="reviews-filters-bar" id="product-filters-panel" style="display:none;">
+                <div class="filter-group">
+                    <label>Fecha</label>
+                    <input type="date" id="product-filter-fecha" onchange="applyFilters('product')">
+                </div>
+                <div class="filter-group">
+                    <label>Calificación</label>
+                    <select id="product-filter-rating" onchange="applyFilters('product')">
+                        <option value="">Todas</option>
+                        <option value="5">5 estrellas</option>
+                        <option value="4">4 estrellas</option>
+                        <option value="3">3 estrellas</option>
+                        <option value="2">2 estrellas</option>
+                        <option value="1">1 estrella</option>
+                    </select>
+                </div>
+                <button class="filter-clear-btn" type="button" onclick="clearFilters('product')">
+                    <i class="fas fa-redo-alt"></i>
+                    Limpiar
+                </button>
+            </div>
+
+            @if($productReviews->count() > 0)
+                <div class="reviews-grid" id="grid-productos">
+                    @foreach($productReviews as $item)
+                        @php
+                            $nombre         = $item->user->full_name ?? 'Cliente';
+                            $rating         = $item->review->rating ?? 0;
+                            $comentario     = $item->review->comment ?? 'Sin comentario.';
+                            $fecha          = $item->review->date ?? '-';
+                            $respuesta      = $item->review->response ?? null;
+                            $nombreProducto = $item->product->name ?? ('Producto #' . $item->product_id);
+                            $partes = explode(' ', trim($nombre));
+                            $iniciales = '';
+                            foreach(array_slice($partes, 0, 2) as $p){ $iniciales .= strtoupper(substr($p, 0, 1)); }
+                            if ($rating >= 4)     { $tipoTexto = 'Positiva'; $tipoClase = 'positive'; }
+                            elseif ($rating == 3) { $tipoTexto = 'Neutra';   $tipoClase = 'neutral';  }
+                            else                  { $tipoTexto = 'Negativa'; $tipoClase = 'negative'; }
+                            $fechaRaw = $item->review->date ? \Carbon\Carbon::parse($item->review->date)->format('Y-m-d') : '';
+                        @endphp
+
+                        <div class="review-card review-card-clickable"
+                             data-modal-nombre="{{ $nombre }}"
+                             data-modal-iniciales="{{ $iniciales ?: 'CL' }}"
+                             data-modal-fecha="{{ $fecha }}"
+                             data-modal-fecha-raw="{{ $fechaRaw }}"
+                             data-modal-rating="{{ $rating }}"
+                             data-modal-comentario="{{ $comentario }}"
+                             data-modal-tipo-texto="{{ $tipoTexto }}"
+                             data-modal-tipo-clase="{{ $tipoClase }}"
+                             data-modal-respuesta="{{ $respuesta ?? '' }}"
+                             data-modal-producto="{{ $nombreProducto }}"
+                             onclick="openReviewModal(this, event)">
+
+                            <div class="review-mini-label">Producto: {{ $nombreProducto }}</div>
+
+                            <div class="review-card-header">
+                                <div class="review-user-box">
+                                    <div class="review-avatar">{{ $iniciales ?: 'CL' }}</div>
+                                    <div>
+                                        <div class="review-user-name">{{ $nombre }}</div>
+                                        <div class="review-date">{{ $fecha }}</div>
+                                    </div>
+                                </div>
+                                <span class="review-badge {{ $tipoClase }}">{{ $tipoTexto }}</span>
+                            </div>
+
+                            <div class="review-stars">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <span class="star {{ $i <= $rating ? 'filled' : '' }}">★</span>
+                                @endfor
+                            </div>
+
+                            <div class="review-comment">{{ $comentario }}</div>
+
+                            @if($respuesta)
+                                <div class="review-response-box review-response-box--orange">
+
+                                    <div class="review-response-header">
+                                        <div class="review-response-title">RESPUESTA DEL GERENTE</div>
+                                        <div class="response-icon-actions" id="product-response-actions-{{ $item->product_review_id }}">
+                                            <button type="button"
+                                                    class="response-icon-btn response-icon-edit"
+                                                    title="Editar respuesta"
+                                                    onclick="editResponse('product', {{ $item->product_review_id }})">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                            <form action="{{ route('reviews.response.delete', $item->review->review_id) }}"
+                                                  method="POST"
+                                                  style="display:inline;"
+                                                  class="delete-response-form">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button"
+                                                        class="response-icon-btn response-icon-delete"
+                                                        title="Eliminar respuesta"
+                                                        onclick="confirmDeleteResponse(this)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <div class="review-response-text" id="product-response-text-{{ $item->product_review_id }}">
+                                        {{ $respuesta }}
+                                    </div>
+
+                                    <form action="{{ route('reviews.response.update', $item->review->review_id) }}"
+                                          method="POST"
+                                          class="reply-box hidden edit-response-form"
+                                          id="product-edit-form-{{ $item->product_review_id }}">
+                                        @csrf
+                                        @method('PUT')
+                                        <div class="textarea-wrap">
+                                            <span class="char-counter" id="product-counter-edit-{{ $item->product_review_id }}">{{ mb_strlen($respuesta) }}/1000</span>
+                                            <textarea name="response"
+                                                      placeholder="Editar respuesta..."
+                                                      required
+                                                      maxlength="1000"
+                                                      oninput="updateCounter(this, 'product-counter-edit-{{ $item->product_review_id }}')">{{ $respuesta }}</textarea>
+                                        </div>
+                                        <div class="reply-actions">
+                                            <button class="reply-save-btn" type="button"
+                                                    onclick="confirmSaveEdit(this)">Guardar cambios</button>
+                                            <button type="button"
+                                                    class="reply-btn"
+                                                    onclick="cancelEditResponse('product', {{ $item->product_review_id }})">
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                </div>
+                            @else
+                                <div class="review-action-area">
+                                    <button class="reply-btn respond-toggle-btn" type="button" onclick="toggleReplyBox(this)">
+                                        Responder
+                                    </button>
+
+                                    <form action="{{ route('reviews.respond', $item->product_review_id) }}" method="POST" class="reply-box hidden respond-form">
+                                        @csrf
+                                        <input type="hidden" name="review_type" value="product">
+                                        <div class="textarea-wrap">
+                                            <span class="char-counter" id="product-counter-new-{{ $item->product_review_id }}">0/1000</span>
+                                            <textarea name="response"
+                                                      placeholder="Escribir respuesta..."
+                                                      required
+                                                      maxlength="1000"
+                                                      data-counter="product-counter-new-{{ $item->product_review_id }}"
+                                                      oninput="updateCounter(this, 'product-counter-new-{{ $item->product_review_id }}')"></textarea>
+                                        </div>
+                                        <div class="reply-actions">
+                                            <button class="reply-save-btn" type="button"
+                                                    onclick="confirmSaveResponse(this)">Guardar respuesta</button>
+                                            <button class="reply-btn" type="button"
+                                                    onclick="cancelNewResponse(this)">Cancelar</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+                <div class="reviews-empty-state hidden" id="product-no-results">
+                    No hay reseñas que coincidan con los filtros aplicados.
+                </div>
+            @else
+                <div class="reviews-empty-state">No hay reseñas de productos de este local.</div>
+            @endif
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DETALLES DE RESEÑA -->
+<div id="reviewModal" class="review-modal hidden">
+    <div class="review-modal-overlay"></div>
+    <div class="review-modal-content">
+        <button class="review-modal-close" onclick="closeReviewModal()">×</button>
+
+        <div class="review-modal-header">
+            <div class="review-modal-avatar" id="modalAvatar">CL</div>
+            <div class="review-modal-info">
+                <div class="review-modal-name" id="modalNombre">Cliente</div>
+                <div class="review-modal-fecha" id="modalFecha">-</div>
+            </div>
+            <span class="review-modal-badge" id="modalBadge">Positiva</span>
+        </div>
+
+        <div class="review-modal-body">
+            <div class="review-modal-producto" id="modalProducto" style="display: none;">
+                <strong>PRODUCTO:</strong> <span id="modalProductoNombre"></span>
+            </div>
+
+            <div class="review-modal-calificacion-title">Calificación</div>
+            <div class="review-modal-rating" id="modalRating">
+                <span class="star filled">★</span>
+                <span class="star filled">★</span>
+                <span class="star filled">★</span>
+                <span class="star filled">★</span>
+                <span class="star filled">★</span>
+            </div>
+
+            <div id="modalComentarioContainer" style="display: none;">
+                <div class="review-modal-comentario-title">Comentario</div>
+                <div class="review-modal-comentario" id="modalComentario">Sin comentario.</div>
+            </div>
+
+            <div class="review-modal-respuesta" id="modalRespuestaContainer" style="display: none;">
+                <div class="review-response-box review-response-box--orange">
+                    <div class="review-response-title">RESPUESTA DEL GERENTE</div>
+                    <div class="review-response-text" id="modalRespuesta"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 @push('scripts')
 <script>
@@ -756,52 +925,62 @@
         }
     }
 
+    // ── Toggle filtros locales ──
+    function toggleLocalFilters() {
+        const panel  = document.getElementById('local-filters-panel');
+        const toggle = document.getElementById('local-filters-toggle');
+        const isOpen = panel.style.display !== 'none';
+        panel.style.display = isOpen ? 'none' : 'flex';
+        toggle.classList.toggle('open', !isOpen);
+    }
+
+    // ── Toggle filtros productos ──
+    function toggleProductFilters() {
+        const panel  = document.getElementById('product-filters-panel');
+        const toggle = document.getElementById('product-filters-toggle');
+        const isOpen = panel.style.display !== 'none';
+        panel.style.display = isOpen ? 'none' : 'flex';
+        toggle.classList.toggle('open', !isOpen);
+    }
+
     // Abrir modal de detalles de reseña
-    function openReviewModal(element) {
+    function openReviewModal(element, event) {
+        if (event.target.closest('button, a, input, textarea, select, form')) return;
+
         const modal = document.getElementById('reviewModal');
-        
-        // Recopilar datos del elemento
-        const nombre = element.getAttribute('data-modal-nombre') || 'Cliente';
-        const iniciales = element.getAttribute('data-modal-iniciales') || 'CL';
-        const fecha = element.getAttribute('data-modal-fecha') || '-';
-        const rating = parseInt(element.getAttribute('data-modal-rating')) || 0;
-        const comentario = element.getAttribute('data-modal-comentario') || 'Sin comentario.';
+
+        const nombre    = element.getAttribute('data-modal-nombre')     || 'Cliente';
+        const iniciales = element.getAttribute('data-modal-iniciales')  || 'CL';
+        const fecha     = element.getAttribute('data-modal-fecha')      || '-';
+        const rating    = parseInt(element.getAttribute('data-modal-rating')) || 0;
+        const comentario= element.getAttribute('data-modal-comentario') || 'Sin comentario.';
         const tipoTexto = element.getAttribute('data-modal-tipo-texto') || 'Neutra';
         const tipoClase = element.getAttribute('data-modal-tipo-clase') || 'neutral';
-        const respuesta = element.getAttribute('data-modal-respuesta') || '';
-        const producto = element.getAttribute('data-modal-producto') || '';
+        const respuesta = element.getAttribute('data-modal-respuesta')  || '';
+        const producto  = element.getAttribute('data-modal-producto')   || '';
 
-        // Actualizar contenido del modal
-        document.getElementById('modalAvatar').textContent = iniciales;
-        document.getElementById('modalNombre').textContent = nombre;
-        document.getElementById('modalFecha').textContent = fecha;
+        document.getElementById('modalAvatar').textContent   = iniciales;
+        document.getElementById('modalNombre').textContent   = nombre;
+        document.getElementById('modalFecha').textContent    = fecha;
         document.getElementById('modalComentario').textContent = comentario;
 
-        // Mostrar/ocultar comentario con su título
         const comentarioContainer = document.getElementById('modalComentarioContainer');
-        if (comentario && comentario.trim() && comentario !== 'Sin comentario.') {
-            comentarioContainer.style.display = 'block';
-        } else {
-            comentarioContainer.style.display = 'none';
-        }
+        comentarioContainer.style.display = (comentario && comentario.trim() && comentario !== 'Sin comentario.') ? 'block' : 'none';
 
-        // Actualizar badge
         const badge = document.getElementById('modalBadge');
         badge.textContent = tipoTexto;
-        badge.className = 'review-modal-badge';
+        badge.className   = 'review-modal-badge';
         badge.classList.add(tipoClase);
 
-        // Actualizar rating (estrellas)
         const starsContainer = document.querySelector('.review-modal-rating');
         starsContainer.innerHTML = '';
         for (let i = 1; i <= 5; i++) {
             const star = document.createElement('span');
-            star.className = 'star' + (i <= rating ? ' filled' : '');
+            star.className  = 'star' + (i <= rating ? ' filled' : '');
             star.textContent = '★';
             starsContainer.appendChild(star);
         }
 
-        // Mostrar/ocultar producto
         const productContainer = document.getElementById('modalProducto');
         if (producto) {
             document.getElementById('modalProductoNombre').textContent = producto;
@@ -810,7 +989,6 @@
             productContainer.style.display = 'none';
         }
 
-        // Mostrar/ocultar respuesta
         const respuestaContainer = document.getElementById('modalRespuestaContainer');
         if (respuesta) {
             document.getElementById('modalRespuesta').textContent = respuesta;
@@ -819,16 +997,12 @@
             respuestaContainer.style.display = 'none';
         }
 
-        // Mostrar modal
         modal.classList.remove('hidden');
     }
 
-    // Cerrar modal de detalles de reseña
     function closeReviewModal() {
         const modal = document.getElementById('reviewModal');
-        if (modal) {
-            modal.classList.add('hidden');
-        }
+        if (modal) modal.classList.add('hidden');
     }
 
     function updateCounter(textarea, counterId) {
@@ -838,14 +1012,10 @@
         const max = parseInt(textarea.getAttribute('maxlength')) || 1000;
         counter.textContent = len + '/' + max;
         counter.classList.remove('warn', 'limit');
-        if (len >= max) {
-            counter.classList.add('limit');
-        } else if (len >= max * 0.8) {
-            counter.classList.add('warn');
-        }
+        if (len >= max)          counter.classList.add('limit');
+        else if (len >= max * 0.8) counter.classList.add('warn');
     }
 
-    // Toggle reply box
     function toggleReplyBox(button) {
         const container = button.closest('.review-action-area');
         const box = container.querySelector('.reply-box');
@@ -854,12 +1024,11 @@
         button.style.display = 'none';
     }
 
-    // Cancelar nueva respuesta
     function cancelNewResponse(btn) {
-        const container = btn.closest('.review-action-area');
-        const box = container.querySelector('.reply-box');
+        const container  = btn.closest('.review-action-area');
+        const box        = container.querySelector('.reply-box');
         const respondBtn = container.querySelector('.respond-toggle-btn');
-        box.style.display = 'none';
+        box.style.display    = 'none';
         box.classList.add('hidden');
         respondBtn.style.display = '';
         const textarea = box.querySelector('textarea');
@@ -873,7 +1042,6 @@
         }
     }
 
-    // Edit response
     function editResponse(type, id) {
         document.getElementById(type + '-response-text-' + id).classList.add('hidden');
         document.getElementById(type + '-response-actions-' + id).classList.add('hidden');
@@ -886,9 +1054,8 @@
         document.getElementById(type + '-edit-form-' + id).classList.add('hidden');
     }
 
-    // Confirmar guardar nueva respuesta
     function confirmSaveResponse(btn) {
-        const form = btn.closest('form');
+        const form     = btn.closest('form');
         const textarea = form.querySelector('textarea');
         if (!textarea.value.trim()) {
             window.swToast && window.swToast.fire({ icon: 'warning', title: 'Por favor escribe una respuesta.' });
@@ -904,17 +1071,12 @@
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#915016',
                 cancelButtonColor: '#6b7280',
-            }).then(result => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
+            }).then(result => { if (result.isConfirmed) form.submit(); });
         });
     }
 
-    // Confirmar guardar edición
     function confirmSaveEdit(btn) {
-        const form = btn.closest('form');
+        const form     = btn.closest('form');
         const textarea = form.querySelector('textarea');
         if (!textarea.value.trim()) {
             window.swToast && window.swToast.fire({ icon: 'warning', title: 'Por favor escribe una respuesta.' });
@@ -930,15 +1092,10 @@
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#915016',
                 cancelButtonColor: '#6b7280',
-            }).then(result => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
+            }).then(result => { if (result.isConfirmed) form.submit(); });
         });
     }
 
-    // Confirmar eliminar respuesta — igual que proveedores
     function confirmDeleteResponse(btn) {
         const form = btn.closest('form');
         waitForSwal(() => {
@@ -962,6 +1119,53 @@
                 }
             });
         });
+    }
+
+    // ── FILTROS ──
+    function applyFilters(type) {
+        const prefix  = type === 'local' ? 'local' : 'product';
+        const gridId  = type === 'local' ? 'grid-locales' : 'grid-productos';
+        const noResId = type === 'local' ? 'local-no-results' : 'product-no-results';
+
+        const fecha  = document.getElementById(prefix + '-filter-fecha')?.value  || '';
+        const rating = document.getElementById(prefix + '-filter-rating')?.value || '';
+
+        const grid = document.getElementById(gridId);
+        if (!grid) return;
+
+        let visible = 0;
+
+        grid.querySelectorAll('.review-card').forEach(card => {
+            const cardFecha  = card.getAttribute('data-modal-fecha-raw') || '';
+            const cardRating = card.getAttribute('data-modal-rating')    || '';
+
+            let show = true;
+            if (fecha  && cardFecha  !== fecha)  show = false;
+            if (rating && cardRating !== rating) show = false;
+
+            card.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        const noRes = document.getElementById(noResId);
+        if (noRes) noRes.classList.toggle('hidden', visible > 0);
+    }
+
+    function clearFilters(type) {
+        const prefix  = type === 'local' ? 'local' : 'product';
+        const gridId  = type === 'local' ? 'grid-locales' : 'grid-productos';
+        const noResId = type === 'local' ? 'local-no-results' : 'product-no-results';
+
+        const fechaEl  = document.getElementById(prefix + '-filter-fecha');
+        const ratingEl = document.getElementById(prefix + '-filter-rating');
+        if (fechaEl)  fechaEl.value  = '';
+        if (ratingEl) ratingEl.value = '';
+
+        const grid = document.getElementById(gridId);
+        if (grid) grid.querySelectorAll('.review-card').forEach(c => c.style.display = '');
+
+        const noRes = document.getElementById(noResId);
+        if (noRes) noRes.classList.add('hidden');
     }
 </script>
 @endpush

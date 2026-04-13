@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -6,1199 +6,21 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Plaza Gastronómica - La Comarca</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/ico" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+
+    <!-- Google Fonts with preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="{{ asset('css/carrito.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/plaza/plaza.index.css') }}">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-
-    <style>
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-        :root {
-            --primary:       #D4773A;
-            --primary-light: rgba(212,119,58,0.15);
-            --primary-glow:  rgba(212,119,58,0.28);
-            --bg:            #0A0908;
-            --surface:       #0F0D0B;
-            --card:          #171410;
-            --card-hover:    #1E1A14;
-            --border:        #262018;
-            --border-light:  #302820;
-            --text:          #F5F0E8;
-            --muted:         #7A7060;
-            --radius:        14px;
-            --radius-sm:     8px;
-        }
-
-        html, body { width: 100%; min-height: 100%; }
-
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            -webkit-font-smoothing: antialiased;
-            -webkit-tap-highlight-color: transparent;
-            overflow-x: hidden;
-        }
-
-        img { display: block; max-width: 100%; }
-        a { text-decoration: none; color: inherit; }
-
-        .container {
-            width: 100%;
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* ══════════════════════════════════════
-           KEYFRAMES
-        ══════════════════════════════════════ */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(28px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; } to { opacity: 1; }
-        }
-        @keyframes floatA {
-            0%,100% { transform: translateY(-50%) translate(0,0) rotate(0deg); }
-            33%      { transform: translateY(-50%) translate(-10px,-20px) rotate(1.5deg); }
-            66%      { transform: translateY(-50%) translate(6px,-10px) rotate(-1deg); }
-        }
-        @keyframes floatB {
-            0%,100% { transform: translate(0,0) rotate(0deg); }
-            40%      { transform: translate(-12px,-24px) rotate(-2deg); }
-            70%      { transform: translate(8px,-12px) rotate(1.5deg); }
-        }
-        @keyframes floatC {
-            0%,100% { transform: translate(0,0) scale(1); }
-            50%      { transform: translate(6px,-16px) scale(1.04); }
-        }
-        @keyframes orbReveal {
-            from { opacity: 0; transform: translateY(-50%) scale(0.75); }
-            to   { opacity: 1; transform: translateY(-50%) scale(1); }
-        }
-        @keyframes orbReveal2 {
-            from { opacity: 0; transform: scale(0.7) translateY(16px); }
-            to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        @keyframes shimmer {
-            0%   { background-position: -200% center; }
-            100% { background-position:  200% center; }
-        }
-        @keyframes glowPulse {
-            0%,100% { box-shadow: 0 0 40px rgba(212,119,58,0.2); }
-            50%      { box-shadow: 0 0 70px rgba(212,119,58,0.45), 0 0 120px rgba(212,119,58,0.15); }
-        }
-        @keyframes scanline {
-            0%   { transform: translateY(-100%); }
-            100% { transform: translateY(200vh); }
-        }
-        @keyframes particleDrift {
-            0%,100% { transform: translate(0,0) scale(1); opacity: var(--op); }
-            50%      { transform: translate(var(--dx),var(--dy)) scale(1.5); opacity: calc(var(--op) * 1.8); }
-        }
-        @keyframes scrollBounce {
-            0%,100% { transform: translateY(0); }
-            50%      { transform: translateY(6px); }
-        }
-        @keyframes pulse {
-            0%,100% { opacity: 1; }
-            50%      { opacity: 0.55; }
-        }
-
-        /* ══════════════════════════════════════
-           V-CLOAK - Hide Vue elements during compilation
-        ══════════════════════════════════════ */
-        [v-cloak] { display: none; }
-
-        /* ══════════════════════════════════════
-           HEADER
-        ══════════════════════════════════════ */
-        .plaza-header {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 200;
-            background: rgba(10,9,8,0.92);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
-            padding: 12px 0;
-            transition: background 0.3s;
-        }
-
-        .header-inner {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .header-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .header-logo-img {
-            height: 34px;
-            width: auto;
-            object-fit: contain;
-        }
-
-        .header-logo-text {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: var(--text);
-            letter-spacing: 0.02em;
-        }
-
-        .header-auth { display: flex; align-items: center; gap: 8px; }
-
-        .btn-auth {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            border-radius: var(--radius-sm);
-            font-size: 0.82rem;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'DM Sans', sans-serif;
-        }
-        .btn-login {
-            background: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-        }
-        .btn-login:hover { background: var(--primary-light); }
-
-        .user-menu-top { position: relative; }
-        .user-menu-btn {
-            background: none;
-            border: 1px solid var(--border-light);
-            cursor: pointer;
-            padding: 7px 12px;
-            color: var(--primary);
-            border-radius: var(--radius-sm);
-            display: flex; align-items: center; gap: 8px;
-            font-size: 0.78rem; font-weight: 600;
-            font-family: 'DM Sans', sans-serif;
-            transition: border-color 0.2s;
-        }
-        .user-menu-btn:hover { border-color: var(--primary); }
-
-        .user-menu-dropdown {
-            position: absolute;
-            top: calc(100% + 8px); right: 0;
-            background: var(--card);
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius-sm);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-            min-width: 210px; z-index: 1000;
-            display: none; overflow: hidden;
-        }
-        .user-menu-dropdown.open { display: block; }
-        .dropdown-header { padding: 12px 14px; border-bottom: 1px solid var(--border); }
-        .dropdown-name { font-weight: 600; font-size: 0.82rem; color: var(--text); }
-        .dropdown-email { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
-        .dropdown-item {
-            display: flex; align-items: center; gap: 9px;
-            padding: 10px 14px; font-size: 0.78rem; color: var(--text);
-            border-bottom: 1px solid var(--border);
-            cursor: pointer; background: none;
-            border-left: none; border-right: none;
-            width: 100%; font-family: 'DM Sans', sans-serif;
-            transition: background 0.15s;
-        }
-        .dropdown-item:last-child { border-bottom: none; }
-        .dropdown-item:hover { background: var(--card-hover); }
-        .dropdown-item.danger { color: #e05c5c; }
-
-        /* ══════════════════════════════════════
-           HERO
-        ══════════════════════════════════════ */
-        .hero {
-            position: relative;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 80px 0 70px;
-            overflow: hidden;
-            isolation: isolate;
-        }
-
-        /* Bokeh bg */
-        .hero-bg {
-            position: absolute; inset: 0; z-index: 0;
-        }
-        .hero-bg img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            opacity: 0.6;
-            filter: brightness(0.65) saturate(1.15);
-            transform: scale(1.06);
-            transition: transform 14s ease;
-            will-change: transform;
-        }
-        .hero:hover .hero-bg img { transform: scale(1.02); }
-
-        /* Overlays */
-        .hero-overlay {
-            position: absolute; inset: 0; z-index: 1;
-            background:
-                radial-gradient(ellipse 80% 55% at 50% 115%, rgba(212,119,58,0.2) 0%, transparent 65%),
-                radial-gradient(ellipse 120% 90% at 50% -10%, rgba(10,9,8,0.95) 0%, transparent 55%),
-                linear-gradient(180deg, rgba(10,9,8,0.82) 0%, rgba(10,9,8,0.15) 38%, rgba(10,9,8,0.88) 100%);
-        }
-        .hero-scanline {
-            position: absolute; inset: 0; z-index: 2; overflow: hidden; pointer-events: none;
-        }
-        .hero-scanline::after {
-            content: '';
-            position: absolute; left: 0; right: 0; height: 140px;
-            background: linear-gradient(to bottom, transparent, rgba(212,119,58,0.035), transparent);
-            animation: scanline 10s linear infinite;
-        }
-        .hero-grain {
-            position: absolute; inset: 0; z-index: 3; pointer-events: none;
-            opacity: 0.032;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            background-size: 200px 200px;
-        }
-
-        /* ── Floating logo orbs ── */
-        .hero-orbs {
-            position: absolute; inset: 0; z-index: 4; pointer-events: none;
-        }
-
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            overflow: hidden;
-            opacity: 0;
-        }
-
-        /* Orb grande — logo redondo con fondo negro */
-        .orb-1 {
-            width: 360px; height: 360px;
-            right: -40px; top: 50%;
-            transform: translateY(-50%);
-            border: 1px solid rgba(212,119,58,0.22);
-            box-shadow:
-                0 0 60px rgba(212,119,58,0.22),
-                0 0 140px rgba(212,119,58,0.08),
-                inset 0 0 40px rgba(0,0,0,0.4);
-            animation:
-                orbReveal 1.3s cubic-bezier(.22,.68,0,1.25) 0.5s forwards,
-                floatA 10s ease-in-out 1.8s infinite,
-                glowPulse 5s ease-in-out 2s infinite;
-        }
-
-        /* Orb mediano — logo blanco */
-        .orb-2 {
-            width: 130px; height: 130px;
-            right: 310px; top: 10%;
-            border: 1px solid rgba(212,119,58,0.18);
-            box-shadow: 0 0 30px rgba(212,119,58,0.18);
-            background: rgba(10,9,8,0.7);
-            animation:
-                orbReveal2 1s cubic-bezier(.22,.68,0,1.25) 1s forwards,
-                floatB 12s ease-in-out 2s infinite;
-        }
-        .orb-2 img { object-fit: contain; padding: 10px; width: 100%; height: 100%; }
-
-        /* Orb pequeño */
-        .orb-3 {
-            width: 68px; height: 68px;
-            right: 140px; bottom: 20%;
-            border: 1px solid rgba(212,119,58,0.28);
-            box-shadow: 0 0 20px rgba(212,119,58,0.22);
-            filter: brightness(0.65);
-            animation:
-                orbReveal2 1s cubic-bezier(.22,.68,0,1.25) 1.4s forwards,
-                floatC 8s ease-in-out 2.4s infinite;
-        }
-
-        /* Arc decorativo */
-        .orb-arc {
-            position: absolute;
-            right: 115px; top: 15%;
-            width: 290px; height: 370px;
-            border: 1px dashed rgba(212,119,58,0.1);
-            border-radius: 50%;
-            pointer-events: none;
-            animation: fadeIn 2.5s ease 2.5s both;
-        }
-
-        /* ── Particles ── */
-        .hero-particles {
-            position: absolute; inset: 0; z-index: 4; pointer-events: none;
-        }
-        .particle {
-            position: absolute;
-            border-radius: 50%;
-            background: var(--primary);
-            animation: particleDrift var(--dur) ease-in-out var(--delay) infinite;
-        }
-
-        /* ── Hero content ── */
-        .hero-content {
-            position: relative; z-index: 10;
-            max-width: 620px;
-            margin: 0 0 0 200px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .hero-badge {
-            display: inline-flex;
-            align-items: center; gap: 8px;
-            background: rgba(212,119,58,0.1);
-            border: 1px solid rgba(212,119,58,0.32);
-            color: var(--primary);
-            font-size: 0.68rem; font-weight: 700;
-            letter-spacing: 0.13em;
-            text-transform: uppercase;
-            padding: 7px 14px; border-radius: 999px;
-            margin-bottom: 24px; width: fit-content;
-            opacity: 0;
-            animation: fadeUp 0.8s cubic-bezier(.22,.68,0,1.2) 0.2s forwards;
-        }
-        .hero-badge-dot {
-            width: 6px; height: 6px; border-radius: 50%;
-            background: var(--primary);
-            animation: glowPulse 2s ease infinite;
-        }
-
-        .hero-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: clamp(2.8rem, 6vw, 4.6rem);
-            font-weight: 300;
-            line-height: 1.06;
-            color: var(--text);
-            margin-bottom: 18px;
-            letter-spacing: -0.01em;
-            opacity: 0;
-            animation: fadeUp 0.95s cubic-bezier(.22,.68,0,1.2) 0.42s forwards;
-        }
-        .hero-title strong { font-weight: 700; display: block; }
-        .hero-title em {
-            font-style: italic; font-weight: 300;
-            background: linear-gradient(90deg, #D4773A, #F0A060, #E08840, #D4773A);
-            background-size: 220% auto;
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: shimmer 4.5s linear 1.5s infinite;
-        }
-
-        .hero-subtitle {
-            font-size: 0.95rem;
-            color: rgba(245,240,232,0.5);
-            line-height: 1.75;
-            margin-bottom: 32px;
-            max-width: 460px;
-            font-weight: 300;
-            opacity: 0;
-            animation: fadeUp 0.95s cubic-bezier(.22,.68,0,1.2) 0.62s forwards;
-        }
-
-        .hero-divider {
-            display: flex; align-items: center; gap: 14px;
-            margin-bottom: 30px;
-            opacity: 0;
-            animation: fadeUp 0.8s ease 0.78s forwards;
-        }
-        .hero-divider-line {
-            flex: 1; max-width: 56px; height: 1px;
-            background: linear-gradient(to right, transparent, rgba(212,119,58,0.45));
-        }
-        .hero-divider-line.r { background: linear-gradient(to left, transparent, rgba(212,119,58,0.45)); }
-        .hero-divider-icon { color: var(--primary); font-size: 0.78rem; opacity: 0.65; }
-
-        /* Search */
-        .search-wrap {
-            position: relative; margin-bottom: 36px;
-            opacity: 0;
-            animation: fadeUp 0.9s cubic-bezier(.22,.68,0,1.2) 0.88s forwards;
-        }
-        .search-icon {
-            position: absolute; left: 18px; top: 50%;
-            transform: translateY(-50%);
-            color: var(--muted); pointer-events: none; font-size: 0.9rem;
-        }
-        .search-input {
-            width: 100%; height: 52px;
-            background: rgba(20,17,13,0.9);
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius-sm);
-            padding: 0 20px 0 48px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.9rem; font-weight: 300;
-            color: var(--text);
-            outline: none; -webkit-appearance: none;
-            backdrop-filter: blur(10px);
-            transition: border-color 0.25s, box-shadow 0.25s;
-        }
-        .search-input::placeholder { color: rgba(122,112,96,0.55); }
-        .search-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(212,119,58,0.14), 0 8px 32px rgba(0,0,0,0.35);
-        }
-
-        /* Stats */
-        .hero-stats {
-            display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
-            opacity: 0;
-            animation: fadeUp 0.9s cubic-bezier(.22,.68,0,1.2) 1.06s forwards;
-        }
-        .stat-divider { width: 1px; height: 30px; background: rgba(38,32,24,0.9); }
-        .stat { display: flex; align-items: center; gap: 11px; }
-        .stat-icon {
-            display: flex; align-items: center; justify-content: center;
-            width: 38px; height: 38px; border-radius: 10px;
-            background: rgba(212,119,58,0.1);
-            border: 1px solid rgba(212,119,58,0.18);
-            color: var(--primary); font-size: 0.88rem; flex-shrink: 0;
-        }
-        .stat strong {
-            display: block;
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.4rem; font-weight: 700;
-            color: var(--text); line-height: 1;
-        }
-        .stat small {
-            font-size: 0.66rem; color: var(--muted);
-            margin-top: 2px; display: block;
-            text-transform: uppercase; letter-spacing: 0.07em;
-        }
-
-        /* Scroll hint */
-        .scroll-hint {
-            position: absolute; bottom: 28px; left: 50%;
-            transform: translateX(-50%); z-index: 10;
-            display: flex; flex-direction: column; align-items: center; gap: 8px;
-            color: rgba(122,112,96,0.45); font-size: 0.62rem;
-            letter-spacing: 0.11em; text-transform: uppercase;
-            opacity: 0; animation: fadeIn 1s ease 2.2s forwards;
-        }
-        .scroll-mouse {
-            width: 22px; height: 34px;
-            border: 1px solid rgba(122,112,96,0.28);
-            border-radius: 999px;
-            display: flex; justify-content: center; padding-top: 7px;
-        }
-        .scroll-wheel {
-            width: 3px; height: 7px;
-            background: rgba(212,119,58,0.55);
-            border-radius: 999px;
-            animation: scrollBounce 1.9s ease infinite;
-        }
-
-        /* ══════════════════════════════════════
-           CATEGORY BAR — UPGRADED
-        ══════════════════════════════════════ */
-        .category-bar {
-            position: sticky; top: 57px; z-index: 150;
-            padding: 0;
-            background: rgba(10,9,8,0.96);
-            backdrop-filter: blur(18px);
-            border-bottom: 1px solid var(--border);
-        }
-        .category-bar-inner {
-            display: flex; align-items: center;
-            gap: 0; overflow-x: auto;
-            scrollbar-width: none; -ms-overflow-style: none;
-            padding: 0 4px;
-        }
-        .category-bar-inner::-webkit-scrollbar { display: none; }
-
-        .cat-pill {
-            display: inline-flex; align-items: center; gap: 7px;
-            white-space: nowrap;
-            padding: 13px 20px;
-            font-size: 0.77rem; font-weight: 600;
-            font-family: 'DM Sans', sans-serif;
-            letter-spacing: 0.03em;
-            border: none; cursor: pointer;
-            background: transparent; color: var(--muted);
-            flex-shrink: 0;
-            position: relative;
-            transition: color 0.22s;
-        }
-        .cat-pill::after {
-            content: '';
-            position: absolute; bottom: 0; left: 20px; right: 20px;
-            height: 2px; border-radius: 2px 2px 0 0;
-            background: var(--primary);
-            transform: scaleX(0);
-            transition: transform 0.25s cubic-bezier(.22,.68,0,1.2);
-        }
-        .cat-pill:hover { color: var(--text); }
-        .cat-pill.active { color: var(--primary); }
-        .cat-pill.active::after { transform: scaleX(1); }
-        .cat-pill i { font-size: 0.85rem; transition: transform 0.2s; }
-        .cat-pill:hover i { transform: scale(1.2); }
-        .cat-pill .cat-count {
-            font-size: 0.62rem; background: var(--primary-light);
-            color: var(--primary); padding: 1px 6px; border-radius: 99px;
-            font-weight: 700; display: none;
-        }
-        .cat-pill.active .cat-count { display: inline-block; }
-
-        /* ══════════════════════════════════════
-           FILTERED PRODUCTS — UPGRADED
-        ══════════════════════════════════════ */
-        .filtered-section {
-            padding: 60px 0;
-            background: var(--bg);
-            border-bottom: 1px solid var(--border);
-            position: relative;
-        }
-        .filtered-section::before {
-            content: '';
-            position: absolute; top: 0; left: 0; right: 0; height: 1px;
-            background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
-        }
-        .filtered-header {
-            display: flex; align-items: flex-end;
-            justify-content: space-between;
-            margin-bottom: 32px; flex-wrap: wrap; gap: 12px;
-        }
-        .filtered-label {
-            font-size: 0.65rem; font-weight: 700; letter-spacing: 0.14em;
-            text-transform: uppercase; color: var(--primary);
-            display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
-        }
-        .filtered-label::before {
-            content: ''; width: 20px; height: 1px;
-            background: var(--primary); opacity: 0.6;
-        }
-        .filtered-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: clamp(1.7rem, 3vw, 2.2rem);
-            font-weight: 700; color: var(--text);
-            line-height: 1.1;
-        }
-        .filtered-count-badge {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 6px 14px; border-radius: 99px;
-            background: var(--card); border: 1px solid var(--border-light);
-            font-size: 0.75rem; color: var(--muted); font-weight: 500;
-        }
-        .filtered-count-badge strong { color: var(--primary); }
-
-        .grid-products-filtered {
-            display: grid; gap: 16px;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        }
-        @media (min-width: 640px) {
-            .grid-products-filtered { grid-template-columns: repeat(3, 1fr); }
-        }
-        @media (min-width: 900px) {
-            .grid-products-filtered { grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        }
-
-        /* Transition for filtered grid */
-        .fade-slide-enter-active { transition: all 0.42s cubic-bezier(.22,.68,0,1.2); }
-        .fade-slide-leave-active { transition: all 0.22s ease; position: absolute; }
-        .fade-slide-enter-from { opacity: 0; transform: translateY(20px); }
-        .fade-slide-leave-to   { opacity: 0; transform: translateY(-8px); }
-
-        .product-card-v2 {
-            background: var(--card);
-            border-radius: var(--radius);
-            overflow: hidden;
-            border: 1px solid var(--border);
-            transition: transform 0.32s cubic-bezier(.22,.68,0,1.2), box-shadow 0.32s;
-            cursor: pointer;
-            position: relative;
-        }
-        .product-card-v2:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px var(--primary-glow);
-        }
-        .product-card-v2 .product-img {
-            position: relative; aspect-ratio: 4/3; overflow: hidden;
-            background: rgba(0,0,0,0.2);
-        }
-        .product-card-v2 .product-img img {
-            width: 100%; height: 100%; object-fit: cover;
-            transition: transform 0.55s cubic-bezier(.22,.68,0,1.2);
-        }
-        .product-card-v2:hover .product-img img { transform: scale(1.1); }
-        .product-img-overlay {
-            position: absolute; inset: 0;
-            background: linear-gradient(to top, rgba(10,9,8,0.8) 0%, transparent 60%);
-            opacity: 0; transition: opacity 0.3s;
-        }
-        .product-card-v2:hover .product-img-overlay { opacity: 1; }
-        .product-cat-chip {
-            position: absolute; top: 10px; left: 10px;
-            background: rgba(10,9,8,0.75); backdrop-filter: blur(8px);
-            color: var(--primary); font-size: 0.6rem; font-weight: 700;
-            letter-spacing: 0.08em; text-transform: uppercase;
-            padding: 4px 9px; border-radius: 99px;
-            border: 1px solid rgba(212,119,58,0.3);
-        }
-        .product-quick-view {
-            position: absolute; bottom: 10px; right: 10px;
-            background: var(--primary); color: #fff;
-            font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
-            padding: 6px 12px; border-radius: var(--radius-sm);
-            border: none; cursor: pointer; font-family: 'DM Sans', sans-serif;
-            opacity: 0; transform: translateY(6px);
-            transition: opacity 0.25s, transform 0.25s;
-            display: flex; align-items: center; gap: 5px;
-            text-decoration: none;
-        }
-        .product-card-v2:hover .product-quick-view {
-            opacity: 1; transform: translateY(0);
-        }
-        .product-card-v2 .product-body { padding: 14px; }
-        .product-card-v2 .product-local {
-            font-size: 0.62rem; font-weight: 700;
-            color: var(--primary); text-transform: uppercase;
-            letter-spacing: 0.07em; margin-bottom: 5px;
-        }
-        .product-card-v2 .product-name {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.05rem; font-weight: 700; color: var(--text);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            margin-bottom: 10px;
-        }
-        .product-card-v2 .product-footer {
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .product-card-v2 .product-price {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.25rem; font-weight: 700; color: var(--primary);
-        }
-
-        /* Loading skeleton */
-        .skeleton-grid {
-            display: grid; gap: 16px;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        }
-        @media (min-width: 640px) { .skeleton-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (min-width: 900px) { .skeleton-grid { grid-template-columns: repeat(4, 1fr); gap: 20px; } }
-
-        .skeleton-card {
-            background: var(--card);
-            border-radius: var(--radius);
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-        .skeleton-img {
-            aspect-ratio: 4/3;
-            background: linear-gradient(90deg, var(--card) 25%, var(--card-hover) 50%, var(--card) 75%);
-            background-size: 200% 100%;
-            animation: skeletonShimmer 1.4s infinite;
-        }
-        .skeleton-body { padding: 14px; }
-        .skeleton-line {
-            height: 10px; border-radius: 5px;
-            background: linear-gradient(90deg, var(--card) 25%, var(--card-hover) 50%, var(--card) 75%);
-            background-size: 200% 100%;
-            animation: skeletonShimmer 1.4s infinite;
-            margin-bottom: 8px;
-        }
-        .skeleton-line.w-60 { width: 60%; }
-        .skeleton-line.w-80 { width: 80%; }
-        .skeleton-line.w-40 { width: 40%; }
-        @keyframes skeletonShimmer {
-            0%   { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        /* ══════════════════════════════════════
-           LOCALES SECTION — UPGRADED
-        ══════════════════════════════════════ */
-        .locales-section {
-            padding: 72px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        .locales-header-row {
-            display: flex; align-items: flex-end;
-            justify-content: space-between;
-            margin-bottom: 40px; flex-wrap: wrap; gap: 16px;
-        }
-        .locales-eyebrow {
-            font-size: 0.65rem; font-weight: 700;
-            letter-spacing: 0.14em; text-transform: uppercase;
-            color: var(--primary); margin-bottom: 8px;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .locales-eyebrow::before {
-            content: ''; width: 20px; height: 1px;
-            background: var(--primary); opacity: 0.6;
-        }
-        .locales-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: clamp(2rem, 3.5vw, 2.8rem);
-            font-weight: 700; color: var(--text);
-            line-height: 1.05; margin-bottom: 8px;
-        }
-        .locales-sub {
-            font-size: 0.88rem; color: var(--muted); font-weight: 300; line-height: 1.6;
-        }
-        .locales-count {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 3rem; font-weight: 300; color: var(--border-light);
-            line-height: 1; letter-spacing: -0.03em;
-        }
-        .locales-count span { color: var(--primary); }
-
-        .grid-locals-v2 {
-            display: grid; gap: 20px;
-            grid-template-columns: repeat(2, 1fr);
-        }
-        @media (min-width: 768px) {
-            .grid-locals-v2 { grid-template-columns: repeat(3, 1fr); }
-        }
-        @media (min-width: 1100px) {
-            .grid-locals-v2 { grid-template-columns: repeat(3, 1fr); gap: 24px; }
-        }
-
-        .local-card-v2 {
-            background: var(--card);
-            border-radius: var(--radius);
-            overflow: hidden;
-            border: 1px solid var(--border);
-            transition: transform 0.35s cubic-bezier(.22,.68,0,1.2), box-shadow 0.35s;
-            cursor: pointer;
-            position: relative;
-            display: flex; flex-direction: column;
-        }
-        .local-card-v2:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--primary-glow);
-        }
-
-        .local-img-wrap-v2 {
-            position: relative;
-            aspect-ratio: 3/2; overflow: hidden;
-        }
-        .local-img-v2 {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            transition: transform 0.55s cubic-bezier(.22,.68,0,1.2);
-        }
-        .local-card-v2:hover .local-img-v2 { transform: scale(1.09); }
-
-        .local-img-gradient {
-            position: absolute; inset: 0;
-            background: linear-gradient(180deg, transparent 35%, rgba(10,9,8,0.85) 100%);
-        }
-        .local-floating-status {
-            position: absolute; top: 12px; right: 12px;
-            display: inline-flex; align-items: center; gap: 5px;
-            background: rgba(10,9,8,0.75); backdrop-filter: blur(8px);
-            padding: 4px 10px; border-radius: 99px;
-            font-size: 0.66rem; font-weight: 700;
-            border: 1px solid rgba(74,222,128,0.25);
-        }
-        .local-floating-status.open { color: #4ade80; }
-        .local-floating-status.closed { color: var(--muted); border-color: var(--border); }
-        .local-floating-status .dot {
-            width: 6px; height: 6px; border-radius: 50%;
-            background: #4ade80;
-            animation: pulse 2s infinite;
-        }
-        .local-floating-status.closed .dot {
-            background: var(--muted); animation: none;
-        }
-
-        .local-body-v2 {
-            padding: 18px; flex: 1;
-            display: flex; flex-direction: column;
-        }
-        .local-name-v2 {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.2rem; font-weight: 700;
-            color: var(--text); margin-bottom: 6px;
-            line-height: 1.2;
-        }
-        .local-desc-v2 {
-            font-size: 0.76rem; color: var(--muted);
-            line-height: 1.6; font-weight: 300;
-            display: -webkit-box; -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical; overflow: hidden;
-            margin-bottom: 14px; flex: 1;
-        }
-        .local-meta-v2 {
-            display: flex; align-items: center;
-            gap: 12px; margin-bottom: 14px;
-            flex-wrap: wrap;
-        }
-        .meta-chip {
-            display: inline-flex; align-items: center; gap: 4px;
-            font-size: 0.72rem; color: var(--muted); font-weight: 500;
-        }
-        .meta-chip i { color: var(--primary); font-size: 0.8rem; }
-
-        .local-status {
-            display: inline-flex; align-items: center; gap: 5px;
-            font-size: 0.72rem; font-weight: 600; color: #4ade80;
-        }
-        .local-status::before {
-            content: ''; display: inline-block;
-            width: 7px; height: 7px; border-radius: 50%;
-            background: #4ade80;
-            animation: pulse 2s infinite;
-        }
-        .local-status.closed { color: var(--muted); }
-        .local-status.closed::before { background: var(--muted); animation: none; }
-
-        .btn-ver-menu-v2 {
-            width: 100%; padding: 11px 0;
-            background: transparent;
-            color: var(--primary);
-            font-size: 0.82rem; font-weight: 700;
-            border: 1px solid var(--primary);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: background 0.22s, color 0.22s, box-shadow 0.22s, transform 0.15s;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            font-family: 'DM Sans', sans-serif; letter-spacing: 0.04em;
-            text-decoration: none;
-        }
-        .btn-ver-menu-v2:hover {
-            background: var(--primary); color: #fff;
-            box-shadow: 0 6px 20px var(--primary-glow);
-        }
-        .btn-ver-menu-v2:active { transform: scale(0.97); }
-        .btn-ver-menu-v2 i { transition: transform 0.22s; }
-        .btn-ver-menu-v2:hover i { transform: translateX(4px); }
-
-        /* ══════════════════════════════════════
-           PRODUCTOS DESTACADOS — UPGRADED
-        ══════════════════════════════════════ */
-        .destacados-section {
-            padding: 72px 0;
-            position: relative;
-            border-bottom: 1px solid var(--border);
-        }
-        .destacados-section::before {
-            content: ''; position: absolute; inset: 0;
-            background: rgba(10,9,8,0.80);
-            pointer-events: none; z-index: 0;
-        }
-        .destacados-section > .container { position: relative; z-index: 1; }
-
-        .destacados-header {
-            display: flex; align-items: flex-end;
-            justify-content: space-between;
-            margin-bottom: 40px; flex-wrap: wrap; gap: 16px;
-        }
-        .destacados-fire-badge {
-            display: inline-flex; align-items: center; gap: 7px;
-            background: rgba(212,119,58,0.12);
-            border: 1px solid rgba(212,119,58,0.35);
-            color: var(--primary);
-            font-size: 0.68rem; font-weight: 800;
-            letter-spacing: 0.12em; text-transform: uppercase;
-            padding: 6px 14px; border-radius: 99px;
-            margin-bottom: 12px; width: fit-content;
-        }
-        .destacados-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: clamp(2rem, 3.5vw, 2.8rem);
-            font-weight: 700; color: var(--text);
-            line-height: 1.05; margin-bottom: 8px;
-        }
-        .destacados-sub {
-            font-size: 0.88rem; color: rgba(245,240,232,0.45);
-            font-weight: 300; line-height: 1.6;
-        }
-
-        .grid-destacados {
-            display: grid; gap: 16px;
-            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-        }
-        @media (min-width: 640px) {
-            .grid-destacados { grid-template-columns: repeat(3, 1fr); }
-        }
-        @media (min-width: 900px) {
-            .grid-destacados { grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        }
-
-        .destacado-card {
-            background: rgba(23,20,16,0.7);
-            backdrop-filter: blur(10px);
-            border-radius: var(--radius);
-            overflow: hidden;
-            border: 1px solid rgba(48,40,32,0.8);
-            transition: transform 0.35s cubic-bezier(.22,.68,0,1.2), box-shadow 0.35s;
-            cursor: pointer;
-        }
-        .destacado-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 0 1px var(--primary-glow);
-        }
-        .destacado-img {
-            position: relative; aspect-ratio: 1; overflow: hidden;
-            background: rgba(0,0,0,0.25);
-        }
-        .destacado-img img {
-            width: 100%; height: 100%; object-fit: cover;
-            transition: transform 0.55s cubic-bezier(.22,.68,0,1.2);
-        }
-        .destacado-card:hover .destacado-img img { transform: scale(1.1); }
-        .destacado-img-overlay {
-            position: absolute; inset: 0;
-            background: linear-gradient(to top, rgba(10,9,8,0.7) 0%, transparent 55%);
-        }
-        .destacado-popular-tag {
-            position: absolute; top: 9px; right: 9px;
-            background: var(--primary); color: #fff;
-            font-size: 0.58rem; font-weight: 800; letter-spacing: 0.06em;
-            text-transform: uppercase; padding: 3px 9px; border-radius: 99px;
-        }
-        .destacado-body { padding: 13px 14px; }
-        .destacado-local {
-            font-size: 0.6rem; font-weight: 700; color: var(--primary);
-            text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px;
-        }
-        .destacado-name {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1rem; font-weight: 700; color: var(--text);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            margin-bottom: 10px;
-        }
-        .destacado-footer {
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .destacado-price {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.2rem; font-weight: 700; color: var(--primary);
-        }
-
-        /* ══════════════════════════════════════
-           FOOTER — UPGRADED (Nature-inspired)
-        ══════════════════════════════════════ */
-        .footer-v2 {
-            position: relative;
-            background: #5a2e02;
-            background-image: url('{{ asset("images/fondomadera1.webp") }}');
-            background-size: cover;
-            background-position: center;
-            overflow: hidden;
-        }
-
-        /* Dark overlay for text readability */
-        .footer-v2::before {
-            content: '';
-            position: absolute; inset: 0;
-            background: rgba(10, 9, 8, 0.75);
-            pointer-events: none; z-index: 0;
-        }
-
-        /* Silhouette landscape SVG top */
-        .footer-landscape {
-            display: block;
-            width: 100%;
-            margin-bottom: 0;
-            line-height: 0;
-            position: relative; z-index: 1;
-        }
-        .footer-landscape svg {
-            width: 100%; height: 120px;
-            display: block;
-        }
-
-        .footer-main {
-            padding: 56px 0 0;
-            position: relative; z-index: 2;
-        }
-
-        /* Subtle texture overlay */
-        .footer-v2::after {
-            content: '';
-            position: absolute; inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            opacity: 0.025; pointer-events: none; z-index: 1;
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: 1.8fr 1fr 1fr;
-            gap: 48px;
-            margin-bottom: 52px;
-            position: relative; z-index: 3;
-        }
-        @media (max-width: 900px) {
-            .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
-        }
-        @media (max-width: 600px) {
-            .footer-grid { grid-template-columns: 1fr; gap: 28px; text-align: center; }
-        }
-
-        /* Brand column */
-        .footer-brand-logo {
-            display: flex; align-items: center; gap: 12px;
-            margin-bottom: 18px;
-        }
-        @media (max-width: 600px) { .footer-brand-logo { justify-content: center; } }
-        .footer-brand-logo img { height: 38px; width: auto; opacity: 0.92; }
-        .footer-brand-name {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.15rem; font-weight: 600;
-            color: #F5F0E8; letter-spacing: 0.02em;
-        }
-        .footer-brand-desc {
-            font-size: 0.82rem; color: rgba(245,240,232,0.75);
-            line-height: 1.8; font-weight: 300; margin-bottom: 24px;
-            max-width: 300px;
-        }
-        @media (max-width: 600px) { .footer-brand-desc { margin: 0 auto 24px; } }
-
-        /* Newsletter input */
-        .footer-newsletter {
-            display: flex; gap: 0;
-            border: 1px solid rgba(200,220,200,0.15);
-            border-radius: var(--radius-sm); overflow: hidden;
-            max-width: 320px;
-        }
-        @media (max-width: 600px) { .footer-newsletter { margin: 0 auto; } }
-        .footer-newsletter input {
-            flex: 1; background: rgba(255,255,255,0.06);
-            border: none; padding: 10px 14px;
-            font-size: 0.78rem; color: #F5F0E8;
-            font-family: 'DM Sans', sans-serif; outline: none;
-        }
-        .footer-newsletter input::placeholder { color: rgba(245,240,232,0.4); }
-        .footer-newsletter-btn {
-            background: var(--primary); color: #F5F0E8;
-            border: none; padding: 10px 16px;
-            font-size: 0.75rem; font-weight: 700; letter-spacing: 0.07em;
-            text-transform: uppercase; cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
-            transition: background 0.2s;
-            white-space: nowrap;
-        }
-        .footer-newsletter-btn:hover { background: #c06830; }
-
-        /* Column headings */
-        .footer-col-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.05rem; font-weight: 700;
-            color: #F5F0E8;
-            margin-bottom: 20px; letter-spacing: 0.01em;
-        }
-
-        /* Navigation links */
-        .footer-nav { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-        @media (max-width: 600px) { .footer-nav { align-items: center; } }
-        .footer-nav a {
-            font-size: 0.82rem; color: rgba(245,240,232,0.75);
-            font-weight: 400; transition: color 0.2s;
-            display: flex; align-items: center; gap: 6px;
-        }
-        .footer-nav a::before {
-            content: '→'; font-size: 0.65rem;
-            opacity: 0; transform: translateX(-4px);
-            transition: all 0.2s; color: var(--primary);
-        }
-        .footer-nav a:hover { color: var(--primary); }
-        .footer-nav a:hover::before { opacity: 1; transform: translateX(0); }
-
-        /* Contact info */
-        .footer-contact { display: flex; flex-direction: column; gap: 12px; }
-        @media (max-width: 600px) { .footer-contact { align-items: center; } }
-        .footer-contact-item {
-            display: flex; align-items: flex-start; gap: 10px;
-            font-size: 0.8rem; color: rgba(245,240,232,0.75); line-height: 1.5;
-        }
-        @media (max-width: 600px) { .footer-contact-item { align-items: center; } }
-        .footer-contact-item i {
-            color: var(--primary); font-size: 0.88rem; width: 16px;
-            text-align: center; margin-top: 1px; flex-shrink: 0;
-        }
-        .footer-contact-item a { color: inherit; transition: color 0.2s; }
-        .footer-contact-item a:hover { color: var(--primary); }
-
-        /* Divider */
-        .footer-divider {
-            border: none; border-top: 1px solid rgba(245,240,232,0.1);
-            margin-bottom: 28px; position: relative; z-index: 3;
-        }
-
-        /* Bottom bar */
-        .footer-bottom {
-            display: flex; align-items: center;
-            justify-content: center;
-            padding-bottom: 32px;
-            flex-wrap: wrap; gap: 16px;
-            position: relative; z-index: 3;
-        }
-        @media (max-width: 600px) { .footer-bottom { flex-direction: column; align-items: center; } }
-
-        .footer-copy {
-            font-size: 0.74rem; color: rgba(245,240,232,0.55); font-weight: 300;
-        }
-
-        .footer-socials { display: flex; gap: 10px; }
-        .footer-social-btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 36px; height: 36px; border-radius: var(--radius-sm);
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(245,240,232,0.15);
-            color: rgba(245,240,232,0.65);
-            font-size: 0.9rem;
-            transition: all 0.22s;
-        }
-        .footer-social-btn:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: #F5F0E8;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(212,119,58,0.35);
-        }
-
-        /* Horario badge */
-        .footer-horario-badge {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: rgba(212,119,58,0.15);
-            border: 1px solid rgba(212,119,58,0.35);
-            padding: 6px 14px; border-radius: 99px;
-            font-size: 0.73rem; color: var(--primary); font-weight: 600;
-            margin-bottom: 16px; letter-spacing: 0.04em;
-        }
-        .footer-horario-badge .pulsedot {
-            width: 7px; height: 7px; border-radius: 50%;
-            background: var(--primary); animation: pulse 2s infinite;
-        }
-
-        /* ══════════════════════════════════════
-           RESPONSIVE
-        ══════════════════════════════════════ */
-        @media (max-width: 900px) {
-            .orb-1 { width: 260px; height: 260px; right: -70px; }
-            .orb-2 { width: 100px; height: 100px; right: 205px; }
-            .orb-3 { display: none; }
-            .orb-arc { display: none; }
-        }
-        @media (max-width: 640px) {
-            .hero-title { font-size: 2.4rem; }
-            .orb-1 { width: 190px; height: 190px; right: -75px; opacity: 0.45 !important; }
-            .orb-2 { display: none; }
-            .hero-stats { gap: 14px; }
-            .stat-divider { display: none; }
-            .grid-locals-v2 { grid-template-columns: 1fr; }
-            .locales-count { display: none; }
-            .filtered-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-        }
-        @media (max-width: 480px) {
-            .plaza-header { padding: 10px 0; }
-            .grid-locals-v2 { grid-template-columns: 1fr; }
-            .destacados-header { flex-direction: column; }
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 </head>
 <body>
 <div id="plaza-app">
@@ -1212,16 +34,25 @@
                     <span class="header-logo-text">La Comarca Gastropark</span>
                 </div>
                 <div class="header-auth">
+                    <!-- Calendar Button (visible to all) -->
+                    <button @click="openEventsDrawer" class="cart-btn" :style="{ borderColor: showEventsDrawer ? 'var(--primary)' : 'var(--border-light)' }">
+                        <i class="fas fa-calendar"></i>
+                    </button>
+                    
                     @auth
+                        <button @click="openCartDrawer" class="cart-btn" :style="{ borderColor: showCartDrawer ? 'var(--primary)' : 'var(--border-light)' }">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span id="cart-count">@{{ totalDrawerQty }}</span>
+                        </button>
                         <div class="user-menu-top">
                             <button class="user-menu-btn" id="userMenuBtn">
                                 @if(auth()->user()->avatar)
-                                    <img src="{{ asset(auth()->user()->avatar) }}" alt="" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">
+                                    <img src="{{ asset(auth()->user()->avatar) }}" alt="" class="avatar-lg">
                                 @else
-                                    <i class="fas fa-user-circle" style="font-size:18px;"></i>
+                                    <i class="fas fa-user-circle icon-md"></i>
                                 @endif
-                                <span style="color:var(--text);font-size:0.75rem;">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
-                                <i class="fas fa-chevron-down" style="font-size:0.6rem;opacity:0.5;"></i>
+                                <span class="text-label">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
+                                <i class="fas fa-chevron-down icon-sm"></i>
                             </button>
                             <div class="user-menu-dropdown" id="userMenuDropdown">
                                 <div class="dropdown-header">
@@ -1229,9 +60,9 @@
                                     <div class="dropdown-email">{{ auth()->user()->email }}</div>
                                 </div>
                                 <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
-                                    <i class="fas fa-user-edit" style="color:var(--muted);"></i> Editar perfil
+                                    <i class="fas fa-user-edit text-muted"></i> Editar perfil
                                 </a>
-                                <form method="POST" action="{{ route('logout') }}" style="margin:0;">
+                                <form method="POST" action="{{ route('logout') }}" class="m-0">
                                     @csrf
                                     <button type="submit" class="dropdown-item danger">
                                         <i class="fas fa-sign-out-alt"></i> Cerrar sesión
@@ -1248,6 +79,26 @@
             </div>
         </div>
     </header>
+
+    <!-- ══ ADMIN PREVIEW BANNER ══ -->
+    @if(session('plaza_admin_preview'))
+    <div class="preview-banner">
+        <div class="container">
+            <div class="flex-row-space">
+                <div class="flex-row">
+                    <i class="fas fa-eye icon-lg"></i>
+                    <div>
+                        <div class="preview-text-main">Vista Previa - Administrador</div>
+                        <div class="preview-text-sub">Estás viendo la plaza en modo preview. Tu sesión administrativa se mantiene activa en otro tab.</div>
+                    </div>
+                </div>
+                <button onclick="window.history.back()" class="preview-btn">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- ══ HERO ══ -->
     <section class="hero" id="hero-section">
@@ -1348,7 +199,7 @@
                 <div class="stat">
                     <span class="stat-icon"><i class="fas fa-star"></i></span>
                     <div>
-                        <strong>4.8</strong>
+                        <strong>{{ $stats['calificacion'] }}</strong>
                         <small>Calificación</small>
                     </div>
                 </div>
@@ -1421,20 +272,17 @@
                         <img :src="producto.photo_url" :alt="producto.name" loading="lazy">
                         <div class="product-img-overlay"></div>
                         <span class="product-cat-chip">@{{ producto.category }}</span>
-                        <a :href="'/plaza/' + producto.local_id" class="product-quick-view">
-                            Ver <i class="fas fa-arrow-right"></i>
-                        </a>
                     </div>
                     <div class="product-body">
                         <div class="product-local">@{{ producto.local }}</div>
                         <h3 class="product-name" :title="producto.name">@{{ producto.name }}</h3>
-                        <div class="product-stars" style="margin: 8px 0; display: flex; gap: 2px;">
-                            <i v-for="i in 5" :key="i" class="fas fa-star" :style="{color: i <= (producto.average_rating || 0) ? 'var(--primary)' : 'rgba(122,112,96,0.25)', fontSize: '0.65rem'}"></i>
+                        <div class="product-stars stars-container">
+                            <i v-for="i in 5" :key="i" class="fas fa-star text-xs" :style="{color: i <= Math.round(producto.average_rating || 0) ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }"></i>
                         </div>
                         <div class="product-footer">
                             <span class="product-price">₡@{{ producto.price }}</span>
-                            <a :href="'/plaza/' + producto.local_id" style="color: var(--primary); font-size: 0.8rem; font-weight: 600;">
-                                Ver <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
+                            <a :href="'/plaza/' + producto.local_id" class="btn-link">
+                                Ver <i class="fas fa-arrow-right arrow-ml"></i>
                             </a>
                         </div>
                     </div>
@@ -1442,6 +290,8 @@
             </transition-group>
         </div>
     </section>
+
+
 
     <!-- ══ NUESTROS LOCALES ══ -->
     <section class="locales-section">
@@ -1467,20 +317,20 @@
                     @foreach($locales as $local)
                     <article class="local-card-v2">
                         <div class="local-img-wrap-v2">
-                            <img src="{{ $local->logo_url ?? 'https://via.placeholder.com/400x225/171410/D4773A?text=' . urlencode($local->name) }}"
+                            <img src="{{ $local->image_logo ? asset($local->image_logo) : 'https://via.placeholder.com/400x225/171410/D4773A?text=' . urlencode($local->name) }}"
                                  alt="{{ $local->name }}" class="local-img-v2" loading="lazy">
                             <div class="local-img-gradient"></div>
                         </div>
                         <div class="local-body-v2">
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px;">
+                            <div class="flex-between mb-8">
                                 <h3 class="local-name-v2">{{ $local->name }}</h3>
-                                <span class="meta-chip" style="white-space: nowrap; font-size: 0.7rem; padding: 4px 8px;">
-                                    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: {{ $local->isOpenNow ? '#4ade80' : '#ef4444' }}; margin-right: 4px;"></span>
+                                <span class="meta-chip nowrap">
+                                    <span class="status-dot {{ $local->isOpenNow ? 'status-dot-open' : 'status-dot-closed' }}"></span>
                                     {{ $local->isOpenNow ? 'Abierto' : 'Cerrado' }}
                                 </span>
                             </div>
                             <p class="local-desc-v2">{{ $local->description ?? 'Explora nuestro menú y descubre sabores únicos' }}</p>
-                            <div class="local-stars" style="display: flex; gap: 4px; margin: 10px 0;">
+                            <div class="local-stars stars-container-lg">
                                 @php
                                     $rating = round($local->average_rating ?? 0);
                                     for ($j = 1; $j <= 5; $j++):
@@ -1510,7 +360,7 @@
                     <div class="destacados-fire-badge">
                         <i class="fas fa-fire"></i> Lo Más Buscado
                     </div>
-                    <h2 class="destacados-title">Platillos Destacados</h2>
+                    <h2 class="destacados-title">Productos Destacados</h2>
                     <p class="destacados-sub">Los favoritos de nuestros clientes de todos los locales</p>
                 </div>
             </div>
@@ -1534,15 +384,15 @@
                         @php
                             $rating = round($producto->average_rating ?? 0);
                         @endphp
-                        <div style="margin: 8px 0; display: flex; gap: 2px;">
+                        <div class="stars-container">
                             @for($i = 1; $i <= 5; $i++)
-                                <i class="fas fa-star" style="color: {{ $i <= $rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }}; font-size: 0.65rem;"></i>
+                                <i class="fas fa-star text-xs" style="color: {{ $i <= $rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }};"></i>
                             @endfor
                         </div>
-                        <div class="destacado-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="destacado-footer flex-between">
                             <span class="destacado-price">₡{{ number_format($producto->price, 2) }}</span>
-                            <a href="{{ route('plaza.show', $producto->locals->first()?->local_id ?? '#') }}" style="color: var(--primary); font-size: 0.8rem; font-weight: 600;">
-                                Ver <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
+                            <a href="{{ route('plaza.show', $producto->locals->first()?->local_id ?? '#') }}" class="btn-link">
+                                Ver <i class="fas fa-arrow-right arrow-ml"></i>
                             </a>
                         </div>
                     </div>
@@ -1613,7 +463,7 @@
                     <!-- Síguenos column -->
                     <div>
                         <h3 class="footer-col-title">Síguenos</h3>
-                        <p style="font-size:0.8rem;color:rgba(200,220,200,0.4);font-weight:300;line-height:1.7;margin-bottom:20px;">
+                        <p class="description-text">
                             Conecta con nosotros en redes sociales y mantente al día con nuestros eventos y promociones especiales.
                         </p>
                         <div class="footer-socials">
@@ -1642,9 +492,68 @@
         </div>
     </footer>
 
+    <!-- ══ EVENTOS DRAWER ══ -->
+    <!-- ══ EVENTS DRAWER ══ -->
+    @include('plaza.evento.drawer')
+
+    <!-- ══ CART DRAWER ══ -->
+    @include('plaza.carrito._cart_drawer')
+
+    <!-- ═══ DRAWER: EVENTO DETAIL (PANEL LATERAL) ═══ -->
+    <div v-if="showEventoDetail" class="evento-detail-overlay" @click="closeEventoDetail"></div>
+    <div class="evento-detail-drawer" :class="{ 'active': showEventoDetail }">
+        <!-- Header -->
+        <div class="evento-detail-header">
+            <h2>Detalles del Evento</h2>
+            <button @click="closeEventoDetail" class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="evento-detail-content">
+            <div v-if="currentEvento && currentEvento.event_id" class="evento-detail-body">
+                <!-- Image -->
+                <div class="evento-detail-image">
+                    <img :src="currentEvento.image_url" :alt="currentEvento.title" loading="lazy">
+                </div>
+
+                <!-- Info -->
+                <div class="evento-detail-info">
+                    <h3 class="evento-title">@{{ currentEvento.title }}</h3>
+                    
+                    <div class="evento-meta-group">
+                        <div class="evento-meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span><strong>Hora:</strong> @{{ new Date(currentEvento.start_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) }}</span>
+                        </div>
+                        <div class="evento-meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span><strong>Fecha:</strong> @{{ new Date(currentEvento.start_at).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
+                        </div>
+                        <div class="evento-meta-item">
+                            <i class="fas fa-map-pin"></i>
+                            <span><strong>Ubicación:</strong> @{{ currentEvento.location }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="evento-description">
+                        <p>@{{ currentEvento.description }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
+<!-- ═══ TOAST NOTIFICATIONS (OUTSIDE TEMPLATE) ═══ -->
+@include('plaza.carrito._toast-notifications')
+
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    // Función helper para mostrar toasts personalizados
+    const showToast = (config) => { if (window.showNotification) { window.showNotification(config); } };
     /* ── User menu ── */
     document.addEventListener('DOMContentLoaded', function() {
         const menuBtn = document.getElementById('userMenuBtn');
@@ -1671,13 +580,29 @@
                 categoriaSelectNombre: 'Todos',
                 productosFiltrados: [],
                 cargandoProductos: false,
-            };
+                // Eventos
+                eventosTab: 'hoy',
+                eventosHoy: {!! json_encode($eventosHoy) !!},
+                eventosProximos: {!! json_encode($eventosProximos) !!},
+                showEventsDrawer: false,
+                showEventoDetail: false,
+                currentEvento: {},
+                // Cart drawer data
+                showCartDrawer: false,
+                showConfirmOrder: false,
+                showConfirmClear: false,
+                showConfirmRemove: false,
+                itemToRemoveIndex: null,
+                drawerCart: [],
+                isCheckingOut: false
+            }
         },
 
         mounted() {
             this.buildParticles();
             document.addEventListener('mousemove', this.onMouseMove);
             window.addEventListener('scroll', this.onScroll, { passive: true });
+            this.loadCartDrawer();
         },
 
         beforeUnmount() {
@@ -1772,7 +697,229 @@
                     this.cargandoProductos = false;
                 }
             },
+
+            // ── DRAWER METHODS ──
+            openEventsDrawer() {
+                this.showEventsDrawer = true;
+                document.body.classList.add('events-drawer-open');
+            },
+            closeEventsDrawer() {
+                this.showEventsDrawer = false;
+                document.body.classList.remove('events-drawer-open');
+            },
+            openCartDrawer() {
+                this.showCartDrawer = true;
+                document.body.classList.add('cart-drawer-open');
+                this.loadCartDrawer();
+            },
+            closeCartDrawer() {
+                this.showCartDrawer = false;
+                document.body.classList.remove('cart-drawer-open');
+            },
+            loadCartDrawer() {
+                fetch('{{ route("plaza.cart.get") }}', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    this.drawerCart = (data.cart || []).map(item => ({
+                        ...item,
+                        price: parseFloat(item.price),
+                        quantity: parseInt(item.quantity)
+                    }));
+                })
+                .catch(error => console.error('Error loading cart:', error));
+            },
+            updateItemQty(index, newQty) {
+                if (newQty < 1) newQty = 1;
+                if (this.drawerCart[index]) {
+                    // Actualizar localmente
+                    this.drawerCart[index].quantity = newQty;
+                    
+                    // Guardar en servidor
+                    fetch('{{ route("plaza.cart.update.qty") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            item_index: index,
+                            quantity: newQty
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            console.error('Error updating quantity:', data.message);
+                            this.loadCartDrawer(); // Recargar si hay error
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.loadCartDrawer(); // Recargar si hay error
+                    });
+                }
+            },
+            removeFromCart(index) {
+                // Mostrar diálogo de confirmación
+                this.itemToRemoveIndex = index;
+                this.showConfirmRemove = true;
+            },
+            cancelRemoveItem() {
+                this.showConfirmRemove = false;
+                this.itemToRemoveIndex = null;
+            },
+            confirmRemoveItem() {
+                if (this.itemToRemoveIndex === null) return;
+                
+                const index = this.itemToRemoveIndex;
+                const itemKey = this.drawerCart[index].item_key;
+                
+                // Remover localmente
+                this.drawerCart.splice(index, 1);
+                this.showConfirmRemove = false;
+                this.itemToRemoveIndex = null;
+                
+                // Guardar en servidor usando item_key
+                fetch('{{ route("plaza.cart.remove") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        item_key: itemKey
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast({ icon: 'success', title: 'Item eliminado', message: 'El producto ha sido removido del carrito', timer: 5500 });
+                    } else {
+                        console.error('Error removing item:', data.message);
+                        this.loadCartDrawer(); // Recargar si hay error
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    this.loadCartDrawer(); // Recargar si hay error
+                });
+            },
+            goToClearCart() {
+                this.showConfirmClear = true;
+            },
+            cancelClearCart() {
+                this.showConfirmClear = false;
+            },
+            confirmClearCart() {
+                // Limpiar localmente
+                this.drawerCart = [];
+                this.showConfirmClear = false;
+                
+                // Guardar en servidor
+                fetch('{{ route("plaza.cart.clear") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast({ icon: 'success', title: '¡Carrito vaciado!', message: 'Todos los items han sido eliminados', timer: 5500 });
+                    } else {
+                        console.error('Error clearing cart:', data.message);
+                        this.loadCartDrawer();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    this.loadCartDrawer();
+                });
+            },
+
+            goToCheckout() {
+                if (this.drawerCart.length === 0) {
+                    showToast({ icon: 'warning', title: 'El carrito está vacío' });
+                    return;
+                }
+
+                // Mostrar confirmación dentro del panel
+                this.showConfirmOrder = true;
+            },
+            
+            cancelConfirmOrder() {
+                this.showConfirmOrder = false;
+            },
+
+            async processCheckout() {
+                this.isCheckingOut = true;
+
+                try {
+                    const response = await fetch('{{ route("plaza.order.create") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ items: this.drawerCart })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showToast({ icon: 'success', title: '¡Orden confirmada!', message: 'Tu orden se ha procesado correctamente', timer: 6000 });
+                        this.drawerCart = [];
+                        this.showConfirmOrder = false;
+                        this.showCartDrawer = false;
+                    } else {
+                        showToast({ icon: 'error', title: 'No se pudo procesar', message: data.message || 'Hubo un problema al confirmar tu orden', timer: 5500 });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast({ icon: 'error', title: 'Oops, algo salió mal', message: 'Hubo un problema de conexión. Intenta de nuevo', timer: 5500 });
+                } finally {
+                    this.isCheckingOut = false;
+                }
+            },
+
+            // ══ Métodos de Eventos ══
+
+            detalleEvento(evento) {
+                this.currentEvento = evento;
+                this.showEventoDetail = true;
+                document.body.classList.add('evento-detail-open');
+            },
+            closeEventoDetail() {
+                this.showEventoDetail = false;
+                document.body.classList.remove('evento-detail-open');
+                setTimeout(() => {
+                    this.currentEvento = {};
+                }, 300);
+            }
         },
+
+        computed: {
+            totalDrawerQty() {
+                return this.drawerCart.length;
+            },
+            totalDrawerPrice() {
+                return this.drawerCart.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0);
+            },
+            totalEventos() {
+                return (this.eventosHoy?.length || 0) + (this.eventosProximos?.length || 0);
+            }
+        }
     }).mount('#plaza-app');
 </script>
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -6,804 +6,28 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $local->name }} - La Comarca Gastro Park</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/ico" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
+
+    <!-- Google Fonts with preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="{{ asset('css/carrito.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/plaza/plaza.common.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/plaza/plaza.index.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/plaza/plaza.show.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/plaza/plaza.reviews.css') }}">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></link>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
-    <style>
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-        :root {
-            --primary:       #D4773A;
-            --primary-light: rgba(212,119,58,0.15);
-            --primary-glow:  rgba(212,119,58,0.25);
-            --bg:            #0A0908;
-            --surface:       #111009;
-            --card:          #161310;
-            --card-hover:    #1D1914;
-            --border:        #252018;
-            --border-light:  #302820;
-            --text:          #F5F0E8;
-            --muted:         #7A7060;
-            --radius:        14px;
-            --radius-sm:     8px;
-        }
-
-        html, body { width: 100%; min-height: 100%; }
-
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            -webkit-font-smoothing: antialiased;
-            -webkit-tap-highlight-color: transparent;
-            overflow-x: hidden;
-        }
-
-        img { display: block; max-width: 100%; }
-        a { text-decoration: none; color: inherit; }
-
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* ── HEADER ─────────────────────────────── */
-        .site-header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(10,9,8,0.96);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
-            padding: 14px 0;
-        }
-
-        .header-inner {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .btn-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--card);
-            border: 1px solid var(--border-light);
-            color: var(--muted);
-            font-size: 0.8rem;
-            font-weight: 500;
-            padding: 8px 14px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-back:hover { background: var(--card-hover); color: var(--text); }
-        .btn-back i { font-size: 0.7rem; }
-
-        .header-label {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.15rem;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            color: var(--text);
-        }
-
-        /* auth user menu */
-        .user-menu-top { position: relative; }
-        .user-menu-btn {
-            background: none;
-            border: 1px solid var(--border-light);
-            cursor: pointer;
-            padding: 7px 12px;
-            color: var(--primary);
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            font-family: 'DM Sans', sans-serif;
-        }
-        .user-menu-dropdown {
-            position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
-            background: var(--card);
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius-sm);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-            min-width: 190px;
-            z-index: 1000;
-            display: none;
-            overflow: hidden;
-        }
-        .user-menu-dropdown.open { display: block; }
-        .dropdown-header {
-            padding: 12px 14px;
-            border-bottom: 1px solid var(--border);
-        }
-        .dropdown-name { font-weight: 600; font-size: 0.8rem; color: var(--text); }
-        .dropdown-email { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 14px;
-            font-size: 0.78rem;
-            color: var(--text);
-            border-bottom: 1px solid var(--border);
-            transition: background 0.15s;
-            cursor: pointer;
-            background: none;
-            border-left: none;
-            border-right: none;
-            width: 100%;
-            font-family: 'DM Sans', sans-serif;
-        }
-        .dropdown-item:last-child { border-bottom: none; }
-        .dropdown-item:hover { background: var(--card-hover); }
-        .dropdown-item.danger { color: #e05c5c; }
-
-        /* ── HERO ────────────────────────────────── */
-        .local-hero {
-            position: relative;
-            height: 35vh;
-            min-height: 280px;
-            max-height: 380px;
-            overflow: hidden;
-        }
-
-        .hero-bg {
-            position: absolute;
-            inset: 0;
-        }
-        .hero-bg img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: brightness(0.55);
-            transition: transform 8s ease;
-        }
-        .local-hero:hover .hero-bg img { transform: scale(1.04); }
-
-        .hero-gradient {
-            position: absolute;
-            inset: 0;
-            background:
-                linear-gradient(to top,  var(--bg) 0%, rgba(10,9,8,0.7) 35%, transparent 70%),
-                linear-gradient(to right, rgba(10,9,8,0.4) 0%, transparent 60%);
-        }
-
-        .hero-body {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 24px 20px;
-            display: flex;
-            align-items: flex-end;
-            gap: 14px;
-        }
-
-        .hero-logo-ring {
-            width: 64px;
-            height: 64px;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 2px solid rgba(212,119,58,0.6);
-            box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 0 3px rgba(212,119,58,0.1);
-            flex-shrink: 0;
-        }
-        .hero-logo-ring img { width: 100%; height: 100%; object-fit: cover; }
-
-        .hero-text { flex: 1; min-width: 0; }
-
-        .hero-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: var(--primary-light);
-            border: 1px solid var(--primary-glow);
-            color: var(--primary);
-            font-size: 0.6rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            padding: 3px 8px;
-            border-radius: 999px;
-            margin-bottom: 6px;
-        }
-
-        .hero-name {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 2rem;
-            font-weight: 700;
-            line-height: 1.05;
-            color: var(--text);
-            margin-bottom: 4px;
-        }
-
-        .hero-desc {
-            font-size: 0.75rem;
-            color: rgba(245,240,232,0.55);
-            line-height: 1.4;
-        }
-
-        /* ── CATEGORY BAR ────────────────────────── */
-        .cat-strip {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            padding: 14px 0;
-            position: sticky;
-            top: 57px;
-            z-index: 90;
-        }
-
-        .cat-scroll {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        .cat-scroll::-webkit-scrollbar { display: none; }
-
-        .cat-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-            padding: 7px 16px;
-            border-radius: 999px;
-            font-size: 0.78rem;
-            font-weight: 500;
-            border: 1px solid var(--border-light);
-            background: transparent;
-            color: var(--muted);
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'DM Sans', sans-serif;
-            flex-shrink: 0;
-        }
-        .cat-pill:hover { color: var(--text); border-color: var(--border-light); background: var(--card); }
-        .cat-pill.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: #fff;
-            box-shadow: 0 4px 16px var(--primary-glow);
-        }
-
-        /* ── SECTION INTRO ───────────────────────── */
-        .menu-section {
-            padding: 52px 0 80px;
-        }
-
-        .menu-intro {
-            margin-bottom: 40px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .menu-intro-left {}
-
-        .section-eyebrow {
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: var(--primary);
-            margin-bottom: 6px;
-        }
-
-        .section-heading {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--text);
-            line-height: 1.1;
-        }
-
-        .section-heading em { font-style: italic; color: var(--primary); }
-
-        .item-count {
-            font-size: 0.78rem;
-            color: var(--muted);
-            padding: 6px 12px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 999px;
-        }
-
-        /* ── PRODUCT GRID ────────────────────────── */
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 2px;
-        }
-
-        @media (min-width: 640px)  { .products-grid { grid-template-columns: repeat(2, 1fr); gap: 2px; } }
-        @media (min-width: 900px)  { .products-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (min-width: 1100px) { .products-grid { grid-template-columns: repeat(4, 1fr); } }
-
-        /* ── PRODUCT CARD ────────────────────────── */
-        .p-card {
-            position: relative;
-            background: var(--card);
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.35s cubic-bezier(.22,.68,0,1.2), box-shadow 0.35s;
-            border: 1px solid var(--border);
-        }
-
-        .p-card:hover {
-            transform: translateY(-6px) scale(1.015);
-            box-shadow: 0 20px 48px rgba(0,0,0,0.55), 0 0 0 1px var(--primary-glow);
-            z-index: 2;
-        }
-
-        .p-card-img {
-            position: relative;
-            aspect-ratio: 1 / 1;
-            overflow: hidden;
-            background: #0d0b08;
-        }
-
-        .p-card-img img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.6s cubic-bezier(.22,.68,0,1.2), filter 0.4s;
-            filter: brightness(0.9);
-        }
-
-        .p-card:hover .p-card-img img {
-            transform: scale(1.1);
-            filter: brightness(1);
-        }
-
-        /* shine overlay on hover */
-        .p-card-img::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-        .p-card:hover .p-card-img::after { opacity: 1; }
-
-        /* bottom gradient on image */
-        .p-card-img-fade {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            height: 50%;
-            background: linear-gradient(to top, rgba(10,9,8,0.85) 0%, transparent 100%);
-            pointer-events: none;
-        }
-
-        /* category badge top-left */
-        .p-card-cat {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 0.6rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            padding: 4px 9px;
-            border-radius: 999px;
-            background: rgba(10,9,8,0.75);
-            border: 1px solid rgba(212,119,58,0.4);
-            color: var(--primary);
-            backdrop-filter: blur(8px);
-        }
-
-        .p-card-body {
-            padding: 16px 16px 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            position: relative;
-        }
-
-        /* top rule */
-        .p-card-body::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 16px; right: 16px;
-            height: 1px;
-            background: linear-gradient(to right, var(--primary-glow), transparent);
-        }
-
-        .p-card-name {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--text);
-            line-height: 1.2;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .p-card-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .p-card-stars {
-            display: flex;
-            gap: 2px;
-            margin-bottom: 8px;
-            align-items: center;
-        }
-
-        .p-card-price {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.55rem;
-            font-weight: 700;
-            color: var(--primary);
-            line-height: 1;
-        }
-
-        .p-card-price sup {
-            font-size: 0.7em;
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 500;
-            vertical-align: super;
-            margin-right: 1px;
-            opacity: 0.8;
-        }
-
-        .p-card-icon {
-            width: 34px;
-            height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: var(--primary-light);
-            border: 1px solid var(--primary-glow);
-            color: var(--primary);
-            font-size: 0.8rem;
-            transition: all 0.2s;
-        }
-
-        .p-card:hover .p-card-icon {
-            background: var(--primary);
-            color: #fff;
-            box-shadow: 0 4px 14px var(--primary-glow);
-        }
-
-        /* ── FEATURED CARD (first item, full width) ── */
-        .p-card.featured {
-            grid-column: 1 / 3;
-            display: flex;
-            flex-direction: row;
-        }
-
-        @media (max-width: 640px) {
-            .p-card.featured { 
-                grid-column: 1 / -1;
-                flex-direction: column; 
-            }
-        }
-
-        .p-card.featured .p-card-img {
-            flex: 0 0 40%;
-            aspect-ratio: unset;
-            min-height: 200px;
-        }
-
-        .p-card.featured .p-card-body {
-            flex: 1;
-            justify-content: center;
-            padding: 20px 20px;
-        }
-
-        .p-card.featured .p-card-name {
-            font-size: 1.4rem;
-            -webkit-line-clamp: 2;
-        }
-
-        .p-card.featured .p-card-price {
-            font-size: 1.6rem;
-        }
-
-        .featured-label {
-            font-size: 0.6rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--primary);
-            margin-bottom: 4px;
-        }
-
-        .featured-desc {
-            font-size: 0.85rem;
-            color: var(--muted);
-            line-height: 1.6;
-            margin-top: 4px;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        /* ── EMPTY STATE ─────────────────────────── */
-        .empty-wrap {
-            text-align: center;
-            padding: 80px 20px;
-            color: var(--muted);
-        }
-
-        .empty-icon {
-            font-size: 3.5rem;
-            opacity: 0.15;
-            margin-bottom: 16px;
-        }
-
-        .empty-msg {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.3rem;
-            opacity: 0.5;
-        }
-
-         /* ══════════════════════════════════════
-           FOOTER — UPGRADED (Nature-inspired)
-        ══════════════════════════════════════ */
-        .footer-v2 {
-            position: relative;
-            background: #5a2e02;
-            background-image: url('{{ asset("images/fondomadera1.webp") }}');
-            background-size: cover;
-            background-position: center;
-            overflow: hidden;
-        }
-
-        /* Dark overlay for text readability */
-        .footer-v2::before {
-            content: '';
-            position: absolute; inset: 0;
-            background: rgba(10, 9, 8, 0.75);
-            pointer-events: none; z-index: 0;
-        }
-
-        /* Silhouette landscape SVG top */
-        .footer-landscape {
-            display: block;
-            width: 100%;
-            margin-bottom: 0;
-            line-height: 0;
-            position: relative; z-index: 1;
-        }
-        .footer-landscape svg {
-            width: 100%; height: 120px;
-            display: block;
-        }
-
-        .footer-main {
-            padding: 56px 0 0;
-            position: relative; z-index: 2;
-        }
-
-        /* Subtle texture overlay */
-        .footer-v2::after {
-            content: '';
-            position: absolute; inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            opacity: 0.025; pointer-events: none; z-index: 1;
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: 1.8fr 1fr 1fr;
-            gap: 48px;
-            margin-bottom: 52px;
-            position: relative; z-index: 3;
-        }
-        @media (max-width: 900px) {
-            .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
-        }
-        @media (max-width: 600px) {
-            .footer-grid { grid-template-columns: 1fr; gap: 28px; text-align: center; }
-        }
-
-        /* Brand column */
-        .footer-brand-logo {
-            display: flex; align-items: center; gap: 12px;
-            margin-bottom: 18px;
-        }
-        @media (max-width: 600px) { .footer-brand-logo { justify-content: center; } }
-        .footer-brand-logo img { height: 38px; width: auto; opacity: 0.92; }
-        .footer-brand-name {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.15rem; font-weight: 600;
-            color: #F5F0E8; letter-spacing: 0.02em;
-        }
-        .footer-brand-desc {
-            font-size: 0.82rem; color: rgba(245,240,232,0.75);
-            line-height: 1.8; font-weight: 300; margin-bottom: 24px;
-            max-width: 300px;
-        }
-        @media (max-width: 600px) { .footer-brand-desc { margin: 0 auto 24px; } }
-
-        /* Newsletter input */
-        .footer-newsletter {
-            display: flex; gap: 0;
-            border: 1px solid rgba(200,220,200,0.15);
-            border-radius: var(--radius-sm); overflow: hidden;
-            max-width: 320px;
-        }
-        @media (max-width: 600px) { .footer-newsletter { margin: 0 auto; } }
-        .footer-newsletter input {
-            flex: 1; background: rgba(255,255,255,0.06);
-            border: none; padding: 10px 14px;
-            font-size: 0.78rem; color: #F5F0E8;
-            font-family: 'DM Sans', sans-serif; outline: none;
-        }
-        .footer-newsletter input::placeholder { color: rgba(245,240,232,0.4); }
-        .footer-newsletter-btn {
-            background: var(--primary); color: #F5F0E8;
-            border: none; padding: 10px 16px;
-            font-size: 0.75rem; font-weight: 700; letter-spacing: 0.07em;
-            text-transform: uppercase; cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
-            transition: background 0.2s;
-            white-space: nowrap;
-        }
-        .footer-newsletter-btn:hover { background: #c06830; }
-
-        /* Column headings */
-        .footer-col-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.05rem; font-weight: 700;
-            color: #F5F0E8;
-            margin-bottom: 20px; letter-spacing: 0.01em;
-        }
-
-        /* Navigation links */
-        .footer-nav { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-        @media (max-width: 600px) { .footer-nav { align-items: center; } }
-        .footer-nav a {
-            font-size: 0.82rem; color: rgba(245,240,232,0.75);
-            font-weight: 400; transition: color 0.2s;
-            display: flex; align-items: center; gap: 6px;
-        }
-        .footer-nav a::before {
-            content: '→'; font-size: 0.65rem;
-            opacity: 0; transform: translateX(-4px);
-            transition: all 0.2s; color: var(--primary);
-        }
-        .footer-nav a:hover { color: var(--primary); }
-        .footer-nav a:hover::before { opacity: 1; transform: translateX(0); }
-
-        /* Contact info */
-        .footer-contact { display: flex; flex-direction: column; gap: 12px; }
-        @media (max-width: 600px) { .footer-contact { align-items: center; } }
-        .footer-contact-item {
-            display: flex; align-items: flex-start; gap: 10px;
-            font-size: 0.8rem; color: rgba(245,240,232,0.75); line-height: 1.5;
-        }
-        @media (max-width: 600px) { .footer-contact-item { align-items: center; } }
-        .footer-contact-item i {
-            color: var(--primary); font-size: 0.88rem; width: 16px;
-            text-align: center; margin-top: 1px; flex-shrink: 0;
-        }
-        .footer-contact-item a { color: inherit; transition: color 0.2s; }
-        .footer-contact-item a:hover { color: var(--primary); }
-
-        /* Divider */
-        .footer-divider {
-            border: none; border-top: 1px solid rgba(245,240,232,0.1);
-            margin-bottom: 28px; position: relative; z-index: 3;
-        }
-
-        /* Bottom bar */
-        .footer-bottom {
-            display: flex; align-items: center;
-            justify-content: center;
-            padding-bottom: 32px;
-            flex-wrap: wrap; gap: 16px;
-            position: relative; z-index: 3;
-        }
-        @media (max-width: 600px) { .footer-bottom { flex-direction: column; align-items: center; } }
-
-        .footer-copy {
-            font-size: 0.74rem; color: rgba(245,240,232,0.55); font-weight: 300;
-        }
-
-        .footer-socials { display: flex; gap: 10px; }
-        .footer-social-btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 36px; height: 36px; border-radius: var(--radius-sm);
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(245,240,232,0.15);
-            color: rgba(245,240,232,0.65);
-            font-size: 0.9rem;
-            transition: all 0.22s;
-        }
-        .footer-social-btn:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: #F5F0E8;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(212,119,58,0.35);
-        }
-
-        /* Horario badge */
-        .footer-horario-badge {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: rgba(212,119,58,0.15);
-            border: 1px solid rgba(212,119,58,0.35);
-            padding: 6px 14px; border-radius: 99px;
-            font-size: 0.73rem; color: var(--primary); font-weight: 600;
-            margin-bottom: 16px; letter-spacing: 0.04em;
-        }
-        .footer-horario-badge .pulsedot {
-            width: 7px; height: 7px; border-radius: 50%;
-            background: var(--primary); animation: pulse 2s infinite;
-        }
-        .social-row {
-            display: flex;
-            gap: 12px;
-            margin-top: 14px;
-        }
-
-        .social-btn {
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--radius-sm);
-            background: var(--primary-light);
-            color: var(--primary);
-            font-size: 1rem;
-            transition: all 0.2s;
-            border: 1px solid var(--primary-glow);
-        }
-        .social-btn:hover {
-            background: var(--primary);
-            color: #fff;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px var(--primary-glow);
-        }
-
-        .footer-copy {
-            border-top: 1px solid var(--border);
-            padding-top: 20px;
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--muted);
-        }
-
-        /* ── RESPONSIVE ──────────────────────────── */
-        @media (max-width: 480px) {
-            .hero-name { font-size: 1.8rem; }
-            .section-heading { font-size: 1.6rem; }
-            .p-card-name { font-size: 1rem; }
-            .footer-grid { grid-template-columns: 1fr; gap: 24px; }
-            .footer-col { text-align: center; }
-            .footer-col h4 { justify-content: center; }
-            .footer-col p { justify-content: center; }
-            .social-row { justify-content: center; }
-        }
-    </style>
 </head>
 <body>
-<div id="plaza-app">
+<div id="plaza-app" v-cloak>
 
     <!-- ── HEADER ── -->
     <header class="site-header">
@@ -813,38 +37,51 @@
                     <i class="fas fa-chevron-left"></i> Atrás
                 </a>
                 <span class="header-label">Menú</span>
-                <div>
+                <div class="flex-row">
+                    <!-- Calendar Button (visible to all) -->
+                    <button @click="openEventsDrawer" class="cart-btn" :style="{ borderColor: showEventsDrawer ? 'var(--primary)' : 'var(--border-light)' }">
+                        <i class="fas fa-calendar"></i>
+                    </button>
+                    
                     @auth
-                        <div class="user-menu-top">
-                            <button class="user-menu-btn" id="userMenuBtn">
-                                @if(auth()->user()->avatar)
-                                    <img src="{{ asset(auth()->user()->avatar) }}" alt="" style="width:18px;height:18px;border-radius:50%;object-fit:cover;">
-                                @else
-                                    <i class="fas fa-user-circle" style="font-size:17px;"></i>
-                                @endif
-                                <span style="color:var(--text);font-size:0.72rem;">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
-                            </button>
-                            <div class="user-menu-dropdown" id="userMenuDropdown">
-                                <div class="dropdown-header">
-                                    <div class="dropdown-name">{{ auth()->user()->full_name ?? auth()->user()->name }}</div>
-                                    <div class="dropdown-email">{{ auth()->user()->email }}</div>
-                                </div>
-                                <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
-                                    <i class="fas fa-user-edit" style="color:var(--muted);"></i> Editar perfil
-                                </a>
-                                <form method="POST" action="{{ route('logout') }}" style="margin:0;">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item danger">
-                                        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    @else
-                        <a href="{{ route('login') }}" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--border-light);border-radius:var(--radius-sm);font-size:0.78rem;color:var(--primary);">
-                            <i class="fas fa-sign-in-alt"></i>
-                        </a>
+                        <button @click="openCartDrawer" class="cart-btn" :style="{ borderColor: showCartDrawer ? 'var(--primary)' : 'var(--border-light)' }">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span id="cart-count">@{{ totalDrawerQty }}</span>
+                        </button>
                     @endauth
+                    <div>
+                        @auth
+                            <div class="user-menu-top">
+                                <button class="user-menu-btn" id="userMenuBtn">
+                                    @if(auth()->user()->avatar)
+                                        <img src="{{ asset(auth()->user()->avatar) }}" alt="" class="avatar-img">
+                                    @else
+                                        <i class="fas fa-user-circle icon-md"></i>
+                                    @endif
+                                    <span class="text-label">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
+                                </button>
+                                <div class="user-menu-dropdown" id="userMenuDropdown">
+                                    <div class="dropdown-header">
+                                        <div class="dropdown-name">{{ auth()->user()->full_name ?? auth()->user()->name }}</div>
+                                        <div class="dropdown-email">{{ auth()->user()->email }}</div>
+                                    </div>
+                                    <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
+                                        <i class="fas fa-user-edit text-muted"></i> Editar perfil
+                                    </a>
+                                    <form method="POST" action="{{ route('logout') }}" class="m-0">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item danger">
+                                            <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @else
+                            <a href="{{ route('login') }}" class="cart-btn">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </a>
+                        @endauth
+                    </div>
                 </div>
             </div>
         </div>
@@ -853,69 +90,78 @@
     <!-- ── HERO ── -->
     <section class="local-hero">
         <div class="hero-bg">
-            <img src="{{ $local->logo_url ?? 'https://via.placeholder.com/1200x600/111009/D4773A?text=' . urlencode($local->name) }}" alt="{{ $local->name }}">
+            <img :src="localActual.logo_url || 'https://via.placeholder.com/1200x600/111009/D4773A?text=' + encodeURIComponent(localActual.name)" :alt="localActual.name">
         </div>
         <div class="hero-gradient"></div>
         <div class="hero-body container">
-            @if($local->logo_url)
-            <div class="hero-logo-ring">
-                <img src="{{ $local->logo_url }}" alt="{{ $local->name }}">
+            <div class="hero-logo-ring" v-if="localActual.logo_url">
+                <img :src="localActual.logo_url" :alt="localActual.name">
             </div>
-            @endif
             <div class="hero-text">
-                <div class="hero-tag"><i class="fas fa-utensils"></i> La Comarca Gastro Park</div>
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
+                
+                <div class="flex-row-space">
                     <div>
-                        <h1 class="hero-name">{{ $local->name }}</h1>
-                        @if($local->description)
-                            <p class="hero-desc">{{ $local->description }}</p>
-                        @endif
+                        <h1 class="hero-name">@{{ localActual.name }}</h1>
+                        <p class="hero-desc" v-if="localActual.description">@{{ localActual.description }}</p>
                     </div>
-                    @if($horarioHoy)
-                        <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 2px solid rgba(212,119,58,0.4); min-width: fit-content;">
-                            <div style="text-align: right;">
-                                <div style="font-size: 0.75rem; color: rgba(245,240,232,0.6); margin-bottom: 4px; font-weight: 600;">{{ $diaActual }}</div>
-                                @if($horarioHoy->status)
-                                    <div style="font-size: 0.95rem; color: var(--primary); font-weight: 700;">
-                                        {{ $horarioHoy->opening_time?->format('H:i') ?? 'N/A' }} - {{ $horarioHoy->closing_time?->format('H:i') ?? 'N/A' }}
-                                    </div>
-                                    <div style="font-size: 0.65rem; margin-top: 2px; font-weight: 600;">
-                                        @if($estaAbierto)
-                                            <span style="color: #4ade80;"><i class="fas fa-circle" style="font-size: 0.5rem;"></i> Abierto</span>
-                                        @else
-                                            <span style="color: var(--muted);"><i class="fas fa-circle" style="font-size: 0.5rem; color: #ff1100;"></i> Cerrado</span>
-                                        @endif
-                                    </div>
-                                @else
-                                    <div style="font-size: 0.85rem; color: #ff1100; font-weight: 600;">
-                                        Cerrado hoy
-                                    </div>
-                                @endif
+                    <div class="user-info-row" v-if="horarioActual.status">
+                        <div class="time-display">
+                            <div class="time-label">@{{ diaActual }}</div>
+                            <div class="time-value" v-if="horarioActual.opening_time || horarioActual.closing_time">
+                                @{{ horarioActual.opening_time || 'N/A' }} - @{{ horarioActual.closing_time || 'N/A' }}
+                            </div>
+                            <div class="status-label">
+                                <span class="status-text-open" v-if="estaAbierto">
+                                    <i class="fas fa-circle status-open"></i> Abierto
+                                </span>
+                                <span class="status-text-closed" v-else>
+                                    <i class="fas fa-circle status-closed"></i> Cerrado
+                                </span>
                             </div>
                         </div>
-                    @endif
+                    </div>
+                    <div class="user-info-row" v-else>
+                        <div class="error-text">Cerrado hoy</div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ── CATEGORY STRIP ── -->
-    @if($categorias->isNotEmpty())
+    <!-- ── LOCAL SWITCHER + CATEGORY STRIP ── -->
+    @if($localesDisponibles->isNotEmpty() || $categorias->isNotEmpty())
     <div class="cat-strip">
         <div class="container">
             <div class="cat-scroll">
+                
+                <!-- LOCAL SELECTOR (PRIMERO) -->
+                <div class="local-selector-wrapper">
+                    <select class="local-selector" v-model.number="currentLocalId" @change="cambiarLocal" :disabled="isLoadingLocal">
+                        <option value="" disabled>Selecciona Local</option>
+                        @foreach($localesDisponibles as $loc)
+                        <option value="{{ $loc->local_id }}">
+                            {{ $loc->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- TODOS BUTTON -->
                 <button class="cat-pill" :class="{ active: activeCategory === null }" @click="activeCategory = null">
                     <i class="fas fa-border-all"></i> Todos
                 </button>
-                @foreach($categorias as $cat)
+
+                <!-- CATEGORIES (REACTIVAS) -->
                 <button
+                    v-for="cat in categoriasActuales"
+                    :key="cat.slug"
                     class="cat-pill"
-                    :class="{ active: activeCategory === '{{ $cat['slug'] }}' }"
-                    @click="activeCategory = '{{ $cat['slug'] }}'">
-                    <i class="fas {{ $cat['icono'] }}"></i>
-                    {{ $cat['nombre'] }}
+                    :class="{ active: activeCategory === cat.slug }"
+                    @click="activeCategory = cat.slug">
+                    <i :class="'fas ' + cat.icono"></i>
+                    @{{ cat.nombre }}
                 </button>
-                @endforeach
+
             </div>
         </div>
     </div>
@@ -927,23 +173,23 @@
             <div class="menu-intro">
                 <div class="menu-intro-left">
                     <p class="section-eyebrow">Nuestro Menú</p>
-                    <h2 class="section-heading">Lo Mejor de <em>{{ $local->name }}</em></h2>
+                    <h2 class="section-heading">Lo Mejor de <em>@{{ localActual.name }}</em></h2>
                 </div>
-                @if($productos->isNotEmpty())
-                <span class="item-count">{{ $productos->count() }} platillos</span>
-                @endif
+                <span class="item-count">@{{ productCount }} Productos</span>
             </div>
 
             @if($productos->isEmpty())
                 <div class="empty-wrap">
                     <div class="empty-icon"><i class="fas fa-bowl-food"></i></div>
-                    <p class="empty-msg">No hay platillos disponibles por el momento</p>
+                    <p class="empty-msg">No hay productos disponibles por el momento</p>
                 </div>
             @else
                 <div class="products-grid">
                     @foreach($productos as $i => $producto)
                     <div class="p-card {{ $i === 0 ? 'featured' : '' }}"
-                         v-show="activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory">
+                         v-show="activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory"
+                         @click="navigateToProduct('{{ route('plaza.product.detail', [$local->local_id, $producto->product_id]) }}')"
+                         style="cursor: pointer;">
 
                         <div class="p-card-img">
                             <img src="{{ $producto->photo_url ?? asset('images/product-placeholder.png') }}"
@@ -968,7 +214,7 @@
                                     $rating = round($producto->average_rating ?? 0);
                                     for ($j = 1; $j <= 5; $j++):
                                 @endphp
-                                    <i class="fas fa-star" style="color: {{ $j <= $rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }}; font-size: 0.7rem;"></i>
+                                    <i class="fas fa-star text-xs" style="color: {{ $j <= $rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }};"></i>
                                 @php
                                     endfor;
                                 @endphp
@@ -977,9 +223,17 @@
                                 <span class="p-card-price">
                                     <sup>₡</sup>{{ number_format($producto->price, 2) }}
                                 </span>
-                                <span class="p-card-icon">
-                                    <i class="fas fa-arrow-right"></i>
-                                </span>
+                                <button 
+                                    class="btn-add-cart"
+                                    @click.stop="openAddToCartModal({
+                                        product_id: {{ $producto->product_id }},
+                                        local_id: {{ $local->local_id }},
+                                        name: '{{ addslashes($producto->name) }}',
+                                        description: '{{ addslashes($producto->description ?? '') }}',
+                                        photo_url: '{{ $producto->photo_url ?? asset('images/product-placeholder.png') }}',
+                                        price: {{ $producto->price }},                                    })">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -988,6 +242,65 @@
             @endif
         </div>
     </main>
+
+    <!-- ═══ RESEÑAS DEL LOCAL ═══ -->
+    @include('plaza.reviews')
+
+    <!-- ═══ MODAL: AGREGAR AL CARRITO ═══ -->
+    @include('plaza.carrito._add_to_cart_modal')
+
+    <!-- ═══ DRAWER: EVENTOS (PANEL LATERAL) ═══ -->
+    @include('plaza.evento.drawer')
+
+    <!-- ═══ DRAWER: CARRITO (PANEL LATERAL) ═══ -->
+    @include('plaza.carrito._cart_drawer')
+
+    <!-- ═══ DRAWER: EVENTO DETAIL (PANEL LATERAL) ═══ -->
+    <div v-if="showEventoDetail" class="evento-detail-overlay" @click="closeEventoDetail"></div>
+    <div class="evento-detail-drawer" :class="{ 'active': showEventoDetail }">
+        <!-- Header -->
+        <div class="evento-detail-header">
+            <h2>Detalles del Evento</h2>
+            <button @click="closeEventoDetail" class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="evento-detail-content">
+            <div v-if="currentEvento && currentEvento.event_id" class="evento-detail-body">
+                <!-- Image -->
+                <div class="evento-detail-image">
+                    <img :src="currentEvento.image_url" :alt="currentEvento.title" loading="lazy">
+                </div>
+
+                <!-- Info -->
+                <div class="evento-detail-info">
+                    <h3 class="evento-title">@{{ currentEvento.title }}</h3>
+                    
+                    <div class="evento-meta-group">
+                        <div class="evento-meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span><strong>Hora:</strong> @{{ new Date(currentEvento.start_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) }}</span>
+                        </div>
+                        <div class="evento-meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span><strong>Fecha:</strong> @{{ new Date(currentEvento.start_at).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
+                        </div>
+                        <div class="evento-meta-item">
+                            <i class="fas fa-map-pin"></i>
+                            <span><strong>Ubicación:</strong> @{{ currentEvento.location }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="evento-description">
+                        <p>@{{ currentEvento.description }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
      <!-- ══ FOOTER ══ -->
     <footer class="footer-v2">
@@ -1049,7 +362,7 @@
                     <!-- Síguenos column -->
                     <div>
                         <h3 class="footer-col-title">Síguenos</h3>
-                        <p style="font-size:0.8rem;color:rgba(200,220,200,0.4);font-weight:300;line-height:1.7;margin-bottom:20px;">
+                        <p class="description-text">
                             Conecta con nosotros en redes sociales y mantente al día con nuestros eventos y promociones especiales.
                         </p>
                         <div class="footer-socials">
@@ -1080,9 +393,76 @@
 
 </div>
 
+<!-- ═══ TOAST NOTIFICATIONS (OUTSIDE TEMPLATE) ═══ -->
+@include('plaza.carrito._toast-notifications')
+
 <script>
+    // Validar si el usuario está autenticado
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+
+    // Datos de productos con galería
+    window.productsData = {!! json_encode($productos->map(function($p) {
+        return [
+            'product_id' => $p->product_id,
+            'local_id' => $p->local_id,
+            'name' => $p->name,
+            'description' => $p->description,
+            'category' => $p->category,
+            'photo_url' => $p->photo_url,
+            'price' => $p->price,
+            'average_rating' => $p->average_rating,
+            'gallery' => $p->gallery ?: []
+        ];
+    })->keyBy('product_id')) !!};
+
+    // Inyectar datos del usuario autenticado si existe
+    @auth
+    window.authData = {
+        name: '{{ auth()->user()->name ?? explode("@", auth()->user()->email)[0] }}',
+        email: '{{ auth()->user()->email }}',
+        phone: '{{ auth()->user()->phone ?? "" }}'
+    };
+    @endauth
+
+    // Función helper para mostrar toasts personalizados
+    const showToast = (config) => { if (window.showNotification) { window.showNotification(config); } };
+
+    // Inicializar SweetAlert Toast
+    const initSwToast = () => {
+        if (typeof Swal !== 'undefined' && !window.swToast) {
+            const SwToastClass = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 7000,
+                timerProgressBar: true,
+                background: '#161310',
+                color: '#F5F0E8',
+                customClass: {
+                    container: 'custom-toast-container',
+                    popup: 'custom-toast-popup',
+                    title: 'custom-toast-title',
+                    icon: 'custom-toast-icon'
+                },
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+            window.swToast = SwToastClass;
+        }
+    };
+
+    // Inicializar swToast cuando esté listo
+    if (typeof Swal !== 'undefined') {
+        initSwToast();
+    }
+
     // User menu toggle
     document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar swToast si no está ya
+        initSwToast();
+        
         const menuBtn = document.getElementById('userMenuBtn');
         const menuDropdown = document.getElementById('userMenuDropdown');
 
@@ -1101,9 +481,931 @@
     const { createApp } = Vue;
     createApp({
         data() {
-            return { activeCategory: null };
+            return {
+                isAuthenticated: {{ auth()->check() ? 'true' : 'false' }},
+                activeCategory: null,
+                currentLocalId: {{ $local->local_id }},
+                // Datos del local actual (reactivos para cambios dinámicos)
+                localActual: {
+                    local_id: {{ $local->local_id }},
+                    name: '{{ $local->name }}',
+                    description: '{{ $local->description ?? '' }}',
+                    logo_url: '{{ $local->logo_url ?? '' }}',
+                },
+                horarioActual: {
+                    opening_time: '{{ $horarioHoy?->opening_time?->format("H:i") ?? "" }}',
+                    closing_time: '{{ $horarioHoy?->closing_time?->format("H:i") ?? "" }}',
+                    status: {{ $horarioHoy?->status ? 'true' : 'false' }},
+                },
+                diaActual: '{{ $diaActual ?? "" }}',
+                estaAbierto: {{ $estaAbierto ? 'true' : 'false' }},
+                categoriasActuales: {!! json_encode($categorias) !!},
+                productosActuales: {!! json_encode($productos->map(function($p) { return ['product_id' => $p->product_id, 'name' => $p->name, 'category' => $p->category, 'description' => $p->description, 'photo_url' => $p->photo_url ? asset($p->photo_url) : null, 'price' => $p->price, 'average_rating' => $p->average_rating]; })) !!},
+                productCount: {{ $productos->count() }},
+                showAddToCartModal: false,
+                showCartDrawer: false,
+                showEventsDrawer: false,
+                showEventoDetail: false,
+                // Eventos
+                eventosTab: 'hoy',
+                eventosHoy: {!! json_encode($eventosHoy) !!},
+                eventosProximos: {!! json_encode($eventosProximos) !!},
+                currentEvento: {},
+                showConfirmOrder: false,
+                showConfirmClear: false,
+                showConfirmRemove: false,
+                itemToRemoveIndex: null,
+                drawerCart: [],
+                isCheckingOut: false,
+                isLoadingLocal: false,
+                currentProduct: {
+                    name: '',
+                    description: '',
+                    photo_url: '',
+                    price: 0,
+                    product_id: 0,
+                    local_id: 0
+                },
+                quantity: 1,
+                customization: '',
+                isAddingToCart: false,
+                // Datos del cliente
+                customerName: '',
+                customerEmail: '',
+                customerPhone: '',
+                additionalNotes: ''
+            }
+        },
+        methods: {
+            openAddToCartModal(product) {
+                // Validar que el usuario esté autenticado
+                if (!this.isAuthenticated) {
+                    this.showAuthNotification();
+                    return;
+                }
+
+                //  VALIDACIÓN: Verificar si el local está abierto
+                if (!this.estaAbierto) {
+                    showToast({
+                        icon: 'warning',
+                        title: 'Local Cerrado',
+                        message: `${this.localActual.name} está cerrado. No puedes agregar items en este momento.`,
+                        timer: 5500
+                    });
+                    return;
+                }
+
+                this.currentProduct = product;
+                this.quantity = 1;
+                this.customization = '';
+                // Rellenar datos del cliente si está autenticado
+                const authData = window.authData || null;
+                if (authData) {
+                    this.customerName = authData.name || '';
+                    this.customerEmail = authData.email || '';
+                    this.customerPhone = authData.phone || '';
+                }
+                this.showAddToCartModal = true;
+                document.body.classList.add('modal-open');
+            },
+            closeAddToCartModal() {
+                document.body.classList.remove('modal-open');
+                this.showAddToCartModal = false;
+                setTimeout(() => {
+                    this.currentProduct = { name: '', description: '', photo_url: '', price: 0, product_id: 0, local_id: 0 };
+                    this.quantity = 1;
+                    this.customization = '';
+                    this.customerName = '';
+                    this.customerEmail = '';
+                    this.customerPhone = '';
+                    this.additionalNotes = '';
+                }, 300);
+            },
+            showAuthNotification() {
+                // Crear contenedor si no existe
+                let container = document.getElementById('auth-notification-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'auth-notification-container';
+                    document.body.appendChild(container);
+                }
+
+                // Crear notificación
+                const notification = document.createElement('div');
+                notification.className = 'auth-notification';
+                notification.innerHTML = `
+                    <div class="login-warning">
+                        <i class="fas fa-lock lock-icon"></i>
+                        <span class="login-warning-text">Debes iniciar sesión para agregar al carrito</span>
+                        <a href="{{ route('login') }}" class="auth-notify-btn">Login</a>
+                    </div>
+                `;
+                
+                container.appendChild(notification);
+
+                // Remover después de 5 segundos
+                setTimeout(() => {
+                    notification.classList.add('fade-out');
+                    setTimeout(() => notification.remove(), 400);
+                }, 5000);
+            },
+            increaseQuantity() {
+                this.quantity++;
+            },
+            decreaseQuantity() {
+                if (this.quantity > 1) {
+                    this.quantity--;
+                }
+            },
+            validateQuantity() {
+                if (this.quantity < 1) {
+                    this.quantity = 1;
+                } else if (!Number.isInteger(this.quantity)) {
+                    this.quantity = Math.floor(this.quantity);
+                }
+            },
+            validateCustomization() {
+                // Solo limitar a 500 caracteres (el textarea ya lo hace)
+                if (this.customization.length > 500) {
+                    this.customization = this.customization.substring(0, 500);
+                }
+                // Los espacios se limpiarán al enviar (en proceedAddToCart)
+            },
+            async proceedAddToCart() {
+                if (this.isAddingToCart) return;
+
+                // Sincronizar notas: ambos campos lleven lo mismo
+                this.additionalNotes = this.customization;
+
+                // Rellenar datos del cliente desde usuario autenticado
+                if (window.authData) {
+                    this.customerName = window.authData.name || this.customerName;
+                    this.customerEmail = window.authData.email || this.customerEmail;
+                    this.customerPhone = window.authData.phone || this.customerPhone;
+                }
+
+                // Validar que tenemos datos requeridos
+                if (!this.customerName || !this.customerEmail || !this.customerPhone) {
+                    console.error('Datos incompletos:', {name: this.customerName, email: this.customerEmail, phone: this.customerPhone});
+                    alert('Error: Datos del usuario incompletos. Por favor, recarga la página.');
+                    this.isAddingToCart = false;
+                    return;
+                }
+
+                this.isAddingToCart = true;
+
+                try {
+                    const response = await fetch('{{ route("plaza.add.cart") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            product_id: this.currentProduct.product_id,
+                            local_id: this.currentProduct.local_id,
+                            quantity: this.quantity,
+                            customization: this.customization.trim(),
+                            customer_name: this.customerName,
+                            customer_email: this.customerEmail,
+                            customer_phone: this.customerPhone,
+                            additional_notes: this.additionalNotes.trim()
+                        })
+                    });
+
+                    const data = await response.json();
+                    console.log('Add to cart response:', data);
+
+                    if (response.ok && data.success) {
+                        // Mostrar toast de �xito
+                        showToast({
+                            icon: 'success',
+                            title: '¡Producto agregado!',
+                            message: this.currentProduct.name + ' se agregó al carrito correctamente',
+                            timer: 5500
+                        });
+
+                        // Cargar carrito actualizado para que Vue reaccione
+                        this.loadCartDrawer();
+
+                        // Cerrar modal
+                        this.closeAddToCartModal();
+                    } else {
+                        showToast({
+                            icon: 'error',
+                            title: 'Oops, algo salió mal',
+                            message: data.message || 'No pudimos agregar el producto al carrito',
+                            timer: 5500
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast({
+                        icon: 'error',
+                        title: 'Error al agregar al carrito'
+                    });
+                } finally {
+                    this.isAddingToCart = false;
+                }
+            },
+            // ── DRAWER METHODS ──
+            openCartDrawer() {
+                this.showCartDrawer = true;
+                document.body.classList.add('cart-drawer-open');
+                this.loadCartDrawer();
+            },
+            closeCartDrawer() {
+                this.showCartDrawer = false;
+                document.body.classList.remove('cart-drawer-open');
+            },
+            loadCartDrawer() {
+                // Cargar carrito desde sesión
+                fetch('{{ route("plaza.cart.get") }}', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Convertir precios y cantidades a números
+                    this.drawerCart = (data.cart || []).map(item => ({
+                        ...item,
+                        price: parseFloat(item.price),
+                        quantity: parseInt(item.quantity)
+                    }));
+                    console.log('Cart loaded:', {
+                        items: this.drawerCart.length,
+                        total: this.totalDrawerQty,
+                        cart: this.drawerCart
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading cart:', error);
+                });
+            },
+            updateItemQty(index, newQty) {
+                if (newQty < 1) newQty = 1;
+                if (this.drawerCart[index]) {
+                    // Actualizar localmente
+                    this.drawerCart[index].quantity = newQty;
+                    
+                    // Guardar en servidor
+                    fetch('{{ route("plaza.cart.update.qty") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            item_index: index,
+                            quantity: newQty
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            console.error('Error updating quantity:', data.message);
+                            this.loadCartDrawer(); // Recargar si hay error
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.loadCartDrawer(); // Recargar si hay error
+                    });
+                }
+            },
+            removeFromCart(index) {
+                // Mostrar diálogo de confirmación
+                this.itemToRemoveIndex = index;
+                this.showConfirmRemove = true;
+            },
+            cancelRemoveItem() {
+                this.showConfirmRemove = false;
+                this.itemToRemoveIndex = null;
+            },
+            confirmRemoveItem() {
+                if (this.itemToRemoveIndex === null) return;
+                
+                const index = this.itemToRemoveIndex;
+                const itemKey = this.drawerCart[index].item_key;
+                
+                // Remover localmente
+                this.drawerCart.splice(index, 1);
+                this.showConfirmRemove = false;
+                this.itemToRemoveIndex = null;
+                
+                // Guardar en servidor usando item_key
+                fetch('{{ route("plaza.cart.remove") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        item_key: itemKey
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast({ icon: 'success', title: 'Item eliminado', message: 'El producto ha sido removido del carrito', timer: 5500 });
+                    } else {
+                        console.error('Error removing item:', data.message);
+                        this.loadCartDrawer(); // Recargar si hay error
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    this.loadCartDrawer(); // Recargar si hay error
+                });
+            },
+            goToClearCart() {
+                this.showConfirmClear = true;
+            },
+            cancelClearCart() {
+                this.showConfirmClear = false;
+            },
+            confirmClearCart() {
+                // Limpiar localmente
+                this.drawerCart = [];
+                this.showConfirmClear = false;
+                
+                // Guardar en servidor
+                fetch('{{ route("plaza.cart.clear") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast({ icon: 'success', title: '¡Carrito vaciado!', message: 'Todos los items han sido eliminados', timer: 5500 });
+                    } else {
+                        console.error('Error clearing cart:', data.message);
+                        this.loadCartDrawer();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    this.loadCartDrawer();
+                });
+            },
+            clearDrawerCart() {
+                if (confirm('¿estás seguro de que deseas vaciar el carrito?')) {
+                    this.drawerCart = [];
+                }
+            },
+            truncateText(text, length) {
+                if (text.length > length) {
+                    return text.substring(0, length) + '...';
+                }
+                return text;
+            },
+            goToCheckout() {
+                if (this.drawerCart.length === 0) {
+                    showToast({ icon: 'warning', title: 'El carrito está vacío' });
+                    return;
+                }
+                this.showConfirmOrder = true;
+            },
+            cancelConfirmOrder() {
+                this.showConfirmOrder = false;
+            },
+            processCheckout() {
+                this.isCheckingOut = true;
+                fetch('{{ route("plaza.order.create") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ items: this.drawerCart })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.showConfirmOrder = false;
+                        showToast({ icon: 'success', title: '¡Orden confirmada!', message: 'Tu orden se ha procesado correctamente', timer: 6000 });
+                        this.drawerCart = [];
+                        this.closeCartDrawer();
+                    } else {
+                        showToast({ icon: 'error', title: 'No se pudo procesar', message: data.message || 'Hubo un problema', timer: 5500 });
+                    }
+                })
+                .catch(error => {
+                    showToast({ icon: 'error', title: 'Oops', message: 'Problema de conexión', timer: 5500 });
+                })
+                .finally(() => { this.isCheckingOut = false; });
+            },
+
+            // ── LOCAL SWITCHER METHOD ──
+            cambiarLocal() {
+                if (!this.currentLocalId) return;
+
+                this.isLoadingLocal = true;
+                
+                // Hacer solicitud AJAX para obtener datos del nuevo local
+                fetch(`/plaza/${this.currentLocalId}/data`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Actualizar la URL sin recargar la página
+                        window.history.pushState({ 
+                            localId: this.currentLocalId 
+                        }, '', `/plaza/${this.currentLocalId}`);
+                        
+                        // ▼ ACTUALIZAR DATOS REACTIVOS DE VUE (NO MANIPULAR DOM)
+                        
+                        // Actualizar local actual
+                        this.localActual = {
+                            local_id: data.local.local_id,
+                            name: data.local.name,
+                            description: data.local.description,
+                            logo_url: data.local.logo_url,
+                        };
+                        
+                        // Actualizar horario
+                        this.horarioActual = {
+                            opening_time: data.horarioHoy?.opening_time || '',
+                            closing_time: data.horarioHoy?.closing_time || '',
+                            status: data.horarioHoy?.status ? true : false,
+                        };
+                        this.diaActual = data.diaActual;
+                        this.estaAbierto = data.estaAbierto;
+                        
+                        // Actualizar categorías reactivas
+                        this.categoriasActuales = data.categorias;
+                        
+                        // Actualizar productos reactivos
+                        this.productosActuales = data.productos;
+                        
+                        // Actualizar conteo de productos
+                        this.productCount = data.productos.length;
+                        
+                        // Limpiar categoría activa
+                        this.activeCategory = null;
+                        
+                        // Actualizar meta title
+                        document.title = `${data.local.name} - La Comarca Gastro Park`;
+                        
+                        // Actualizar productos globales
+                        window.productsData = {};
+                        data.productos.forEach(p => {
+                            window.productsData[p.product_id] = {
+                                product_id: p.product_id,
+                                local_id: this.currentLocalId,
+                                name: p.name,
+                                description: p.description,
+                                category: p.category,
+                                photo_url: p.photo_url,
+                                price: p.price,
+                                average_rating: p.average_rating,
+                                gallery: p.gallery || []
+                            };
+                        });
+                        
+                        // Recrear productos en grid (recargar productos)
+                        this.recargarProductosLocal(data.productos);
+                        
+                        // Mostrar toast de éxito
+                        showToast({
+                            icon: 'success',
+                            title: 'Local cambiado',
+                            message: `Ahora viendo: ${data.local.name}`,
+                            timer: 3000
+                        });
+                    } else {
+                        showToast({
+                            icon: 'error',
+                            title: 'Error',
+                            message: data.message || 'No se pudo cargar el local',
+                            timer: 5500
+                        });
+                        // Revertir el cambio en el combobox
+                        this.currentLocalId = {{ $local->local_id }};
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast({
+                        icon: 'error',
+                        title: 'Error de conexión',
+                        message: 'No se pudo cambiar el local',
+                        timer: 5500
+                    });
+                    // Revertir el cambio
+                    this.currentLocalId = {{ $local->local_id }};
+                })
+                .finally(() => {
+                    this.isLoadingLocal = false;
+                });
+            },
+
+            recargarProductosLocal(productos) {
+                // Buscar el contenedor de productos
+                const productsContainer = document.querySelector('.menu-section .container');
+                if (!productsContainer) return;
+                
+                // Buscar o crear el grid
+                let grid = productsContainer.querySelector('.products-grid');
+                let emptyWrap = productsContainer.querySelector('.empty-wrap');
+                
+                if (productos.length === 0) {
+                    // Si no hay productos, mostrar mensaje vacío
+                    if (grid) grid.remove();
+                    if (!emptyWrap) {
+                        emptyWrap = document.createElement('div');
+                        emptyWrap.className = 'empty-wrap';
+                        emptyWrap.innerHTML = `
+                            <div class="empty-icon"><i class="fas fa-bowl-food"></i></div>
+                            <p class="empty-msg">No hay productos disponibles por el momento</p>
+                        `;
+                        productsContainer.appendChild(emptyWrap);
+                    }
+                    return;
+                }
+                
+                // Si hay productos, asegurarse de que el grid exista
+                if (!grid) {
+                    if (emptyWrap) emptyWrap.remove();
+                    grid = document.createElement('div');
+                    grid.className = 'products-grid';
+                    // Remover event listener anterior si existe
+                    grid.onclick = null;
+                    productsContainer.appendChild(grid);
+                }
+                
+                // Usar DocumentFragment para mejor rendimiento
+                const fragment = document.createDocumentFragment();
+                let gridHtml = '';
+                
+                // Construir HTML en un string (más rápido que appendChild repetido)
+                productos.forEach((producto, i) => {
+                    // Calcular estrellas
+                    let starsHtml = '';
+                    const rating = Math.round(producto.average_rating || 0);
+                    for (let j = 1; j <= 5; j++) {
+                        const color = j <= rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)';
+                        starsHtml += `<i class="fas fa-star text-xs" style="color: ${color};"></i>`;
+                    }
+                    
+                    const descHtml = i === 0 && producto.description ? `<p class="featured-desc">${producto.description}</p>` : '';
+                    const featured = i === 0 ? 'featured' : '';
+                    const featuredLabel = i === 0 ? '<p class="featured-label"><i class="fas fa-crown"></i> &nbsp;Destacado</p>' : '';
+                    const categoryTag = producto.category ? `<span class="p-card-cat">${producto.category}</span>` : '';
+                    
+                    gridHtml += `
+                        <div class="p-card ${featured}" data-product-id="${producto.product_id}" data-local-id="${this.currentLocalId}" style="cursor: pointer;">
+                            <div class="p-card-img">
+                                <img src="${producto.photo_url || '{{ asset("images/product-placeholder.png") }}'}" alt="${producto.name}" loading="${i < 4 ? 'eager' : 'lazy'}">
+                                <div class="p-card-img-fade"></div>
+                                ${categoryTag}
+                            </div>
+                            <div class="p-card-body">
+                                ${featuredLabel}
+                                <h3 class="p-card-name">${producto.name}</h3>
+                                ${descHtml}
+                                <div class="p-card-stars">
+                                    ${starsHtml}
+                                </div>
+                                <div class="p-card-footer">
+                                    <span class="p-card-price">
+                                        <sup>₡</sup>${parseFloat(producto.price).toFixed(2)}
+                                    </span>
+                                    <button class="btn-add-cart" data-product-id="${producto.product_id}">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                // Agregar todo el HTML de una vez
+                grid.innerHTML = gridHtml;
+                
+                // Usar delegación de eventos (más eficiente que event listeners en cada card)
+                grid.onclick = (e) => {
+                    const card = e.target.closest('.p-card');
+                    if (!card) return;
+                    
+                    const button = e.target.closest('.btn-add-cart');
+                    const productId = parseInt(card.dataset.productId);
+                    const localId = parseInt(card.dataset.localId);
+                    
+                    if (button) {
+                        e.stopPropagation();
+                        // Encontrar producto en array
+                        const producto = productos.find(p => p.product_id === productId);
+                        if (producto) {
+                            this.openAddToCartModal({
+                                product_id: productId,
+                                local_id: localId,
+                                name: producto.name,
+                                description: producto.description,
+                                photo_url: producto.photo_url,
+                                price: producto.price
+                            });
+                        }
+                    } else {
+                        const url = `/plaza/${localId}/producto/${productId}`;
+                        this.navigateToProduct(url);
+                    }
+                };
+                
+                // Aplicar filtro de categoría después de recargar productos
+                this.aplicarFiltroCategoria();
+            },
+
+            aplicarFiltroCategoria() {
+                const grid = document.querySelector('.products-grid');
+                if (!grid) return;
+                
+                const cards = grid.querySelectorAll('.p-card');
+                let visibleCount = 0;
+                
+                cards.forEach(card => {
+                    // Obtener categoría del producto desde el card
+                    const categoryTag = card.querySelector('.p-card-cat');
+                    const categorySlug = categoryTag ? categoryTag.textContent.toLowerCase().replace(/\s+/g, '-') : '';
+                    
+                    // Mostrar/ocultar según filtro
+                    const showCard = this.activeCategory === null || categorySlug === this.activeCategory;
+                    card.style.display = showCard ? '' : 'none';
+                    
+                    if (showCard) visibleCount++;
+                });
+                
+                // Mostrar mensaje de vacío si no hay productos visibles
+                if (visibleCount === 0) {
+                    let emptyWrap = grid.parentElement.querySelector('.empty-wrap');
+                    if (!emptyWrap) {
+                        emptyWrap = document.createElement('div');
+                        emptyWrap.className = 'empty-wrap';
+                        emptyWrap.innerHTML = `
+                            <div class="empty-icon"><i class="fas fa-bowl-food"></i></div>
+                            <p class="empty-msg">No hay productos disponibles en esta categoría</p>
+                        `;
+                        grid.parentElement.appendChild(emptyWrap);
+                    }
+                    emptyWrap.style.display = '';
+                } else {
+                    const emptyWrap = grid.parentElement.querySelector('.empty-wrap');
+                    if (emptyWrap) emptyWrap.style.display = 'none';
+                }
+            },
+
+            // ── PRODUCT DETAIL MODAL METHODS ──
+            navigateToProduct(url) {
+                window.location.href = url;
+            },
+
+            openProductDetailModal(productId) {
+                if (!this.isAuthenticated) {
+                    this.showAuthNotification();
+                    return;
+                }
+
+                // Obtener datos del producto desde la variable global
+                const product = window.productsData[productId];
+                if (!product) {
+                    console.error('Producto no encontrado:', productId);
+                    return;
+                }
+
+                this.selectedProduct = product;
+                this.selectedProductGallery = (product.gallery || []).map(item => ({
+                    image_url: item.image_url || item.url
+                }));
+                
+                // Si no hay galería, agregar la foto principal
+                if (this.selectedProductGallery.length === 0 && product.photo_url) {
+                    this.selectedProductGallery.push({ image_url: product.photo_url });
+                }
+
+                this.selectedGalleryIndex = 0;
+                this.detailQuantity = 1;
+                this.detailCustomization = '';
+                this.showProductDetailModal = true;
+                document.body.classList.add('modal-open');
+            },
+
+            openProductDetailModal(productId) {
+                if (!this.isAuthenticated) {
+                    this.showAuthNotification();
+                    return;
+                }
+
+                // Obtener datos del producto desde la variable global
+                const product = window.productsData[productId];
+                if (!product) {
+                    console.error('Producto no encontrado:', productId);
+                    return;
+                }
+
+                this.selectedProduct = product;
+                this.selectedProductGallery = (product.gallery || []).map(item => ({
+                    image_url: item.image_url || item.url
+                }));
+                
+                // Si no hay galería, agregar la foto principal
+                if (this.selectedProductGallery.length === 0 && product.photo_url) {
+                    this.selectedProductGallery.push({ image_url: product.photo_url });
+                }
+
+                this.selectedGalleryIndex = 0;
+                this.detailQuantity = 1;
+                this.detailCustomization = '';
+                this.showProductDetailModal = true;
+                document.body.classList.add('modal-open');
+            },
+            // ── EVENTS DRAWER METHODS ──
+            openEventsDrawer() {
+                this.showEventsDrawer = true;
+                document.body.classList.add('events-drawer-open');
+            },
+            closeEventsDrawer() {
+                this.showEventsDrawer = false;
+                document.body.classList.remove('events-drawer-open');
+            },
+            detalleEvento(evento) {
+                this.currentEvento = evento;
+                this.showEventoDetail = true;
+                document.body.classList.add('evento-detail-open');
+            },
+            closeEventoDetail() {
+                this.showEventoDetail = false;
+                document.body.classList.remove('evento-detail-open');
+                setTimeout(() => {
+                    this.currentEvento = {};
+                }, 300);
+            }
+        },
+
+        mounted() {
+            // Cargar carrito al iniciar la aplicación
+            this.loadCartDrawer();
+        },
+
+        watch: {
+            activeCategory() {
+                // Refiltar productos cuando cambia la categoría activa
+                this.aplicarFiltroCategoria();
+            }
+        },
+
+        computed: {
+            totalDrawerQty() {
+                return this.drawerCart.length;
+            },
+            totalDrawerPrice() {
+                return this.drawerCart.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0);
+            },
+            totalEventos() {
+                return (this.eventosHoy?.length || 0) + (this.eventosProximos?.length || 0);
+            }
         }
     }).mount('#plaza-app');
+</script>
+
+<script>
+// ═══ CAROUSEL REVIEWS INITIALIZATION ═══
+(function () {
+    const track   = document.getElementById('lrcTrack');
+    const dotsEl  = document.getElementById('lrcDots');
+    const btnPrev = document.getElementById('lrcPrev');
+    const btnNext = document.getElementById('lrcNext');
+
+    if (!track) {
+        console.log('Carousel: Track no encontrado');
+        return;
+    }
+
+    const slides = track.querySelectorAll('.lrc-slide');
+    const total  = slides.length;
+    
+    if (total === 0) {
+        console.log('Carousel: No hay slides');
+        return;
+    }
+
+    let current  = 0;
+    let autoPlayInterval = null;
+    let isAnimating = false;
+    const ANIMATION_SPEED = 450; // ms
+    const AUTO_PLAY_DELAY = 5000; // 5 segundos
+
+    console.log('Carousel: Inicializado con', total, 'slides');
+
+    function getSlideWidth() {
+        return slides[0].offsetWidth + 20; // slide width + gap
+    }
+
+    function buildDots() {
+        dotsEl.innerHTML = '';
+        for (let i = 0; i < total; i++) {
+            const dot = document.createElement('button');
+            dot.className = 'lrc-dot' + (i === current ? ' lrc-dot--active' : '');
+            dot.addEventListener('click', () => {
+                goToSlide(i);
+                resetAutoPlay();
+            });
+            dotsEl.appendChild(dot);
+        }
+    }
+
+    function updateDots() {
+        const dots = dotsEl.querySelectorAll('.lrc-dot');
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('lrc-dot--active', i === current);
+        });
+    }
+
+    function goToSlide(slideIndex) {
+        if (isAnimating) return;
+
+        // Asegurar que el índice esté dentro del rango
+        let targetIndex = ((slideIndex % total) + total) % total;
+        current = targetIndex;
+
+        const slideWidth = getSlideWidth();
+        const offset = -current * slideWidth;
+
+        isAnimating = true;
+        track.style.transition = `transform ${ANIMATION_SPEED}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+        track.style.transform = `translateX(${offset}px)`;
+
+        setTimeout(() => {
+            isAnimating = false;
+            updateDots();
+        }, ANIMATION_SPEED);
+    }
+
+    function nextSlide() {
+        goToSlide(current + 1);
+    }
+
+    function prevSlide() {
+        goToSlide(current - 1);
+    }
+
+    function startAutoPlay() {
+        stopAutoPlay();
+        autoPlayInterval = setInterval(nextSlide, AUTO_PLAY_DELAY);
+    }
+
+    function stopAutoPlay() {
+        if (autoPlayInterval) {
+            clearInterval(autoPlayInterval);
+            autoPlayInterval = null;
+        }
+    }
+
+    function resetAutoPlay() {
+        startAutoPlay();
+    }
+
+    // Event Listeners
+    btnPrev.addEventListener('click', () => {
+        prevSlide();
+        resetAutoPlay();
+    });
+
+    btnNext.addEventListener('click', () => {
+        nextSlide();
+        resetAutoPlay();
+    });
+
+    track.parentElement.addEventListener('mouseenter', stopAutoPlay);
+    track.parentElement.addEventListener('mouseleave', startAutoPlay);
+
+    window.addEventListener('resize', () => {
+        track.style.transition = 'none';
+        const slideWidth = getSlideWidth();
+        track.style.transform = `translateX(${-current * slideWidth}px)`;
+        buildDots();
+        updateDots();
+    });
+
+    // Inicialización
+    buildDots();
+    updateDots();
+    startAutoPlay();
+})();
 </script>
 </body>
 </html>
