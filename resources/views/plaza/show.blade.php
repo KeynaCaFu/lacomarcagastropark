@@ -241,6 +241,11 @@
     <!-- ═══ DRAWER: CARRITO (PANEL LATERAL) ═══ -->
     @include('plaza.carrito._cart_drawer')
 
+    
+   </div>{{-- cierra #plaza-app --}}
+
+    @include('plaza.reviews')
+
      <!-- ══ FOOTER ══ -->
     <footer class="footer-v2">
         <!-- Mountains silhouette - separator -->
