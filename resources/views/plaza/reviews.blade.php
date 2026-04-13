@@ -363,6 +363,7 @@
     const total  = slides.length;
     let current  = 0;
     let autoPlay;
+    let isTransitioning = false;
 
     function visibleCount() {
         if (window.innerWidth <= 600) return 1;
@@ -370,13 +371,9 @@
         return 3;
     }
 
-    function maxIndex() {
-        return Math.max(0, total - visibleCount());
-    }
-
     function buildDots() {
         dotsEl.innerHTML = '';
-        for (let i = 0; i <= maxIndex(); i++) {
+        for (let i = 0; i < total; i++) {
             const d = document.createElement('button');
             d.className = 'lrc-dot' + (i === current ? ' lrc-dot--active' : '');
             d.addEventListener('click', () => { goTo(i); resetAutoPlay(); });
@@ -391,23 +388,56 @@
     }
 
     function goTo(index) {
-        current = Math.max(0, Math.min(index, maxIndex()));
+        if (isTransitioning) return;
+        current = ((index % total) + total) % total;
         const slideWidth = slides[0].offsetWidth + 20;
+
+        // Si va del último al primero, anima suavemente hacia adelante
+        if (index >= total) {
+            isTransitioning = true;
+            track.style.transition = 'transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            track.style.transform = `translateX(-${total * slideWidth}px)`;
+            setTimeout(() => {
+                track.style.transition = 'none';
+                track.style.transform = `translateX(0px)`;
+                current = 0;
+                isTransitioning = false;
+                updateDots();
+            }, 450);
+            return;
+        }
+
+        // Si va del primero al último (botón prev), anima hacia atrás suavemente
+        if (index < 0) {
+            isTransitioning = true;
+            track.style.transition = 'none';
+            track.style.transform = `translateX(-${total * slideWidth}px)`;
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    track.style.transition = 'transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                    track.style.transform = `translateX(-${(total - visibleCount()) * slideWidth}px)`;
+                    current = total - 1;
+                    setTimeout(() => { isTransitioning = false; }, 450);
+                });
+            });
+            updateDots();
+            return;
+        }
+
+        track.style.transition = 'transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
         track.style.transform = `translateX(-${current * slideWidth}px)`;
-        btnPrev.disabled = current === 0;
-        btnNext.disabled = current >= maxIndex();
         updateDots();
     }
 
     function resetAutoPlay() {
         clearInterval(autoPlay);
-        autoPlay = setInterval(() => goTo(current >= maxIndex() ? 0 : current + 1), 5000);
+        autoPlay = setInterval(() => goTo(current + 1), 5000);
     }
 
     btnPrev.addEventListener('click', () => { goTo(current - 1); resetAutoPlay(); });
     btnNext.addEventListener('click', () => { goTo(current + 1); resetAutoPlay(); });
 
-    window.addEventListener('resize', () => { buildDots(); goTo(Math.min(current, maxIndex())); });
+    window.addEventListener('resize', () => { buildDots(); goTo(0); });
 
     buildDots();
     goTo(0);
