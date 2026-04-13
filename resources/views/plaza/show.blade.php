@@ -12,15 +12,12 @@
     <link rel="apple-touch-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
 
     <!-- Google Fonts with preconnect -->
-    <!-- Google Fonts with preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="{{ asset('css/carrito.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/plaza/plaza.show.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.show.css') }}">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
@@ -38,9 +35,7 @@
                 </a>
                 <span class="header-label">Menú</span>
                 <div class="flex-row">
-                <div class="flex-row">
                     @auth
-                        <button @click="openCartDrawer" class="cart-btn" :style="{ borderColor: showCartDrawer ? 'var(--primary)' : 'var(--border-light)' }">
                         <button @click="openCartDrawer" class="cart-btn" :style="{ borderColor: showCartDrawer ? 'var(--primary)' : 'var(--border-light)' }">
                             <i class="fas fa-shopping-cart"></i>
                             <span id="cart-count">@{{ totalDrawerQty }}</span>
@@ -52,12 +47,9 @@
                                 <button class="user-menu-btn" id="userMenuBtn">
                                     @if(auth()->user()->avatar)
                                         <img src="{{ asset(auth()->user()->avatar) }}" alt="" class="avatar-img">
-                                        <img src="{{ asset(auth()->user()->avatar) }}" alt="" class="avatar-img">
                                     @else
                                         <i class="fas fa-user-circle icon-md"></i>
-                                        <i class="fas fa-user-circle icon-md"></i>
                                     @endif
-                                    <span class="text-label">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
                                     <span class="text-label">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
                                 </button>
                                 <div class="user-menu-dropdown" id="userMenuDropdown">
@@ -67,9 +59,7 @@
                                     </div>
                                     <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
                                         <i class="fas fa-user-edit text-muted"></i> Editar perfil
-                                        <i class="fas fa-user-edit text-muted"></i> Editar perfil
                                     </a>
-                                    <form method="POST" action="{{ route('logout') }}" class="m-0">
                                     <form method="POST" action="{{ route('logout') }}" class="m-0">
                                         @csrf
                                         <button type="submit" class="dropdown-item danger">
@@ -79,7 +69,6 @@
                                 </div>
                             </div>
                         @else
-                            <a href="{{ route('login') }}" class="cart-btn">
                             <a href="{{ route('login') }}" class="cart-btn">
                                 <i class="fas fa-sign-in-alt"></i>
                             </a>
@@ -101,37 +90,12 @@
                 <img :src="localActual.logo_url" :alt="localActual.name">
             </div>
             <div class="hero-text">
-                <div class="hero-tag"><i class="fas fa-utensils"></i> La Comarca Gastro Park</div>
-                <div class="flex-row-space">
                 
                 <div class="flex-row-space">
                     <div>
                         <h1 class="hero-name">@{{ localActual.name }}</h1>
                         <p class="hero-desc" v-if="localActual.description">@{{ localActual.description }}</p>
                     </div>
-                    @if($horarioHoy)
-                        <div class="user-info-row">
-                            <div class="time-display">
-                                <div class="time-label">{{ $diaActual }}</div>
-                                @if($horarioHoy->status)
-                                    <div class="time-value">
-                                        {{ $horarioHoy->opening_time?->format('H:i') ?? 'N/A' }} - {{ $horarioHoy->closing_time?->format('H:i') ?? 'N/A' }}
-                                    </div>
-                                    <div class="status-label">
-                                        @if($estaAbierto)
-                                            <span class="status-text-open"><i class="fas fa-circle status-open"></i> Abierto</span>
-                                        @else
-                                            <span class="status-text-closed"><i class="fas fa-circle status-closed"></i> Cerrado</span>
-                                        @endif
-                                    </div>
-                                @else
-                                    <div class="error-text">
-                                        Cerrado hoy
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    @endif
                     <div class="user-info-row" v-if="horarioActual.status">
                         <div class="time-display">
                             <div class="time-label">@{{ diaActual }}</div>
@@ -218,9 +182,6 @@
                          v-show="activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory"
                          @click="navigateToProduct('{{ route('plaza.product.detail', [$local->local_id, $producto->product_id]) }}')"
                          style="cursor: pointer;">
-                         v-show="activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory"
-                         @click="navigateToProduct('{{ route('plaza.product.detail', [$local->local_id, $producto->product_id]) }}')"
-                         style="cursor: pointer;">
 
                         <div class="p-card-img">
                             <img src="{{ $producto->photo_url ?? asset('images/product-placeholder.png') }}"
@@ -246,7 +207,6 @@
                                     for ($j = 1; $j <= 5; $j++):
                                 @endphp
                                     <i class="fas fa-star text-xs" style="color: {{ $j <= $rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }};"></i>
-                                    <i class="fas fa-star text-xs" style="color: {{ $j <= $rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }};"></i>
                                 @php
                                     endfor;
                                 @endphp
@@ -257,7 +217,6 @@
                                 </span>
                                 <button 
                                     class="btn-add-cart"
-                                    @click.stop="openAddToCartModal({
                                     @click.stop="openAddToCartModal({
                                         product_id: {{ $producto->product_id }},
                                         local_id: {{ $local->local_id }},
@@ -343,7 +302,6 @@
                     <div>
                         <h3 class="footer-col-title">Síguenos</h3>
                         <p class="description-text">
-                        <p class="description-text">
                             Conecta con nosotros en redes sociales y mantente al día con nuestros eventos y promociones especiales.
                         </p>
                         <div class="footer-socials">
@@ -380,21 +338,6 @@
 <script>
     // Validar si el usuario está autenticado
     window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
-
-    // Datos de productos con galería
-    window.productsData = {!! json_encode($productos->map(function($p) {
-        return [
-            'product_id' => $p->product_id,
-            'local_id' => $p->local_id,
-            'name' => $p->name,
-            'description' => $p->description,
-            'category' => $p->category,
-            'photo_url' => $p->photo_url,
-            'price' => $p->price,
-            'average_rating' => $p->average_rating,
-            'gallery' => $p->gallery ?: []
-        ];
-    })->keyBy('product_id')) !!};
 
     // Datos de productos con galería
     window.productsData = {!! json_encode($productos->map(function($p) {
@@ -479,7 +422,6 @@
         data() {
             return {
                 isAuthenticated: {{ auth()->check() ? 'true' : 'false' }},
-                isAuthenticated: {{ auth()->check() ? 'true' : 'false' }},
                 activeCategory: null,
                 currentLocalId: {{ $local->local_id }},
                 // Datos del local actual (reactivos para cambios dinámicos)
@@ -529,7 +471,6 @@
             openAddToCartModal(product) {
                 // Validar que el usuario esté autenticado
                 if (!this.isAuthenticated) {
-                if (!this.isAuthenticated) {
                     this.showAuthNotification();
                     return;
                 }
@@ -573,9 +514,6 @@
                 const notification = document.createElement('div');
                 notification.className = 'auth-notification';
                 notification.innerHTML = `
-                    <div class="login-warning">
-                        <i class="fas fa-lock lock-icon"></i>
-                        <span class="login-warning-text">Debes iniciar sesión para agregar al carrito</span>
                     <div class="login-warning">
                         <i class="fas fa-lock lock-icon"></i>
                         <span class="login-warning-text">Debes iniciar sesión para agregar al carrito</span>
@@ -889,71 +827,6 @@
                 .finally(() => { this.isCheckingOut = false; });
             },
 
-            // ── PRODUCT DETAIL MODAL METHODS ──
-            navigateToProduct(url) {
-                window.location.href = url;
-            },
-
-            openProductDetailModal(productId) {
-                if (!this.isAuthenticated) {
-                    this.showAuthNotification();
-                    return;
-                }
-
-                // Obtener datos del producto desde la variable global
-                const product = window.productsData[productId];
-                if (!product) {
-                    console.error('Producto no encontrado:', productId);
-                    return;
-                }
-
-                this.selectedProduct = product;
-                this.selectedProductGallery = (product.gallery || []).map(item => ({
-                    image_url: item.image_url || item.url
-                }));
-                
-                // Si no hay galería, agregar la foto principal
-                if (this.selectedProductGallery.length === 0 && product.photo_url) {
-                    this.selectedProductGallery.push({ image_url: product.photo_url });
-                }
-
-                this.selectedGalleryIndex = 0;
-                this.detailQuantity = 1;
-                this.detailCustomization = '';
-                this.showProductDetailModal = true;
-                document.body.classList.add('modal-open');
-            },
-
-            openProductDetailModal(productId) {
-                if (!this.isAuthenticated) {
-                    this.showAuthNotification();
-                    return;
-                }
-
-                // Obtener datos del producto desde la variable global
-                const product = window.productsData[productId];
-                if (!product) {
-                    console.error('Producto no encontrado:', productId);
-                    return;
-                }
-
-                this.selectedProduct = product;
-                this.selectedProductGallery = (product.gallery || []).map(item => ({
-                    image_url: item.image_url || item.url
-                }));
-                
-                // Si no hay galería, agregar la foto principal
-                if (this.selectedProductGallery.length === 0 && product.photo_url) {
-                    this.selectedProductGallery.push({ image_url: product.photo_url });
-                }
-
-                this.selectedGalleryIndex = 0;
-                this.detailQuantity = 1;
-                this.detailCustomization = '';
-                this.showProductDetailModal = true;
-                document.body.classList.add('modal-open');
-            },
-
             // ── LOCAL SWITCHER METHOD ──
             cambiarLocal() {
                 if (!this.currentLocalId) return;
@@ -1243,4 +1116,3 @@
 </script>
 </body>
 </html>
-
