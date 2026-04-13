@@ -99,9 +99,9 @@ class PlazaController extends Controller
         $yesterday = now()->subDay()->toDateString();
         $oneMonthLater = now()->addDays(30)->toDateString();
 
+        // Eventos de hoy: mostrar TODOS los eventos del día actual (sin límite de 24 horas)
         $eventosHoy = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
             ->active()
-            ->notExpired()
             ->whereDate('start_at', $today)
             ->orderBy('start_at', 'asc')
             ->get();
@@ -197,14 +197,14 @@ class PlazaController extends Controller
         $yesterday = now()->subDay()->toDateString();
         $oneMonthLater = now()->addDays(30)->toDateString();
 
+        // Eventos de hoy: mostrar TODOS los eventos del día actual (sin límite de 24 horas)
         $eventosHoy = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
             ->active()
-            ->notExpired()
             ->whereDate('start_at', $today)
             ->orderBy('start_at', 'asc')
             ->get();
 
-        // Próximos incluye: futuros Y eventos de ayer (últimos que aún son visibles)
+        // Próximos incluye: futuros Y eventos de ayer (últimos que aún son visibles en 24h)
         $eventosProximos = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
             ->active()
             ->notExpired()
