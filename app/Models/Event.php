@@ -51,6 +51,19 @@ class Event extends Model
     }
 
     /**
+     * Scope: excluir eventos que pasaron hace más de 24 horas
+     * Solo muestra eventos que aún no han terminado o terminaron hace menos de 24 horas
+     */
+    public function scopeNotExpired($query)
+    {
+        // Obtener la hora actual con zona horaria correcta
+        $now = \Carbon\Carbon::now();
+        $twentyFourHoursAgo = $now->copy()->subHours(24);
+        
+        return $query->where('start_at', '>=', $twentyFourHoursAgo);
+    }
+
+    /**
      * Accessor: estado en español para vistas
      */
     public function getStatusInSpanishAttribute()
