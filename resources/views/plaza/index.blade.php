@@ -34,6 +34,11 @@
                     <span class="header-logo-text">La Comarca Gastropark</span>
                 </div>
                 <div class="header-auth">
+                    <!-- Calendar Button (visible to all) -->
+                    <button @click="openEventsDrawer" class="cart-btn" :style="{ borderColor: showEventsDrawer ? 'var(--primary)' : 'var(--border-light)' }">
+                        <i class="fas fa-calendar"></i>
+                    </button>
+                    
                     @auth
                         <button @click="openCartDrawer" class="cart-btn" :style="{ borderColor: showCartDrawer ? 'var(--primary)' : 'var(--border-light)' }">
                             <i class="fas fa-shopping-cart"></i>
@@ -194,7 +199,7 @@
                 <div class="stat">
                     <span class="stat-icon"><i class="fas fa-star"></i></span>
                     <div>
-                        <strong>4.8</strong>
+                        <strong>{{ $stats['calificacion'] }}</strong>
                         <small>Calificación</small>
                     </div>
                 </div>
@@ -267,15 +272,12 @@
                         <img :src="producto.photo_url" :alt="producto.name" loading="lazy">
                         <div class="product-img-overlay"></div>
                         <span class="product-cat-chip">@{{ producto.category }}</span>
-                        <a :href="'/plaza/' + producto.local_id" class="product-quick-view">
-                            Ver <i class="fas fa-arrow-right"></i>
-                        </a>
                     </div>
                     <div class="product-body">
                         <div class="product-local">@{{ producto.local }}</div>
                         <h3 class="product-name" :title="producto.name">@{{ producto.name }}</h3>
                         <div class="product-stars stars-container">
-                                <i class="fas fa-star text-xs" :style="{color: i <= (producto.average_rating || 0) ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }"></i>
+                            <i v-for="i in 5" :key="i" class="fas fa-star text-xs" :style="{color: i <= Math.round(producto.average_rating || 0) ? 'var(--primary)' : 'rgba(122,112,96,0.25)' }"></i>
                         </div>
                         <div class="product-footer">
                             <span class="product-price">₡@{{ producto.price }}</span>
@@ -288,6 +290,8 @@
             </transition-group>
         </div>
     </section>
+
+
 
     <!-- ══ NUESTROS LOCALES ══ -->
     <section class="locales-section">
@@ -488,8 +492,59 @@
         </div>
     </footer>
 
+    <!-- ══ EVENTOS DRAWER ══ -->
+    <!-- ══ EVENTS DRAWER ══ -->
+    @include('plaza.evento.drawer')
+
     <!-- ══ CART DRAWER ══ -->
     @include('plaza.carrito._cart_drawer')
+
+    <!-- ═══ DRAWER: EVENTO DETAIL (PANEL LATERAL) ═══ -->
+    <div v-if="showEventoDetail" class="evento-detail-overlay" @click="closeEventoDetail"></div>
+    <div class="evento-detail-drawer" :class="{ 'active': showEventoDetail }">
+        <!-- Header -->
+        <div class="evento-detail-header">
+            <h2>Detalles del Evento</h2>
+            <button @click="closeEventoDetail" class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="evento-detail-content">
+            <div v-if="currentEvento && currentEvento.event_id" class="evento-detail-body">
+                <!-- Image -->
+                <div class="evento-detail-image">
+                    <img :src="currentEvento.image_url" :alt="currentEvento.title" loading="lazy">
+                </div>
+
+                <!-- Info -->
+                <div class="evento-detail-info">
+                    <h3 class="evento-title">@{{ currentEvento.title }}</h3>
+                    
+                    <div class="evento-meta-group">
+                        <div class="evento-meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span><strong>Hora:</strong> @{{ new Date(currentEvento.start_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) }}</span>
+                        </div>
+                        <div class="evento-meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span><strong>Fecha:</strong> @{{ new Date(currentEvento.start_at).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
+                        </div>
+                        <div class="evento-meta-item">
+                            <i class="fas fa-map-pin"></i>
+                            <span><strong>Ubicación:</strong> @{{ currentEvento.location }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="evento-description">
+                        <p>@{{ currentEvento.description }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>
 
@@ -525,6 +580,13 @@
                 categoriaSelectNombre: 'Todos',
                 productosFiltrados: [],
                 cargandoProductos: false,
+                // Eventos
+                eventosTab: 'hoy',
+                eventosHoy: {!! json_encode($eventosHoy) !!},
+                eventosProximos: {!! json_encode($eventosProximos) !!},
+                showEventsDrawer: false,
+                showEventoDetail: false,
+                currentEvento: {},
                 // Cart drawer data
                 showCartDrawer: false,
                 showConfirmOrder: false,
@@ -637,6 +699,14 @@
             },
 
             // ── DRAWER METHODS ──
+            openEventsDrawer() {
+                this.showEventsDrawer = true;
+                document.body.classList.add('events-drawer-open');
+            },
+            closeEventsDrawer() {
+                this.showEventsDrawer = false;
+                document.body.classList.remove('events-drawer-open');
+            },
             openCartDrawer() {
                 this.showCartDrawer = true;
                 document.body.classList.add('cart-drawer-open');
@@ -821,6 +891,21 @@
                 } finally {
                     this.isCheckingOut = false;
                 }
+            },
+
+            // ══ Métodos de Eventos ══
+
+            detalleEvento(evento) {
+                this.currentEvento = evento;
+                this.showEventoDetail = true;
+                document.body.classList.add('evento-detail-open');
+            },
+            closeEventoDetail() {
+                this.showEventoDetail = false;
+                document.body.classList.remove('evento-detail-open');
+                setTimeout(() => {
+                    this.currentEvento = {};
+                }, 300);
             }
         },
 
@@ -830,6 +915,9 @@
             },
             totalDrawerPrice() {
                 return this.drawerCart.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0);
+            },
+            totalEventos() {
+                return (this.eventosHoy?.length || 0) + (this.eventosProximos?.length || 0);
             }
         }
     }).mount('#plaza-app');
