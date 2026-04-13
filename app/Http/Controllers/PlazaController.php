@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Local;
 use App\Models\Schedule;
+use App\Models\Event;
 use App\Models\LocalReview;
+use App\Models\ProductReview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -73,13 +75,41 @@ class PlazaController extends Controller
             $productosAleatorios = $productosAleatorios->merge($productosLocal);
         }
 
+        // Calcular calificación global eficientemente
+        $calificacionGlobal = 0;
+        if ($locales->isNotEmpty()) {
+            $totalRating = $locales->sum(function ($local) {
+                return $local->average_rating;
+            });
+            $calificacionGlobal = round($totalRating / $locales->count(), 1);
+        }
+
+        // Obtener estadísticas
         $stats = [
             'total_locales' => $locales->count(),
             'total_productos' => $productos->count(),
             'horario_apertura' => '10:00',
             'horario_cierre' => '22:00',
-            'calificacion' => '4.8',
+            'calificacion' => $calificacionGlobal,
         ];
+
+        // Obtener eventos activos de manera eficiente
+        // Eventos de hoy y próximos (próximos 30 días sin límite de cantidad)
+        $today = now()->toDateString();
+        $oneMonthLater = now()->addDays(30)->toDateString();
+
+        $eventosHoy = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
+            ->active()
+            ->whereDate('start_at', $today)
+            ->orderBy('start_at', 'asc')
+            ->get();
+
+        $eventosProximos = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
+            ->active()
+            ->whereDate('start_at', '>', $today)
+            ->whereDate('start_at', '<=', $oneMonthLater)
+            ->orderBy('start_at', 'asc')
+            ->get();
 
         return view('plaza.index', [
             'locales' => $locales,
@@ -87,6 +117,8 @@ class PlazaController extends Controller
             'categorias' => $categorias,
             'stats' => $stats,
             'categoria_actual' => $request->categoria ?? 'todos',
+            'eventosHoy' => $eventosHoy,
+            'eventosProximos' => $eventosProximos,
         ]);
     }
 
@@ -145,13 +177,37 @@ class PlazaController extends Controller
             $estaAbierto = Schedule::isCurrentlyOpen($id);
         }
 
-        // ── RESEÑAS DEL LOCAL ──────────────────────────────────────────────
+        // Obtener todos los locales activos para el combobox
+        $localesDisponibles = Local::select('local_id', 'name', 'status')
+            ->where('status', 'Active')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        // Obtener eventos activos
+        $today = now()->toDateString();
+        $oneMonthLater = now()->addDays(30)->toDateString();
+
+        $eventosHoy = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
+            ->active()
+            ->whereDate('start_at', $today)
+            ->orderBy('start_at', 'asc')
+            ->get();
+
+        $eventosProximos = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
+            ->active()
+            ->whereDate('start_at', '>', $today)
+            ->whereDate('start_at', '<=', $oneMonthLater)
+            ->orderBy('start_at', 'asc')
+            ->get();
+
+        // Obtener reseñas del local
         $reviews = LocalReview::with(['review', 'user'])
             ->where('local_id', $id)
             ->whereHas('review')
-            ->orderByDesc('local_review_id')
-            ->paginate(6);
+            ->orderBy('created_at', 'desc')
+            ->get();
 
+        // Calcular estadísticas de reseñas del local
         $allRatings = LocalReview::with('review')
             ->where('local_id', $id)
             ->whereHas('review')
@@ -163,24 +219,162 @@ class PlazaController extends Controller
             'average' => $allRatings->count() ? round($allRatings->avg(), 1) : 0,
             'total'   => $allRatings->count(),
         ];
-        // ──────────────────────────────────────────────────────────────────
-
-        // ── LOCALES DISPONIBLES para el selector ──────────────────────────
-        $localesDisponibles = Local::where('status', 'Active')->get();
-        // ──────────────────────────────────────────────────────────────────
 
         return view('plaza.show', [
-            'local'              => $local,
-            'productos'          => $productos,
-            'categorias'         => $categorias,
-            'horarioHoy'         => $horarioHoy,
-            'diaActual'          => $dayInSpanish,
-            'estaAbierto'        => $estaAbierto,
-            'reviews'            => $reviews,
-            'localStats'         => $localStats,
+            'local' => $local,
+            'productos' => $productos,
+            'categorias' => $categorias,
+            'horarioHoy' => $horarioHoy,
+            'diaActual' => $dayInSpanish,
+            'estaAbierto' => $estaAbierto,
             'localesDisponibles' => $localesDisponibles,
+            'eventosHoy' => $eventosHoy,
+            'eventosProximos' => $eventosProximos,
+            'reviews' => $reviews,
+            'localStats' => $localStats,
         ]);
     }
+
+    /**
+     * Ver detalles de un producto
+     */
+    public function showProduct($local_id, $product_id)
+    {
+        try {
+            $local = Local::where('local_id', $local_id)->firstOrFail();
+            $product = Product::where('product_id', $product_id)
+                ->where('status', 'Available')
+                ->with([
+                    'gallery',
+                    'productReviews.review' => function ($query) {
+                        $query->select('review_id', 'rating');
+                    }
+                ])
+                ->firstOrFail();
+
+            // Obtener galería y reseñas
+            $gallery = $product->gallery ?? collect();
+            $reviews = ProductReview::where('product_id', $product_id)
+                ->with('review')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return view('plaza.product-detail', [
+                'local' => $local,
+                'product' => $product,
+                'gallery' => $gallery,
+                'reviews' => $reviews,
+            ]);
+        } catch (\Exception $e) {
+            abort(404, 'Producto no encontrado');
+        }
+    }
+
+    /**
+     * Obtener datos del local en JSON para cambio dinámico en combobox (AJAX)
+     */
+    public function getLocalData($id)
+    {
+        try {
+            // Buscar local
+            $local = Local::where('local_id', $id)->firstOrFail();
+
+            // Obtener productos del local
+            $productos = Product::whereHas('locals', function ($query) use ($id) {
+                $query->where('tblocal_product.local_id', $id);
+            })
+                ->where('status', 'Available')
+                ->with([
+                    'gallery',
+                    'productReviews.review' => function ($query) {
+                        $query->select('review_id', 'rating');
+                    }
+                ])
+                ->get()
+                ->map(function ($product) {
+                    return [
+                        'product_id' => $product->product_id,
+                        'local_id' => $product->pivot->local_id ?? null,
+                        'name' => $product->name,
+                        'description' => $product->description,
+                        'category' => $product->category,
+                        'photo_url' => $product->photo_url ? asset($product->photo_url) : null,
+                        'price' => $product->price,
+                        'average_rating' => $product->average_rating,
+                        'gallery' => $product->gallery ? $product->gallery->map(fn($img) => [
+                            'image_url' => $img->image_url ? asset($img->image_url) : null
+                        ])->toArray() : []
+                    ];
+                })
+                ->toArray();
+
+            // Obtener categorías - extraer las únicas de los productos mapeados
+            $categoriasArray = [];
+            $categoriasNames = array_column($categoriasArray, 'nombre');
+            
+            foreach ($productos as $product) {
+                if ($product['category'] && !in_array($product['category'], $categoriasNames)) {
+                    $categoriasArray[] = [
+                        'nombre' => $product['category'],
+                        'slug' => Str::slug($product['category']),
+                        'icono' => $this->getCategoryIcon($product['category']),
+                    ];
+                    $categoriasNames[] = $product['category'];
+                }
+            }
+            $categorias = $categoriasArray;
+
+            // Obtener horario del día actual
+            $now = now();
+            $dayOfWeek = $now->translatedFormat('l');
+
+            $dayTranslation = [
+                'Monday'    => 'Lunes',
+                'Tuesday'   => 'Martes',
+                'Wednesday' => 'Miércoles',
+                'Thursday'  => 'Jueves',
+                'Friday'    => 'Viernes',
+                'Saturday'  => 'Sábado',
+                'Sunday'    => 'Domingo',
+            ];
+
+            $dayInSpanish = $dayTranslation[$dayOfWeek] ?? null;
+            $horarioHoy = null;
+            $estaAbierto = false;
+
+            if ($dayInSpanish) {
+                $horarioHoy = Schedule::where('local_id', $id)
+                    ->where('day_of_week', $dayInSpanish)
+                    ->first();
+                $estaAbierto = Schedule::isCurrentlyOpen($id);
+            }
+
+            return response()->json([
+                'success' => true,
+                'local' => [
+                    'local_id' => $local->local_id,
+                    'name' => $local->name,
+                    'description' => $local->description,
+                    'logo_url' => $local->image_logo ? asset($local->image_logo) : null,
+                ],
+                'horarioHoy' => $horarioHoy ? [
+                    'opening_time' => $horarioHoy->opening_time ? \Carbon\Carbon::parse($horarioHoy->opening_time)->format('H:i') : null,
+                    'closing_time' => $horarioHoy->closing_time ? \Carbon\Carbon::parse($horarioHoy->closing_time)->format('H:i') : null,
+                    'status' => $horarioHoy->status,
+                ] : null,
+                'diaActual' => $dayInSpanish,
+                'estaAbierto' => $estaAbierto,
+                'categorias' => $categorias,
+                'productos' => $productos,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener datos del local',
+            ], 404);
+        }
+    }   
+
 
     /**
      * Obtener productos filtrados por categoría (AJAX)
