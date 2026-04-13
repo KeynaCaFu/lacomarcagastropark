@@ -391,6 +391,46 @@ public function storeGallery(Request $request, $id)
     return redirect()->route('suppliers.show', $id)
         ->with('success', 'Facturas agregadas exitosamente');
 }
+
+public function deleteGallery(Request $request, $supplierId, $galleryId)
+{
+    $supplier = $this->supplierData->find($supplierId);
+
+    if (!$supplier) {
+        return redirect()->route('suppliers.index')
+            ->with('error', 'Proveedor no encontrado');
+    }
+
+    if (!$this->canAccessSupplier($supplierId)) {
+        return redirect()->route('suppliers.index')
+            ->with('error', 'No tienes acceso a este proveedor');
+    }
+
+    // Buscar la imagen en la galería
+    $galleryItem = DB::table('tbsupplier_gallery')
+        ->where('gallery_id', $galleryId)
+        ->where('supplier_id', $supplierId)
+        ->first();
+
+    if (!$galleryItem) {
+        return redirect()->route('suppliers.show', $supplierId)
+            ->with('error', 'Archivo no encontrado');
+    }
+
+    // Eliminar archivo físico
+    $filePath = public_path($galleryItem->image_path);
+    if (file_exists($filePath)) {
+        unlink($filePath);
+    }
+
+    // Eliminar del registro en la BD
+    DB::table('tbsupplier_gallery')
+        ->where('gallery_id', $galleryId)
+        ->delete();
+
+    return redirect()->route('suppliers.show', $supplierId)
+        ->with('success', '✓ Archivo eliminado correctamente.');
+}
     
 
 

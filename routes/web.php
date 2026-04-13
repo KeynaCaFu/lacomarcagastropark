@@ -173,6 +173,7 @@ Route::middleware(['auth', 'verified', 'admin.local'])->group(function () {
 
     
     Route::post('/{id}/galeria', [SupplierController::class, 'storeGallery'])->name('gallery.store');
+    Route::delete('/{supplierId}/galeria/{galleryId}', [SupplierController::class, 'deleteGallery'])->name('gallery.delete');
 
 
 

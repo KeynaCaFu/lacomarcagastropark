@@ -51,11 +51,17 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
-        //tempralmente deshabilitado para evitar conflictos con errores de conexión a BD
- /*
-        // Manejar errores de conexión a la base de datos
+      // Manejar errores de conexión a la base de datos
         $this->renderable(function (Throwable $e, Request $request) {
-            // Detectar errores de conexión a BD
+            // PRIMERO: Detectar errores de red/conexión a internet
+            // (se chequea primero porque la falta de WiFi causa ambos errores)
+            if ($this->isNetworkError($e)) {
+                return response()->view('errors.no-internet', [
+                    'exception' => env('APP_DEBUG') ? $e : null,
+                ], 503);
+            }
+
+            // SEGUNDO: Detectar errores de conexión a BD
             if ($this->isDbConnectionError($e)) {
                 // Verificar si es un error de conexión específicamente
                 if ($this->isConnectionRefused($e)) {
@@ -73,14 +79,7 @@ class Handler extends ExceptionHandler
                 ], 503);
             }
 
-            // Detectar errores de red/conexión a internet
-            if ($this->isNetworkError($e)) {
-                return response()->view('errors.no-internet', [
-                    'exception' => env('APP_DEBUG') ? $e : null,
-                ], 503);
-            }
-
-            // Errores 503 de servidor general
+            // TERCERO: Errores 503 de servidor general
             if ($e instanceof HttpException && $e->getStatusCode() === 503) {
                 return response()->view('errors.connection-error', [
                     'exception' => env('APP_DEBUG') ? $e : null,
@@ -92,7 +91,7 @@ class Handler extends ExceptionHandler
 
             return null;
         }); 
-        */
+        
     }
 
     /**

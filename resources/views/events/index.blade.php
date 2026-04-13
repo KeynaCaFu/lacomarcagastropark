@@ -7,7 +7,8 @@
  {{-- Incluir estilos específicos para la gestión de eventos --}} 
 @push('styles')
  <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
-  <link href="{{ asset('css/modals.css') }}" rel="stylesheet">
+  {{-- <link href="{{ asset('css/modals.css') }}" rel="stylesheet"> --}}
+  <link href="{{ asset('css/eventos.css') }}" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 @endpush
 
@@ -539,131 +540,5 @@
   </script>
 @endif
 
-<style>
-  .event-actions{
-    display:flex;
-    align-items:center;
-    gap:16px !important;          /* más aire si hay varios botones a la izq */
-  }
-  .event-actions .push-right{
-    margin-left:auto !important;  /* empuja Eliminar a la derecha */
-  }
-  /* Mover el botón "Nuevo Evento" a la derecha */
-  .events-bar{
-    display:flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  /* Colores de botones para igualar a Usuarios */
-  .event-actions .btn-edit{
-    background: transparent !important;
-    color: #3e3d3a !important;
-    border: 2px solid #43423f !important;
-    padding: 0; /* usar tamaño compacto global */
-    border-radius: 6px;
-    font-weight: 500;
-    width: 36px; height: 36px; font-size: 0; display:inline-flex; align-items:center; justify-content:center;
-  }
-  .event-actions .btn-edit:hover{
-    background: #848380ec !important;
-    color: #000 !important;
-  }
-  .event-actions .btn-del{
-    background: transparent !important;
-    color: #dc2626 !important;
-    border: 2px solid #dc2626 !important;
-    padding: 0; /* usar tamaño compacto global */
-    border-radius: 6px;
-    font-weight: 500;
-    width: 36px; height: 36px; font-size: 0; display:inline-flex; align-items:center; justify-content:center;
-  }
-  .event-actions .btn-del:hover{
-    background: #dc2626 !important;
-    color: #fff !important;
-  }
-
-  /* Estilos para el estado clickeable */
-  .status-badge.status-toggler {
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 12px !important;
-    border-radius: 6px !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    user-select: none;
-    transition: all 0.3s ease;
-  }
-
-  .status-badge.status-toggler:hover {
-    filter: brightness(0.90);
-    transform: scale(1.05);
-  }
-
-  .status-badge.status-toggler:active {
-    transform: scale(0.98);
-  }
-
-  /* Estilos para modales overlay */
-  .custom-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 9997;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(3px);
-    padding: 20px;
-  }
-
-  .custom-modal.open {
-    display: flex;
-  }
-
-  .custom-modal .modal-content {
-    background: #fdfdfc;
-    border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    max-width: 600px;
-    width: 100%;
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .modal-content .modal-header {
-    padding: 24px 28px;
-    border-bottom: 1px solid #e5e7eb;
-    flex-shrink: 0;
-  }
-
-  .modal-content .modal-header h4 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 700;
-    color: #1f2937;
-  }
-
-  .modal-content .modal-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px 28px;
-  }
-
-  .modal-content .modal-footer {
-    padding: 16px 28px;
-    border-top: 1px solid #e5e7eb;
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    flex-shrink: 0;
-    background: #fafafa;
-  }
-</style>
 </div>
 @endsection
