@@ -8,7 +8,9 @@
         {{-- PANEL LOGIN --}}
         <div class="login-panel" id="loginPanel">
             <div class="login-header">
-                <img src="{{ asset('images/iconoblanco.png') }}" alt="Logo La Comarca" class="login-logo">
+                <a href="{{ route('plaza.index') }}" class="logo-link">
+                    <img src="{{ asset('images/iconoblanco.png') }}" alt="Logo La Comarca" class="login-logo">
+                </a>
             </div>
             <h2 class="login-title">Iniciar sesión</h2>
 
@@ -82,7 +84,7 @@
                 </div>
 
                 <div class="google-container">
-                    <a href="{{ route('auth.google') }}" class="btn-google" title="Iniciar sesión con Google">
+                    <a href="{{ route('auth.google') }}" class="btn-google" title="Iniciar sesión con Google" onclick="window.location.href=this.href; return false;">
                         <i class="fa-brands fa-google"></i>
                     </a>
                 </div>
@@ -104,7 +106,9 @@
         {{-- PANEL REGISTRO --}}
         <div class="register-panel" id="registerPanel">
             <div class="register-header">
-                <img src="{{ asset('images/iconoblanco.png') }}" alt="Logo La Comarca" class="login-logoRegister">
+                <a href="{{ route('plaza.index') }}" class="logo-link">
+                    <img src="{{ asset('images/iconoblanco.png') }}" alt="Logo La Comarca" class="login-logoRegister">
+                </a>
             </div>
             <h2 class="login-title">Registrarse como cliente</h2>
             {{-- <p class="register-subtitle">Tu rol será <strong>Cliente</strong> automáticamente</p> --}}
@@ -209,7 +213,7 @@
                 </div>
 
                 <div class="google-container">
-                    <a href="{{ route('auth.google') }}" class="btn-google" title="Registrarse con Google">
+                    <a href="{{ route('auth.google') }}" class="btn-google" title="Registrarse con Google" onclick="window.location.href=this.href; return false;">
                         <i class="fa-brands fa-google"></i>
                     </a>
                 </div>
@@ -229,7 +233,9 @@
         {{-- PANEL RECUPERACIÓN DE CONTRASEÑA --}}
         <div class="recovery-panel" id="recoveryPanel">
             <div class="recovery-header">
-                <img src="{{ asset('images/iconoblanco.png') }}" alt="Logo La Comarca" class="recovery-logo">
+                <a href="{{ route('plaza.index') }}" class="logo-link">
+                    <img src="{{ asset('images/iconoblanco.png') }}" alt="Logo La Comarca" class="recovery-logo">
+                </a>
             </div>
             <h2 class="recovery-title">Recuperar Contraseña</h2>
             <p class="recovery-subtitle">Te enviaremos una contraseña temporal a tu correo</p>
@@ -293,6 +299,13 @@
                 <h3 class="overlay-title">¡Bienvenido de nuevo!</h3>
                 <p class="overlay-text">¿Ya tienes cuenta?</p>
                 <button type="button" class="overlay-btn" id="overlayLoginBtn">Iniciar sesión</button>
+            </div>
+
+            {{-- Contenido para RECUPERACIÓN --}}
+            <div class="overlay-content overlay-recovery">
+                <h3 class="overlay-title">¿Olvidaste tu Contraseña?</h3>
+                <p class="overlay-text">Te ayudaremos a recuperar tu contraseña</p>
+                <button type="button" class="overlay-btn" id="overlayLoginFromRecoveryBtn">Volver al login</button>
             </div>
         </div>
     </div>
@@ -401,11 +414,26 @@
         display: none;
     }
 
+    .overlay-recovery {
+        display: none;
+    }
+
     .login-container.show-register .overlay-login {
         display: none;
     }
 
     .login-container.show-register .overlay-register {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-container.show-recovery .overlay-login {
+        display: none;
+    }
+
+    .login-container.show-recovery .overlay-recovery {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -446,6 +474,10 @@
         transform: translateX(100%);
     }
 
+    .login-container.show-recovery .auth-overlay {
+        transform: translateX(100%);
+    }
+
     /* ===== HEADERS ===== */
     .login-header,
     .register-header,
@@ -467,7 +499,25 @@
         height: auto;
         margin: 0;
         margin-top: -22px;;
-}
+    }
+
+    /* ===== LOGO LINK ===== */
+    .logo-link {
+        display: inline-block;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .logo-link:hover {
+        transform: scale(1.05);
+        filter: brightness(1.1);
+    }
+
+    .logo-link:active {
+        transform: scale(0.98);
+    }
+
     .login-title,
     .recovery-title {
         font-size: 28px;
@@ -818,6 +868,9 @@
         text-decoration: none;
         cursor: pointer;
         transition: all 0.3s;
+        pointer-events: auto !important;
+        z-index: 10 !important;
+        position: relative;
     }
 
     .btn-google:hover {
@@ -825,6 +878,10 @@
         border-color: #a45f22;
         box-shadow: 0 4px 12px rgba(244, 191, 66, 0.2);
         transform: translateY(-2px);
+    }
+
+    .btn-google i {
+        pointer-events: none;
     }
 
     .forgot-password {
@@ -1457,6 +1514,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // Switch a login desde botón en overlay
     if (overlayLoginBtn) {
         overlayLoginBtn.addEventListener('click', switchToLogin);
+    }
+
+    // Switch a login desde botón en overlay de recuperación
+    const overlayLoginFromRecoveryBtn = document.getElementById('overlayLoginFromRecoveryBtn');
+    if (overlayLoginFromRecoveryBtn) {
+        overlayLoginFromRecoveryBtn.addEventListener('click', switchToLogin);
     }
 
     // Switch a recuperación de contraseña desde botón en panel login
