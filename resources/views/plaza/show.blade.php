@@ -15,11 +15,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="{{ asset('css/carrito.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/plaza/plaza.common.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/plaza/plaza.index.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.show.css') }}">
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="{{ asset('css/plaza/plaza.reviews.css') }}">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></link>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
 </head>
@@ -35,6 +38,11 @@
                 </a>
                 <span class="header-label">Menú</span>
                 <div class="flex-row">
+                    <!-- Calendar Button (visible to all) -->
+                    <button @click="openEventsDrawer" class="cart-btn" :style="{ borderColor: showEventsDrawer ? 'var(--primary)' : 'var(--border-light)' }">
+                        <i class="fas fa-calendar"></i>
+                    </button>
+                    
                     @auth
                         <button @click="openCartDrawer" class="cart-btn" :style="{ borderColor: showCartDrawer ? 'var(--primary)' : 'var(--border-light)' }">
                             <i class="fas fa-shopping-cart"></i>
@@ -167,13 +175,13 @@
                     <p class="section-eyebrow">Nuestro Menú</p>
                     <h2 class="section-heading">Lo Mejor de <em>@{{ localActual.name }}</em></h2>
                 </div>
-                <span class="item-count">@{{ productCount }} platillos</span>
+                <span class="item-count">@{{ productCount }} Productos</span>
             </div>
 
             @if($productos->isEmpty())
                 <div class="empty-wrap">
                     <div class="empty-icon"><i class="fas fa-bowl-food"></i></div>
-                    <p class="empty-msg">No hay platillos disponibles por el momento</p>
+                    <p class="empty-msg">No hay productos disponibles por el momento</p>
                 </div>
             @else
                 <div class="products-grid">
@@ -235,11 +243,64 @@
         </div>
     </main>
 
+    <!-- ═══ RESEÑAS DEL LOCAL ═══ -->
+    @include('plaza.reviews')
+
     <!-- ═══ MODAL: AGREGAR AL CARRITO ═══ -->
     @include('plaza.carrito._add_to_cart_modal')
 
+    <!-- ═══ DRAWER: EVENTOS (PANEL LATERAL) ═══ -->
+    @include('plaza.evento.drawer')
+
     <!-- ═══ DRAWER: CARRITO (PANEL LATERAL) ═══ -->
     @include('plaza.carrito._cart_drawer')
+
+    <!-- ═══ DRAWER: EVENTO DETAIL (PANEL LATERAL) ═══ -->
+    <div v-if="showEventoDetail" class="evento-detail-overlay" @click="closeEventoDetail"></div>
+    <div class="evento-detail-drawer" :class="{ 'active': showEventoDetail }">
+        <!-- Header -->
+        <div class="evento-detail-header">
+            <h2>Detalles del Evento</h2>
+            <button @click="closeEventoDetail" class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="evento-detail-content">
+            <div v-if="currentEvento && currentEvento.event_id" class="evento-detail-body">
+                <!-- Image -->
+                <div class="evento-detail-image">
+                    <img :src="currentEvento.image_url" :alt="currentEvento.title" loading="lazy">
+                </div>
+
+                <!-- Info -->
+                <div class="evento-detail-info">
+                    <h3 class="evento-title">@{{ currentEvento.title }}</h3>
+                    
+                    <div class="evento-meta-group">
+                        <div class="evento-meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span><strong>Hora:</strong> @{{ new Date(currentEvento.start_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) }}</span>
+                        </div>
+                        <div class="evento-meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span><strong>Fecha:</strong> @{{ new Date(currentEvento.start_at).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
+                        </div>
+                        <div class="evento-meta-item">
+                            <i class="fas fa-map-pin"></i>
+                            <span><strong>Ubicación:</strong> @{{ currentEvento.location }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="evento-description">
+                        <p>@{{ currentEvento.description }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
      <!-- ══ FOOTER ══ -->
     <footer class="footer-v2">
@@ -439,9 +500,17 @@
                 diaActual: '{{ $diaActual ?? "" }}',
                 estaAbierto: {{ $estaAbierto ? 'true' : 'false' }},
                 categoriasActuales: {!! json_encode($categorias) !!},
+                productosActuales: {!! json_encode($productos->map(function($p) { return ['product_id' => $p->product_id, 'name' => $p->name, 'category' => $p->category, 'description' => $p->description, 'photo_url' => $p->photo_url ? asset($p->photo_url) : null, 'price' => $p->price, 'average_rating' => $p->average_rating]; })) !!},
                 productCount: {{ $productos->count() }},
                 showAddToCartModal: false,
                 showCartDrawer: false,
+                showEventsDrawer: false,
+                showEventoDetail: false,
+                // Eventos
+                eventosTab: 'hoy',
+                eventosHoy: {!! json_encode($eventosHoy) !!},
+                eventosProximos: {!! json_encode($eventosProximos) !!},
+                currentEvento: {},
                 showConfirmOrder: false,
                 showConfirmClear: false,
                 showConfirmRemove: false,
@@ -870,6 +939,9 @@
                         // Actualizar categorías reactivas
                         this.categoriasActuales = data.categorias;
                         
+                        // Actualizar productos reactivos
+                        this.productosActuales = data.productos;
+                        
                         // Actualizar conteo de productos
                         this.productCount = data.productos.length;
                         
@@ -891,7 +963,7 @@
                                 photo_url: p.photo_url,
                                 price: p.price,
                                 average_rating: p.average_rating,
-                                gallery: []
+                                gallery: p.gallery || []
                             };
                         });
                         
@@ -949,7 +1021,7 @@
                         emptyWrap.className = 'empty-wrap';
                         emptyWrap.innerHTML = `
                             <div class="empty-icon"><i class="fas fa-bowl-food"></i></div>
-                            <p class="empty-msg">No hay platillos disponibles por el momento</p>
+                            <p class="empty-msg">No hay productos disponibles por el momento</p>
                         `;
                         productsContainer.appendChild(emptyWrap);
                     }
@@ -988,7 +1060,7 @@
                     gridHtml += `
                         <div class="p-card ${featured}" data-product-id="${producto.product_id}" data-local-id="${this.currentLocalId}" style="cursor: pointer;">
                             <div class="p-card-img">
-                                <img src="${producto.photo_url}" alt="${producto.name}" loading="${i < 4 ? 'eager' : 'lazy'}">
+                                <img src="${producto.photo_url || '{{ asset("images/product-placeholder.png") }}'}" alt="${producto.name}" loading="${i < 4 ? 'eager' : 'lazy'}">
                                 <div class="p-card-img-fade"></div>
                                 ${categoryTag}
                             </div>
@@ -1043,6 +1115,47 @@
                         this.navigateToProduct(url);
                     }
                 };
+                
+                // Aplicar filtro de categoría después de recargar productos
+                this.aplicarFiltroCategoria();
+            },
+
+            aplicarFiltroCategoria() {
+                const grid = document.querySelector('.products-grid');
+                if (!grid) return;
+                
+                const cards = grid.querySelectorAll('.p-card');
+                let visibleCount = 0;
+                
+                cards.forEach(card => {
+                    // Obtener categoría del producto desde el card
+                    const categoryTag = card.querySelector('.p-card-cat');
+                    const categorySlug = categoryTag ? categoryTag.textContent.toLowerCase().replace(/\s+/g, '-') : '';
+                    
+                    // Mostrar/ocultar según filtro
+                    const showCard = this.activeCategory === null || categorySlug === this.activeCategory;
+                    card.style.display = showCard ? '' : 'none';
+                    
+                    if (showCard) visibleCount++;
+                });
+                
+                // Mostrar mensaje de vacío si no hay productos visibles
+                if (visibleCount === 0) {
+                    let emptyWrap = grid.parentElement.querySelector('.empty-wrap');
+                    if (!emptyWrap) {
+                        emptyWrap = document.createElement('div');
+                        emptyWrap.className = 'empty-wrap';
+                        emptyWrap.innerHTML = `
+                            <div class="empty-icon"><i class="fas fa-bowl-food"></i></div>
+                            <p class="empty-msg">No hay productos disponibles en esta categoría</p>
+                        `;
+                        grid.parentElement.appendChild(emptyWrap);
+                    }
+                    emptyWrap.style.display = '';
+                } else {
+                    const emptyWrap = grid.parentElement.querySelector('.empty-wrap');
+                    if (emptyWrap) emptyWrap.style.display = 'none';
+                }
             },
 
             // ── PRODUCT DETAIL MODAL METHODS ──
@@ -1108,6 +1221,27 @@
                 this.detailCustomization = '';
                 this.showProductDetailModal = true;
                 document.body.classList.add('modal-open');
+            },
+            // ── EVENTS DRAWER METHODS ──
+            openEventsDrawer() {
+                this.showEventsDrawer = true;
+                document.body.classList.add('events-drawer-open');
+            },
+            closeEventsDrawer() {
+                this.showEventsDrawer = false;
+                document.body.classList.remove('events-drawer-open');
+            },
+            detalleEvento(evento) {
+                this.currentEvento = evento;
+                this.showEventoDetail = true;
+                document.body.classList.add('evento-detail-open');
+            },
+            closeEventoDetail() {
+                this.showEventoDetail = false;
+                document.body.classList.remove('evento-detail-open');
+                setTimeout(() => {
+                    this.currentEvento = {};
+                }, 300);
             }
         },
 
@@ -1116,15 +1250,151 @@
             this.loadCartDrawer();
         },
 
+        watch: {
+            activeCategory() {
+                // Refiltar productos cuando cambia la categoría activa
+                this.aplicarFiltroCategoria();
+            }
+        },
+
         computed: {
             totalDrawerQty() {
                 return this.drawerCart.length;
             },
             totalDrawerPrice() {
                 return this.drawerCart.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0);
+            },
+            totalEventos() {
+                return (this.eventosHoy?.length || 0) + (this.eventosProximos?.length || 0);
             }
         }
     }).mount('#plaza-app');
+</script>
+
+<script>
+// ═══ CAROUSEL REVIEWS INITIALIZATION ═══
+(function () {
+    const track   = document.getElementById('lrcTrack');
+    const dotsEl  = document.getElementById('lrcDots');
+    const btnPrev = document.getElementById('lrcPrev');
+    const btnNext = document.getElementById('lrcNext');
+
+    if (!track) {
+        console.log('Carousel: Track no encontrado');
+        return;
+    }
+
+    const slides = track.querySelectorAll('.lrc-slide');
+    const total  = slides.length;
+    
+    if (total === 0) {
+        console.log('Carousel: No hay slides');
+        return;
+    }
+
+    let current  = 0;
+    let autoPlayInterval = null;
+    let isAnimating = false;
+    const ANIMATION_SPEED = 450; // ms
+    const AUTO_PLAY_DELAY = 5000; // 5 segundos
+
+    console.log('Carousel: Inicializado con', total, 'slides');
+
+    function getSlideWidth() {
+        return slides[0].offsetWidth + 20; // slide width + gap
+    }
+
+    function buildDots() {
+        dotsEl.innerHTML = '';
+        for (let i = 0; i < total; i++) {
+            const dot = document.createElement('button');
+            dot.className = 'lrc-dot' + (i === current ? ' lrc-dot--active' : '');
+            dot.addEventListener('click', () => {
+                goToSlide(i);
+                resetAutoPlay();
+            });
+            dotsEl.appendChild(dot);
+        }
+    }
+
+    function updateDots() {
+        const dots = dotsEl.querySelectorAll('.lrc-dot');
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('lrc-dot--active', i === current);
+        });
+    }
+
+    function goToSlide(slideIndex) {
+        if (isAnimating) return;
+
+        // Asegurar que el índice esté dentro del rango
+        let targetIndex = ((slideIndex % total) + total) % total;
+        current = targetIndex;
+
+        const slideWidth = getSlideWidth();
+        const offset = -current * slideWidth;
+
+        isAnimating = true;
+        track.style.transition = `transform ${ANIMATION_SPEED}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+        track.style.transform = `translateX(${offset}px)`;
+
+        setTimeout(() => {
+            isAnimating = false;
+            updateDots();
+        }, ANIMATION_SPEED);
+    }
+
+    function nextSlide() {
+        goToSlide(current + 1);
+    }
+
+    function prevSlide() {
+        goToSlide(current - 1);
+    }
+
+    function startAutoPlay() {
+        stopAutoPlay();
+        autoPlayInterval = setInterval(nextSlide, AUTO_PLAY_DELAY);
+    }
+
+    function stopAutoPlay() {
+        if (autoPlayInterval) {
+            clearInterval(autoPlayInterval);
+            autoPlayInterval = null;
+        }
+    }
+
+    function resetAutoPlay() {
+        startAutoPlay();
+    }
+
+    // Event Listeners
+    btnPrev.addEventListener('click', () => {
+        prevSlide();
+        resetAutoPlay();
+    });
+
+    btnNext.addEventListener('click', () => {
+        nextSlide();
+        resetAutoPlay();
+    });
+
+    track.parentElement.addEventListener('mouseenter', stopAutoPlay);
+    track.parentElement.addEventListener('mouseleave', startAutoPlay);
+
+    window.addEventListener('resize', () => {
+        track.style.transition = 'none';
+        const slideWidth = getSlideWidth();
+        track.style.transform = `translateX(${-current * slideWidth}px)`;
+        buildDots();
+        updateDots();
+    });
+
+    // Inicialización
+    buildDots();
+    updateDots();
+    startAutoPlay();
+})();
 </script>
 </body>
 </html>
