@@ -82,69 +82,78 @@
     <!-- ── HERO ── -->
     <section class="local-hero">
         <div class="hero-bg">
-            <img src="{{ $local->logo_url ?? 'https://via.placeholder.com/1200x600/111009/D4773A?text=' . urlencode($local->name) }}" alt="{{ $local->name }}">
+            <img :src="localActual.logo_url || 'https://via.placeholder.com/1200x600/111009/D4773A?text=' + encodeURIComponent(localActual.name)" :alt="localActual.name">
         </div>
         <div class="hero-gradient"></div>
         <div class="hero-body container">
-            @if($local->logo_url)
-            <div class="hero-logo-ring">
-                <img src="{{ $local->logo_url }}" alt="{{ $local->name }}">
+            <div class="hero-logo-ring" v-if="localActual.logo_url">
+                <img :src="localActual.logo_url" :alt="localActual.name">
             </div>
-            @endif
             <div class="hero-text">
-                <div class="hero-tag"><i class="fas fa-utensils"></i> La Comarca Gastro Park</div>
+                
                 <div class="flex-row-space">
                     <div>
-                        <h1 class="hero-name">{{ $local->name }}</h1>
-                        @if($local->description)
-                            <p class="hero-desc">{{ $local->description }}</p>
-                        @endif
+                        <h1 class="hero-name">@{{ localActual.name }}</h1>
+                        <p class="hero-desc" v-if="localActual.description">@{{ localActual.description }}</p>
                     </div>
-                    @if($horarioHoy)
-                        <div class="user-info-row">
-                            <div class="time-display">
-                                <div class="time-label">{{ $diaActual }}</div>
-                                @if($horarioHoy->status)
-                                    <div class="time-value">
-                                        {{ $horarioHoy->opening_time?->format('H:i') ?? 'N/A' }} - {{ $horarioHoy->closing_time?->format('H:i') ?? 'N/A' }}
-                                    </div>
-                                    <div class="status-label">
-                                        @if($estaAbierto)
-                                            <span class="status-text-open"><i class="fas fa-circle status-open"></i> Abierto</span>
-                                        @else
-                                            <span class="status-text-closed"><i class="fas fa-circle status-closed"></i> Cerrado</span>
-                                        @endif
-                                    </div>
-                                @else
-                                    <div class="error-text">
-                                        Cerrado hoy
-                                    </div>
-                                @endif
+                    <div class="user-info-row" v-if="horarioActual.status">
+                        <div class="time-display">
+                            <div class="time-label">@{{ diaActual }}</div>
+                            <div class="time-value" v-if="horarioActual.opening_time || horarioActual.closing_time">
+                                @{{ horarioActual.opening_time || 'N/A' }} - @{{ horarioActual.closing_time || 'N/A' }}
+                            </div>
+                            <div class="status-label">
+                                <span class="status-text-open" v-if="estaAbierto">
+                                    <i class="fas fa-circle status-open"></i> Abierto
+                                </span>
+                                <span class="status-text-closed" v-else>
+                                    <i class="fas fa-circle status-closed"></i> Cerrado
+                                </span>
                             </div>
                         </div>
-                    @endif
+                    </div>
+                    <div class="user-info-row" v-else>
+                        <div class="error-text">Cerrado hoy</div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ── CATEGORY STRIP ── -->
-    @if($categorias->isNotEmpty())
+    <!-- ── LOCAL SWITCHER + CATEGORY STRIP ── -->
+    @if($localesDisponibles->isNotEmpty() || $categorias->isNotEmpty())
     <div class="cat-strip">
         <div class="container">
             <div class="cat-scroll">
+                
+                <!-- LOCAL SELECTOR (PRIMERO) -->
+                <div class="local-selector-wrapper">
+                    <select class="local-selector" v-model.number="currentLocalId" @change="cambiarLocal" :disabled="isLoadingLocal">
+                        <option value="" disabled>Selecciona Local</option>
+                        @foreach($localesDisponibles as $loc)
+                        <option value="{{ $loc->local_id }}">
+                            {{ $loc->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- TODOS BUTTON -->
                 <button class="cat-pill" :class="{ active: activeCategory === null }" @click="activeCategory = null">
                     <i class="fas fa-border-all"></i> Todos
                 </button>
-                @foreach($categorias as $cat)
+
+                <!-- CATEGORIES (REACTIVAS) -->
                 <button
+                    v-for="cat in categoriasActuales"
+                    :key="cat.slug"
                     class="cat-pill"
-                    :class="{ active: activeCategory === '{{ $cat['slug'] }}' }"
-                    @click="activeCategory = '{{ $cat['slug'] }}'">
-                    <i class="fas {{ $cat['icono'] }}"></i>
-                    {{ $cat['nombre'] }}
+                    :class="{ active: activeCategory === cat.slug }"
+                    @click="activeCategory = cat.slug">
+                    <i :class="'fas ' + cat.icono"></i>
+                    @{{ cat.nombre }}
                 </button>
-                @endforeach
+
             </div>
         </div>
     </div>
@@ -156,11 +165,9 @@
             <div class="menu-intro">
                 <div class="menu-intro-left">
                     <p class="section-eyebrow">Nuestro Menú</p>
-                    <h2 class="section-heading">Lo Mejor de <em>{{ $local->name }}</em></h2>
+                    <h2 class="section-heading">Lo Mejor de <em>@{{ localActual.name }}</em></h2>
                 </div>
-                @if($productos->isNotEmpty())
-                <span class="item-count">{{ $productos->count() }} platillos</span>
-                @endif
+                <span class="item-count">@{{ productCount }} platillos</span>
             </div>
 
             @if($productos->isEmpty())
@@ -416,6 +423,23 @@
             return {
                 isAuthenticated: {{ auth()->check() ? 'true' : 'false' }},
                 activeCategory: null,
+                currentLocalId: {{ $local->local_id }},
+                // Datos del local actual (reactivos para cambios dinámicos)
+                localActual: {
+                    local_id: {{ $local->local_id }},
+                    name: '{{ $local->name }}',
+                    description: '{{ $local->description ?? '' }}',
+                    logo_url: '{{ $local->logo_url ?? '' }}',
+                },
+                horarioActual: {
+                    opening_time: '{{ $horarioHoy?->opening_time?->format("H:i") ?? "" }}',
+                    closing_time: '{{ $horarioHoy?->closing_time?->format("H:i") ?? "" }}',
+                    status: {{ $horarioHoy?->status ? 'true' : 'false' }},
+                },
+                diaActual: '{{ $diaActual ?? "" }}',
+                estaAbierto: {{ $estaAbierto ? 'true' : 'false' }},
+                categoriasActuales: {!! json_encode($categorias) !!},
+                productCount: {{ $productos->count() }},
                 showAddToCartModal: false,
                 showCartDrawer: false,
                 showConfirmOrder: false,
@@ -424,6 +448,7 @@
                 itemToRemoveIndex: null,
                 drawerCart: [],
                 isCheckingOut: false,
+                isLoadingLocal: false,
                 currentProduct: {
                     name: '',
                     description: '',
@@ -800,6 +825,212 @@
                     showToast({ icon: 'error', title: 'Oops', message: 'Problema de conexión', timer: 5500 });
                 })
                 .finally(() => { this.isCheckingOut = false; });
+            },
+
+            // ── LOCAL SWITCHER METHOD ──
+            cambiarLocal() {
+                if (!this.currentLocalId) return;
+
+                this.isLoadingLocal = true;
+                
+                // Hacer solicitud AJAX para obtener datos del nuevo local
+                fetch(`/plaza/${this.currentLocalId}/data`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Actualizar la URL sin recargar la página
+                        window.history.pushState({ 
+                            localId: this.currentLocalId 
+                        }, '', `/plaza/${this.currentLocalId}`);
+                        
+                        // ▼ ACTUALIZAR DATOS REACTIVOS DE VUE (NO MANIPULAR DOM)
+                        
+                        // Actualizar local actual
+                        this.localActual = {
+                            local_id: data.local.local_id,
+                            name: data.local.name,
+                            description: data.local.description,
+                            logo_url: data.local.logo_url,
+                        };
+                        
+                        // Actualizar horario
+                        this.horarioActual = {
+                            opening_time: data.horarioHoy?.opening_time || '',
+                            closing_time: data.horarioHoy?.closing_time || '',
+                            status: data.horarioHoy?.status ? true : false,
+                        };
+                        this.diaActual = data.diaActual;
+                        this.estaAbierto = data.estaAbierto;
+                        
+                        // Actualizar categorías reactivas
+                        this.categoriasActuales = data.categorias;
+                        
+                        // Actualizar conteo de productos
+                        this.productCount = data.productos.length;
+                        
+                        // Limpiar categoría activa
+                        this.activeCategory = null;
+                        
+                        // Actualizar meta title
+                        document.title = `${data.local.name} - La Comarca Gastro Park`;
+                        
+                        // Actualizar productos globales
+                        window.productsData = {};
+                        data.productos.forEach(p => {
+                            window.productsData[p.product_id] = {
+                                product_id: p.product_id,
+                                local_id: this.currentLocalId,
+                                name: p.name,
+                                description: p.description,
+                                category: p.category,
+                                photo_url: p.photo_url,
+                                price: p.price,
+                                average_rating: p.average_rating,
+                                gallery: []
+                            };
+                        });
+                        
+                        // Recrear productos en grid (recargar productos)
+                        this.recargarProductosLocal(data.productos);
+                        
+                        // Mostrar toast de éxito
+                        showToast({
+                            icon: 'success',
+                            title: 'Local cambiado',
+                            message: `Ahora viendo: ${data.local.name}`,
+                            timer: 3000
+                        });
+                    } else {
+                        showToast({
+                            icon: 'error',
+                            title: 'Error',
+                            message: data.message || 'No se pudo cargar el local',
+                            timer: 5500
+                        });
+                        // Revertir el cambio en el combobox
+                        this.currentLocalId = {{ $local->local_id }};
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast({
+                        icon: 'error',
+                        title: 'Error de conexión',
+                        message: 'No se pudo cambiar el local',
+                        timer: 5500
+                    });
+                    // Revertir el cambio
+                    this.currentLocalId = {{ $local->local_id }};
+                })
+                .finally(() => {
+                    this.isLoadingLocal = false;
+                });
+            },
+
+            recargarProductosLocal(productos) {
+                // Buscar el contenedor de productos
+                const productsContainer = document.querySelector('.menu-section .container');
+                if (!productsContainer) return;
+                
+                // Buscar o crear el grid
+                let grid = productsContainer.querySelector('.products-grid');
+                let emptyWrap = productsContainer.querySelector('.empty-wrap');
+                
+                if (productos.length === 0) {
+                    // Si no hay productos, mostrar mensaje vacío
+                    if (grid) grid.remove();
+                    if (!emptyWrap) {
+                        emptyWrap = document.createElement('div');
+                        emptyWrap.className = 'empty-wrap';
+                        emptyWrap.innerHTML = `
+                            <div class="empty-icon"><i class="fas fa-bowl-food"></i></div>
+                            <p class="empty-msg">No hay platillos disponibles por el momento</p>
+                        `;
+                        productsContainer.appendChild(emptyWrap);
+                    }
+                    return;
+                }
+                
+                // Si hay productos, asegurarse de que el grid exista
+                if (!grid) {
+                    if (emptyWrap) emptyWrap.remove();
+                    grid = document.createElement('div');
+                    grid.className = 'products-grid';
+                    productsContainer.appendChild(grid);
+                }
+                
+                // Limpiar grid
+                grid.innerHTML = '';
+                
+                // Reconstruir productos
+                productos.forEach((producto, i) => {
+                    const card = document.createElement('div');
+                    card.className = `p-card ${i === 0 ? 'featured' : ''}`;
+                    card.style.cursor = 'pointer';
+                    
+                    // Calcular URL de routing
+                    const productUrl = `/plaza/${this.currentLocalId}/producto/${producto.product_id}`;
+                    
+                    let starsHtml = '';
+                    const rating = Math.round(producto.average_rating || 0);
+                    for (let j = 1; j <= 5; j++) {
+                        const color = j <= rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)';
+                        starsHtml += `<i class="fas fa-star text-xs" style="color: ${color};"></i>`;
+                    }
+                    
+                    let descHtml = '';
+                    if (i === 0 && producto.description) {
+                        descHtml = `<p class="featured-desc">${producto.description}</p>`;
+                    }
+                    
+                    card.innerHTML = `
+                        <div class="p-card-img">
+                            <img src="${producto.photo_url}" alt="${producto.name}" loading="${i < 4 ? 'eager' : 'lazy'}">
+                            <div class="p-card-img-fade"></div>
+                            ${producto.category ? `<span class="p-card-cat">${producto.category}</span>` : ''}
+                        </div>
+                        <div class="p-card-body">
+                            ${i === 0 ? '<p class="featured-label"><i class="fas fa-crown"></i> &nbsp;Destacado</p>' : ''}
+                            <h3 class="p-card-name">${producto.name}</h3>
+                            ${descHtml}
+                            <div class="p-card-stars">
+                                ${starsHtml}
+                            </div>
+                            <div class="p-card-footer">
+                                <span class="p-card-price">
+                                    <sup>₡</sup>${parseFloat(producto.price).toFixed(2)}
+                                </span>
+                                <button class="btn-add-cart" data-product-id="${producto.product_id}">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Event listeners
+                    card.addEventListener('click', (e) => {
+                        if (e.target.closest('.btn-add-cart')) {
+                            e.stopPropagation();
+                            this.openAddToCartModal({
+                                product_id: producto.product_id,
+                                local_id: this.currentLocalId,
+                                name: producto.name,
+                                description: producto.description,
+                                photo_url: producto.photo_url,
+                                price: producto.price
+                            });
+                        } else {
+                            this.navigateToProduct(productUrl);
+                        }
+                    });
+                    
+                    grid.appendChild(card);
+                });
             },
 
             // ── PRODUCT DETAIL MODAL METHODS ──
