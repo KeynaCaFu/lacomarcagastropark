@@ -309,7 +309,7 @@ a { text-decoration: none; color: inherit; }
     width: 100% !important;
     height: 100% !important;
     background: rgba(0, 0, 0, 0.6) !important;
-    z-index: 998 !important;
+    z-index: 1001 !important;
     backdrop-filter: blur(4px);
     animation: fadeIn 0.3s ease-out;
 }
@@ -322,7 +322,7 @@ a { text-decoration: none; color: inherit; }
     transform: translateX(-50%) translateY(100%) !important;
     width: 90% !important;
     max-width: 600px !important;
-    z-index: 999 !important;
+    z-index: 1002 !important;
     background: linear-gradient(135deg, #161310 0%, #1D1914 100%) !important;
     border-top: 1px solid var(--border) !important;
     border-radius: 20px 20px 0 0 !important;
