@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Local;
 use App\Models\Schedule;
+use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
@@ -89,14 +90,41 @@ class PlazaController extends Controller
             ->limit(10)
             ->get();
 
+        // Calcular calificación global eficientemente
+        $calificacionGlobal = 0;
+        if ($locales->isNotEmpty()) {
+            $totalRating = $locales->sum(function ($local) {
+                return $local->average_rating;
+            });
+            $calificacionGlobal = round($totalRating / $locales->count(), 1);
+        }
+
         // Obtener estadísticas
         $stats = [
             'total_locales' => $locales->count(),
             'total_productos' => $productos->count(),
             'horario_apertura' => '10:00',
             'horario_cierre' => '22:00',
-            'calificacion' => '4.8',
+            'calificacion' => $calificacionGlobal,
         ];
+
+        // Obtener eventos activos de manera eficiente
+        // Eventos de hoy y próximos (próximos 30 días sin límite de cantidad)
+        $today = now()->toDateString();
+        $oneMonthLater = now()->addDays(30)->toDateString();
+
+        $eventosHoy = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
+            ->active()
+            ->whereDate('start_at', $today)
+            ->orderBy('start_at', 'asc')
+            ->get();
+
+        $eventosProximos = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
+            ->active()
+            ->whereDate('start_at', '>', $today)
+            ->whereDate('start_at', '<=', $oneMonthLater)
+            ->orderBy('start_at', 'asc')
+            ->get();
 
         return view('plaza.index', [
             'locales' => $locales,
@@ -104,6 +132,8 @@ class PlazaController extends Controller
             'categorias' => $categorias,
             'stats' => $stats,
             'categoria_actual' => $request->categoria ?? 'todos',
+            'eventosHoy' => $eventosHoy,
+            'eventosProximos' => $eventosProximos,
         ]);
     }
 
@@ -156,6 +186,23 @@ class PlazaController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
+        // Obtener eventos activos
+        $today = now()->toDateString();
+        $oneMonthLater = now()->addDays(30)->toDateString();
+
+        $eventosHoy = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
+            ->active()
+            ->whereDate('start_at', $today)
+            ->orderBy('start_at', 'asc')
+            ->get();
+
+        $eventosProximos = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
+            ->active()
+            ->whereDate('start_at', '>', $today)
+            ->whereDate('start_at', '<=', $oneMonthLater)
+            ->orderBy('start_at', 'asc')
+            ->get();
+
         return view('plaza.show', [
             'local' => $local,
             'productos' => $productos,
@@ -164,6 +211,8 @@ class PlazaController extends Controller
             'diaActual' => $dayInSpanish,
             'estaAbierto' => $estaAbierto,
             'localesDisponibles' => $localesDisponibles,
+            'eventosHoy' => $eventosHoy,
+            'eventosProximos' => $eventosProximos,
         ]);
     }
 
