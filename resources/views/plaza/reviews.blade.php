@@ -28,82 +28,70 @@
         </div>
         @endif
 
-        {{-- Cards de reseñas --}}
+        {{-- Carrusel de reseñas --}}
         @if(isset($reviews) && $reviews->count() > 0)
-            <div class="local-reviews-grid">
-                @foreach($reviews as $item)
-                    @php
-                        $nombre    = $item->user->full_name ?? 'Cliente';
-                        $rating    = $item->review->rating ?? 0;
-                        $comment   = $item->review->comment ?? null;
-                        $fecha     = $item->review->date ?? null;
-                        $respuesta = $item->review->response ?? null;
-                        $partes    = explode(' ', trim($nombre));
-                        $iniciales = '';
-                        foreach (array_slice($partes, 0, 2) as $p) {
-                            $iniciales .= strtoupper(substr($p, 0, 1));
-                        }
-                    @endphp
+        <div class="lrc-wrapper">
 
-                    <div class="local-review-card">
-                        <div class="local-review-card__header">
-                            <div class="local-review-card__avatar">{{ $iniciales ?: 'CL' }}</div>
-                            <div class="local-review-card__user">
-                                <div class="local-review-card__name">{{ $nombre }}</div>
-                                @if($fecha)
-                                    <div class="local-review-card__date">
-                                        {{ \Carbon\Carbon::parse($fecha)->locale('es')->isoFormat('D [de] MMMM, YYYY') }}
+            <button class="lrc-arrow lrc-arrow--prev" id="lrcPrev" aria-label="Anterior">&#8592;</button>
+
+            <div class="lrc-viewport">
+                <div class="lrc-track" id="lrcTrack">
+                    @foreach($reviews as $item)
+                        @php
+                            $nombre    = $item->user->full_name ?? 'Cliente';
+                            $rating    = $item->review->rating ?? 0;
+                            $comment   = $item->review->comment ?? null;
+                            $fecha     = $item->review->date ?? null;
+                            $respuesta = $item->review->response ?? null;
+                            $partes    = explode(' ', trim($nombre));
+                            $iniciales = '';
+                            foreach (array_slice($partes, 0, 2) as $p) {
+                                $iniciales .= strtoupper(substr($p, 0, 1));
+                            }
+                        @endphp
+
+                        <div class="lrc-slide">
+                            <div class="local-review-card">
+                                <div class="local-review-card__header">
+                                    <div class="local-review-card__avatar">{{ $iniciales ?: 'CL' }}</div>
+                                    <div class="local-review-card__user">
+                                        <div class="local-review-card__name">{{ $nombre }}</div>
+                                        @if($fecha)
+                                            <div class="local-review-card__date">
+                                                {{ \Carbon\Carbon::parse($fecha)->locale('es')->isoFormat('D [de] MMMM, YYYY') }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="local-review-card__stars">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <span class="lrs {{ $i <= $rating ? 'lrs--filled' : '' }}">★</span>
+                                    @endfor
+                                </div>
+
+                                @if($comment)
+                                    <p class="local-review-card__comment">"{{ $comment }}"</p>
+                                @endif
+
+                                @if($respuesta)
+                                    <div class="local-review-card__response">
+                                        <div class="local-review-card__response-label">
+                                            <i class="fas fa-reply"></i> Respuesta del local
+                                        </div>
+                                        <p class="local-review-card__response-text">{{ $respuesta }}</p>
                                     </div>
                                 @endif
                             </div>
                         </div>
-
-                        <div class="local-review-card__stars">
-                            @for($i = 1; $i <= 5; $i++)
-                                <span class="lrs {{ $i <= $rating ? 'lrs--filled' : '' }}">★</span>
-                            @endfor
-                        </div>
-
-                        @if($comment)
-                            <p class="local-review-card__comment">"{{ $comment }}"</p>
-                        @endif
-
-                        @if($respuesta)
-                            <div class="local-review-card__response">
-                                <div class="local-review-card__response-label">
-                                    <i class="fas fa-reply"></i> Respuesta del local
-                                </div>
-                                <p class="local-review-card__response-text">{{ $respuesta }}</p>
-                            </div>
-                        @endif
-                    </div>
-                @endforeach
+                    @endforeach
+                </div>
             </div>
 
-            {{-- Paginación --}}
-            @if($reviews->hasPages())
-                <div class="local-reviews-pagination">
-                    @if($reviews->onFirstPage())
-                        <span class="lrp-btn lrp-btn--disabled">&#8592;</span>
-                    @else
-                        <a href="{{ $reviews->previousPageUrl() }}#resenas" class="lrp-btn">&#8592;</a>
-                    @endif
+            <button class="lrc-arrow lrc-arrow--next" id="lrcNext" aria-label="Siguiente">&#8594;</button>
+        </div>
 
-                    @foreach($reviews->getUrlRange(1, $reviews->lastPage()) as $page => $url)
-                        @if($page == $reviews->currentPage())
-                            <span class="lrp-btn lrp-btn--active">{{ $page }}</span>
-                        @else
-                            <a href="{{ $url }}#resenas" class="lrp-btn">{{ $page }}</a>
-                        @endif
-                    @endforeach
-
-                    @if($reviews->hasMorePages())
-                        <a href="{{ $reviews->nextPageUrl() }}#resenas" class="lrp-btn">&#8594;</a>
-                    @else
-                        <span class="lrp-btn lrp-btn--disabled">&#8594;</span>
-                    @endif
-                </div>
-            @endif
+        <div class="lrc-dots" id="lrcDots"></div>
 
         @else
             <div class="local-reviews-empty">
@@ -124,7 +112,6 @@
     padding: 80px 0 90px;
     position: relative;
 }
-
 .local-reviews-section::before {
     content: '';
     position: absolute;
@@ -132,18 +119,15 @@
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(225,128,24,0.35), transparent);
 }
-
 .local-reviews-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 24px;
 }
-
 .local-reviews-header {
     text-align: center;
     margin-bottom: 48px;
 }
-
 .local-reviews-label {
     display: inline-flex;
     align-items: center;
@@ -155,15 +139,12 @@
     text-transform: uppercase;
     margin-bottom: 16px;
 }
-
 .local-reviews-label-dot {
-    width: 6px;
-    height: 6px;
+    width: 6px; height: 6px;
     border-radius: 50%;
     background: #e18018;
     display: inline-block;
 }
-
 .local-reviews-title {
     font-size: clamp(26px, 4vw, 40px);
     font-weight: 700;
@@ -171,13 +152,11 @@
     margin: 0 0 12px;
     line-height: 1.2;
 }
-
 .local-reviews-subtitle {
     font-size: 15px;
     color: #9ca3af;
     margin: 0;
 }
-
 .local-reviews-stat {
     display: flex;
     align-items: center;
@@ -190,40 +169,90 @@
     max-width: 300px;
     margin: 0 auto 52px;
 }
-
 .local-reviews-stat-score {
     font-size: 52px;
     font-weight: 800;
     color: #ffffff;
     line-height: 1;
 }
-
 .local-reviews-stat-right {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
-
 .local-reviews-stat-count {
     font-size: 13px;
     color: #6b7280;
 }
+.lrs { color: #3a3a3a; font-size: 16px; }
+.lrs--filled { color: #e18018; }
 
-.lrs {
-    color: #3a3a3a;
-    font-size: 16px;
+/* ══ CARRUSEL ══ */
+.lrc-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
-.lrs--filled {
+.lrc-viewport {
+    overflow: hidden;
+    flex: 1;
+    border-radius: 14px;
+}
+.lrc-track {
+    display: flex;
+    gap: 20px;
+    transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+}
+.lrc-slide {
+    flex: 0 0 calc((100% - 40px) / 3);
+    min-width: 0;
+}
+.lrc-arrow {
+    flex-shrink: 0;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    color: #d1d5db;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.lrc-arrow:hover {
+    background: rgba(225,128,24,0.2);
+    border-color: rgba(225,128,24,0.5);
     color: #e18018;
 }
-
-.local-reviews-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 20px;
-    margin-bottom: 48px;
+.lrc-arrow:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+.lrc-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 28px;
+}
+.lrc-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+.lrc-dot--active {
+    background: #e18018;
+    transform: scale(1.3);
 }
 
+/* ── Card ── */
 .local-review-card {
     background: #1a1a1a;
     border: 1px solid rgba(255,255,255,0.07);
@@ -232,23 +261,21 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+    height: 100%;
+    box-sizing: border-box;
     transition: border-color 0.2s ease, transform 0.2s ease;
 }
-
 .local-review-card:hover {
     border-color: rgba(225,128,24,0.35);
     transform: translateY(-2px);
 }
-
 .local-review-card__header {
     display: flex;
     align-items: center;
     gap: 12px;
 }
-
 .local-review-card__avatar {
-    width: 44px;
-    height: 44px;
+    width: 44px; height: 44px;
     border-radius: 50%;
     background: linear-gradient(135deg, #915016, #e18018);
     color: #fff;
@@ -259,24 +286,17 @@
     justify-content: center;
     flex-shrink: 0;
 }
-
 .local-review-card__name {
     font-size: 14px;
     font-weight: 700;
     color: #f3f4f6;
 }
-
 .local-review-card__date {
     font-size: 12px;
     color: #6b7280;
     margin-top: 2px;
 }
-
-.local-review-card__stars {
-    display: flex;
-    gap: 2px;
-}
-
+.local-review-card__stars { display: flex; gap: 2px; }
 .local-review-card__comment {
     font-size: 14px;
     line-height: 1.65;
@@ -284,14 +304,12 @@
     margin: 0;
     font-style: italic;
 }
-
 .local-review-card__response {
     background: rgba(225,128,24,0.08);
     border-left: 3px solid #e18018;
     border-radius: 0 8px 8px 0;
     padding: 12px 14px;
 }
-
 .local-review-card__response-label {
     font-size: 11px;
     font-weight: 700;
@@ -300,25 +318,21 @@
     letter-spacing: 0.08em;
     margin-bottom: 6px;
 }
-
 .local-review-card__response-text {
     font-size: 13px;
     color: #9ca3af;
     margin: 0;
     line-height: 1.55;
 }
-
 .local-reviews-empty {
     text-align: center;
     padding: 60px 20px;
 }
-
 .local-reviews-empty__icon {
     font-size: 48px;
     color: #2a2a2a;
     margin-bottom: 16px;
 }
-
 .local-reviews-empty__text {
     font-size: 15px;
     color: #6b7280;
@@ -326,53 +340,77 @@
     margin: 0;
 }
 
-.local-reviews-pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
+@media (max-width: 900px) {
+    .lrc-slide { flex: 0 0 calc((100% - 20px) / 2); }
 }
-
-.lrp-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 38px;
-    height: 38px;
-    padding: 0 10px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none;
-    color: #d1d5db;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    transition: all 0.2s ease;
-}
-
-.lrp-btn:hover {
-    background: rgba(225,128,24,0.15);
-    border-color: rgba(225,128,24,0.4);
-    color: #e18018;
-}
-
-.lrp-btn--active {
-    background: #e18018;
-    border-color: #e18018;
-    color: #fff;
-    cursor: default;
-}
-
-.lrp-btn--disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-@media (max-width: 640px) {
+@media (max-width: 600px) {
     .local-reviews-section { padding: 60px 0 70px; }
-    .local-reviews-grid { grid-template-columns: 1fr; }
-    .local-reviews-stat { padding: 18px 20px; }
+    .lrc-slide { flex: 0 0 100%; }
+    .lrc-arrow { width: 36px; height: 36px; font-size: 14px; }
 }
 </style>
+
+<script>
+(function () {
+    const track   = document.getElementById('lrcTrack');
+    const dotsEl  = document.getElementById('lrcDots');
+    const btnPrev = document.getElementById('lrcPrev');
+    const btnNext = document.getElementById('lrcNext');
+
+    if (!track) return;
+
+    const slides = track.querySelectorAll('.lrc-slide');
+    const total  = slides.length;
+    let current  = 0;
+    let autoPlay;
+
+    function visibleCount() {
+        if (window.innerWidth <= 600) return 1;
+        if (window.innerWidth <= 900) return 2;
+        return 3;
+    }
+
+    function maxIndex() {
+        return Math.max(0, total - visibleCount());
+    }
+
+    function buildDots() {
+        dotsEl.innerHTML = '';
+        for (let i = 0; i <= maxIndex(); i++) {
+            const d = document.createElement('button');
+            d.className = 'lrc-dot' + (i === current ? ' lrc-dot--active' : '');
+            d.addEventListener('click', () => { goTo(i); resetAutoPlay(); });
+            dotsEl.appendChild(d);
+        }
+    }
+
+    function updateDots() {
+        dotsEl.querySelectorAll('.lrc-dot').forEach((d, i) => {
+            d.classList.toggle('lrc-dot--active', i === current);
+        });
+    }
+
+    function goTo(index) {
+        current = Math.max(0, Math.min(index, maxIndex()));
+        const slideWidth = slides[0].offsetWidth + 20;
+        track.style.transform = `translateX(-${current * slideWidth}px)`;
+        btnPrev.disabled = current === 0;
+        btnNext.disabled = current >= maxIndex();
+        updateDots();
+    }
+
+    function resetAutoPlay() {
+        clearInterval(autoPlay);
+        autoPlay = setInterval(() => goTo(current >= maxIndex() ? 0 : current + 1), 5000);
+    }
+
+    btnPrev.addEventListener('click', () => { goTo(current - 1); resetAutoPlay(); });
+    btnNext.addEventListener('click', () => { goTo(current + 1); resetAutoPlay(); });
+
+    window.addEventListener('resize', () => { buildDots(); goTo(Math.min(current, maxIndex())); });
+
+    buildDots();
+    goTo(0);
+    resetAutoPlay();
+})();
+</script>
