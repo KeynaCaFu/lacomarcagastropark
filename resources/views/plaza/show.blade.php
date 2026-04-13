@@ -15,13 +15,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="{{ asset('css/carrito.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.common.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.index.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.show.css') }}">
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="{{ asset('css/plaza/plaza.reviews.css') }}">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></link>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
 </head>
@@ -241,6 +242,9 @@
             @endif
         </div>
     </main>
+
+    <!-- ═══ RESEÑAS DEL LOCAL ═══ -->
+    @include('plaza.reviews')
 
     <!-- ═══ MODAL: AGREGAR AL CARRITO ═══ -->
     @include('plaza.carrito._add_to_cart_modal')
@@ -496,7 +500,7 @@
                 diaActual: '{{ $diaActual ?? "" }}',
                 estaAbierto: {{ $estaAbierto ? 'true' : 'false' }},
                 categoriasActuales: {!! json_encode($categorias) !!},
-                productosActuales: {!! json_encode($productos->map(function($p) { return ['product_id' => $p->product_id, 'name' => $p->name, 'category' => $p->category, 'description' => $p->description, 'photo_url' => $p->photo_url, 'price' => $p->price, 'average_rating' => $p->average_rating]; })) !!},
+                productosActuales: {!! json_encode($productos->map(function($p) { return ['product_id' => $p->product_id, 'name' => $p->name, 'category' => $p->category, 'description' => $p->description, 'photo_url' => $p->photo_url ? asset($p->photo_url) : null, 'price' => $p->price, 'average_rating' => $p->average_rating]; })) !!},
                 productCount: {{ $productos->count() }},
                 showAddToCartModal: false,
                 showCartDrawer: false,
@@ -935,6 +939,9 @@
                         // Actualizar categorías reactivas
                         this.categoriasActuales = data.categorias;
                         
+                        // Actualizar productos reactivos
+                        this.productosActuales = data.productos;
+                        
                         // Actualizar conteo de productos
                         this.productCount = data.productos.length;
                         
@@ -956,7 +963,7 @@
                                 photo_url: p.photo_url,
                                 price: p.price,
                                 average_rating: p.average_rating,
-                                gallery: []
+                                gallery: p.gallery || []
                             };
                         });
                         
@@ -1053,7 +1060,7 @@
                     gridHtml += `
                         <div class="p-card ${featured}" data-product-id="${producto.product_id}" data-local-id="${this.currentLocalId}" style="cursor: pointer;">
                             <div class="p-card-img">
-                                <img src="${producto.photo_url}" alt="${producto.name}" loading="${i < 4 ? 'eager' : 'lazy'}">
+                                <img src="${producto.photo_url || '{{ asset("images/product-placeholder.png") }}'}" alt="${producto.name}" loading="${i < 4 ? 'eager' : 'lazy'}">
                                 <div class="p-card-img-fade"></div>
                                 ${categoryTag}
                             </div>
@@ -1262,6 +1269,132 @@
             }
         }
     }).mount('#plaza-app');
+</script>
+
+<script>
+// ═══ CAROUSEL REVIEWS INITIALIZATION ═══
+(function () {
+    const track   = document.getElementById('lrcTrack');
+    const dotsEl  = document.getElementById('lrcDots');
+    const btnPrev = document.getElementById('lrcPrev');
+    const btnNext = document.getElementById('lrcNext');
+
+    if (!track) {
+        console.log('Carousel: Track no encontrado');
+        return;
+    }
+
+    const slides = track.querySelectorAll('.lrc-slide');
+    const total  = slides.length;
+    
+    if (total === 0) {
+        console.log('Carousel: No hay slides');
+        return;
+    }
+
+    let current  = 0;
+    let autoPlayInterval = null;
+    let isAnimating = false;
+    const ANIMATION_SPEED = 450; // ms
+    const AUTO_PLAY_DELAY = 5000; // 5 segundos
+
+    console.log('Carousel: Inicializado con', total, 'slides');
+
+    function getSlideWidth() {
+        return slides[0].offsetWidth + 20; // slide width + gap
+    }
+
+    function buildDots() {
+        dotsEl.innerHTML = '';
+        for (let i = 0; i < total; i++) {
+            const dot = document.createElement('button');
+            dot.className = 'lrc-dot' + (i === current ? ' lrc-dot--active' : '');
+            dot.addEventListener('click', () => {
+                goToSlide(i);
+                resetAutoPlay();
+            });
+            dotsEl.appendChild(dot);
+        }
+    }
+
+    function updateDots() {
+        const dots = dotsEl.querySelectorAll('.lrc-dot');
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('lrc-dot--active', i === current);
+        });
+    }
+
+    function goToSlide(slideIndex) {
+        if (isAnimating) return;
+
+        // Asegurar que el índice esté dentro del rango
+        let targetIndex = ((slideIndex % total) + total) % total;
+        current = targetIndex;
+
+        const slideWidth = getSlideWidth();
+        const offset = -current * slideWidth;
+
+        isAnimating = true;
+        track.style.transition = `transform ${ANIMATION_SPEED}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+        track.style.transform = `translateX(${offset}px)`;
+
+        setTimeout(() => {
+            isAnimating = false;
+            updateDots();
+        }, ANIMATION_SPEED);
+    }
+
+    function nextSlide() {
+        goToSlide(current + 1);
+    }
+
+    function prevSlide() {
+        goToSlide(current - 1);
+    }
+
+    function startAutoPlay() {
+        stopAutoPlay();
+        autoPlayInterval = setInterval(nextSlide, AUTO_PLAY_DELAY);
+    }
+
+    function stopAutoPlay() {
+        if (autoPlayInterval) {
+            clearInterval(autoPlayInterval);
+            autoPlayInterval = null;
+        }
+    }
+
+    function resetAutoPlay() {
+        startAutoPlay();
+    }
+
+    // Event Listeners
+    btnPrev.addEventListener('click', () => {
+        prevSlide();
+        resetAutoPlay();
+    });
+
+    btnNext.addEventListener('click', () => {
+        nextSlide();
+        resetAutoPlay();
+    });
+
+    track.parentElement.addEventListener('mouseenter', stopAutoPlay);
+    track.parentElement.addEventListener('mouseleave', startAutoPlay);
+
+    window.addEventListener('resize', () => {
+        track.style.transition = 'none';
+        const slideWidth = getSlideWidth();
+        track.style.transform = `translateX(${-current * slideWidth}px)`;
+        buildDots();
+        updateDots();
+    });
+
+    // Inicialización
+    buildDots();
+    updateDots();
+    startAutoPlay();
+})();
 </script>
 </body>
 </html>
