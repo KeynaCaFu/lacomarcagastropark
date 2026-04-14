@@ -271,38 +271,38 @@ Route::prefix('plaza')->name('plaza.')->middleware('preserve.admin.session')->gr
 // RUTAS DE PRUEBA - Errores de Conexión
 // Solo en modo desarrollo - Comentar en producción
 // ==========================================
-if (app()->environment('local')) {
-    Route::prefix('test')->group(function () {
-        // Prueba de error de base de datos
-        Route::get('db-error', function () {
-            return view('errors.db-connection');
-        })->name('test.db-error');
+// if (app()->environment('local')) {
+//     Route::prefix('test')->group(function () {
+//         // Prueba de error de base de datos
+//         Route::get('db-error', function () {
+//             return view('errors.db-connection');
+//         })->name('test.db-error');
 
-        // Prueba de error de internet
-        Route::get('internet-error', function () {
-            return view('errors.no-internet');
-        })->name('test.internet-error');
+//         // Prueba de error de internet
+//         Route::get('internet-error', function () {
+//             return view('errors.no-internet');
+//         })->name('test.internet-error');
 
-        // Prueba de error de conexión genérico
-        Route::get('connection-error', function () {
-            return view('errors.connection-error', [
-                'code' => 503,
-                'title' => 'Error de Conexión',
-                'message' => 'Esta es una prueba de vista de error genérico.'
-            ]);
-        })->name('test.connection-error');
+//         // Prueba de error de conexión genérico
+//         Route::get('connection-error', function () {
+//             return view('errors.connection-error', [
+//                 'code' => 503,
+//                 'title' => 'Error de Conexión',
+//                 'message' => 'Esta es una prueba de vista de error genérico.'
+//             ]);
+//         })->name('test.connection-error');
 
-        // Forzar un error de BD real
-        Route::get('trigger-db-error', function () {
-            try {
-                // Intentar una consulta que fallará porque la tabla no existe
-                DB::select('SELECT * FROM tabla_que_no_existe_12345');
-            } catch (\Exception $e) {
-                // Capturar y relanzar para que el Handler lo procese
-                throw $e;
-            }
-        })->name('test.trigger-db-error');
-    });
-}
+//         // Forzar un error de BD real
+//         Route::get('trigger-db-error', function () {
+//             try {
+//                 // Intentar una consulta que fallará porque la tabla no existe
+//                 DB::select('SELECT * FROM tabla_que_no_existe_12345');
+//             } catch (\Exception $e) {
+//                 // Capturar y relanzar para que el Handler lo procese
+//                 throw $e;
+//             }
+//         })->name('test.trigger-db-error');
+//     });
+// }
 
 require __DIR__.'/auth.php';
