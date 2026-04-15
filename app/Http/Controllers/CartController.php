@@ -20,7 +20,7 @@ class CartController extends Controller
             'customization' => 'nullable|string|max:500',
             'customer_name' => 'required|string|max:255',
             'customer_email' => 'required|email|max:255',
-            'customer_phone' => 'required|string|max:20',
+            'customer_phone' => 'nullable|string|max:20',
             'delivery_address' => 'nullable|string|max:500',
             'additional_notes' => 'nullable|string|max:500',
         ]);
