@@ -645,9 +645,9 @@
                 }
 
                 // Validar que tenemos datos requeridos
-                if (!this.customerName || !this.customerEmail || !this.customerPhone) {
-                    console.error('Datos incompletos:', {name: this.customerName, email: this.customerEmail, phone: this.customerPhone});
-                    alert('Error: Datos del usuario incompletos. Por favor, recarga la página.');
+                if (!this.customerName || !this.customerEmail) {
+                    console.error('Datos incompletos:', {name: this.customerName, email: this.customerEmail});
+                    alert('Error: Nombre y email son requeridos. Por favor, recarga la página.');
                     this.isAddingToCart = false;
                     return;
                 }
