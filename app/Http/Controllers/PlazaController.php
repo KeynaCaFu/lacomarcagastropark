@@ -8,8 +8,10 @@ use App\Models\Schedule;
 use App\Models\Event;
 use App\Models\LocalReview;
 use App\Models\ProductReview;
+use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class PlazaController extends Controller
 {
@@ -475,4 +477,62 @@ class PlazaController extends Controller
 
         return 'fa-utensils';
     }
+
+
+public function storeLocalReview(Request $request, $localId)
+{
+    try {
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string|min:10|max:500',
+        ]);
+
+        $userId = Auth::id();
+
+        if (!$userId) {
+            return response()->json([
+                'error' => 'Debes iniciar sesión para dejar una reseña.'
+            ], 401);
+        }
+
+        $yaReseno = LocalReview::where('user_id', $userId)
+            ->where('local_id', $localId)
+            ->exists();
+
+        if ($yaReseno) {
+            return response()->json([
+                'error' => 'Ya dejaste una reseña para este local.'
+            ], 422);
+        }
+
+        $review = Review::create([
+            'rating' => $request->rating,
+            'comment' => $request->comment,
+            'date' => now(),
+            'response' => null
+        ]);
+
+        LocalReview::create([
+            'review_id' => $review->review_id,
+            'local_id' => $localId,
+            'user_id' => $userId,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reseña guardada correctamente.'
+        ], 200);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'error' => collect($e->errors())->flatten()->first()
+        ], 422);
+
+    } catch (\Throwable $e) {
+        return response()->json([
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
 }
