@@ -9,6 +9,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -25,6 +27,36 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        $credentials = $request->only('email', 'password');
+        $user = User::where('email', $credentials['email'])->first();
+
+        // 1. Check if user has temporary password (expired or not)
+        if ($user && $user->temporary_password && $user->temporary_password_expires_at) {
+            // Check if temporary password is still valid
+            if (now()->isBefore($user->temporary_password_expires_at)) {
+                // Temporary password is valid, check if it matches
+                if (Hash::check($credentials['password'], $user->temporary_password)) {
+                    // Log the user in
+                    Auth::login($user);
+                    $request->session()->regenerate();
+                    // Redirect to change temporary password form
+                    return redirect()->route('client.password.change-temporary-form');
+                } else {
+                    // Temporary password is active but incorrect
+                    // Don't proceed to normal auth, show specific error
+                    return back()
+                        ->withInput($request->only('email'))
+                        ->withErrors(['password' => 'La contraseña temporal es incorrecta.']);
+                }
+            } else {
+                // Temporary password has expired
+                return back()
+                    ->withInput($request->only('email'))
+                    ->withErrors(['password' => 'Tu contraseña temporal ha expirado. Por favor, solicita una nueva']);
+            }
+        }
+
+        // 2. If no temporary password, proceed with normal authentication
         $request->authenticate();
 
         $request->session()->regenerate();

@@ -36,27 +36,34 @@ class RecoveryPasswordController extends Controller
         if (!$user) {
             return back()
                 ->withInput($request->only('email'))
-                ->withErrors(['email' => 'No encontramos una cuenta con ese email.']);
+                ->withErrors(['email' => 'No encontramos una cuenta con ese email.'], 'recovery');
+        }
+
+        // Validar si es una cuenta de un proveedor externo (como Google)
+        if (!empty($user->provider_id)) {
+            return redirect()->route('login')
+                ->with('recovery-error', 'Esa cuenta está registrada con un proveedor externo (como Google). Debes iniciar sesión a través de ese servicio.');
         }
 
         // Generate a temporary password (12 characters)
         $tempPassword = Str::random(12);
 
-        // Update user password
-        $user->password = Hash::make($tempPassword);
+        // Update user with temporary password and expiration
+        $user->temporary_password = Hash::make($tempPassword);
+        $user->temporary_password_expires_at = now()->addHour();
         $user->save();
 
         // Send email with temporary password
         try {
             Mail::to($user->email)->send(new RecoveryPasswordMail($user->full_name, $tempPassword));
             
-            return back()->with('status', 'Se ha enviado una contraseña temporal a tu correo. Revisa tu bandeja de entrada.');
+            return redirect()->route('login')->with('recovery-status', 'Se ha enviado una contraseña temporal a tu correo. Revisa tu bandeja de entrada.');
         } catch (\Exception $e) {
-            \Log::error('Error sending recovery password email: ' . $e->getMessage());
+           
             
             return back()
                 ->withInput($request->only('email'))
-                ->withErrors(['email' => 'Hubo un error al enviar el correo. Intenta más tarde.']);
+                ->withErrors(['email' => 'Hubo un error al enviar el correo. Intenta más tarde.'], 'recovery');
         }
     }
 }
