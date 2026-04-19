@@ -104,12 +104,12 @@
             <p>Si tienes problemas para acceder, contacta al equipo de soporte.</p>
             
             <p>Saludos,<br>
-            <strong>Equipo de La Comarca Gastrópolis</strong></p>
+            <strong>Equipo de La Comarca Gastro Park</strong></p>
         </div>
         
         <div class="footer">
             <p>Este es un email automático, por favor no respondas a este mensaje.</p>
-            <p>&copy; 2025 La Comarca Gastrópolis. Todos los derechos reservados.</p>
+            <p>&copy; 2025 La Comarca Gastro Park. Todos los derechos reservados.</p>
         </div>
     </div>
 </body>
