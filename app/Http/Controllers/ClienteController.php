@@ -133,6 +133,26 @@ class ClienteController extends Controller
     /**
      * Update password using temporary password
      */
+    /**
+     * Show the form to change temporary password.
+     */
+    public function showChangeTemporaryPasswordForm()
+    {
+        $user = auth()->user();
+
+        // Validar que tenga una contraseña temporal activa
+        if (!$user->temporary_password || !$user->temporary_password_expires_at || $user->temporary_password_expires_at < now()) {
+            return redirect()->route('plaza.index')->withErrors([
+                'temporary_password' => 'La contraseña temporal ha expirado o no es válida.'
+            ]);
+        }
+
+        return view('auth.change-temporary-password');
+    }
+
+    /**
+     * Update password using temporary password.
+     */
     public function updatePasswordWithTemporary(Request $request)
     {
         $user = auth()->user();
@@ -169,6 +189,6 @@ class ClienteController extends Controller
             'temporary_password_expires_at' => null,
         ]);
 
-        return redirect()->route('client.profile.edit')->with('status', 'Contraseña actualizada exitosamente usando contraseña temporal.');
+        return redirect()->route('plaza.index')->with('status', 'Contraseña actualizada exitosamente.');
     }
 }
