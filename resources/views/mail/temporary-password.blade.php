@@ -37,17 +37,17 @@
             </div>
 
             <div class="warning">
-                <strong>⏱️ Importante:</strong> Esta contraseña temporal es válida solo por <strong>15 minutos</strong>. Después de ese tiempo, deberás solicitar una nueva.
+                <strong>Importante:</strong> Esta contraseña temporal es válida solo por <strong>15 minutos</strong>. Después de ese tiempo, deberás solicitar una nueva.
             </div>
 
             <h3>¿Qué hacer ahora?</h3>
             <ol>
-                <li>Ve a tu perfil en La Comarca Gastropark</li>
-                <li>Haz clic en "Cambiar contraseña"</li>
-                <li>En el formulario, selecciona "Tengo una contraseña temporal"</li>
-                <li>Pega la contraseña temporal anterior</li>
-                <li>Ingresa tu nueva contraseña deseada</li>
-                <li>Confirma la nueva contraseña</li>
+                <li>1. Ve a tu perfil en La Comarca Gastropark</li>
+                <li>2. Haz clic en "Cambiar contraseña"</li>
+                <li>3. En el formulario, selecciona "Tengo una contraseña temporal"</li>
+                <li>4. Pega la contraseña temporal anterior</li>
+                <li>5. Ingresa tu nueva contraseña deseada</li>
+                <li>6. Confirma la nueva contraseña</li>
             </ol>
 
             <p style="margin-top: 30px; color: #666; font-size: 14px;">
@@ -57,7 +57,7 @@
 
         <div class="footer">
             <p>&copy; {{ date('Y') }} La Comarca Gastropark. Todos los derechos reservados.</p>
-            <p>Si tienes problemas, contáctanos en <span class="link">soporte@lacomarcagastropark.com</span></p>
+            <p>Si tienes problemas, contáctanos en <span class="link">lacomarcagastropark@gmail.com</span></p>
         </div>
     </div>
 </body>
