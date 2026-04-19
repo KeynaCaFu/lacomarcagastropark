@@ -120,6 +120,13 @@ Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
         Route::put('/{localId}/status', [\App\Http\Controllers\LocalController::class, 'updateStatus'])->name('update.status');
         Route::delete('/{localId}', [\App\Http\Controllers\LocalController::class, 'destroy'])->name('destroy');
     });
+
+    // RUTAS API ADMIN GLOBAL (Para actualizaciones sin recargar)
+    Route::prefix('api/admin')->name('api.admin.')->group(function () {
+        Route::get('/sales-total', [AdminDashboardController::class, 'getApiSalesTotal'])->name('sales.total');
+        Route::get('/active-orders', [AdminDashboardController::class, 'getApiActiveOrders'])->name('orders.active');
+        Route::get('/ranking-stores', [AdminDashboardController::class, 'getApiRankingStores'])->name('stores.ranking');
+    });
 });
 
 // ============================================================================
