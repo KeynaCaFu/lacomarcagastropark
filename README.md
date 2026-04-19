@@ -14,31 +14,7 @@ LaComarca GastroPark es una plataforma web basada en **Laravel** diseñada para 
 
 ---
 
-## Inicio Rápido
 
-### Credenciales de Acceso Predeterminadas
-
-####  Administrador
-
-- **Email:** `admin@gmail.com`
-- **Contraseña:** `admin`
-- **Acceso:** Completo al sistema
-
-**Email:** `gerente.leskas@gmail.com`  
-**Contraseña:** `local`
-
-**Email:** `gerente.cevichito@gmail.com`  
-**Contraseña:** `local`
-
-**Email:** `gerente.donchente@gmail.com`  
-**Contraseña:** `local`
-
-**Email:** `gerente.muu@gmail.com`  
-**Contraseña:** `local`
-
-- **Acceso:** Productos y dashboard del local
-
----
 
 ## Documentación Completa
 
@@ -133,19 +109,7 @@ npm install
 ```bash
 cp .env.example .env
 php artisan key:generate
-```
-
-### 4. Configurar Base de Datos
-```bash
-# Editar .env con credenciales MySQL
-DB_CONNECTION=mysql
-DB_HOST=localhost
-DB_PORT=3306
-DB_DATABASE=lacogswb_lacomarca
-DB_USERNAME=lacogswb_lacomarca
-DB_PASSWORD=702810812-402480420
-```
-
+```
 ### 5. Ejecutar Migraciones
 ```bash
 php artisan migrate --seed
