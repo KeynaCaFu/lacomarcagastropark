@@ -7,8 +7,8 @@ use App\Models\User;
 use App\Models\Event;
 use App\Models\Order;
 use App\Models\OrderItem;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
@@ -29,14 +29,39 @@ class AdminDashboardController extends Controller
         $eventosActivos = Event::where('is_active', true)->count();
         $eventosProximos = Event::where('start_at', '>=', now())->count();
 
-        // Top gerentes por cantidad de locales asignados
+        // Gerentes por porcentaje de ventas en el ÚLTIMO MES
+        $lastMonth = Carbon::now()->subMonth();
+        
+        // Calcular total de ventas de todos los gerentes en el último mes
+        $totalSalesAllManagers = Order::whereDate('date', '>=', $lastMonth)
+            ->whereIn('status', ['Delivered', 'Completed'])
+            ->sum('total_amount');
+
         $topManagers = User::query()
             ->where('role_id', 2)
             ->where('status', 'Active')
-            ->withCount('locals')
-            ->orderByDesc('locals_count')
-            ->limit(5)
-            ->get(['user_id', 'full_name']);
+            ->get(['user_id', 'full_name'])
+            ->map(function($manager) use ($lastMonth, $totalSalesAllManagers) {
+                // Obtener locales del gerente
+                $managerLocals = $manager->locals()->pluck('tblocal.local_id')->toArray();
+                
+                // Sumar ventas de sus locales en el último mes
+                $sales = Order::whereIn('local_id', $managerLocals)
+                    ->whereDate('date', '>=', $lastMonth)
+                    ->whereIn('status', ['Delivered', 'Completed'])
+                    ->sum('total_amount');
+                
+                // Calcular porcentaje
+                $percentage = $totalSalesAllManagers > 0 ? ($sales / $totalSalesAllManagers) * 100 : 0;
+                
+                return [
+                    'user_id' => $manager->user_id,
+                    'full_name' => $manager->full_name,
+                    'percentage' => round($percentage, 2)
+                ];
+            })
+            ->sortByDesc('percentage')
+            ->values();
 
         // Últimos locales creados
         $recentLocales = Local::query()
@@ -102,7 +127,6 @@ class AdminDashboardController extends Controller
             }])
             ->where('status', 'Active')
             ->orderByDesc('month_orders')
-            ->limit(10)
             ->get(['local_id', 'name']);
 
         return $locales->map(function($local) use ($lastMonth, $totalSalesAllStores) {
