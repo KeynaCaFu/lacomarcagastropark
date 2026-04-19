@@ -37,7 +37,7 @@
             </div>
 
             <div class="warning">
-                <strong>Importante:</strong> Esta contraseña temporal es válida solo por <strong>15 minutos</strong>. Después de ese tiempo, deberás solicitar una nueva.
+                <strong>Importante:</strong> Esta contraseña temporal es válida solo por <strong>24 horas</strong>. Después de ese tiempo, deberás solicitar una nueva.
             </div>
 
             <h3>¿Qué hacer ahora?</h3>

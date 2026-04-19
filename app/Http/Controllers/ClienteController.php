@@ -118,16 +118,16 @@ class ClienteController extends Controller
         // Generar contraseña temporal (8 caracteres: mayúsculas, minúsculas, números)
         $temporaryPassword = Str::random(4) . rand(1000, 9999) . Str::random(2);
         
-        // Guardar la contraseña temporal en la base de datos (con expiración de 15 minutos)
+        // Guardar la contraseña temporal en la base de datos (con expiración de 24 horas)
         $user->update([
             'temporary_password' => Hash::make($temporaryPassword),
-            'temporary_password_expires_at' => now()->addMinutes(15),
+            'temporary_password_expires_at' => now()->addHours(24),
         ]);
 
         // Enviar el correo con la contraseña temporal
         Mail::to($user->email)->send(new TemporaryPasswordMail($user, $temporaryPassword));
 
-        return back()->with('status', 'Se ha enviado una contraseña temporal a tu correo. Válida por 15 minutos.');
+        return back()->with('status', 'Se ha enviado una contraseña temporal a tu correo. Válida por 24 horas.');
     }
 
     /**

@@ -50,7 +50,7 @@ class RecoveryPasswordController extends Controller
 
         // Update user with temporary password and expiration
         $user->temporary_password = Hash::make($tempPassword);
-        $user->temporary_password_expires_at = now()->addHour();
+        $user->temporary_password_expires_at = now()->addHours(24);
         $user->save();
 
         // Send email with temporary password
