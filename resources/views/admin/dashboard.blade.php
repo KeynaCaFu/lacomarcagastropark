@@ -129,11 +129,11 @@
                 <div class="quick-hint">Alt+E</div>
             </div>
         </a>
-        <a class="quick-link" href="{{ route('eventos.create') }}" title="Nuevo evento (Alt+N)">
-            <div class="quick-icon qi-new"><i class="fas fa-plus"></i></div>
+        <a class="quick-link" href="{{ route('qr.index') }}" title="Gestionar QR de validación (Alt+Q)">
+            <div class="quick-icon qi-new" style="background:#f0f9ff; color:#0369a1;"><i class="fas fa-qrcode"></i></div>
             <div class="quick-text">
-                <div class="quick-title">Nuevo Evento</div>
-                <div class="quick-hint">Alt+N</div>
+                <div class="quick-title">QR Validación</div>
+                <div class="quick-hint">Alt+Q</div>
             </div>
         </a>
     </div>
