@@ -1290,40 +1290,30 @@
     const btnPrev = document.getElementById('lrcPrev');
     const btnNext = document.getElementById('lrcNext');
 
-    if (!track) {
-        console.log('Carousel: Track no encontrado');
-        return;
-    }
-
-    const slides = track.querySelectorAll('.lrc-slide');
-    const total  = slides.length;
-    
-    if (total === 0) {
-        console.log('Carousel: No hay slides');
-        return;
-    }
+    if (!track) return;
 
     let current  = 0;
     let autoPlayInterval = null;
     let isAnimating = false;
-    const ANIMATION_SPEED = 450; // ms
-    const AUTO_PLAY_DELAY = 5000; // 5 segundos
+    const ANIMATION_SPEED = 450;
+    const AUTO_PLAY_DELAY = 5000;
 
-    console.log('Carousel: Inicializado con', total, 'slides');
+    function getSlides() {
+        return track.querySelectorAll('.lrc-slide'); // siempre fresco
+    }
 
     function getSlideWidth() {
-        return slides[0].offsetWidth + 20; // slide width + gap
+        const slides = getSlides();
+        return slides.length > 0 ? slides[0].offsetWidth + 20 : 0;
     }
 
     function buildDots() {
+        const total = getSlides().length;
         dotsEl.innerHTML = '';
         for (let i = 0; i < total; i++) {
             const dot = document.createElement('button');
             dot.className = 'lrc-dot' + (i === current ? ' lrc-dot--active' : '');
-            dot.addEventListener('click', () => {
-                goToSlide(i);
-                resetAutoPlay();
-            });
+            dot.addEventListener('click', () => { goToSlide(i); resetAutoPlay(); });
             dotsEl.appendChild(dot);
         }
     }
@@ -1337,31 +1327,17 @@
 
     function goToSlide(slideIndex) {
         if (isAnimating) return;
-
-        // Asegurar que el índice esté dentro del rango
-        let targetIndex = ((slideIndex % total) + total) % total;
-        current = targetIndex;
-
-        const slideWidth = getSlideWidth();
-        const offset = -current * slideWidth;
-
+        const total = getSlides().length;
+        current = ((slideIndex % total) + total) % total;
+        const offset = -current * getSlideWidth();
         isAnimating = true;
         track.style.transition = `transform ${ANIMATION_SPEED}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
         track.style.transform = `translateX(${offset}px)`;
-
-        setTimeout(() => {
-            isAnimating = false;
-            updateDots();
-        }, ANIMATION_SPEED);
+        setTimeout(() => { isAnimating = false; updateDots(); }, ANIMATION_SPEED);
     }
 
-    function nextSlide() {
-        goToSlide(current + 1);
-    }
-
-    function prevSlide() {
-        goToSlide(current - 1);
-    }
+    function nextSlide() { goToSlide(current + 1); }
+    function prevSlide()  { goToSlide(current - 1); }
 
     function startAutoPlay() {
         stopAutoPlay();
@@ -1369,42 +1345,39 @@
     }
 
     function stopAutoPlay() {
-        if (autoPlayInterval) {
-            clearInterval(autoPlayInterval);
-            autoPlayInterval = null;
-        }
+        if (autoPlayInterval) { clearInterval(autoPlayInterval); autoPlayInterval = null; }
     }
 
-    function resetAutoPlay() {
-        startAutoPlay();
-    }
+    function resetAutoPlay() { startAutoPlay(); }
 
-    // Event Listeners
-    btnPrev.addEventListener('click', () => {
-        prevSlide();
-        resetAutoPlay();
-    });
-
-    btnNext.addEventListener('click', () => {
-        nextSlide();
-        resetAutoPlay();
-    });
-
+    btnPrev.addEventListener('click', () => { prevSlide(); resetAutoPlay(); });
+    btnNext.addEventListener('click', () => { nextSlide(); resetAutoPlay(); });
     track.parentElement.addEventListener('mouseenter', stopAutoPlay);
     track.parentElement.addEventListener('mouseleave', startAutoPlay);
 
     window.addEventListener('resize', () => {
         track.style.transition = 'none';
-        const slideWidth = getSlideWidth();
-        track.style.transform = `translateX(${-current * slideWidth}px)`;
+        track.style.transform = `translateX(${-current * getSlideWidth()}px)`;
         buildDots();
         updateDots();
     });
 
+    // Exponer para actualización dinámica tras agregar nueva reseña
+    window.reiniciarCarrusel = function() {
+        current = 0;
+        track.style.transition = 'none';
+        track.style.transform = 'translateX(0)';
+        buildDots();
+        updateDots();
+        startAutoPlay();
+    };
+
     // Inicialización
-    buildDots();
-    updateDots();
-    startAutoPlay();
+    if (getSlides().length > 0) {
+        buildDots();
+        updateDots();
+        startAutoPlay();
+    }
 })();
 </script>
 </body>

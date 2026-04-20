@@ -12,6 +12,7 @@ use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Order;
 
 class PlazaController extends Controller
 {
@@ -483,55 +484,73 @@ public function storeLocalReview(Request $request, $localId)
 {
     try {
         $request->validate([
-            'rating' => 'required|integer|min:1|max:5',
+            'rating'  => 'required|integer|min:1|max:5',
             'comment' => 'required|string|min:10|max:500',
         ]);
 
         $userId = Auth::id();
 
         if (!$userId) {
-            return response()->json([
-                'error' => 'Debes iniciar sesión para dejar una reseña.'
-            ], 401);
+            return response()->json(['error' => 'Debes iniciar sesión para dejar una reseña.'], 401);
         }
 
-        $yaReseno = LocalReview::where('user_id', $userId)
+        // CA-3: Solo puede reseñar si tiene un pedido previo en ese local
+        $tienePedido = Order::whereHas('user', function ($q) use ($userId) {
+                $q->where('tbuser_order.user_id', $userId);
+            })
             ->where('local_id', $localId)
+            ->whereIn('status', [
+                Order::STATUS_DELIVERED,  // solo pedidos completados
+            ])
             ->exists();
 
-        if ($yaReseno) {
+        if (!$tienePedido) {
             return response()->json([
-                'error' => 'Ya dejaste una reseña para este local.'
-            ], 422);
+                'error' => 'Solo puedes reseñar un local en el que hayas realizado un pedido previo.'
+            ], 403);
         }
 
+        // Crear reseña (permite múltiples por usuario/local)
         $review = Review::create([
-            'rating' => $request->rating,
-            'comment' => $request->comment,
-            'date' => now(),
-            'response' => null
+            'rating'   => $request->rating,
+            'comment'  => $request->comment,
+            'date'     => now(),
+            'response' => null,
         ]);
 
-        LocalReview::create([
+        $localReview = LocalReview::create([
             'review_id' => $review->review_id,
-            'local_id' => $localId,
-            'user_id' => $userId,
+            'local_id'  => $localId,
+            'user_id'   => $userId,
         ]);
+
+        // Devolver la nueva reseña completa para renderizarla sin recargar
+        $user = Auth::user();
+        $nombre = $user->full_name ?? $user->name ?? 'Cliente';
+        $partes = explode(' ', trim($nombre));
+        $iniciales = '';
+        foreach (array_slice($partes, 0, 2) as $p) {
+            $iniciales .= strtoupper(substr($p, 0, 1));
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Reseña guardada correctamente.'
+            'message' => 'Reseña guardada correctamente.',
+            'review'  => [
+                'nombre'    => $nombre,
+                'iniciales' => $iniciales ?: 'CL',
+                'rating'    => $request->rating,
+                'comment'   => $request->comment,
+                'date'      => now()->toISOString(),
+            ],
         ], 200);
 
     } catch (\Illuminate\Validation\ValidationException $e) {
         return response()->json([
             'error' => collect($e->errors())->flatten()->first()
         ], 422);
-
     } catch (\Throwable $e) {
-        return response()->json([
-            'error' => $e->getMessage()
-        ], 500);
+        return response()->json(['error' => $e->getMessage()], 500);
     }
 }
 
