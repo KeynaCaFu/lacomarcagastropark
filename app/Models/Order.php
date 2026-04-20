@@ -34,11 +34,14 @@ class Order extends Model
         'receipt_number',
         'receipt_sent_to_email',
         'receipt_sent_at',
+        'verification_token',  // CA2: Token único de verificación
+        'confirmed_at',         // CA5: Timestamp de confirmación
     ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
         'date' => 'date',
+        'confirmed_at' => 'datetime', // CA5: Timestamp de confirmación
     ];
 
     // Estados disponibles
