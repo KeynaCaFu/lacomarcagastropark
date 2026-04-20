@@ -129,7 +129,7 @@
                 <div class="quick-hint">Alt+E</div>
             </div>
         </a>
-        <a class="quick-link" href="{{ route('qr.index') }}" title="Gestionar QR de validación (Alt+Q)">
+        <a class="quick-link" href="{{ route('admin.qr.index') }}" title="Gestionar QR de validación (Alt+Q)">
             <div class="quick-icon qi-new" style="background:#f0f9ff; color:#0369a1;"><i class="fas fa-qrcode"></i></div>
             <div class="quick-text">
                 <div class="quick-title">QR Validación</div>
