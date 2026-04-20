@@ -1,6 +1,6 @@
 # 08 - Gestión de QR de Validación
 
-## 📋 Resumen
+##  Resumen
 
 El sistema de **QR de Validación** permite al administrador global generar un código QR único y estático para validar órdenes en los locales. Este QR contiene una clave secreta que se envía a través de la URL y puede ser escaneado desde dispositivos para verificar la autenticidad de los pedidos.
 
@@ -10,7 +10,7 @@ El sistema de **QR de Validación** permite al administrador global generar un c
 
 ---
 
-## 🎯 Funcionalidades Principales
+##  Funcionalidades Principales
 
 ### 1. **Generar/Actualizar QR**
 - Crear un nuevo código QR con clave única
@@ -44,7 +44,7 @@ El sistema de **QR de Validación** permite al administrador global generar un c
 
 ---
 
-## 🚀 Cómo Acceder
+##  Cómo Acceder
 
 ### Opción 1: Desde el Dashboard
 1. Inicia sesión como **Administrador Global**
@@ -64,7 +64,7 @@ http://tu-app/qr-validacion
 
 ---
 
-## 🔧 Requisitos de Instalación
+##  Requisitos de Instalación
 
 ### 1. **Paquete PHP**
 ```bash
@@ -90,7 +90,7 @@ Ejecuta el script SQL en phpMyAdmin:
 
 ---
 
-## 🏗️ Estructura Técnica
+##  Estructura Técnica
 
 ### Rutas
 
@@ -145,7 +145,7 @@ $table->timestamps();
 
 ---
 
-## 🔌 API Endpoint
+##  API Endpoint
 
 ### Validación de QR
 
@@ -183,15 +183,15 @@ $table->timestamps();
 
 ## 💾 Criterios de Aceptación (CA)
 
-✅ **CA1:** Mostrar el QR actual en el panel administrativo  
-✅ **CA2:** Generar y actualizar la clave del QR  
-✅ **CA3:** Descargar el QR como imagen PNG  
-✅ **CA4:** Interfaz responsive para desktop y móvil  
-✅ **CA5:** Registrar todas las acciones en logs de auditoría  
+ **CA1:** Mostrar el QR actual en el panel administrativo  
+ **CA2:** Generar y actualizar la clave del QR  
+ **CA3:** Descargar el QR como imagen PNG  
+ **CA4:** Interfaz responsive para desktop y móvil  
+ **CA5:** Registrar todas las acciones en logs de auditoría  
 
 ---
 
-## 📊 Información Capturada en Auditoría
+##  Información Capturada en Auditoría
 
 | Campo | Descripción | Uso |
 |-------|-------------|-----|
@@ -205,19 +205,19 @@ $table->timestamps();
 
 ---
 
-## 🔒 Seguridad
+##  Seguridad
 
-- ✅ Solo accesible para Administrador Global
-- ✅ Middleware `admin.global` en todas las rutas
-- ✅ Auditoría completa de cambios
-- ✅ IP logging para detección de anomalías
-- ✅ User Agent capturado para análisis de dispositivos
-- ✅ Clave secreta única de 20 caracteres alfanuméricos
-- ✅ URL completamente funcional pero sin exponer datos sensibles
+-  Solo accesible para Administrador Global
+-  Middleware `admin.global` en todas las rutas
+-  Auditoría completa de cambios
+-  IP logging para detección de anomalías
+-  User Agent capturado para análisis de dispositivos
+-  Clave secreta única de 20 caracteres alfanuméricos
+-  URL completamente funcional pero sin exponer datos sensibles
 
 ---
 
-## 🌍 Adaptabilidad a Producción
+##  Adaptabilidad a Producción
 
 El sistema está configurado para adaptarse automáticamente:
 
@@ -235,7 +235,7 @@ Solo necesitas actualizar `APP_URL` en el `.env`. El código usa `url()` helper 
 
 ---
 
-## 📱 Vistas
+##  Vistas
 
 ### Vista Principal (index)
 - Tarjeta del QR con visualización en tiempo real
@@ -251,7 +251,7 @@ Solo necesitas actualizar `APP_URL` en el `.env`. El código usa `url()` helper 
 
 ---
 
-## 📚 Archivos Relacionados
+##  Archivos Relacionados
 
 | Archivo | Descripción |
 |---------|-------------|
@@ -266,7 +266,7 @@ Solo necesitas actualizar `APP_URL` en el `.env`. El código usa `url()` helper 
 
 ---
 
-## 🆘 Troubleshooting
+##  Troubleshooting
 
 ### Error: Route not defined
 **Solución:** Asegúrate de haber ejecutado el SQL en phpMyAdmin
@@ -282,16 +282,15 @@ Solo necesitas actualizar `APP_URL` en el `.env`. El código usa `url()` helper 
 
 ---
 
-## 🚀 Próximas Mejoras Sugeridas
+##  Próximas Mejoras Sugeridas
 
 1. **Validación de órdenes:** Integrar el endpoint con el sistema de órdenes
-2. **QR dinámico:** Generar QRs diferentes para cada orden
-3. **Escaneo en tiempo real:** Dashboard con estadísticas de escaneos
-4. **Notificaciones:** Alertas cuando el QR es validado
-5. **Exportación de logs:** Descargar auditoría en CSV/Excel
+2. **Escaneo en tiempo real:** Dashboard con estadísticas de escaneos
+3. **Notificaciones:** Alertas cuando el QR es validado
+
 
 ---
 
 **Última actualización:** Abril 19, 2026  
 **Versión:** 1.0  
-**Estado:** ✅ Funcional
+**Estado:**  Funcional
