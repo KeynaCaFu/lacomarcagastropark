@@ -337,7 +337,7 @@
                             </li>
 
                             <li>
-                                <a href="{{ route('qr.index') }}" class="{{ request()->routeIs('qr*') ? 'active' : '' }}" data-tooltip="QR Validación">
+                                <a href="{{ route('admin.qr.index') }}" class="{{ request()->routeIs('admin.qr*') ? 'active' : '' }}" data-tooltip="QR Validación">
                                     <i class="fas fa-qrcode"></i> QR Validación
                                 </a>
                             </li>
