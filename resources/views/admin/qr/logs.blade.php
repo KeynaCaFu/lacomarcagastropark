@@ -3,7 +3,26 @@
 @section('title', 'Historial de QR - Gestión de QR de Validación')
 
 @section('content')
+<link href="{{ asset('css/QrValidacion.css') }}" rel="stylesheet">
+
 <div class="qr-admin-container">
+
+    <!-- Breadcrumb -->
+    <nav class="qr-breadcrumb" aria-label="breadcrumb">
+        <ol class="qr-breadcrumb-list">
+            <li class="qr-breadcrumb-item">
+                <a href="{{ route('admin.qr.index') }}">
+                    <i class="fas fa-qrcode"></i>
+                    QR Validación
+                </a>
+            </li>
+            <li class="qr-breadcrumb-item active" aria-current="page">
+                <i class="fas fa-history"></i>
+                Historial
+            </li>
+        </ol>
+    </nav>
+
     <!-- Header -->
     <div class="qr-header">
         <div class="qr-header-content">
@@ -14,12 +33,10 @@
                 </h1>
                 <p class="qr-subtitle">Registro completo de cambios y descargas del código QR</p>
             </div>
-            <a href="{{ route('qr.index') }}" class="btn btn-primary">
-                <i class="fas fa-arrow-left"></i>
-                Volver
-            </a>
         </div>
     </div>
+
+    
 
     <!-- Tarjeta de Historial -->
     <div class="qr-card">
@@ -132,391 +149,6 @@
         </div>
     </div>
 </div>
-
-@push('styles')
-<style>
-    .qr-admin-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    .qr-header {
-        background: linear-gradient(135deg, #D47744 0%, #915016 100%);
-        color: white;
-        border-radius: 12px;
-        padding: 30px 40px;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 15px rgba(212, 119, 68, 0.3);
-    }
-
-    .qr-header-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 30px;
-    }
-
-    .qr-title-group {
-        flex: 1;
-    }
-
-    .qr-title-group h1 {
-        margin: 0 0 10px;
-        font-size: 32px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .qr-subtitle {
-        margin: 0;
-        opacity: 0.95;
-        font-size: 14px;
-    }
-
-    .qr-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-        border: 1px solid #e8e8e8;
-        overflow: hidden;
-    }
-
-    .qr-card-header {
-        background: #f8f9fa;
-        padding: 20px 25px;
-        border-bottom: 1px solid #e8e8e8;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .qr-card-title {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 600;
-        color: #333;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .qr-log-count {
-        background: #D47744;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .qr-card-body {
-        padding: 0;
-    }
-
-    .qr-logs-table-wrapper {
-        overflow-x: auto;
-    }
-
-    .qr-logs-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-    }
-
-    .qr-logs-table thead {
-        background: #f8f9fa;
-        border-bottom: 2px solid #e8e8e8;
-    }
-
-    .qr-logs-table thead th {
-        padding: 15px;
-        text-align: left;
-        font-weight: 600;
-        color: #666;
-        text-transform: uppercase;
-        font-size: 12px;
-        letter-spacing: 0.5px;
-    }
-
-    .qr-logs-table tbody tr {
-        border-bottom: 1px solid #e8e8e8;
-        transition: all 0.3s;
-    }
-
-    .qr-logs-table tbody tr:hover {
-        background: #f8f9fa;
-    }
-
-    .qr-logs-table tbody td {
-        padding: 15px;
-        vertical-align: middle;
-    }
-
-    .qr-action-cell {
-        width: 120px;
-    }
-
-    .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-    .badge-generate {
-        background: #d4edda;
-        color: #155724;
-    }
-
-    .badge-update {
-        background: #cfe2ff;
-        color: #084298;
-    }
-
-    .badge-download {
-        background: #d1ecf1;
-        color: #0c5460;
-    }
-
-    .qr-admin-cell {
-        font-weight: 500;
-        color: #333;
-    }
-
-    .qr-date-cell {
-        width: 200px;
-    }
-
-    .qr-date {
-        display: block;
-        color: #333;
-        font-weight: 500;
-    }
-
-    .qr-relative {
-        display: block;
-        color: #999;
-        font-size: 12px;
-        margin-top: 3px;
-    }
-
-    .qr-ip-cell code,
-    .qr-key-cell code {
-        background: #f8f9fa;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-family: 'Courier New', monospace;
-        font-size: 12px;
-        color: #D47744;
-    }
-
-    .qr-key-badge {
-        background: #fff3e0;
-        color: #e65100;
-    }
-
-    .qr-na {
-        color: #999;
-        font-style: italic;
-    }
-
-    .btn-details {
-        background: #D47744;
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 13px;
-        transition: all 0.3s;
-    }
-
-    .btn-details:hover {
-        background: #915016;
-        transform: scale(1.1);
-    }
-
-    .btn {
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 600;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-    }
-
-    .btn-primary {
-        background: #D47744;
-        color: white;
-    }
-
-    .btn-primary:hover {
-        background: #915016;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(212, 119, 68, 0.3);
-    }
-
-    .qr-empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: #999;
-    }
-
-    .qr-empty-state i {
-        font-size: 64px;
-        margin-bottom: 20px;
-        opacity: 0.5;
-    }
-
-    .qr-pagination-wrapper {
-        padding: 20px;
-        background: #f8f9fa;
-        border-top: 1px solid #e8e8e8;
-    }
-
-    /* Modal */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .modal-overlay.active {
-        display: flex;
-    }
-
-    .modal-content {
-        background: white;
-        border-radius: 12px;
-        max-width: 500px;
-        width: 90%;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        animation: modalSlide 0.3s ease;
-    }
-
-    @keyframes modalSlide {
-        from {
-            transform: translateY(-50px);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
-    .modal-header {
-        padding: 20px;
-        border-bottom: 1px solid #e8e8e8;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .modal-title {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 600;
-        color: #333;
-    }
-
-    .modal-close {
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: #999;
-        transition: all 0.3s;
-        padding: 0;
-    }
-
-    .modal-close:hover {
-        color: #333;
-        transform: rotate(90deg);
-    }
-
-    .modal-body {
-        padding: 25px;
-    }
-
-    .modal-detail-row {
-        margin-bottom: 20px;
-    }
-
-    .modal-detail-row:last-child {
-        margin-bottom: 0;
-    }
-
-    .modal-detail-row label {
-        display: block;
-        font-size: 12px;
-        font-weight: 600;
-        color: #666;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 8px;
-    }
-
-    .modal-detail-row code {
-        display: block;
-        background: #f8f9fa;
-        padding: 12px;
-        border-radius: 6px;
-        font-family: 'Courier New', monospace;
-        font-size: 13px;
-        color: #D47744;
-        word-break: break-all;
-    }
-
-    @media (max-width: 768px) {
-        .qr-header {
-            padding: 20px;
-        }
-
-        .qr-header-content {
-            flex-direction: column;
-        }
-
-        .qr-title-group h1 {
-            font-size: 24px;
-        }
-
-        .qr-logs-table {
-            font-size: 12px;
-        }
-
-        .qr-logs-table thead th,
-        .qr-logs-table tbody td {
-            padding: 10px;
-        }
-
-        .btn-details {
-            padding: 4px 8px;
-            font-size: 12px;
-        }
-    }
-</style>
-@endpush
-
-@push('scripts')
 <script>
     function showDetails(oldKey, newKey) {
         document.getElementById('oldKeyDisplay').textContent = oldKey;
@@ -537,5 +169,4 @@
         }
     });
 </script>
-@endpush
 @endsection
