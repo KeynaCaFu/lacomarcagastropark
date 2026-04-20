@@ -121,37 +121,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Accesos rápidos -->
-    <div class="quick-links">
-        <a class="quick-link" href="{{ route('users.index') }}" title="Gestionar usuarios (Alt+U)">
-            <div class="quick-icon qi-users"><i class="fas fa-users"></i></div>
-            <div class="quick-text">
-                <div class="quick-title">Usuarios</div>
-                <div class="quick-hint">Alt+U</div>
-            </div>
-        </a>
-        <a class="quick-link" href="{{ route('locales.index') }}" title="Gestionar locales (Alt+L)">
-            <div class="quick-icon qi-stores"><i class="fas fa-store"></i></div>
-            <div class="quick-text">
-                <div class="quick-title">Locales</div>
-                <div class="quick-hint">Alt+L</div>
-            </div>
-        </a>
-        <a class="quick-link" href="{{ route('eventos.index') }}" title="Gestionar eventos (Alt+E)">
-            <div class="quick-icon qi-events"><i class="fas fa-calendar-days"></i></div>
-            <div class="quick-text">
-                <div class="quick-title">Eventos</div>
-                <div class="quick-hint">Alt+E</div>
-            </div>
-        </a>
-        <a class="quick-link" href="{{ route('eventos.create') }}" title="Nuevo evento (Alt+N)">
-            <div class="quick-icon qi-new"><i class="fas fa-plus"></i></div>
-            <div class="quick-text">
-                <div class="quick-title">Nuevo Evento</div>
-                <div class="quick-hint">Alt+N</div>
-            </div>
-        </a>
     </div>
 
     <div class="cards-grid">
