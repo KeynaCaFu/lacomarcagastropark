@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\QrAdminController;
+use App\Http\Controllers\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +19,12 @@ use App\Http\Controllers\QrAdminController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// ════════════════════════════════════════════════════════════════════
+// CREAR ORDEN - CA2 + CA5 (Token único + Timestamp)
+// Requiere: Sesión autenticada como gerente local
+// ════════════════════════════════════════════════════════════════════
+Route::middleware('auth:web')->post('/orders', [OrderController::class, 'store'])->name('api.orders.store');
 
 // QR Validation - Endpoint para validar órdenes con QR
 Route::get('/orders/validate', function (Request $request) {
