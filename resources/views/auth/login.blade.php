@@ -4,6 +4,32 @@
 
 @section('content')
 <div class="login-container" id="authContainer">
+
+    {{-- MENSAJES DE ESTADO Y ERROR --}}
+    @if (session('recovery-status'))
+        <div class="custom-alert custom-alert-success" id="recoveryStatusAlert">
+            <i class="fa-solid fa-check-circle"></i>
+            <span>{{ session('recovery-status') }}</span>
+            <button type="button" class="custom-alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
+        </div>
+    @endif
+
+    @if (session('recovery-error'))
+        <div class="custom-alert custom-alert-danger" id="recoveryErrorAlert">
+            <i class="fa-solid fa-times-circle"></i>
+            <span>{{ session('recovery-error') }}</span>
+            <button type="button" class="custom-alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
+        </div>
+    @endif
+
+    @error('email', 'recovery')
+        <div class="custom-alert custom-alert-danger" id="recoveryErrorAlert">
+            <i class="fa-solid fa-times-circle"></i>
+            <span>{{ $message }}</span>
+            <button type="button" class="custom-alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
+        </div>
+    @enderror
+
     <div class="login-wrapper" id="authWrapper">
         {{-- PANEL LOGIN --}}
         <div class="login-panel" id="loginPanel">
@@ -75,7 +101,7 @@
 
                 <div class="password-recovery-options">
                     <button type="button" id="switchRecoveryBtn" class="forgot-password" title="Recuperar contraseña">
-                        <i class="fa-solid fa-key"></i> Recuperar contraseña
+                         ¿Olvidaste tu contraseña?
                     </button>
                 </div>
 
@@ -240,12 +266,6 @@
             <h2 class="recovery-title">Recuperar Contraseña</h2>
             <p class="recovery-subtitle">Te enviaremos una contraseña temporal a tu correo</p>
 
-            @if (session('recovery-status'))
-                <div class="alert alert-success" role="alert">
-                    {{ session('recovery-status') }}
-                </div>
-            @endif
-
             <form method="POST" action="{{ route('password.recovery') }}" class="recovery-form">
                 @csrf
 
@@ -263,7 +283,7 @@
                         >
                         <i class="fa-solid fa-envelope"></i>
                     </div>
-                    @error('email')
+                    @error('email', 'recovery')
                         <span class="form-error">{{ $message }}</span>
                     @enderror
                 </div>
@@ -314,6 +334,45 @@
 
 @push('styles')
 <style>
+    /* ===== CUSTOM ALERT ===== */
+    .custom-alert {
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+    }
+
+    .custom-alert-success {
+        background: linear-gradient(135deg, #e18018, #915016);
+        border: 1px solid #915016;
+        color: #f6f6f4;
+    }
+
+    .custom-alert i {
+        font-size: 18px;
+    }
+
+    .custom-alert-close {
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: inherit;
+        font-size: 20px;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.3s;
+    }
+
+    .custom-alert-close:hover {
+        opacity: 1;
+    }
+
     /* ===== CONTENEDOR PRINCIPAL ===== */
     .login-container {
         width: 100%;
@@ -1545,6 +1604,30 @@ document.addEventListener('DOMContentLoaded', function () {
             icon.classList.toggle('fa-eye');
             icon.classList.toggle('fa-eye-slash');
         });
+    }
+
+    // Ocultar alerta de recuperación de contraseña (éxito)
+    const recoveryStatusAlert = document.getElementById('recoveryStatusAlert');
+    if (recoveryStatusAlert) {
+        setTimeout(() => {
+            recoveryStatusAlert.style.transition = 'opacity 0.5s ease';
+            recoveryStatusAlert.style.opacity = '0';
+            setTimeout(() => {
+                recoveryStatusAlert.style.display = 'none';
+            }, 500);
+        }, 7000);
+    }
+
+    // Ocultar alerta de recuperación de contraseña (error)
+    const recoveryErrorAlert = document.getElementById('recoveryErrorAlert');
+    if (recoveryErrorAlert) {
+        setTimeout(() => {
+            recoveryErrorAlert.style.transition = 'opacity 0.5s ease';
+            recoveryErrorAlert.style.opacity = '0';
+            setTimeout(() => {
+                recoveryErrorAlert.style.display = 'none';
+            }, 500);
+        }, 7000);
     }
 });
 </script>
