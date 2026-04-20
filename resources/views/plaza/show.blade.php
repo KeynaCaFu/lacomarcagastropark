@@ -132,20 +132,37 @@
     @if($localesDisponibles->isNotEmpty() || $categorias->isNotEmpty())
     <div class="cat-strip">
         <div class="container">
-            <div class="cat-scroll">
-                
-                <!-- LOCAL SELECTOR (PRIMERO) -->
-                <div class="local-selector-wrapper">
-                    <select class="local-selector" v-model.number="currentLocalId" @change="cambiarLocal" :disabled="isLoadingLocal">
-                        <option value="" disabled>Selecciona Local</option>
-                        @foreach($localesDisponibles as $loc)
-                        <option value="{{ $loc->local_id }}">
-                            {{ $loc->name }}
-                        </option>
-                        @endforeach
-                    </select>
+            <!-- LOCAL SELECTOR (FUERA DEL SCROLL) -->
+            @if($localesDisponibles->isNotEmpty())
+            <div class="local-selector-wrapper">
+                <div class="custom-dropdown" :class="{ open: showLocalDropdown }">
+                    <button 
+                        class="custom-dropdown-btn" 
+                        @click="showLocalDropdown = !showLocalDropdown"
+                        :disabled="isLoadingLocal"
+                    >
+                        <span class="dropdown-text">
+                            @{{ currentLocalName || 'Selecciona Local' }}
+                        </span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="custom-dropdown-menu" v-if="showLocalDropdown">
+                        <button 
+                            v-for="loc in localesDisponibles" 
+                            :key="loc.local_id"
+                            class="dropdown-item"
+                            :class="{ active: currentLocalId === loc.local_id }"
+                            @click="selectLocal(loc.local_id, loc.name)"
+                        >
+                            <span>@{{ loc.name }}</span>
+                            <i v-if="currentLocalId === loc.local_id" class="fas fa-check"></i>
+                        </button>
+                    </div>
                 </div>
+            </div>
+            @endif
 
+            <div class="cat-scroll">
                 <!-- TODOS BUTTON -->
                 <button class="cat-pill" :class="{ active: activeCategory === null }" @click="activeCategory = null">
                     <i class="fas fa-border-all"></i> Todos
@@ -485,6 +502,9 @@
                 isAuthenticated: {{ auth()->check() ? 'true' : 'false' }},
                 activeCategory: null,
                 currentLocalId: {{ $local->local_id }},
+                currentLocalName: '{{ $local->name }}',
+                showLocalDropdown: false,
+                localesDisponibles: {!! json_encode($localesDisponibles->map(function($l) { return ['local_id' => $l->local_id, 'name' => $l->name]; })->toArray()) !!},
                 // Datos del local actual (reactivos para cambios dinámicos)
                 localActual: {
                     local_id: {{ $local->local_id }},
@@ -907,6 +927,14 @@
                 .finally(() => { this.isCheckingOut = false; });
             },
 
+            // ── CUSTOM DROPDOWN SELECT ──
+            selectLocal(localId, localName) {
+                this.currentLocalId = localId;
+                this.currentLocalName = localName;
+                this.showLocalDropdown = false;
+                this.cambiarLocal();
+            },
+
             // ── LOCAL SWITCHER METHOD ──
             cambiarLocal() {
                 if (!this.currentLocalId) return;
@@ -937,6 +965,9 @@
                             description: data.local.description,
                             logo_url: data.local.logo_url,
                         };
+                        
+                        // Actualizar nombre del local en el dropdown
+                        this.currentLocalName = data.local.name;
                         
                         // Actualizar horario
                         this.horarioActual = {
@@ -1259,6 +1290,14 @@
         mounted() {
             // Cargar carrito al iniciar la aplicación
             this.loadCartDrawer();
+
+            // Cerrar dropdown de locales cuando se hace click fuera
+            document.addEventListener('click', (e) => {
+                const dropdown = document.querySelector('.custom-dropdown');
+                if (dropdown && !dropdown.contains(e.target)) {
+                    this.showLocalDropdown = false;
+                }
+            });
         },
 
         watch: {
