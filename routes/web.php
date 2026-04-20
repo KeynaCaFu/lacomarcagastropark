@@ -123,7 +123,7 @@ Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
     });
 
     // QR VALIDACIÓN (ADMIN GLOBAL) - Gestión del QR estático de validación
-    Route::prefix('qr-validacion')->name('qr.')->group(function () {
+    Route::prefix('qr-validacion')->name('admin.qr.')->group(function () {
         Route::get('/', [QrAdminController::class, 'index'])->name('index');
         Route::post('/generar', [QrAdminController::class, 'generate'])->name('generate');
         Route::get('/descargar', [QrAdminController::class, 'download'])->name('download');
