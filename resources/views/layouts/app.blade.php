@@ -335,6 +335,12 @@
                                     <i class="fas fa-calendar-days"></i> Eventos
                                 </a>
                             </li>
+
+                            <li>
+                                <a href="{{ route('admin.qr.index') }}" class="{{ request()->routeIs('admin.qr*') ? 'active' : '' }}" data-tooltip="QR Validación">
+                                    <i class="fas fa-qrcode"></i> QR Validación
+                                </a>
+                            </li>
                         @else
                             <li>
                                 <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" data-tooltip="Dashboard">

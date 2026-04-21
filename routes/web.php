@@ -14,6 +14,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\PlazaController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\QrAdminController;
 use Illuminate\Http\Request;
 
 /*
@@ -126,6 +127,12 @@ Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
         Route::get('/sales-total', [AdminDashboardController::class, 'getApiSalesTotal'])->name('sales.total');
         Route::get('/active-orders', [AdminDashboardController::class, 'getApiActiveOrders'])->name('orders.active');
         Route::get('/ranking-stores', [AdminDashboardController::class, 'getApiRankingStores'])->name('stores.ranking');
+    // QR VALIDACIÓN (ADMIN GLOBAL) - Gestión del QR estático de validación
+    Route::prefix('qr-validacion')->name('admin.qr.')->group(function () {
+        Route::get('/', [QrAdminController::class, 'index'])->name('index');
+        Route::post('/generar', [QrAdminController::class, 'generate'])->name('generate');
+        Route::get('/descargar', [QrAdminController::class, 'download'])->name('download');
+        Route::get('/historial', [QrAdminController::class, 'logs'])->name('logs');
     });
 });
 
@@ -247,7 +254,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('/client-profile', [ClienteController::class, 'editProfile'])->name('client.profile.edit');
     Route::patch('/client-profile', [ClienteController::class, 'updateProfile'])->name('client.profile.update');
+    Route::put('/client-profile/password', [ClienteController::class, 'updatePassword'])->name('client.password.update');
+    Route::post('/client-profile/password/request-temporary', [ClienteController::class, 'requestTemporaryPassword'])->name('client.password.request-temporary');
+    Route::get('/change-temporary-password', [ClienteController::class, 'showChangeTemporaryPasswordForm'])->name('client.password.change-temporary-form');
+    Route::put('/client-profile/password/temporary', [ClienteController::class, 'updatePasswordWithTemporary'])->name('client.password.update-temporary');
+
+// Guardar reseña del local por cliente 
+    Route::post('/plaza/{localId}/review', [PlazaController::class, 'storeLocalReview'])
+        ->name('plaza.review.store');
+
 });
+
+
 
 // Profile routes (authenticated users)
 Route::middleware('auth')->group(function () {

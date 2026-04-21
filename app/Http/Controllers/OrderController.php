@@ -7,14 +7,17 @@ use App\Data\OrderData;
 use App\Models\Order;
 use App\Models\Receipt;
 use App\Http\Controllers\ReceiptController;
+use App\Services\OrderTokenService;
 
 class OrderController extends Controller
 {
     protected $orderData;
+    protected OrderTokenService $tokenService;
 
-    public function __construct(OrderData $orderData)
+    public function __construct(OrderData $orderData, OrderTokenService $tokenService)
     {
         $this->orderData = $orderData;
+        $this->tokenService = $tokenService;
     }
 
     /**
@@ -356,6 +359,16 @@ class OrderController extends Controller
                 'additional_notes' => 'nullable|string|max:500',
             ]);
 
+            // ═════════════════════════════════════════════════════════════════
+            // CA2: Generar token único de verificación (LCGP-XXXX)
+            // ═════════════════════════════════════════════════════════════════
+            $verificationToken = $this->tokenService->generateUniqueToken();
+            
+            // ═════════════════════════════════════════════════════════════════
+            // CA5: Registrar timestamp exacto de confirmación
+            // ═════════════════════════════════════════════════════════════════
+            $confirmedAt = now();
+
             // Generar número único de orden ORD-XXXX
             $orderNumber = $this->generateOrderNumber();
 
@@ -392,6 +405,8 @@ class OrderController extends Controller
                 'additional_notes' => $validated['additional_notes'] ?? null,
                 'date' => now()->toDateString(),
                 'time' => now()->format('H:i:s'),
+                'verification_token' => $verificationToken,  // CA2: Token único
+                'confirmed_at' => $confirmedAt,             // CA5: Timestamp
             ]);
 
             // Agregar items a la orden
@@ -416,6 +431,9 @@ class OrderController extends Controller
                 'order' => [
                     'order_id' => $order->order_id,
                     'order_number' => $order->order_number,
+                    'verification_token' => $order->verification_token,  // CA2: Token único
+                    'confirmed_at' => $order->confirmed_at,             // CA5: Timestamp
+                    'qr_url' => route('api.orders.validate', ['key' => $order->verification_token], false),
                 ]
             ]);
         } catch (\Exception $e) {
