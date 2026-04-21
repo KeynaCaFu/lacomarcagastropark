@@ -350,7 +350,7 @@
                                     <i class="fas fa-info-circle" style="color: var(--primary); flex-shrink: 0; margin-top: 2px; font-size: 0.9rem;"></i>
                                     <div style="font-size: 0.78rem; color: var(--muted); line-height: 1.6;">
                                         <strong style="color: var(--text);">¿No recuerdas tu contraseña?</strong><br>
-                                        Haz clic en el botón de abajo para recibir una contraseña temporal válida por 15 minutos en tu correo.
+                                        Haz clic en el botón de abajo para recibir una contraseña temporal válida por 24 minutos en tu correo.
                                     </div>
                                 </div>
 

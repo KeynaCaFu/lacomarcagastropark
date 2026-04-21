@@ -92,7 +92,6 @@
                         <i class="fa-brands fa-google"></i>
                     </a>
                 </div>
-
                
             </form>
 
@@ -104,35 +103,31 @@
             <!-- Botón para cambiar a registro en responsivo -->
             <div class="responsive-footer" id="loginFooter">
                 <p>¿No tienes cuenta? <button type="button" class="switch-btn" id="switchRegisterResponsive">Registrate aquí</button></p>
-                
-                {{-- MENSAJES DE ESTADO Y ERROR --}}
-                @if (session('recovery-status'))
-                    <div class="custom-alert custom-alert-success" id="recoveryStatusAlert" style="margin-top: 15px;">
-                        <i class="fa-solid fa-check-circle"></i>
-                        <span>{{ session('recovery-status') }}</span>
-                        <button type="button" class="custom-alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
-                    </div>
-                @endif
-
-                @if (session('recovery-error'))
-                    <div class="custom-alert custom-alert-danger" id="recoveryErrorAlert" style="margin-top: 15px;">
-                        <i class="fa-solid fa-times-circle"></i>
-                        <span>{{ session('recovery-error') }}</span>
-                        <button type="button" class="custom-alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
-                    </div>
-                @endif
-
-                @error('email', 'recovery')
-                    <div class="custom-alert custom-alert-danger" id="recoveryErrorAlert" style="margin-top: 15px;">
-                        <i class="fa-solid fa-times-circle"></i>
-                        <span>{{ $message }}</span>
-                        <button type="button" class="custom-alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
-                    </div>
-                @enderror
             </div>
-        </div>
 
-        {{-- PANEL REGISTRO --}}
+            {{-- ALERTAS DE ÉXITO EN LOGIN (Posicionadas al final para responsive) --}}
+            @if (session('recovery-status'))
+                <div class="custom-alert custom-alert-success" id="recoveryStatusAlert" style="margin-top: 10px;">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>{{ session('recovery-status') }}</span>
+                </div>
+            @endif
+
+            {{-- ALERTAS DE ERROR EN LOGIN (Recuperación - Posicionadas al final para responsive) --}}
+            @if (session('recovery-error'))
+                <div class="custom-alert custom-alert-danger" id="recoveryErrorAlert" style="margin-top: 10px;">
+                    <i class="fa-solid fa-times-circle"></i>
+                    <span>{{ session('recovery-error') }}</span>
+                </div>
+            @endif
+
+            @error('email', 'recovery')
+                <div class="custom-alert custom-alert-danger" id="recoveryErrorAlert" style="margin-top: 10px;">
+                    <i class="fa-solid fa-times-circle"></i>
+                    <span>{{ $message }}</span>
+                </div>
+            @enderror
+        </div>
         <div class="register-panel" id="registerPanel">
             <div class="register-header">
                 <a href="{{ route('plaza.index') }}" class="logo-link">
@@ -379,23 +374,19 @@
     }
 
     .custom-alert-danger {
-       background: linear-gradient(135deg, rgba(225, 128, 24, 0.15), rgba(145, 80, 22, 0.1));
+        background: linear-gradient(135deg, rgba(225, 128, 24, 0.15), rgba(145, 80, 22, 0.1));
         border: 1px solid rgba(225, 128, 24, 0.3);
         color: #fbbf24;
+    }
+
+    .custom-alert-danger i {
+        color: #e18018;
     }
 
     .custom-alert i {
         font-size: 18px;
         flex-shrink: 0;
         margin-top: 2px;
-    }
-
-    .custom-alert-success i {
-        color: #c56e22;
-    }
-
-    .custom-alert-danger i {
-        color: #efa544;
     }
 
     .custom-alert span {
@@ -407,7 +398,7 @@
         display: none !important;
     }
 
-    /* ===== CONTENEDOR PRINCIPAL ===== */
+
     .login-container {
         width: 100%;
         max-width: 960px;
@@ -632,7 +623,8 @@
     .recovery-subtitle {
         font-size: 14px;
         color: #b0b0b0;
-        margin: 5px 0 0;
+        margin: 18px 0 0;
+        padding: 8px;
     }
 
     .register-panel .login-title {
@@ -751,6 +743,27 @@
     }
 
     .register-panel .form-group input:focus {
+        outline: none;
+        border-color: #e18018;
+        box-shadow: 0 0 0 3px rgba(225, 128, 24, 0.2);
+    }
+
+    .recovery-panel .form-group input {
+        background: #2a2a2a;
+        border: 1px solid #444;
+        color: #fff;
+    }
+
+    .recovery-panel .form-group input::placeholder {
+        color: #a0a0a0;
+        opacity: 1;
+    }
+
+    .recovery-panel .form-group input:focus::placeholder {
+        color: #888;
+    }
+
+    .recovery-panel .form-group input:focus {
         outline: none;
         border-color: #e18018;
         box-shadow: 0 0 0 3px rgba(225, 128, 24, 0.2);
@@ -1657,7 +1670,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Ocultar alerta de recuperación de contraseña (error)
-    const recoveryErrorAlert = document.getElementById('recoveryErrorAlert');
+    recoveryErrorAlert = document.getElementById('recoveryErrorAlert');
     if (recoveryErrorAlert) {
         setTimeout(() => {
             recoveryErrorAlert.style.transition = 'opacity 0.5s ease';
