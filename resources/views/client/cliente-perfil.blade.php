@@ -42,6 +42,7 @@
         .header-logo { display: flex; align-items: center; gap: 10px; }
         .header-logo-img { height: 34px; width: auto; object-fit: contain; }
         .header-logo-text { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 600; color: var(--text); letter-spacing: 0.02em; }
+        @media (max-width: 768px) { .header-logo-text { display: none; } }
         .header-auth { display: flex; align-items: center; gap: 8px; }
         .back-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border-light); background: none; border-radius: var(--radius-sm); color: var(--text); cursor: pointer; font-size: 0.78rem; font-weight: 600; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
         .back-btn:hover { border-color: var(--primary); color: var(--primary); }
@@ -114,8 +115,8 @@
         .password-tab:hover { color: var(--text); }
         .password-tab.active { border-bottom-color: var(--primary); color: var(--primary); }
         
-        .password-tab-content { display: none; }
-        .password-tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        .password-tab-content { display: none !important; }
+        .password-tab-content.active { display: block !important; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
         .forget-password-link { display: inline-block; margin-top: 10px; font-size: 0.75rem; }
@@ -125,8 +126,8 @@
         .password-input-wrapper { position: relative; display: flex; align-items: center; }
         .password-input-wrapper input { width: 100%; padding: 12px 45px 12px 15px; border: 1px solid var(--border-light); background: var(--surface); border-radius: var(--radius-sm); font-size: 0.88rem; color: var(--text); font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
         .password-input-wrapper input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
-        .password-toggle-btn { position: absolute; right: 12px; background: none; border: none; color: var(--muted); cursor: pointer; padding: 8px; font-size: 0.9rem; transition: color 0.2s; }
-        .password-toggle-btn:hover { color: var(--primary); }
+        .password-toggle-btn { position: absolute; right: 12px; background: none; border: none; color: var(--muted); cursor: pointer; padding: 8px 12px; font-size: 0.9rem; transition: color 0.2s; display: flex; align-items: center; justify-content: center; }
+        .password-toggle-btn:hover { color: var(--primary); cursor: pointer; }
         .password-match-feedback { display: none; font-size: 0.78rem; margin-top: 8px; padding: 8px 12px; border-radius: var(--radius-sm); align-items: center; gap: 8px; }
         .password-match-feedback.show { display: flex; }
         .password-match-feedback.match { background: rgba(39, 174, 96, 0.1); border: 1px solid #27ae60; color: #27ae60; }
@@ -274,10 +275,10 @@
 
                         <!-- TABS -->
                         <div class="password-tabs">
-                            <button type="button" class="password-tab active" onclick="switchPasswordTab('normal')">
+                            <button type="button" class="password-tab active" data-tab="normalTab" onclick="switchPasswordTab('normalTab')">
                                 <i class="fas fa-lock"></i> Cambiar Contraseña
                             </button>
-                            <button type="button" class="password-tab" onclick="switchPasswordTab('temporary')">
+                            <button type="button" class="password-tab" data-tab="temporaryTab" onclick="switchPasswordTab('temporaryTab')">
                                 <i class="fas fa-envelope"></i> Usar Temporal
                             </button>
                         </div>
@@ -290,19 +291,24 @@
 
                                 <div class="form-group-custom">
                                     <label for="current_password">Contraseña Actual</label>
-                                    <input type="password" id="current_password" name="current_password" required class="@error('current_password', 'updatePassword') is-invalid @enderror">
+                                    <div class="password-input-wrapper">
+                                        <input type="password" id="current_password" name="current_password" required class="@error('current_password', 'updatePassword') is-invalid @enderror" onpaste="return true" oncopy="return true" oncut="return true">
+                                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('current_password')">
+                                            <i class="fas fa-eye-slash" id="current_password-toggle-icon"></i>
+                                        </button>
+                                    </div>
                                     @error('current_password', 'updatePassword')
                                         <div class="form-help-text error">{{ $message }}</div>
                                     @enderror
                                     <div class="forget-password-link">
-                                        <a onclick="switchPasswordTab('temporary'); requestTemporaryPassword();">¿No recuerdas tu contraseña?</a>
+                                        <a onclick="switchPasswordTab('temporaryTab'); requestTemporaryPassword();">¿No recuerdas tu contraseña?</a>
                                     </div>
                                 </div>
 
                                 <div class="form-group-custom">
                                     <label for="password">Nueva Contraseña</label>
                                     <div class="password-input-wrapper">
-                                        <input type="password" id="password" name="password" required oninput="validatePasswordMatch()" class="@error('password', 'updatePassword') is-invalid @enderror">
+                                        <input type="password" id="password" name="password" required oninput="validatePasswordMatch()" class="@error('password', 'updatePassword') is-invalid @enderror" onpaste="return true" oncopy="return true" oncut="return true">
                                         <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('password')">
                                             <i class="fas fa-eye-slash" id="password-toggle-icon"></i>
                                         </button>
@@ -316,7 +322,7 @@
                                 <div class="form-group-custom">
                                     <label for="password_confirmation">Confirmar Contraseña</label>
                                     <div class="password-input-wrapper">
-                                        <input type="password" id="password_confirmation" name="password_confirmation" required oninput="validatePasswordMatch()" class="@error('password_confirmation', 'updatePassword') is-invalid @enderror">
+                                        <input type="password" id="password_confirmation" name="password_confirmation" required oninput="validatePasswordMatch()" class="@error('password_confirmation', 'updatePassword') is-invalid @enderror" onpaste="return true" oncopy="return true" oncut="return true">
                                         <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('password_confirmation')">
                                             <i class="fas fa-eye-slash" id="password_confirmation-toggle-icon"></i>
                                         </button>
@@ -365,9 +371,9 @@
                                     <div class="form-group-custom">
                                         <label for="temporary_password">Contraseña Temporal</label>
                                         <div class="password-input-wrapper">
-                                            <input type="text" id="temporary_password" name="temporary_password" required placeholder="Pega aquí la contraseña del correo" class="@error('temporary_password', 'temporaryPassword') is-invalid @enderror">
-                                            <button type="button" class="password-toggle-btn" onclick="copyFromClipboard('temporary_password')" style="right: 40px;">
-                                                <i class="fas fa-paste"></i>
+                                            <input type="password" id="temporary_password" name="temporary_password" required placeholder="Pega aquí la contraseña del correo" class="@error('temporary_password', 'temporaryPassword') is-invalid @enderror" onpaste="return true" oncut="return true" oncopy="return true">
+                                            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('temporary_password')">
+                                                <i class="fas fa-eye-slash" id="temporary_password-toggle-icon"></i>
                                             </button>
                                         </div>
                                         @error('temporary_password', 'temporaryPassword')
@@ -379,7 +385,7 @@
                                     <div class="form-group-custom">
                                         <label for="temp_password">Nueva Contraseña</label>
                                         <div class="password-input-wrapper">
-                                            <input type="password" id="temp_password" name="password" required oninput="validatePasswordMatchTemp()" class="@error('password', 'temporaryPassword') is-invalid @enderror">
+                                            <input type="password" id="temp_password" name="password" required oninput="validatePasswordMatchTemp()" class="@error('password', 'temporaryPassword') is-invalid @enderror" onpaste="return true" oncopy="return true" oncut="return true">
                                             <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('temp_password')">
                                                 <i class="fas fa-eye-slash" id="temp_password-toggle-icon"></i>
                                             </button>
@@ -393,7 +399,7 @@
                                     <div class="form-group-custom">
                                         <label for="temp_password_confirmation">Confirmar Contraseña</label>
                                         <div class="password-input-wrapper">
-                                            <input type="password" id="temp_password_confirmation" name="password_confirmation" required oninput="validatePasswordMatchTemp()" class="@error('password_confirmation', 'temporaryPassword') is-invalid @enderror">
+                                            <input type="password" id="temp_password_confirmation" name="password_confirmation" required oninput="validatePasswordMatchTemp()" class="@error('password_confirmation', 'temporaryPassword') is-invalid @enderror" onpaste="return true" oncopy="return true" oncut="return true">
                                             <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('temp_password_confirmation')">
                                                 <i class="fas fa-eye-slash" id="temp_password_confirmation-toggle-icon"></i>
                                             </button>
@@ -450,13 +456,11 @@
             const alertMessage = alertSuccess?.textContent || '';
             
             if (alertMessage.includes('contraseña temporal') || alertMessage.includes('Contraseña temporal')) {
-                const tempTab = document.querySelectorAll('.password-tab')[1];
-                const useTempForm = document.getElementById('useTempForm');
+                switchPasswordTab('temporaryTab');
                 const requestTempForm = document.getElementById('requestTempForm');
+                const useTempForm = document.getElementById('useTempForm');
                 
-                if (tempTab && useTempForm && requestTempForm) {
-                    tempTab.classList.add('active');
-                    document.querySelectorAll('.password-tab')[0].classList.remove('active');
+                if (requestTempForm && useTempForm) {
                     requestTempForm.style.display = 'none';
                     useTempForm.style.display = 'block';
                 }
@@ -534,20 +538,21 @@
             }
         }
 
-        function switchPasswordTab(tab) {
-            const tabs = document.querySelectorAll('.password-tab');
-            const contents = document.querySelectorAll('.password-tab-content');
+        function switchPasswordTab(tabId) {
+            // Obtener todos los tabs y contenidos
+            const allTabs = document.querySelectorAll('.password-tab');
+            const allContents = document.querySelectorAll('.password-tab-content');
             
-            tabs.forEach(t => t.classList.remove('active'));
-            contents.forEach(c => c.classList.remove('active'));
+            // Remover clase active de todos
+            allTabs.forEach(tab => tab.classList.remove('active'));
+            allContents.forEach(content => content.classList.remove('active'));
             
-            if (tab === 'normal') {
-                tabs[0].classList.add('active');
-                document.getElementById('normalTab').classList.add('active');
-            } else {
-                tabs[1].classList.add('active');
-                document.getElementById('temporaryTab').classList.add('active');
-            }
+            // Agregar clase active al tab y contenido seleccionado
+            const selectedTab = document.querySelector(`[data-tab="${tabId}"]`);
+            const selectedContent = document.getElementById(tabId);
+            
+            if (selectedTab) selectedTab.classList.add('active');
+            if (selectedContent) selectedContent.classList.add('active');
         }
 
         function validatePasswordMatchTemp() {

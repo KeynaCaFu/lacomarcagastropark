@@ -20,7 +20,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>La Comarca Gastropark</h1>
+            <h1>La Comarca Gastro Park</h1>
             <p style="margin: 10px 0 0; font-size: 14px;">Recuperación de Contraseña</p>
         </div>
 
@@ -42,7 +42,7 @@
 
             <h3>¿Qué hacer ahora?</h3>
             <ol>
-                <li>1. Ve a tu perfil en La Comarca Gastropark</li>
+                <li>1. Ve a tu perfil en La Comarca Gastro Park</li>
                 <li>2. Haz clic en "Cambiar contraseña"</li>
                 <li>3. En el formulario, selecciona "Tengo una contraseña temporal"</li>
                 <li>4. Pega la contraseña temporal anterior</li>
@@ -56,7 +56,7 @@
         </div>
 
         <div class="footer">
-            <p>&copy; {{ date('Y') }} La Comarca Gastropark. Todos los derechos reservados.</p>
+            <p>&copy; {{ date('Y') }} La Comarca Gastro Park. Todos los derechos reservados.</p>
             <p>Si tienes problemas, contáctanos en <span class="link">lacomarcagastropark@gmail.com</span></p>
         </div>
     </div>
