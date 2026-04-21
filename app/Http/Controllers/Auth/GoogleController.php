@@ -115,6 +115,10 @@ class GoogleController extends Controller
             // Iniciar sesión
             Auth::login($user, true); // true para "recordarme"
             
+            // Registrar timestamps de sesión de Google para validación posterior
+            session(['google_session_start_time' => now()]);
+            session(['google_session_last_activity' => now()]);
+            
             // Recargar usuario para asegurar relaciones
             $user = Auth::user();
             $user->load('role');
