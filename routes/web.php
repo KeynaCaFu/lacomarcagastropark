@@ -240,7 +240,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('/client-profile', [ClienteController::class, 'editProfile'])->name('client.profile.edit');
     Route::patch('/client-profile', [ClienteController::class, 'updateProfile'])->name('client.profile.update');
+
+// Guardar reseña del local por cliente 
+    Route::post('/plaza/{localId}/review', [PlazaController::class, 'storeLocalReview'])
+        ->name('plaza.review.store');
+
 });
+
+
 
 // Profile routes (authenticated users)
 Route::middleware('auth')->group(function () {
