@@ -240,6 +240,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('/client-profile', [ClienteController::class, 'editProfile'])->name('client.profile.edit');
     Route::patch('/client-profile', [ClienteController::class, 'updateProfile'])->name('client.profile.update');
+    Route::put('/client-profile/password', [ClienteController::class, 'updatePassword'])->name('client.password.update');
+    Route::post('/client-profile/password/request-temporary', [ClienteController::class, 'requestTemporaryPassword'])->name('client.password.request-temporary');
+    Route::get('/change-temporary-password', [ClienteController::class, 'showChangeTemporaryPasswordForm'])->name('client.password.change-temporary-form');
+    Route::put('/client-profile/password/temporary', [ClienteController::class, 'updatePasswordWithTemporary'])->name('client.password.update-temporary');
 
 // Guardar reseña del local por cliente 
     Route::post('/plaza/{localId}/review', [PlazaController::class, 'storeLocalReview'])

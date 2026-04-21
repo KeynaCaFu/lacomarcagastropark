@@ -36,6 +36,8 @@ class User extends Authenticatable
         'provider',
         'provider_id',
         'avatar',
+        'temporary_password',
+        'temporary_password_expires_at',
     ];
 
     /**
