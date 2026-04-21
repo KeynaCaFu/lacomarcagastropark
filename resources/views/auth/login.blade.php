@@ -98,6 +98,14 @@
                         <span>Continuar con Google</span>
                     </a>
                 </div>
+
+                {{-- ALERTA DE SESIÓN EXPIRADA --}}
+                @error('error')
+                    <div class="custom-alert custom-alert-danger" style="margin-top: 12px;">
+                        <i class="fa-solid fa-exclamation-circle"></i>
+                        <span>{{ $message }}</span>
+                    </div>
+                @enderror
                
             </form>
 
@@ -253,6 +261,14 @@
                         <span>Registrate con Google</span>
                     </a>
                 </div>
+
+                {{-- ALERTA DE SESIÓN EXPIRADA --}}
+                @error('error')
+                    <div class="custom-alert custom-alert-danger" style="margin-top: 12px;">
+                        <i class="fa-solid fa-exclamation-circle"></i>
+                        <span>{{ $message }}</span>
+                    </div>
+                @enderror
             </form>
 
             {{-- <div class="panel-footer">
@@ -1731,6 +1747,32 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 500);
         }, 7000);
     }
+
+    // ===== MOSTRAR ALERTA DE SESIÓN EXPIRADA =====
+    const sessionExpiredAlerts = document.querySelectorAll('.custom-alert-danger');
+    
+    sessionExpiredAlerts.forEach(alert => {
+        // Si hay una alerta de sesión expirada, animarla
+        if (alert.textContent.includes('sesión')) {
+            alert.style.animation = 'slideDown 0.4s ease-out';
+        }
+    });
 });
+
+// ===== ANIMACIÓN DE SLIDE DOWN PARA ALERTA =====
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+document.head.appendChild(style);
 </script>
 @endpush
