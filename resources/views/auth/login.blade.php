@@ -5,31 +5,6 @@
 @section('content')
 <div class="login-container" id="authContainer">
 
-    {{-- MENSAJES DE ESTADO Y ERROR --}}
-    @if (session('recovery-status'))
-        <div class="custom-alert custom-alert-success" id="recoveryStatusAlert">
-            <i class="fa-solid fa-check-circle"></i>
-            <span>{{ session('recovery-status') }}</span>
-            <button type="button" class="custom-alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
-        </div>
-    @endif
-
-    @if (session('recovery-error'))
-        <div class="custom-alert custom-alert-danger" id="recoveryErrorAlert">
-            <i class="fa-solid fa-times-circle"></i>
-            <span>{{ session('recovery-error') }}</span>
-            <button type="button" class="custom-alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
-        </div>
-    @endif
-
-    @error('email', 'recovery')
-        <div class="custom-alert custom-alert-danger" id="recoveryErrorAlert">
-            <i class="fa-solid fa-times-circle"></i>
-            <span>{{ $message }}</span>
-            <button type="button" class="custom-alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
-        </div>
-    @enderror
-
     <div class="login-wrapper" id="authWrapper">
         {{-- PANEL LOGIN --}}
         <div class="login-panel" id="loginPanel">
@@ -80,6 +55,9 @@
                                 placeholder="Contraseña"
                                 required
                                 autocomplete="current-password"
+                                onpaste="return true"
+                                oncopy="return true"
+                                oncut="return true"
                             >
                             <i class="fa-solid fa-lock"></i>
                         </div>
@@ -114,7 +92,6 @@
                         <i class="fa-brands fa-google"></i>
                     </a>
                 </div>
-
                
             </form>
 
@@ -127,9 +104,30 @@
             <div class="responsive-footer" id="loginFooter">
                 <p>¿No tienes cuenta? <button type="button" class="switch-btn" id="switchRegisterResponsive">Registrate aquí</button></p>
             </div>
-        </div>
 
-        {{-- PANEL REGISTRO --}}
+            {{-- ALERTAS DE ÉXITO EN LOGIN (Posicionadas al final para responsive) --}}
+            @if (session('recovery-status'))
+                <div class="custom-alert custom-alert-success" id="recoveryStatusAlert" style="margin-top: 10px;">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>{{ session('recovery-status') }}</span>
+                </div>
+            @endif
+
+            {{-- ALERTAS DE ERROR EN LOGIN (Recuperación - Posicionadas al final para responsive) --}}
+            @if (session('recovery-error'))
+                <div class="custom-alert custom-alert-danger" id="recoveryErrorAlert" style="margin-top: 10px;">
+                    <i class="fa-solid fa-times-circle"></i>
+                    <span>{{ session('recovery-error') }}</span>
+                </div>
+            @endif
+
+            @error('email', 'recovery')
+                <div class="custom-alert custom-alert-danger" id="recoveryErrorAlert" style="margin-top: 10px;">
+                    <i class="fa-solid fa-times-circle"></i>
+                    <span>{{ $message }}</span>
+                </div>
+            @enderror
+        </div>
         <div class="register-panel" id="registerPanel">
             <div class="register-header">
                 <a href="{{ route('plaza.index') }}" class="logo-link">
@@ -280,6 +278,9 @@
                             value="{{ old('email') }}"
                             required
                             autocomplete="email"
+                            onpaste="return true"
+                            oncopy="return true"
+                            oncut="return true"
                         >
                         <i class="fa-solid fa-envelope"></i>
                     </div>
@@ -335,45 +336,69 @@
 @push('styles')
 <style>
     /* ===== CUSTOM ALERT ===== */
+    @keyframes slideDownAlert {
+        from {
+            opacity: 0;
+            transform: translateY(-15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
     .custom-alert {
-        padding: 15px 20px;
-        border-radius: 8px;
+        padding: 16px 20px;
+        border-radius: 10px;
         margin-bottom: 15px;
         display: flex;
-        align-items: center;
-        gap: 12px;
+        align-items: flex-start;
+        gap: 14px;
         font-size: 14px;
+        font-weight: 500;
+        position: relative;
+        animation: slideDownAlert 0.4s ease-out;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .custom-alert-success {
-        background: linear-gradient(135deg, #e18018, #915016);
-        border: 1px solid #915016;
-        color: #f6f6f4;
+        background: linear-gradient(135deg, rgba(225, 128, 24, 0.15), rgba(145, 80, 22, 0.1));
+        border: 1px solid rgba(225, 128, 24, 0.3);
+        color: #fbbf24;
+    }
+
+    .custom-alert-success i {
+        color: #e18018;
+    }
+
+    .custom-alert-danger {
+        background: linear-gradient(135deg, rgba(225, 128, 24, 0.15), rgba(145, 80, 22, 0.1));
+        border: 1px solid rgba(225, 128, 24, 0.3);
+        color: #fbbf24;
+    }
+
+    .custom-alert-danger i {
+        color: #e18018;
     }
 
     .custom-alert i {
         font-size: 18px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .custom-alert span {
+        flex: 1;
+        line-height: 1.5;
     }
 
     .custom-alert-close {
-        position: absolute;
-        top: 50%;
-        right: 15px;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        color: inherit;
-        font-size: 20px;
-        cursor: pointer;
-        opacity: 0.7;
-        transition: opacity 0.3s;
+        display: none !important;
     }
 
-    .custom-alert-close:hover {
-        opacity: 1;
-    }
 
-    /* ===== CONTENEDOR PRINCIPAL ===== */
     .login-container {
         width: 100%;
         max-width: 960px;
@@ -598,7 +623,8 @@
     .recovery-subtitle {
         font-size: 14px;
         color: #b0b0b0;
-        margin: 5px 0 0;
+        margin: 18px 0 0;
+        padding: 8px;
     }
 
     .register-panel .login-title {
@@ -722,6 +748,27 @@
         box-shadow: 0 0 0 3px rgba(225, 128, 24, 0.2);
     }
 
+    .recovery-panel .form-group input {
+        background: #2a2a2a;
+        border: 1px solid #444;
+        color: #fff;
+    }
+
+    .recovery-panel .form-group input::placeholder {
+        color: #a0a0a0;
+        opacity: 1;
+    }
+
+    .recovery-panel .form-group input:focus::placeholder {
+        color: #888;
+    }
+
+    .recovery-panel .form-group input:focus {
+        outline: none;
+        border-color: #e18018;
+        box-shadow: 0 0 0 3px rgba(225, 128, 24, 0.2);
+    }
+
     .form-error {
         display: block;
         color: #ff6b6b;
@@ -754,7 +801,7 @@
 
     .toggle-btn {
         position: absolute;
-        right: 44px;
+       right: 29px;
         top: 50%;
         transform: translateY(-50%);
         background: none;
@@ -762,12 +809,16 @@
         color: #999;
         cursor: pointer;
         font-size: 16px;
-        padding: 4px;
+        padding: 8px 12px;
         z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .login-panel .toggle-btn {
         color: #b0b0b0;
+        cursor: pointer;
     }
 
     .toggle-btn:hover {
@@ -1619,7 +1670,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Ocultar alerta de recuperación de contraseña (error)
-    const recoveryErrorAlert = document.getElementById('recoveryErrorAlert');
+    recoveryErrorAlert = document.getElementById('recoveryErrorAlert');
     if (recoveryErrorAlert) {
         setTimeout(() => {
             recoveryErrorAlert.style.transition = 'opacity 0.5s ease';
