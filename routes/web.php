@@ -127,6 +127,8 @@ Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
         Route::get('/sales-total', [AdminDashboardController::class, 'getApiSalesTotal'])->name('sales.total');
         Route::get('/active-orders', [AdminDashboardController::class, 'getApiActiveOrders'])->name('orders.active');
         Route::get('/ranking-stores', [AdminDashboardController::class, 'getApiRankingStores'])->name('stores.ranking');
+    });
+
     // QR VALIDACIÓN (ADMIN GLOBAL) - Gestión del QR estático de validación
     Route::prefix('qr-validacion')->name('admin.qr.')->group(function () {
         Route::get('/', [QrAdminController::class, 'index'])->name('index');
@@ -264,7 +266,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('plaza.review.store');
 
 });
-
 
 
 // Profile routes (authenticated users)
