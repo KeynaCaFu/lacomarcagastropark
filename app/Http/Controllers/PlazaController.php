@@ -280,11 +280,37 @@ class PlazaController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
 
+            // Obtener eventos
+            $today = now()->toDateString();
+            $yesterday = now()->subDay()->toDateString();
+            $oneMonthLater = now()->addDays(30)->toDateString();
+
+            $eventosHoy = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
+                ->active()
+                ->whereDate('start_at', $today)
+                ->orderBy('start_at', 'asc')
+                ->get();
+
+            $eventosProximos = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
+                ->active()
+                ->notExpired()
+                ->where(function($query) use ($today, $yesterday) {
+                    $query->whereDate('start_at', '>', $today)
+                          ->orWhere(function($q) use ($yesterday) {
+                              $q->whereDate('start_at', '=', $yesterday);
+                          });
+                })
+                ->where('start_at', '<=', $oneMonthLater . ' 23:59:59')
+                ->orderBy('start_at', 'asc')
+                ->get();
+
             return view('plaza.product-detail', [
                 'local' => $local,
                 'product' => $product,
                 'gallery' => $gallery,
                 'reviews' => $reviews,
+                'eventosHoy' => $eventosHoy,
+                'eventosProximos' => $eventosProximos,
             ]);
         } catch (\Exception $e) {
             abort(404, 'Producto no encontrado');
