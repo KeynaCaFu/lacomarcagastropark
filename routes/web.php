@@ -277,7 +277,7 @@ Route::middleware('auth')->group(function () {
 
 
 // RUTAS PARA PLAZA PÚBLICA (Admins/Gerentes pueden verla sin afectar su sesión)
-Route::prefix('plaza')->name('plaza.')->middleware('preserve.admin.session')->group(function () {
+Route::prefix('plaza')->name('plaza.')->middleware(['preserve.admin.session', 'validate.google.session'])->group(function () {
     Route::get('/', [\App\Http\Controllers\PlazaController::class, 'index'])->name('index');
     Route::get('api/productos', [\App\Http\Controllers\PlazaController::class, 'getProductosByCategory'])->name('get.productos');
     Route::get('{id}/data', [\App\Http\Controllers\PlazaController::class, 'getLocalData'])->name('local.data')->where('id', '[0-9]+');
