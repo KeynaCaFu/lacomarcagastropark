@@ -788,7 +788,7 @@
 
     .toggle-btn {
         position: absolute;
-        right: 14px;
+       right: 29px;
         top: 50%;
         transform: translateY(-50%);
         background: none;
