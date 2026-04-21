@@ -14,6 +14,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\PlazaController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\QrAdminController;
 use Illuminate\Http\Request;
 
 /*
@@ -119,6 +120,14 @@ Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
         Route::put('/{localId}', [\App\Http\Controllers\LocalController::class, 'updateAdmin'])->name('update');
         Route::put('/{localId}/status', [\App\Http\Controllers\LocalController::class, 'updateStatus'])->name('update.status');
         Route::delete('/{localId}', [\App\Http\Controllers\LocalController::class, 'destroy'])->name('destroy');
+    });
+
+    // QR VALIDACIÓN (ADMIN GLOBAL) - Gestión del QR estático de validación
+    Route::prefix('qr-validacion')->name('admin.qr.')->group(function () {
+        Route::get('/', [QrAdminController::class, 'index'])->name('index');
+        Route::post('/generar', [QrAdminController::class, 'generate'])->name('generate');
+        Route::get('/descargar', [QrAdminController::class, 'download'])->name('download');
+        Route::get('/historial', [QrAdminController::class, 'logs'])->name('logs');
     });
 });
 
