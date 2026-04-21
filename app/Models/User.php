@@ -35,9 +35,12 @@ class User extends Authenticatable
         'status',
         'provider',
         'provider_id',
+        'remember_token',
         'avatar',
         'temporary_password',
         'temporary_password_expires_at',
+        'google_token_expires_at',
+        'google_token_last_refreshed_at',
     ];
 
     /**
