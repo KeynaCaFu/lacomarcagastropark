@@ -82,6 +82,14 @@ class Local extends Model
     }
 
     /**
+     * Relación: Órdenes de este local
+     */
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'local_id', 'local_id');
+    }
+
+    /**
      * Accessor: Obtener el promedio de calificación del local
      * Usa el cálculo real de las reseñas
      */

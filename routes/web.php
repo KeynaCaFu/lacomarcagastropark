@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\EventController;
@@ -14,7 +15,10 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\PlazaController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\QrAdminController;
 use Illuminate\Http\Request;
+use App\Models\Order;
+use App\Models\OrderItem;
 
 /*
 |--------------------------------------------------------------------------
@@ -119,6 +123,21 @@ Route::middleware(['auth', 'verified', 'admin.global'])->group(function () {
         Route::put('/{localId}', [\App\Http\Controllers\LocalController::class, 'updateAdmin'])->name('update');
         Route::put('/{localId}/status', [\App\Http\Controllers\LocalController::class, 'updateStatus'])->name('update.status');
         Route::delete('/{localId}', [\App\Http\Controllers\LocalController::class, 'destroy'])->name('destroy');
+    });
+
+    // RUTAS API ADMIN GLOBAL (Para actualizaciones sin recargar)
+    Route::prefix('api/admin')->name('api.admin.')->group(function () {
+        Route::get('/sales-total', [AdminDashboardController::class, 'getApiSalesTotal'])->name('sales.total');
+        Route::get('/active-orders', [AdminDashboardController::class, 'getApiActiveOrders'])->name('orders.active');
+        Route::get('/ranking-stores', [AdminDashboardController::class, 'getApiRankingStores'])->name('stores.ranking');
+    });
+
+    // QR VALIDACIÓN (ADMIN GLOBAL) - Gestión del QR estático de validación
+    Route::prefix('qr-validacion')->name('admin.qr.')->group(function () {
+        Route::get('/', [QrAdminController::class, 'index'])->name('index');
+        Route::post('/generar', [QrAdminController::class, 'generate'])->name('generate');
+        Route::get('/descargar', [QrAdminController::class, 'download'])->name('download');
+        Route::get('/historial', [QrAdminController::class, 'logs'])->name('logs');
     });
 });
 
@@ -240,7 +259,45 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('/client-profile', [ClienteController::class, 'editProfile'])->name('client.profile.edit');
     Route::patch('/client-profile', [ClienteController::class, 'updateProfile'])->name('client.profile.update');
+    Route::put('/client-profile/password', [ClienteController::class, 'updatePassword'])->name('client.password.update');
+    Route::post('/client-profile/password/request-temporary', [ClienteController::class, 'requestTemporaryPassword'])->name('client.password.request-temporary');
+    Route::get('/change-temporary-password', [ClienteController::class, 'showChangeTemporaryPasswordForm'])->name('client.password.change-temporary-form');
+    Route::put('/client-profile/password/temporary', [ClienteController::class, 'updatePasswordWithTemporary'])->name('client.password.update-temporary');
+
+// Guardar reseña del local por cliente 
+    Route::post('/plaza/{localId}/review', [PlazaController::class, 'storeLocalReview'])
+        ->name('plaza.review.store');
+    // Guardar reseña del producto por cliente
+     // Validar si el cliente puede reseñar el producto
+Route::get('/plaza/producto/{productId}/puede-resenar', function ($productId) {
+    $userId = Auth::id();
+
+    if (!$userId) {
+        return response()->json(['puede' => false]);
+    }
+
+    $puede = Order::where('status', 'Delivered')
+        ->whereIn('order_id', function ($query) use ($userId) {
+            $query->select('order_id')
+                ->from('tbuser_order')
+                ->where('user_id', $userId);
+        })
+        ->whereHas('items', function ($q) use ($productId) {
+            $q->where('product_id', $productId);
+        })
+        ->exists();
+
+    return response()->json(['puede' => $puede]);
+})->middleware('auth')->name('plaza.product.can-review');
+
+// Guardar reseña del producto
+Route::post('/plaza/producto/{productId}/resena', [PlazaController::class, 'storeProductReview'])
+    ->middleware('auth')
+    ->name('plaza.product.review.store');
+
+
 });
+
 
 // Profile routes (authenticated users)
 Route::middleware('auth')->group(function () {
@@ -251,7 +308,7 @@ Route::middleware('auth')->group(function () {
 
 
 // RUTAS PARA PLAZA PÚBLICA (Admins/Gerentes pueden verla sin afectar su sesión)
-Route::prefix('plaza')->name('plaza.')->middleware('preserve.admin.session')->group(function () {
+Route::prefix('plaza')->name('plaza.')->middleware(['preserve.admin.session', 'validate.google.session'])->group(function () {
     Route::get('/', [\App\Http\Controllers\PlazaController::class, 'index'])->name('index');
     Route::get('api/productos', [\App\Http\Controllers\PlazaController::class, 'getProductosByCategory'])->name('get.productos');
     Route::get('{id}/data', [\App\Http\Controllers\PlazaController::class, 'getLocalData'])->name('local.data')->where('id', '[0-9]+');
