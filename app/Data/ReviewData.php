@@ -113,4 +113,28 @@ $monthTotal = $items->filter(function ($item) {
             'distribution' => $distribution,
         ];
     }
+
+
+
+    public function getLocalReviewsByLocalPaginated($localId, $perPage = 10)
+{
+    return LocalReview::with(['review', 'user'])
+        ->where('local_id', $localId)
+        ->whereHas('review')
+        ->orderByDesc('local_review_id')
+        ->paginate($perPage);
+}
+
+public function getProductReviewsByLocalPaginated($localId, $perPage = 10)
+{
+    $productIds = DB::table('tblocal_product')
+        ->where('local_id', $localId)
+        ->pluck('product_id');
+
+    return ProductReview::with(['review', 'user', 'product'])
+        ->whereIn('product_id', $productIds)
+        ->whereHas('review')
+        ->orderByDesc('product_review_id')
+        ->paginate($perPage);
+}
 }

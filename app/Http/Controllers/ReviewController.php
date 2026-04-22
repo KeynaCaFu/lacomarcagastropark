@@ -37,12 +37,16 @@ class ReviewController extends Controller
         ];
 
         if ($local) {
-            $localReviews = $this->reviewData->getLocalReviewsByLocal($local->local_id);
-            $productReviews = $this->reviewData->getProductReviewsByLocal($local->local_id);
+        // Stats con todos los datos (sin paginar)
+        $allLocalReviews   = $this->reviewData->getLocalReviewsByLocal($local->local_id);
+        $allProductReviews = $this->reviewData->getProductReviewsByLocal($local->local_id);
+        $localStats   = $this->reviewData->getStats($allLocalReviews);
+        $productStats = $this->reviewData->getStats($allProductReviews);
 
-            $localStats = $this->reviewData->getStats($localReviews);
-            $productStats = $this->reviewData->getStats($productReviews);
-        }
+        // Paginadas para mostrar en la vista
+        $localReviews   = $this->reviewData->getLocalReviewsByLocalPaginated($local->local_id);
+        $productReviews = $this->reviewData->getProductReviewsByLocalPaginated($local->local_id);
+    }
 
         return view('reviews.index', compact(
             'local',
