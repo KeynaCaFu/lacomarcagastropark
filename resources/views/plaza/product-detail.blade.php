@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -186,14 +187,167 @@
                     </section>
                 </div>
             </section>
+            
+<section class="reviews-section" style="margin-top:40px;">
+    <h2 style="color:#e58a3a; font-size:1.4rem; font-weight:700; margin-bottom:20px; text-transform:uppercase;">
+        Reseñas del producto
+    </h2>
 
-            <div v-else class="reviews-section reviews-empty">
-                <i class="fas fa-comments"></i>
-                <p>Sin reseñas aún. ¡Sé el primero en reseñar este producto!</p>
+    @auth
+        <div class="review-blocked" v-if="puedeResenar === false"
+             style="margin-bottom:20px; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(229,138,58,0.3); color:#fff;">
+            Solo puedes reseñar productos que hayas pedido y recibido.
+        </div>
+
+        <div class="review-actions" v-if="puedeResenar === true" style="margin-bottom:20px;">
+            <button @click="openReviewModal"
+                    style="background:#e58a3a; color:white; border:none; padding:12px 18px; border-radius:12px; font-weight:700; cursor:pointer;">
+                <i class="fas fa-star"></i> Dejar reseña
+            </button>
+        </div>
+
+        <div class="review-checking" v-if="puedeResenar === null"
+             style="margin-bottom:20px; color:#fff;">
+            Verificando...
+        </div>
+    @else
+        <div class="review-login-prompt"
+             style="margin-bottom:20px; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(229,138,58,0.3); color:#fff;">
+            Debes <a href="{{ route('login') }}">iniciar sesión</a> para dejar una reseña.
+        </div>
+    @endauth
+
+    <div class="reviews-list" v-if="reviews.length > 0" style="display:flex; flex-direction:column; gap:22px; margin-top:22px;">
+        <div
+            v-for="(r, i) in reviews"
+            :key="i"
+            style="
+                background: linear-gradient(180deg, rgba(28,20,16,0.98) 0%, rgba(18,13,10,0.98) 100%);
+                border: 1px solid rgba(229,138,58,0.18);
+                border-radius: 22px;
+                padding: 22px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+                transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+                cursor: default;
+            "
+            onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 18px 40px rgba(0,0,0,0.38)'; this.style.borderColor='rgba(229,138,58,0.38)'"
+            onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.28)'; this.style.borderColor='rgba(229,138,58,0.18)'"
+        >
+            <div style="display:flex; align-items:flex-start; gap:16px;">
+                <div
+                    style="
+                        width:58px;
+                        height:58px;
+                        min-width:58px;
+                        border-radius:50%;
+                        background: linear-gradient(135deg, #d4773a, #a9541f);
+                        color:#fff;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-weight:700;
+                        font-size:1.15rem;
+                        font-family:'DM Sans',sans-serif;
+                        box-shadow: 0 8px 20px rgba(212,119,58,0.28);
+                    "
+                >
+                    @{{ r.reviewer_name ? r.reviewer_name.substring(0,2).toUpperCase() : 'CL' }}
+                </div>
+
+                <div style="flex:1; min-width:0;">
+                    <div>
+                        <div style="color:#F5F0E8; font-weight:700; font-size:1.35rem; margin-bottom:4px;">
+                            @{{ r.reviewer_name || 'Cliente' }}
+                        </div>
+
+                        <div style="color:rgba(245,240,232,0.58); font-size:0.95rem; margin-bottom:12px;">
+                            @{{ formatDate(r.created_at) }}
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:5px; margin-bottom:16px;">
+                        <i
+                            v-for="s in 5"
+                            :key="s"
+                            class="fas fa-star"
+                            :style="{ color: s <= r.rating ? '#e58a3a' : 'rgba(229,138,58,0.16)', fontSize: '16px' }"
+                        ></i>
+                    </div>
+
+                    <p style="margin:0; color:#F5F0E8; font-size:1.08rem; line-height:1.9; font-style:italic;">
+                        “@{{ r.comment }}”
+                    </p>
+
+                    <div
+                        v-if="r.response"
+                        style="
+                            margin-top:18px;
+                            padding:15px 18px;
+                            border-left:4px solid #d4773a;
+                            border-radius:0 14px 14px 0;
+                            background: linear-gradient(90deg, rgba(212,119,58,0.13), rgba(212,119,58,0.05));
+                        "
+                    >
+                        <div style="color:#e58a3a; font-weight:700; text-transform:uppercase; letter-spacing:1px; font-size:0.95rem; margin-bottom:8px;">
+                            <i class="fas fa-reply" style="margin-right:8px;"></i>
+                            Respuesta del local
+                        </div>
+
+                        <p style="margin:0; color:rgba(245,240,232,0.88); font-size:1rem; line-height:1.7;">
+                            @{{ r.response }}
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <div class="reviews-empty" v-else style="color:#aaa; margin-top:20px;">
+        No hay reseñas todavía.
+    </div>
+</section>
+<div v-if="showReviewModal" class="review-modal-overlay" @click="closeReviewModal"
+     style="position:fixed; inset:0; background:rgba(0,0,0,0.68); z-index:9998;"></div>
+
+<div v-if="showReviewModal"
+     style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:min(92vw,520px); background:#14110f; border:1px solid rgba(229,138,58,0.22); border-radius:18px; z-index:9999; box-shadow:0 20px 50px rgba(0,0,0,0.35); overflow:hidden;">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.06); color:#fff;">
+        <h3 style="margin:0;">Dejar reseña</h3>
+        <button @click="closeReviewModal" style="background:transparent; border:none; color:#fff; cursor:pointer; font-size:18px;">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <div style="padding:18px;">
+        <div style="margin-bottom:12px; color:#f5f0e8; font-weight:600;">Calificación</div>
+
+        <div style="display:flex; gap:6px; margin-bottom:14px;">
+            <i v-for="s in 5"
+               :key="s"
+               class="fas fa-star"
+               :class="{ selected: s <= newReview.rating, hovered: s <= starHover }"
+               @mouseenter="starHover = s"
+               @mouseleave="starHover = 0"
+               @click="newReview.rating = s"
+               :style="{ color: (s <= newReview.rating || s <= starHover) ? '#e58a3a' : '#5a4636', fontSize:'24px', cursor:'pointer' }"></i>
+        </div>
+
+        <textarea
+            v-model="newReview.comment"
+            maxlength="500"
+            rows="4"
+            placeholder="Describe tu experiencia con este producto..."
+            style="width:100%; box-sizing:border-box; background:#0f0d0b; color:#fff; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; resize:vertical;"></textarea>
+
+        <button
+            @click="submitProductReview"
+            :disabled="isSendingReview || newReview.rating === 0 || newReview.comment.trim().length < 10"
+            style="margin-top:14px; background:#e58a3a; color:#fff; border:none; border-radius:12px; padding:12px 18px; font-weight:700; cursor:pointer;">
+            <span v-if="isSendingReview">Guardando...</span>
+            <span v-else>Publicar reseña</span>
+        </button>
+    </div>
+</div>
     <!-- ═══ MODAL: AGREGAR AL CARRITO ═══ -->
     @include('plaza.carrito._add_to_cart_modal')
 
@@ -415,6 +569,13 @@
     createApp({
         data() {
             return {
+                // Reseñas
+                puedeResenar: null,
+                showReviewModal: false,
+                newReview: { rating: 0, comment: '' },
+                starHover: 0,
+                isSendingReview: false,
+                starLabels: ['Muy malo', 'Malo', 'Regular', 'Bueno', '¡Excelente!'],
                 product: {!! json_encode([
                     'product_id' => $product->product_id,
                     'name' => $product->name,
@@ -432,14 +593,9 @@
                     'image_logo' => $local->image_logo,
                 ]) !!},
                 gallery: {!! json_encode($gallery->map(fn($g) => ['image_url' => $g->image_url])->toArray()) !!},
-                reviews: {!! json_encode($reviews->map(fn($r) => [
-                    'product_review_id' => $r->product_review_id,
-                    'reviewer_name' => $r->reviewer_name,
-                    'rating' => $r->rating,
-                    'comment' => $r->comment,
-                    'created_at' => $r->created_at->toIso8601String(),
-                ])->toArray()) !!},
+                reviews: {!! json_encode($reviews->toArray()) !!},
                 currentImageIndex: 0,
+
                 // Propiedades del carrito
                 isAuthenticated: {{ auth()->check() ? 'true' : 'false' }},
                 showCartDrawer: false,
@@ -467,6 +623,7 @@
                 customerEmail: '',
                 customerPhone: '',
                 additionalNotes: '',
+
                 // Eventos
                 eventosHoy: {!! json_encode(isset($eventosHoy) ? $eventosHoy : []) !!},
                 eventosProximos: {!! json_encode(isset($eventosProximos) ? $eventosProximos : []) !!},
@@ -484,12 +641,17 @@
             },
             totalDrawerQty() {
                 return this.drawerCart.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
-            }
+            },
+            avgRating() {
+                if (!this.reviews.length) return 0;
+                const sum = this.reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+                return Math.round((sum / this.reviews.length) * 10) / 10;
+            },
         },
         methods: {
             assetUrl(path) {
                 if (!path) return '{{ asset("images/product-placeholder.png") }}';
-                return path.startsWith('http') ? path : '{{ asset("") }}' + path;
+                return path.startsWith('http') ? path : '/images/' + path;
             },
             formatPrice(price) {
                 return (price || 0).toLocaleString('es-CR', {
@@ -516,6 +678,7 @@
                     }
                 });
             },
+
             // ── CARRITO METHODS ──
             openAddToCartModal(product) {
                 if (!this.isAuthenticated) {
@@ -740,6 +903,7 @@
                 .catch(() => showToast({icon: 'error', title: 'Oops', message: 'Problema de conexión', timer: 5500}))
                 .finally(() => {this.isCheckingOut = false;});
             },
+
             // ── EVENTOS METHODS ──
             openEventsDrawer() {
                 this.showEventsDrawer = true;
@@ -758,9 +922,132 @@
                 setTimeout(() => {
                     this.currentEvento = {};
                 }, 300);
-            }
+            },
+
+            // ── RESEÑAS METHODS ──
+            openReviewModal() {
+                if (this.puedeResenar !== true) {
+                    showToast({
+                        icon: 'warning',
+                        title: 'No disponible',
+                        message: 'Solo puedes reseñar productos que hayas pedido y recibido.'
+                    });
+                    return;
+                }
+
+                this.showReviewModal = true;
+                document.body.classList.add('modal-open');
+            },
+
+            closeReviewModal() {
+                this.showReviewModal = false;
+                document.body.classList.remove('modal-open');
+            },
+
+            async checkPuedeResenar() {
+                if (!this.isAuthenticated) {
+                    this.puedeResenar = false;
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`/plaza/producto/${this.product.product_id}/puede-resenar`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    });
+
+                    const data = await res.json();
+                    this.puedeResenar = data.puede ?? false;
+                } catch (error) {
+                    console.error('Error verificando si puede reseñar:', error);
+                    this.puedeResenar = false;
+                }
+            },
+
+            async submitProductReview() {
+                if (this.isSendingReview) return;
+
+                if (this.newReview.rating === 0) {
+                    showToast({
+                        icon: 'warning',
+                        title: 'Selecciona una calificación'
+                    });
+                    return;
+                }
+
+                if (this.newReview.comment.trim().length < 10) {
+                    showToast({
+                        icon: 'warning',
+                        title: 'Comentario inválido',
+                        message: 'El comentario debe tener al menos 10 caracteres.'
+                    });
+                    return;
+                }
+
+                this.isSendingReview = true;
+
+                try {
+                    const res = await fetch(`/plaza/producto/${this.product.product_id}/resena`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            rating: this.newReview.rating,
+                            comment: this.newReview.comment.trim()
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        this.reviews.unshift({
+                            reviewer_name: data.review.nombre,
+                            rating: data.review.rating,
+                            comment: data.review.comment,
+                            created_at: data.review.date,
+                        });
+
+                        this.newReview = { rating: 0, comment: '' };
+                        this.starHover = 0;
+                        this.closeReviewModal();
+
+                        showToast({
+                            icon: 'success',
+                            title: '¡Reseña publicada!',
+                            message: 'Tu reseña ya es visible para otros usuarios.'
+                        });
+
+                        return;
+                    }
+
+                    if (res.status === 403) {
+                        this.puedeResenar = false;
+                    }
+
+                    showToast({
+                        icon: 'error',
+                        title: 'Error',
+                        message: data.error || 'No se pudo guardar la reseña.'
+                    });
+
+                } catch (error) {
+                    console.error('Error guardando reseña:', error);
+                    showToast({
+                        icon: 'error',
+                        title: 'Error de conexión'
+                    });
+                } finally {
+                    this.isSendingReview = false;
+                }
+            },
         },
         mounted() {
+            this.checkPuedeResenar();
             console.log('Producto cargado:', this.product.name);
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'ArrowLeft' && this.currentImageIndex > 0) {

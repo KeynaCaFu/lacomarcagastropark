@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\EventController;
@@ -16,6 +17,8 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\QrAdminController;
 use Illuminate\Http\Request;
+use App\Models\Order;
+use App\Models\OrderItem;
 
 /*
 |--------------------------------------------------------------------------
@@ -264,6 +267,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Guardar reseña del local por cliente 
     Route::post('/plaza/{localId}/review', [PlazaController::class, 'storeLocalReview'])
         ->name('plaza.review.store');
+    // Guardar reseña del producto por cliente
+     // Validar si el cliente puede reseñar el producto
+Route::get('/plaza/producto/{productId}/puede-resenar', function ($productId) {
+    $userId = Auth::id();
+
+    if (!$userId) {
+        return response()->json(['puede' => false]);
+    }
+
+    $puede = Order::where('status', 'Delivered')
+        ->whereIn('order_id', function ($query) use ($userId) {
+            $query->select('order_id')
+                ->from('tbuser_order')
+                ->where('user_id', $userId);
+        })
+        ->whereHas('items', function ($q) use ($productId) {
+            $q->where('product_id', $productId);
+        })
+        ->exists();
+
+    return response()->json(['puede' => $puede]);
+})->middleware('auth')->name('plaza.product.can-review');
+
+// Guardar reseña del producto
+Route::post('/plaza/producto/{productId}/resena', [PlazaController::class, 'storeProductReview'])
+    ->middleware('auth')
+    ->name('plaza.product.review.store');
+
 
 });
 
