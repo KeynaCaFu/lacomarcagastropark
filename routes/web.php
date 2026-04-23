@@ -260,6 +260,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/client-profile/password/request-temporary', [ClienteController::class, 'requestTemporaryPassword'])->name('client.password.request-temporary');
     Route::get('/change-temporary-password', [ClienteController::class, 'showChangeTemporaryPasswordForm'])->name('client.password.change-temporary-form');
     Route::put('/client-profile/password/temporary', [ClienteController::class, 'updatePasswordWithTemporary'])->name('client.password.update-temporary');
+    
+    // Historial de pedidos del cliente
+    Route::get('/my-orders', [ClienteController::class, 'showOrderHistory'])->name('client.orders.history');
 
 // Guardar reseña del local por cliente 
     Route::post('/plaza/{localId}/review', [PlazaController::class, 'storeLocalReview'])
