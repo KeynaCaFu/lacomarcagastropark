@@ -76,6 +76,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Relationship with Orders (for clients)
+     */
+    public function orders()
+    {
+        return $this->belongsToMany(Order::class, 'tbuser_order', 'user_id', 'order_id');
+    }
+
+    /**
      * Check if user is admin (global admin)
      */
     public function isAdminGlobal()
