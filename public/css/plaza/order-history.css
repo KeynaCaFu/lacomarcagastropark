@@ -423,6 +423,38 @@ main {
     border-top: 1px solid var(--border);
 }
 
+.reorder-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.reorder-btn:hover {
+    background-color: var(--primary-dark, #b83536);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 66, 62, 0.25);
+}
+
+.reorder-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(212, 66, 62, 0.15);
+}
+
+.reorder-btn i {
+    font-size: 1rem;
+}
+
 /* ═══ EMPTY STATE ═══ */
 .empty-state {
     text-align: center;
@@ -717,6 +749,11 @@ main {
         flex-direction: column;
         gap: 10px;
         align-items: flex-start;
+    }
+
+    .reorder-btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 

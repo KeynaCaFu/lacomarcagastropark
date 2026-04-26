@@ -325,6 +325,7 @@ Route::prefix('plaza')->name('plaza.')->middleware(['preserve.admin.session', 'v
     Route::post('carrito/api/remover', [\App\Http\Controllers\CartController::class, 'removeItem'])->name('cart.remove');
     Route::post('carrito/api/limpiar', [\App\Http\Controllers\CartController::class, 'clearCart'])->name('cart.clear');
     Route::post('carrito/api/confirmar', [\App\Http\Controllers\CartController::class, 'confirmOrder'])->name('order.create');
+    Route::post('carrito/api/reordenar', [\App\Http\Controllers\CartController::class, 'reorderOrder'])->name('cart.reorder');
 });
 
 // ==========================================
