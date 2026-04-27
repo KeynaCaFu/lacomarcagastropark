@@ -323,7 +323,13 @@ Route::prefix('plaza')->name('plaza.')->middleware(['preserve.admin.session', 'v
     Route::post('carrito/api/actualizar-cantidad', [\App\Http\Controllers\CartController::class, 'updateItemQuantity'])->name('cart.update.qty');
     Route::post('carrito/api/remover', [\App\Http\Controllers\CartController::class, 'removeItem'])->name('cart.remove');
     Route::post('carrito/api/limpiar', [\App\Http\Controllers\CartController::class, 'clearCart'])->name('cart.clear');
-    Route::post('carrito/api/confirmar', [\App\Http\Controllers\CartController::class, 'confirmOrder'])->name('order.create');
+    Route::post('carrito/api/confirmar', [\App\Http\Controllers\CartController::class, 'confirmOrder'])->name('order.confirm');
+    
+    // Órdenes del cliente (requiere autenticación)
+    Route::middleware('auth')->group(function () {
+        Route::get('carrito/api/mis-ordenes', [\App\Http\Controllers\CartController::class, 'getMyOrders'])->name('my.orders');
+        Route::post('carrito/api/cancelar/{orderId}', [\App\Http\Controllers\CartController::class, 'cancelOrder'])->name('cancel.order');
+    });
 });
 
 // RUTAS PARA CONFIGURACIÓN DE PERÍMETRO DE SEGURIDAD (Solo admin global)
