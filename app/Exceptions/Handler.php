@@ -51,46 +51,46 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
-      // Manejar errores de conexión a la base de datos
-        $this->renderable(function (Throwable $e, Request $request) {
-            // PRIMERO: Detectar errores de red/conexión a internet
-            // (se chequea primero porque la falta de WiFi causa ambos errores)
-            if ($this->isNetworkError($e)) {
-                return response()->view('errors.no-internet', [
-                    'exception' => env('APP_DEBUG') ? $e : null,
-                ], 503);
-            }
+    //   // Manejar errores de conexión a la base de datos
+    //     $this->renderable(function (Throwable $e, Request $request) {
+    //         // PRIMERO: Detectar errores de red/conexión a internet
+    //         // (se chequea primero porque la falta de WiFi causa ambos errores)
+    //         if ($this->isNetworkError($e)) {
+    //             return response()->view('errors.no-internet', [
+    //                 'exception' => env('APP_DEBUG') ? $e : null,
+    //             ], 503);
+    //         }
 
-            // SEGUNDO: Detectar errores de conexión a BD
-            if ($this->isDbConnectionError($e)) {
-                // Verificar si es un error de conexión específicamente
-                if ($this->isConnectionRefused($e)) {
-                    return response()->view('errors.db-connection', [
-                        // No pasar excepción en producción por seguridad
-                        'exception' => env('APP_DEBUG') ? $e : null,
-                    ], 503);
-                }
+    //         // SEGUNDO: Detectar errores de conexión a BD
+    //         if ($this->isDbConnectionError($e)) {
+    //             // Verificar si es un error de conexión específicamente
+    //             if ($this->isConnectionRefused($e)) {
+    //                 return response()->view('errors.db-connection', [
+    //                     // No pasar excepción en producción por seguridad
+    //                     'exception' => env('APP_DEBUG') ? $e : null,
+    //                 ], 503);
+    //             }
                 
-                return response()->view('errors.connection-error', [
-                    'exception' => env('APP_DEBUG') ? $e : null,
-                    'code' => 503,
-                    'title' => 'Error de Conexión a Base de Datos',
-                    'message' => 'No podemos conectar con la base de datos. Por favor, intenta de nuevo en unos momentos.',
-                ], 503);
-            }
+    //             return response()->view('errors.connection-error', [
+    //                 'exception' => env('APP_DEBUG') ? $e : null,
+    //                 'code' => 503,
+    //                 'title' => 'Error de Conexión a Base de Datos',
+    //                 'message' => 'No podemos conectar con la base de datos. Por favor, intenta de nuevo en unos momentos.',
+    //             ], 503);
+    //         }
 
-            // TERCERO: Errores 503 de servidor general
-            if ($e instanceof HttpException && $e->getStatusCode() === 503) {
-                return response()->view('errors.connection-error', [
-                    'exception' => env('APP_DEBUG') ? $e : null,
-                    'code' => 503,
-                    'title' => 'Servicio No Disponible',
-                    'message' => 'El servicio no está disponible en este momento.',
-                ], 503);
-            }
+    //         // TERCERO: Errores 503 de servidor general
+    //         if ($e instanceof HttpException && $e->getStatusCode() === 503) {
+    //             return response()->view('errors.connection-error', [
+    //                 'exception' => env('APP_DEBUG') ? $e : null,
+    //                 'code' => 503,
+    //                 'title' => 'Servicio No Disponible',
+    //                 'message' => 'El servicio no está disponible en este momento.',
+    //             ], 503);
+    //         }
 
-            return null;
-        }); 
+    //         return null;
+    //     }); 
         
     }
 

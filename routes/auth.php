@@ -42,9 +42,14 @@ Route::middleware('guest')->group(function () {
     Route::post('reset-password', [NewPasswordController::class, 'store'])
                 ->name('password.store');
 
-    // Google Authentication Routes
-    Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
-    Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');
+    // Google Authentication Routes (con rate limiting)
+    Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])
+        ->middleware('throttle:5,1')
+        ->name('auth.google');
+    
+    Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])
+        ->middleware('throttle:10,1')
+        ->name('auth.google.callback');
 });
 
 Route::middleware('auth')->group(function () {

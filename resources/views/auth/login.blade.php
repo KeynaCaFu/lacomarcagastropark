@@ -4,6 +4,7 @@
 
 @section('content')
 <div class="login-container" id="authContainer">
+
     <div class="login-wrapper" id="authWrapper">
         {{-- PANEL LOGIN --}}
         <div class="login-panel" id="loginPanel">
@@ -54,6 +55,9 @@
                                 placeholder="Contraseña"
                                 required
                                 autocomplete="current-password"
+                                onpaste="return true"
+                                oncopy="return true"
+                                oncut="return true"
                             >
                             <i class="fa-solid fa-lock"></i>
                         </div>
@@ -75,7 +79,7 @@
 
                 <div class="password-recovery-options">
                     <button type="button" id="switchRecoveryBtn" class="forgot-password" title="Recuperar contraseña">
-                        <i class="fa-solid fa-key"></i> Recuperar contraseña
+                         ¿Olvidaste tu contraseña?
                     </button>
                 </div>
 
@@ -84,11 +88,24 @@
                 </div>
 
                 <div class="google-container">
-                    <a href="{{ route('auth.google') }}" class="btn-google" title="Iniciar sesión con Google" onclick="window.location.href=this.href; return false;">
-                        <i class="fa-brands fa-google"></i>
+                    <a href="{{ route('auth.google') }}" class="btn-google" title="Iniciar sesión con Google">
+                        <svg class="google-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        <span>Continuar con Google</span>
                     </a>
                 </div>
 
+                {{-- ALERTA DE SESIÓN EXPIRADA --}}
+                @error('error')
+                    <div class="custom-alert custom-alert-danger" style="margin-top: 12px;">
+                        <i class="fa-solid fa-exclamation-circle"></i>
+                        <span>{{ $message }}</span>
+                    </div>
+                @enderror
                
             </form>
 
@@ -101,9 +118,30 @@
             <div class="responsive-footer" id="loginFooter">
                 <p>¿No tienes cuenta? <button type="button" class="switch-btn" id="switchRegisterResponsive">Registrate aquí</button></p>
             </div>
-        </div>
 
-        {{-- PANEL REGISTRO --}}
+            {{-- ALERTAS DE ÉXITO EN LOGIN (Posicionadas al final para responsive) --}}
+            @if (session('recovery-status'))
+                <div class="custom-alert custom-alert-success" id="recoveryStatusAlert" style="margin-top: 10px;">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>{{ session('recovery-status') }}</span>
+                </div>
+            @endif
+
+            {{-- ALERTAS DE ERROR EN LOGIN (Recuperación - Posicionadas al final para responsive) --}}
+            @if (session('recovery-error'))
+                <div class="custom-alert custom-alert-danger" id="recoveryErrorAlert" style="margin-top: 10px;">
+                    <i class="fa-solid fa-times-circle"></i>
+                    <span>{{ session('recovery-error') }}</span>
+                </div>
+            @endif
+
+            @error('email', 'recovery')
+                <div class="custom-alert custom-alert-danger" id="recoveryErrorAlert" style="margin-top: 10px;">
+                    <i class="fa-solid fa-times-circle"></i>
+                    <span>{{ $message }}</span>
+                </div>
+            @enderror
+        </div>
         <div class="register-panel" id="registerPanel">
             <div class="register-header">
                 <a href="{{ route('plaza.index') }}" class="logo-link">
@@ -213,10 +251,24 @@
                 </div>
 
                 <div class="google-container">
-                    <a href="{{ route('auth.google') }}" class="btn-google" title="Registrarse con Google" onclick="window.location.href=this.href; return false;">
-                        <i class="fa-brands fa-google"></i>
+                    <a href="{{ route('auth.google') }}" class="btn-google" title="Registrarse con Google">
+                        <svg class="google-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        <span>Registrate con Google</span>
                     </a>
                 </div>
+
+                {{-- ALERTA DE SESIÓN EXPIRADA --}}
+                @error('error')
+                    <div class="custom-alert custom-alert-danger" style="margin-top: 12px;">
+                        <i class="fa-solid fa-exclamation-circle"></i>
+                        <span>{{ $message }}</span>
+                    </div>
+                @enderror
             </form>
 
             {{-- <div class="panel-footer">
@@ -240,12 +292,6 @@
             <h2 class="recovery-title">Recuperar Contraseña</h2>
             <p class="recovery-subtitle">Te enviaremos una contraseña temporal a tu correo</p>
 
-            @if (session('recovery-status'))
-                <div class="alert alert-success" role="alert">
-                    {{ session('recovery-status') }}
-                </div>
-            @endif
-
             <form method="POST" action="{{ route('password.recovery') }}" class="recovery-form">
                 @csrf
 
@@ -260,10 +306,13 @@
                             value="{{ old('email') }}"
                             required
                             autocomplete="email"
+                            onpaste="return true"
+                            oncopy="return true"
+                            oncut="return true"
                         >
                         <i class="fa-solid fa-envelope"></i>
                     </div>
-                    @error('email')
+                    @error('email', 'recovery')
                         <span class="form-error">{{ $message }}</span>
                     @enderror
                 </div>
@@ -314,7 +363,70 @@
 
 @push('styles')
 <style>
-    /* ===== CONTENEDOR PRINCIPAL ===== */
+    /* ===== CUSTOM ALERT ===== */
+    @keyframes slideDownAlert {
+        from {
+            opacity: 0;
+            transform: translateY(-15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .custom-alert {
+        padding: 16px 20px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        font-size: 14px;
+        font-weight: 500;
+        position: relative;
+        animation: slideDownAlert 0.4s ease-out;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .custom-alert-success {
+        background: linear-gradient(135deg, rgba(225, 128, 24, 0.15), rgba(145, 80, 22, 0.1));
+        border: 1px solid rgba(225, 128, 24, 0.3);
+        color: #fbbf24;
+    }
+
+    .custom-alert-success i {
+        color: #e18018;
+    }
+
+    .custom-alert-danger {
+        background: linear-gradient(135deg, rgba(225, 128, 24, 0.15), rgba(145, 80, 22, 0.1));
+        border: 1px solid rgba(225, 128, 24, 0.3);
+        color: #fbbf24;
+    }
+
+    .custom-alert-danger i {
+        color: #e18018;
+    }
+
+    .custom-alert i {
+        font-size: 18px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .custom-alert span {
+        flex: 1;
+        line-height: 1.5;
+    }
+
+    .custom-alert-close {
+        display: none !important;
+    }
+
+
     .login-container {
         width: 100%;
         max-width: 960px;
@@ -539,7 +651,8 @@
     .recovery-subtitle {
         font-size: 14px;
         color: #b0b0b0;
-        margin: 5px 0 0;
+        margin: 18px 0 0;
+        padding: 8px;
     }
 
     .register-panel .login-title {
@@ -663,6 +776,27 @@
         box-shadow: 0 0 0 3px rgba(225, 128, 24, 0.2);
     }
 
+    .recovery-panel .form-group input {
+        background: #2a2a2a;
+        border: 1px solid #444;
+        color: #fff;
+    }
+
+    .recovery-panel .form-group input::placeholder {
+        color: #a0a0a0;
+        opacity: 1;
+    }
+
+    .recovery-panel .form-group input:focus::placeholder {
+        color: #888;
+    }
+
+    .recovery-panel .form-group input:focus {
+        outline: none;
+        border-color: #e18018;
+        box-shadow: 0 0 0 3px rgba(225, 128, 24, 0.2);
+    }
+
     .form-error {
         display: block;
         color: #ff6b6b;
@@ -695,7 +829,7 @@
 
     .toggle-btn {
         position: absolute;
-        right: 44px;
+       right: 29px;
         top: 50%;
         transform: translateY(-50%);
         background: none;
@@ -703,12 +837,16 @@
         color: #999;
         cursor: pointer;
         font-size: 16px;
-        padding: 4px;
+        padding: 8px 12px;
         z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .login-panel .toggle-btn {
         color: #b0b0b0;
+        cursor: pointer;
     }
 
     .toggle-btn:hover {
@@ -852,36 +990,52 @@
         display: flex;
         justify-content: center;
         margin: 12px 0;
+        width: 100%;
     }
 
     .btn-google {
-        display: flex;
+       display: flex;
         align-items: center;
         justify-content: center;
-        width: 48px;
-        height: 48px;
-        background: #ffffff24;
-        border: 2px solid #b96317;
+        gap: 10px;
+        width: 60%;
+        padding: 12px 16px;
+        background: #d4b59e;
+        border: 1px solid #d07d25;
         border-radius: 8px;
-        color: #a45f22;
-        font-size: 24px;
+        color: #0a0b0c;
+        font-size: 15px;
+        font-weight: 511;
         text-decoration: none;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
         pointer-events: auto !important;
         z-index: 10 !important;
         position: relative;
     }
 
     .btn-google:hover {
-        background: #ffffff24;
-        border-color: #a45f22;
-        box-shadow: 0 4px 12px rgba(244, 191, 66, 0.2);
-        transform: translateY(-2px);
+        background: #f8f9fa;
+        border-color: #c6c6c6;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        transform: translateY(-1px);
     }
 
-    .btn-google i {
-        pointer-events: none;
+    .btn-google:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+    }
+
+    .google-logo {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+
+    .btn-google span {
+        font-size: 15px;
+        font-weight: 500;
+        color: #3c4043;
     }
 
     .forgot-password {
@@ -1219,9 +1373,14 @@
         }
 
         .btn-google {
-            width: 44px;
-            height: 44px;
-            font-size: 20px;
+            padding: 11px 14px;
+            font-size: 14px;
+            gap: 8px;
+        }
+
+        .google-logo {
+            width: 18px;
+            height: 18px;
         }
 
         .forgot-password {
@@ -1312,9 +1471,18 @@
         }
 
         .btn-google {
-            width: 40px;
-            height: 40px;
-            font-size: 18px;
+            padding: 10px 12px;
+            font-size: 13px;
+            gap: 8px;
+        }
+
+        .google-logo {
+            width: 16px;
+            height: 16px;
+        }
+
+        .btn-google span {
+            font-size: 13px;
         }
 
         .forgot-password {
@@ -1371,9 +1539,18 @@
         }
 
         .btn-google {
-            width: 38px;
-            height: 38px;
-            font-size: 16px;
+            padding: 9px 10px;
+            font-size: 12px;
+            gap: 6px;
+        }
+
+        .google-logo {
+            width: 14px;
+            height: 14px;
+        }
+
+        .btn-google span {
+            font-size: 12px;
         }
     }
 </style>
@@ -1546,6 +1723,56 @@ document.addEventListener('DOMContentLoaded', function () {
             icon.classList.toggle('fa-eye-slash');
         });
     }
+
+    // Ocultar alerta de recuperación de contraseña (éxito)
+    const recoveryStatusAlert = document.getElementById('recoveryStatusAlert');
+    if (recoveryStatusAlert) {
+        setTimeout(() => {
+            recoveryStatusAlert.style.transition = 'opacity 0.5s ease';
+            recoveryStatusAlert.style.opacity = '0';
+            setTimeout(() => {
+                recoveryStatusAlert.style.display = 'none';
+            }, 500);
+        }, 7000);
+    }
+
+    // Ocultar alerta de recuperación de contraseña (error)
+    recoveryErrorAlert = document.getElementById('recoveryErrorAlert');
+    if (recoveryErrorAlert) {
+        setTimeout(() => {
+            recoveryErrorAlert.style.transition = 'opacity 0.5s ease';
+            recoveryErrorAlert.style.opacity = '0';
+            setTimeout(() => {
+                recoveryErrorAlert.style.display = 'none';
+            }, 500);
+        }, 7000);
+    }
+
+    // ===== MOSTRAR ALERTA DE SESIÓN EXPIRADA =====
+    const sessionExpiredAlerts = document.querySelectorAll('.custom-alert-danger');
+    
+    sessionExpiredAlerts.forEach(alert => {
+        // Si hay una alerta de sesión expirada, animarla
+        if (alert.textContent.includes('sesión')) {
+            alert.style.animation = 'slideDown 0.4s ease-out';
+        }
+    });
 });
+
+// ===== ANIMACIÓN DE SLIDE DOWN PARA ALERTA =====
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+document.head.appendChild(style);
 </script>
 @endpush
