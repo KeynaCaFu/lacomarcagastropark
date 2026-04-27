@@ -67,6 +67,9 @@
                                     <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
                                         <i class="fas fa-user-edit text-muted"></i> Editar perfil
                                     </a>
+                                    <a href="{{ route('client.orders.history') }}" class="dropdown-item">
+                                        <i class="fas fa-history text-muted"></i> Ver mis pedidos
+                                    </a>
                                     <form method="POST" action="{{ route('logout') }}" class="m-0">
                                         @csrf
                                         <button type="submit" class="dropdown-item danger">

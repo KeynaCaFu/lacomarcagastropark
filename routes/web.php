@@ -19,6 +19,8 @@ use App\Http\Controllers\QrAdminController;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Http\Controllers\PlazaConfigController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -263,6 +265,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/client-profile/password/request-temporary', [ClienteController::class, 'requestTemporaryPassword'])->name('client.password.request-temporary');
     Route::get('/change-temporary-password', [ClienteController::class, 'showChangeTemporaryPasswordForm'])->name('client.password.change-temporary-form');
     Route::put('/client-profile/password/temporary', [ClienteController::class, 'updatePasswordWithTemporary'])->name('client.password.update-temporary');
+    
+    // Historial de pedidos del cliente
+    Route::get('/my-orders', [ClienteController::class, 'showOrderHistory'])->name('client.orders.history');
 
 // Guardar reseña del local por cliente 
     Route::post('/plaza/{localId}/review', [PlazaController::class, 'storeLocalReview'])
@@ -322,7 +327,14 @@ Route::prefix('plaza')->name('plaza.')->middleware(['preserve.admin.session', 'v
     Route::post('carrito/api/remover', [\App\Http\Controllers\CartController::class, 'removeItem'])->name('cart.remove');
     Route::post('carrito/api/limpiar', [\App\Http\Controllers\CartController::class, 'clearCart'])->name('cart.clear');
     Route::post('carrito/api/confirmar', [\App\Http\Controllers\CartController::class, 'confirmOrder'])->name('order.create');
+    Route::post('carrito/api/reordenar', [\App\Http\Controllers\CartController::class, 'reorderOrder'])->name('cart.reorder');
 });
+
+// RUTAS PARA CONFIGURACIÓN DE PERÍMETRO DE SEGURIDAD (Solo admin global)
+Route::get('/admin/perimetro-seguridad', [PlazaConfigController::class, 'index'])->name('admin.plaza-config.index');
+Route::get('/admin/perimetro-seguridad/editar', [PlazaConfigController::class, 'edit'])->name('admin.plaza-config.edit');
+Route::post('/admin/config-perimetro', [PlazaConfigController::class, 'update'])->name('admin.plaza-config.update');
+
 
 // ==========================================
 // RUTAS DE PRUEBA - Errores de Conexión
