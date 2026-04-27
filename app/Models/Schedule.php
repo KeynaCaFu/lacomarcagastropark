@@ -64,7 +64,7 @@ class Schedule extends Model
      */
     public function scopeTodayForLocal($query, $localId)
     {
-        $dayOfWeek = \App\Helpers\PlazaHelper::translateDayToSpanish(now()->translatedFormat('l'));
+        $dayOfWeek = \App\Helpers\PlazaHelper::translateDayToSpanish(now()->format('l'));
         
         return $query->select('schedule_id', 'local_id', 'day_of_week', 'opening_time', 'closing_time', 'status')
             ->where('local_id', $localId)
@@ -79,7 +79,7 @@ class Schedule extends Model
      */
     public function scopeTodayForLocals($query, $localIds)
     {
-        $dayOfWeek = \App\Helpers\PlazaHelper::translateDayToSpanish(now()->translatedFormat('l'));
+        $dayOfWeek = \App\Helpers\PlazaHelper::translateDayToSpanish(now()->format('l'));
         
         return $query->select('schedule_id', 'local_id', 'day_of_week', 'opening_time', 'closing_time', 'status')
             ->whereIn('local_id', $localIds)
