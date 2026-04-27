@@ -230,6 +230,133 @@ class CartController extends Controller
     }
 
     /**
+     * Reordenar un pedido anterior
+     * 
+     * Agrega todos los items de un pedido anterior al carrito
+     * Valida que los productos sigan disponibles en el local
+     * Si algunos productos no están disponibles, devuelve información sobre ellos
+     */
+    public function reorderOrder(Request $request)
+    {
+        $validated = $request->validate([
+            'order_id' => 'required|integer|exists:tborder,order_id',
+        ]);
+
+        try {
+            // Obtener la orden con sus items y relaciones
+            $order = \App\Models\Order::with(['items.product', 'local'])
+                ->findOrFail($validated['order_id']);
+
+            // Verificar que la orden pertenece al usuario autenticado o que es un admin
+            $userHasOrder = $order->user()->where('tbuser.user_id', auth()->id())->exists();
+            if (!$userHasOrder && !auth()->user()->isAdminGlobal()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No tienes permiso para reordenar este pedido'
+                ], 403);
+            }
+
+            $unavailableProducts = [];
+            $cart = session()->get('cart', []);
+            $addedCount = 0;
+
+            // Procesar cada item del pedido anterior
+            foreach ($order->items as $item) {
+                // Verificar que el producto siga disponible en el local
+                $product = Product::where('product_id', $item->product_id)
+                    ->whereHas('locals', function ($query) use ($order) {
+                        $query->where('tblocal.local_id', $order->local_id);
+                    })
+                    ->first();
+
+                if (!$product) {
+                    // Producto no disponible
+                    $unavailableProducts[] = [
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product->name ?? 'Producto no encontrado',
+                        'quantity' => $item->quantity
+                    ];
+                    continue;
+                }
+
+                // Generar item key con customización
+                $itemKey = CartHelper::generateItemKey($product->product_id, $item->customization);
+
+                // Buscar si el item ya existe en el carrito
+                $existingItem = null;
+                foreach ($cart as $key => $cartItem) {
+                    if ($cartItem['item_key'] === $itemKey && $cartItem['local_id'] === $order->local_id) {
+                        $existingItem = $key;
+                        break;
+                    }
+                }
+
+                // Si existe, incrementar cantidad; si no, agregar nuevo item
+                if ($existingItem !== null) {
+                    $cart[$existingItem]['quantity'] += $item->quantity;
+                } else {
+                    // Crear nuevo item en el carrito
+                    $newItem = [
+                        'item_key' => $itemKey,
+                        'product_id' => $product->product_id,
+                        'local_id' => $order->local_id,
+                        'name' => $product->name,
+                        'description' => $product->description ?? '',
+                        'price' => $product->price,
+                        'quantity' => $item->quantity,
+                        'customization' => $item->customization ?? '',
+                        'customization_normalized' => CartHelper::normalizeCustomization($item->customization),
+                        'photo_url' => $product->photo_url ?? asset('images/product-placeholder.png'),
+                        'added_at' => now()->toIso8601String(),
+                        // Datos del cliente (se pueden actualizar en el carrito)
+                        'customer_name' => auth()->user()->full_name ?? auth()->user()->name ?? '',
+                        'customer_email' => auth()->user()->email ?? '',
+                        'customer_phone' => auth()->user()->phone ?? '',
+                        'delivery_address' => '',
+                        'additional_notes' => '',
+                    ];
+                    $cart[] = $newItem;
+                }
+                $addedCount++;
+            }
+
+            // Guardar carrito actualizado en sesión
+            session()->put('cart', $cart);
+
+            $message = "Se agregaron {$addedCount} producto(s) al carrito";
+            
+            if (!empty($unavailableProducts)) {
+                $productNames = implode(', ', array_map(function($p) { 
+                    return $p['product_name']; 
+                }, $unavailableProducts));
+                
+                return response()->json([
+                    'success' => true,
+                    'partial' => true,
+                    'message' => $message,
+                    'warning' => "Los siguientes productos ya no están disponibles y no fueron agregados: {$productNames}",
+                    'unavailable_products' => $unavailableProducts,
+                    'cart_count' => count($cart),
+                    'cart' => $cart,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'partial' => false,
+                'message' => $message,
+                'cart_count' => count($cart),
+                'cart' => $cart,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al procesar la reorden: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Confirmar orden desde drawer
      */
     public function confirmOrder(Request $request)

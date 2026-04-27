@@ -191,15 +191,18 @@
 
                                 <!-- FOOTER -->
                                 <div class="order-footer">
-                                    @if($order->additional_notes)
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                         <div>
-                                            <small style="color: var(--muted);">
-                                                <i class="fas fa-sticky-note"></i> {{ $order->additional_notes }}
-                                            </small>
+                                            @if($order->additional_notes)
+                                                <small style="color: var(--muted);">
+                                                    <i class="fas fa-sticky-note"></i> {{ $order->additional_notes }}
+                                                </small>
+                                            @endif
                                         </div>
-                                    @else
-                                        <div></div>
-                                    @endif
+                                        <button class="reorder-btn" @click.prevent="reorderOrder({{ $order->order_id }})">
+                                            <i class="fas fa-redo"></i> Reordenar
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -405,6 +408,84 @@
                 if (selectElement) {
                     selectElement.value = '';
                     window.location.href = '{{ route("client.orders.history") }}';
+                }
+            },
+            /**
+             * Reordenar un pedido anterior
+             * Agrega todos los items del pedido al carrito
+             */
+            async reorderOrder(orderId) {
+                try {
+                    const response = await fetch('{{ route("plaza.cart.reorder") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify({
+                            order_id: orderId
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Mostrar alerta según la respuesta
+                        if (data.partial && data.unavailable_products && data.unavailable_products.length > 0) {
+                            // Algunos productos no están disponibles
+                            const unavailableNames = data.unavailable_products
+                                .map(p => `${p.product_name} (x${p.quantity})`)
+                                .join('\n');
+                            
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Reorden parcial',
+                                html: `
+                                    <div style="text-align: left;">
+                                        <p>${data.message}</p>
+                                        <p style="margin-top: 10px;"><strong>Productos no disponibles:</strong></p>
+                                        <pre style="background-color: #f5f5f5; padding: 10px; border-radius: 4px; text-align: left; font-size: 12px;">${unavailableNames}</pre>
+                                        <p style="color: #666; font-size: 12px; margin-top: 10px;">Estos productos ya no están disponibles en este local o han sido descontinuados.</p>
+                                    </div>
+                                `,
+                                confirmButtonText: 'OK',
+                                confirmButtonColor: '#d4423e'
+                            });
+                        } else {
+                            // Todos los productos se agregaron correctamente
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Reorden exitosa',
+                                text: data.message,
+                                confirmButtonText: 'Ver carrito',
+                                confirmButtonColor: '#d4423e',
+                                showCancelButton: true,
+                                cancelButtonText: 'Continuar aquí'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    // Redirigir a la vista del carrito
+                                    window.location.href = '{{ route("plaza.index") }}';
+                                }
+                            });
+                        }
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error en la reorden',
+                            text: data.message,
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#d4423e'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ocurrió un error al procesar la reorden. Por favor intenta de nuevo.',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#d4423e'
+                    });
                 }
             }
         },
