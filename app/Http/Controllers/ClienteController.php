@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use App\Mail\TemporaryPasswordMail;
+use Carbon\Carbon;
 
 class ClienteController extends Controller
 {
@@ -131,9 +132,6 @@ class ClienteController extends Controller
     }
 
     /**
-     * Update password using temporary password
-     */
-    /**
      * Show the form to change temporary password.
      */
     public function showChangeTemporaryPasswordForm()
@@ -190,5 +188,101 @@ class ClienteController extends Controller
         ]);
 
         return redirect()->route('plaza.index')->with('status', 'Contraseña actualizada exitosamente.');
+    }
+
+    /**
+     * Show order history for authenticated client
+     */
+    public function showOrderHistory(Request $request)
+    {
+        $user = auth()->user();
+        
+        // Obtener órdenes del usuario autenticado, ordenadas del más reciente al más antiguo
+        // Excluir órdenes canceladas
+        $query = $user->orders()
+            ->where('status', '!=', 'Cancelled')
+            ->with(['items.product', 'local'])
+            ->orderBy('created_at', 'desc');
+
+        // Filtrar por local si se proporciona
+        if ($request->has('local_id') && $request->input('local_id')) {
+            $query->where('local_id', $request->input('local_id'));
+        }
+
+        $orders = $query->paginate(10);
+
+        // Obtener locales donde el usuario ha hecho pedidos (solo órdenes no canceladas)
+        $locales = $user->orders()
+            ->where('status', '!=', 'Cancelled')
+            ->distinct()
+            ->pluck('local_id')
+            ->mapWithKeys(function ($localId) {
+                $local = \App\Models\Local::find($localId);
+                return [$localId => $local];
+            })
+            ->filter();
+
+        // Si es una solicitud AJAX, devolver JSON
+        if ($request->expectsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            $ordersData = $orders->map(function ($order) {
+                // Traducir estados al español
+                $statusTranslated = $this->translateStatus($order->status);
+                
+                return [
+                    'id' => $order->order_id,
+                    'order_number' => $order->order_number,
+                    'status' => $statusTranslated,
+                    'status_en' => $order->status,
+                    'date' => $order->date ? Carbon::parse($order->date)->format('d \\d\\e M \\d\\e Y') : '-',
+                    'time' => $order->time ? Carbon::parse($order->time)->format('H:i') : '-',
+                    'local' => [
+                        'name' => $order->local->name ?? '-',
+                    ],
+                    'items' => $order->items->map(function ($item) {
+                        return [
+                            'name' => $item->product->name ?? 'Producto no disponible',
+                            'photo_url' => $item->product->photo_url ?? null,
+                            'customization' => $item->customization,
+                            'quantity' => $item->quantity,
+                        ];
+                    })->toArray(),
+                    'additional_notes' => $order->additional_notes,
+                    'total_amount' => number_format($order->total_amount, 2, '.', ','),
+                    'items_count' => $order->items->count(),
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'orders' => $ordersData,
+                'current_page' => $orders->currentPage(),
+                'last_page' => $orders->lastPage(),
+                'total' => $orders->total(),
+                'has_pages' => $orders->hasPages(),
+                'has_more_pages' => $orders->hasMorePages(),
+            ]);
+        }
+
+        return view('client.order-history', [
+            'orders' => $orders,
+            'locales' => $locales,
+            'selectedLocalId' => $request->input('local_id'),
+        ]);
+    }
+
+    /**
+     * Traducir estados al español
+     */
+    private function translateStatus($status)
+    {
+        $translations = [
+            'Pending' => 'Pendiente',
+            'In Progress' => 'En Preparación',
+            'Ready' => 'Listo',
+            'Delivered' => 'Entregado',
+            'Cancelled' => 'Cancelada',
+        ];
+        
+        return $translations[$status] ?? $status;
     }
 }

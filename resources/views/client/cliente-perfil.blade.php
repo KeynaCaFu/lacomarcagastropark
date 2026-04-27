@@ -162,6 +162,9 @@
                                 <div class="dropdown-name">{{ auth()->user()->full_name ?? auth()->user()->name }}</div>
                                 <div class="dropdown-email">{{ auth()->user()->email }}</div>
                             </div>
+                            <a href="{{ route('client.orders.history') }}" class="dropdown-item">
+                                <i class="fas fa-history text-muted"></i> Ver mis pedidos
+                            </a>
                             <form method="POST" action="{{ route('logout') }}" class="m-0">
                                 @csrf
                                 <button type="submit" class="dropdown-item danger">

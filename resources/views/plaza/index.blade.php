@@ -62,6 +62,9 @@
                                 <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
                                     <i class="fas fa-user-edit text-muted"></i> Editar perfil
                                 </a>
+                                <a href="{{ route('client.orders.history') }}" class="dropdown-item">
+                                    <i class="fas fa-history text-muted"></i> Ver mis pedidos
+                                </a>
                                 <form method="POST" action="{{ route('logout') }}" class="m-0">
                                     @csrf
                                     <button type="submit" class="dropdown-item danger">
@@ -159,7 +162,7 @@
             </h1>
 
             <p class="hero-subtitle">
-                {{ $stats['total_locales'] }} Locales únicos te esperan. Platillos auténticos,
+                {{ $stats['total_locales'] }} Locales únicos te esperan. Productos auténticos,
                 ambiente inigualable y la magia de comer bajo las estrellas.
             </p>
 
@@ -492,7 +495,7 @@
         </div>
     </footer>
 
-    <!-- ══ EVENTOS DRAWER ══ -->
+ 
     <!-- ══ EVENTS DRAWER ══ -->
     @include('plaza.evento.drawer')
 
