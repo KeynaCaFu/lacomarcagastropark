@@ -30,6 +30,12 @@ Como administrador tienes acceso completo al sistema. Aquí puedes:
      - Eliminar eventos
      - Subir fotos y descripciones
 
+4. **Gestionar Seguridad GPS:**
+   - [📍 Perímetro de Seguridad (GPS)](11-perimetro-gps.md)
+     - Configurar centro de la plaza
+     - Definir radio de validación
+     - Uso del mapa interactivo
+
 ---
 
 ## 🏪 Para Gerentes de Local
@@ -61,6 +67,7 @@ Como gerente tienes acceso a la gestión del local. Aquí puedes:
 | 4 | [Gestionar Eventos](04-gestionar-eventos.md) | Admin | Crear y promocionar eventos especiales |
 | 5 | [Dashboard del Gerente](05-gerente-dashboard.md) | Gerente | Panel de control del local |
 | 6 | [Gestionar Productos](06-gestionar-productos.md) | Gerente | Catálogo, precios y galerías de fotos |
+| 11| [Perímetro de Seguridad (GPS)](11-perimetro-gps.md) | Admin | Configuración de geovalla para pedidos |
 
 ---
 
@@ -79,6 +86,10 @@ Como gerente tienes acceso a la gestión del local. Aquí puedes:
 
 **Necesito editar un evento:**
 → [Ver en Gestionar Eventos](04-gestionar-eventos.md#-editar-evento)
+
+**Necesito ajustar el radio de la plaza:**
+→ [Ver en Perímetro GPS](11-perimetro-gps.md#-actualizar-el-perímetro)
+
 
 ### Soy Gerente
 
