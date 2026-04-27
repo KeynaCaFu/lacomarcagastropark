@@ -110,17 +110,6 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-### 4. Configurar Base de Datos
-```bash
-# Editar .env con credenciales MySQL
-DB_CONNECTION=mysql
-DB_HOST=localhost
-DB_PORT=3306
-DB_DATABASE=lacogswb_lacomarca
-DB_USERNAME=lacogswb_lacomarca
-DB_PASSWORD=702810812-402480420
-```
-
 ### 5. Ejecutar Migraciones
 ```bash
 php artisan migrate --seed
