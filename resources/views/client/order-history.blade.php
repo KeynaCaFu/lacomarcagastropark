@@ -416,7 +416,7 @@
              */
             async reorderOrder(orderId) {
                 try {
-                    const response = await fetch('{{ route("cart.reorder") }}', {
+                    const response = await fetch('{{ route("plaza.cart.reorder") }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -464,7 +464,7 @@
                             }).then((result) => {
                                 if (result.isConfirmed) {
                                     // Redirigir a la vista del carrito
-                                    window.location.href = '{{ route("cart.view") }}';
+                                    window.location.href = '{{ route("plaza.index") }}';
                                 }
                             });
                         }
