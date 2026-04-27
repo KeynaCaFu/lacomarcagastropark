@@ -105,6 +105,10 @@
     letter-spacing: 0.02em;
 }
 
+@media (max-width: 480px) {
+    .header-logo-text { display: none; }
+}
+
 .header-auth { display: flex; align-items: center; gap: 8px; }
 
 .btn-auth {
@@ -119,6 +123,7 @@
     cursor: pointer;
     transition: all 0.2s;
     font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
 }
 .btn-login {
     background: transparent;
@@ -126,6 +131,18 @@
     color: var(--primary);
 }
 .btn-login:hover { background: var(--primary-light); }
+
+@media (max-width: 480px) {
+    .btn-auth {
+        padding: 8px 12px;
+        font-size: 0.75rem;
+        gap: 4px;
+    }
+    
+    .btn-login {
+        padding: 8px 12px;
+    }
+}
 
 .user-menu-top { position: relative; }
 .user-menu-btn {
@@ -139,8 +156,25 @@
     font-size: 0.78rem; font-weight: 600;
     font-family: 'DM Sans', sans-serif;
     transition: border-color 0.2s;
+    white-space: nowrap;
 }
 .user-menu-btn:hover { border-color: var(--primary); }
+
+@media (max-width: 480px) {
+    .user-menu-btn {
+        padding: 6px 10px;
+        gap: 4px;
+        font-size: 0.7rem;
+    }
+    
+    .user-menu-btn .text-label {
+        display: none;
+    }
+    
+    .user-menu-btn i:last-child {
+        display: none;
+    }
+}
 
 .user-menu-dropdown {
     position: absolute;
@@ -1478,6 +1512,7 @@
     flex-grow: 1;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;  
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

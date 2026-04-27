@@ -35,7 +35,12 @@ class User extends Authenticatable
         'status',
         'provider',
         'provider_id',
+        'remember_token',
         'avatar',
+        'temporary_password',
+        'temporary_password_expires_at',
+        'google_token_expires_at',
+        'google_token_last_refreshed_at',
     ];
 
     /**
@@ -71,6 +76,14 @@ class User extends Authenticatable
     public function locals()
     {
         return $this->belongsToMany(Local::class, 'tbuser_local', 'user_id', 'local_id');
+    }
+
+    /**
+     * Relationship with Orders (for clients)
+     */
+    public function orders()
+    {
+        return $this->belongsToMany(Order::class, 'tbuser_order', 'user_id', 'order_id');
     }
 
     /**

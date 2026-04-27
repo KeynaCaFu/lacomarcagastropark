@@ -185,6 +185,16 @@
         font-size: 13px;
         color: #6b7280;
     }
+    .reviews-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 24px;
+}
+.reviews-pagination nav {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
 </style>
 <style>
     /* MODAL */
@@ -604,6 +614,12 @@
             @else
                 <div class="reviews-empty-state">No hay reseñas de local registradas para este gerente.</div>
             @endif
+            {{-- Paginación locales --}}
+                @if($localReviews instanceof \Illuminate\Pagination\LengthAwarePaginator && $localReviews->hasPages())
+    <div class="reviews-pagination">
+        {{ $localReviews->appends(request()->query())->links() }}
+    </div>
+            @endif
         </div>
 
         {{-- TAB PRODUCTOS --}}
@@ -814,6 +830,12 @@
             @else
                 <div class="reviews-empty-state">No hay reseñas de productos de este local.</div>
             @endif
+            {{-- Paginación productos --}}
+@if($productReviews instanceof \Illuminate\Pagination\LengthAwarePaginator && $productReviews->hasPages())
+    <div class="reviews-pagination">
+        {{ $productReviews->appends(request()->query())->links() }}
+    </div>
+@endif
         </div>
     </div>
 </div>

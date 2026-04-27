@@ -8,9 +8,12 @@ use App\Models\Schedule;
 use App\Models\Event;
 use App\Models\LocalReview;
 use App\Models\ProductReview;
+use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Auth;
+use App\Models\Order;
+use App\Models\OrderItem;
 class PlazaController extends Controller
 {
     /**
@@ -162,7 +165,7 @@ class PlazaController extends Controller
             });
 
         $now = now();
-        $dayOfWeek = $now->translatedFormat('l');
+        $dayOfWeek = $now->format('l');
 
         $dayTranslation = [
             'Monday'    => 'Lunes',
@@ -256,37 +259,81 @@ class PlazaController extends Controller
     /**
      * Ver detalles de un producto
      */
+    
     public function showProduct($local_id, $product_id)
-    {
-        try {
-            $local = Local::where('local_id', $local_id)->firstOrFail();
-            $product = Product::where('product_id', $product_id)
-                ->where('status', 'Available')
-                ->with([
-                    'gallery',
-                    'productReviews.review' => function ($query) {
-                        $query->select('review_id', 'rating');
-                    }
-                ])
-                ->firstOrFail();
+{
+    try {
+        $local = Local::where('local_id', $local_id)->firstOrFail();
 
-            // Obtener galería y reseñas
-            $gallery = $product->gallery ?? collect();
-            $reviews = ProductReview::where('product_id', $product_id)
-                ->with('review')
-                ->orderBy('created_at', 'desc')
-                ->get();
+        $product = Product::where('product_id', $product_id)
+            ->where('status', 'Available')
+            ->with([
+                'gallery',
+                'productReviews.review' => function ($query) {
+                    $query->select('review_id', 'rating', 'comment', 'date', 'created_at');
+                }
+            ])
+            ->firstOrFail();
 
-            return view('plaza.product-detail', [
-                'local' => $local,
-                'product' => $product,
-                'gallery' => $gallery,
-                'reviews' => $reviews,
-            ]);
-        } catch (\Exception $e) {
-            abort(404, 'Producto no encontrado');
-        }
+        $gallery = $product->gallery ?? collect();
+
+        $reviews = ProductReview::where('product_id', $product_id)
+            ->with(['review', 'user'])
+            ->whereHas('review')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($productReview) {
+                $user = $productReview->user;
+                $review = $productReview->review;
+
+                return [
+                    'product_review_id' => $productReview->product_review_id,
+                    'reviewer_name'     => $user->full_name ?? $user->name ?? 'Cliente',
+                    'rating'            => $review->rating ?? 0,
+                    'comment'           => $review->comment ?? '',
+                    'created_at'        => $review->created_at ?? $review->date ?? $productReview->created_at,
+                    'can_edit'          => auth()->check()
+                        && auth()->id() === $productReview->user_id
+                        && $productReview->created_at->diffInSeconds(now()) <= 900,
+                ];
+            })
+            ->values();
+
+        $today = now()->toDateString();
+        $yesterday = now()->subDay()->toDateString();
+        $oneMonthLater = now()->addDays(30)->toDateString();
+
+        $eventosHoy = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
+            ->active()
+            ->whereDate('start_at', $today)
+            ->orderBy('start_at', 'asc')
+            ->get();
+
+        $eventosProximos = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
+            ->active()
+            ->notExpired()
+            ->where(function($query) use ($today, $yesterday) {
+                $query->whereDate('start_at', '>', $today)
+                      ->orWhere(function($q) use ($yesterday) {
+                          $q->whereDate('start_at', '=', $yesterday);
+                      });
+            })
+            ->where('start_at', '<=', $oneMonthLater . ' 23:59:59')
+            ->orderBy('start_at', 'asc')
+            ->get();
+
+        return view('plaza.product-detail', [
+            'local' => $local,
+            'product' => $product,
+            'gallery' => $gallery,
+            'reviews' => $reviews,
+            'eventosHoy' => $eventosHoy,
+            'eventosProximos' => $eventosProximos,
+        ]);
+    } catch (\Exception $e) {
+        abort(404, 'Producto no encontrado');
     }
+}
 
     /**
      * Obtener datos del local en JSON para cambio dinámico en combobox (AJAX)
@@ -344,7 +391,7 @@ class PlazaController extends Controller
 
             // Obtener horario del día actual
             $now = now();
-            $dayOfWeek = $now->translatedFormat('l');
+            $dayOfWeek = $now->format('l');
 
             $dayTranslation = [
                 'Monday'    => 'Lunes',
@@ -475,4 +522,149 @@ class PlazaController extends Controller
 
         return 'fa-utensils';
     }
+
+
+public function storeLocalReview(Request $request, $localId)
+{
+    try {
+        $request->validate([
+            'rating'  => 'required|integer|min:1|max:5',
+            'comment' => 'required|string|min:10|max:500',
+        ]);
+
+        $userId = Auth::id();
+
+        if (!$userId) {
+            return response()->json(['error' => 'Debes iniciar sesión para dejar una reseña.'], 401);
+        }
+
+        // CA-3: Solo puede reseñar si tiene un pedido previo en ese local
+        $tienePedido = Order::where('user_id', $userId)
+            ->where('local_id', $localId)
+            ->whereIn('status', [
+                Order::STATUS_DELIVERED,  // solo pedidos completados
+            ])
+            ->exists();
+
+        if (!$tienePedido) {
+            return response()->json([
+                'error' => 'Solo puedes reseñar un local en el que hayas realizado un pedido previo.'
+            ], 403);
+        }
+
+        // Crear reseña (permite múltiples por usuario/local)
+        $review = Review::create([
+            'rating'   => $request->rating,
+            'comment'  => $request->comment,
+            'date'     => now(),
+            'response' => null,
+        ]);
+
+        $localReview = LocalReview::create([
+            'review_id' => $review->review_id,
+            'local_id'  => $localId,
+            'user_id'   => $userId,
+        ]);
+
+        // Devolver la nueva reseña completa para renderizarla sin recargar
+        $user = Auth::user();
+        $nombre = $user->full_name ?? $user->name ?? 'Cliente';
+        $partes = explode(' ', trim($nombre));
+        $iniciales = '';
+        foreach (array_slice($partes, 0, 2) as $p) {
+            $iniciales .= strtoupper(substr($p, 0, 1));
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reseña guardada correctamente.',
+            'review'  => [
+                'nombre'    => $nombre,
+                'iniciales' => $iniciales ?: 'CL',
+                'rating'    => $request->rating,
+                'comment'   => $request->comment,
+                'date'      => now()->toISOString(),
+            ],
+        ], 200);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'error' => collect($e->errors())->flatten()->first()
+        ], 422);
+    } catch (\Throwable $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+}
+
+public function storeProductReview(Request $request, $productId)
+{
+    $userId = Auth::id();
+
+    if (!$userId) {
+        return response()->json([
+            'success' => false,
+            'error' => 'Debes iniciar sesión para publicar una reseña.'
+        ], 401);
+    }
+
+    $request->validate([
+        'rating' => 'required|integer|min:1|max:5',
+        'comment' => 'required|string|min:10|max:500',
+    ]);
+
+    $haComprado = Order::where('status', 'Delivered')
+        ->whereHas('user', function ($q) use ($userId) {
+            $q->where('tbuser_order.user_id', $userId);
+        })
+        ->whereHas('items', function ($q) use ($productId) {
+            $q->where('product_id', $productId);
+        })
+        ->exists();
+
+    if (!$haComprado) {
+        return response()->json([
+            'success' => false,
+            'error' => 'Solo puedes reseñar productos que hayas pedido y recibido.'
+        ], 403);
+    }
+
+    // BLOQUEO DE DOBLE RESEÑA
+    $yaExiste = ProductReview::where('product_id', $productId)
+        ->where('user_id', $userId)
+        ->exists();
+
+    if ($yaExiste) {
+        return response()->json([
+            'success' => false,
+            'error' => 'Ya habías publicado una reseña para este producto.'
+        ], 409);
+    }
+
+    $review = Review::create([
+        'rating' => $request->rating,
+        'comment' => trim($request->comment),
+        'date' => now(),
+    ]);
+
+    $productReview = ProductReview::create([
+        'review_id' => $review->review_id,
+        'product_id' => $productId,
+        'user_id' => $userId,
+        'responded_by' => null,
+    ]);
+
+    $user = Auth::user();
+
+    return response()->json([
+        'success' => true,
+        'review' => [
+            'product_review_id' => $productReview->product_review_id,
+            'nombre' => $user->full_name ?? $user->name ?? 'Cliente',
+            'rating' => $review->rating,
+            'comment' => $review->comment,
+            'date' => $review->created_at ?? now(),
+        ]
+    ], 201);
+}
+
 }

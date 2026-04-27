@@ -302,7 +302,8 @@ a { text-decoration: none; color: inherit; }
 ══════════════════════════════════════ */
 
 /* Overlay */
-#plaza-app .evento-detail-overlay {
+#plaza-app .evento-detail-overlay,
+#product-detail-app .evento-detail-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -315,7 +316,8 @@ a { text-decoration: none; color: inherit; }
 }
 
 /* Drawer Container */
-#plaza-app .evento-detail-drawer {
+#plaza-app .evento-detail-drawer,
+#product-detail-app .evento-detail-drawer {
     position: fixed !important;
     bottom: 0 !important;
     left: 50% !important;
@@ -333,12 +335,14 @@ a { text-decoration: none; color: inherit; }
     transition: transform 0.4s cubic-bezier(0.22, 0.68, 0, 1.2) !important;
 }
 
-#plaza-app .evento-detail-drawer.active {
+#plaza-app .evento-detail-drawer.active,
+#product-detail-app .evento-detail-drawer.active {
     transform: translateX(-50%) translateY(0) !important;
 }
 
 /* Headers */
-#plaza-app .evento-detail-header {
+#plaza-app .evento-detail-header,
+#product-detail-app .evento-detail-header {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
@@ -348,7 +352,8 @@ a { text-decoration: none; color: inherit; }
     background: transparent !important;
 }
 
-#plaza-app .evento-detail-header h2 {
+#plaza-app .evento-detail-header h2,
+#product-detail-app .evento-detail-header h2 {
     font-size: 1.05rem !important;
     font-weight: 700 !important;
     color: #F5F0E8 !important;
@@ -356,7 +361,8 @@ a { text-decoration: none; color: inherit; }
     font-family: 'DM Sans', sans-serif !important;
 }
 
-#plaza-app .close-btn {
+#plaza-app .close-btn,
+#product-detail-app .close-btn {
     background: rgba(212, 119, 58, 0.15) !important;
     border: none !important;
     width: 36px !important;
@@ -371,26 +377,30 @@ a { text-decoration: none; color: inherit; }
     padding: 0 !important;
 }
 
-#plaza-app .close-btn:hover {
+#plaza-app .close-btn:hover,
+#product-detail-app .close-btn:hover {
     background: #D4773A !important;
     color: #F5F0E8 !important;
 }
 
 /* Content */
-#plaza-app .evento-detail-content {
+#plaza-app .evento-detail-content,
+#product-detail-app .evento-detail-content {
     overflow-y: auto !important;
     flex: 1 !important;
     padding: 16px 14px !important;
 }
 
-#plaza-app .evento-detail-body {
+#plaza-app .evento-detail-body,
+#product-detail-app .evento-detail-body {
     display: flex !important;
     flex-direction: column !important;
     gap: 20px !important;
 }
 
 /* Image */
-#plaza-app .evento-detail-image {
+#plaza-app .evento-detail-image,
+#product-detail-app .evento-detail-image {
     width: 100% !important;
     height: 220px !important;
     border-radius: 12px !important;
@@ -399,20 +409,23 @@ a { text-decoration: none; color: inherit; }
     margin-bottom: 12px !important;
 }
 
-#plaza-app .evento-detail-image img {
+#plaza-app .evento-detail-image img,
+#product-detail-app .evento-detail-image img {
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
 }
 
 /* Info */
-#plaza-app .evento-detail-info {
+#plaza-app .evento-detail-info,
+#product-detail-app .evento-detail-info {
     display: flex !important;
     flex-direction: column !important;
     gap: 16px !important;
 }
 
-#plaza-app .evento-title {
+#plaza-app .evento-title,
+#product-detail-app .evento-title {
     font-family: 'Cormorant Garamond', serif !important;
     font-size: 1.8rem !important;
     font-weight: 700 !important;
@@ -422,13 +435,15 @@ a { text-decoration: none; color: inherit; }
 }
 
 /* Meta Group */
-#plaza-app .evento-meta-group {
+#plaza-app .evento-meta-group,
+#product-detail-app .evento-meta-group {
     display: flex !important;
     flex-direction: column !important;
     gap: 12px !important;
 }
 
-#plaza-app .evento-meta-item {
+#plaza-app .evento-meta-item,
+#product-detail-app .evento-meta-item {
     display: flex !important;
     align-items: flex-start !important;
     gap: 12px !important;
@@ -438,33 +453,38 @@ a { text-decoration: none; color: inherit; }
     border-left: 3px solid #D4773A !important;
 }
 
-#plaza-app .evento-meta-item i {
+#plaza-app .evento-meta-item i,
+#product-detail-app .evento-meta-item i {
     color: #D4773A !important;
     font-size: 1rem !important;
     flex-shrink: 0 !important;
     margin-top: 2px;
 }
 
-#plaza-app .evento-meta-item span {
+#plaza-app .evento-meta-item span,
+#product-detail-app .evento-meta-item span {
     font-size: 0.9rem !important;
     color: #F5F0E8 !important;
     line-height: 1.4;
 }
 
-#plaza-app .evento-meta-item strong {
+#plaza-app .evento-meta-item strong,
+#product-detail-app .evento-meta-item strong {
     color: #D4773A !important;
     font-weight: 600 !important;
 }
 
 /* Description */
-#plaza-app .evento-description {
+#plaza-app .evento-description,
+#product-detail-app .evento-description {
     padding: 16px !important;
     background: rgba(212, 119, 58, 0.05) !important;
     border-radius: 8px !important;
     border: 1px solid rgba(212, 119, 58, 0.15) !important;
 }
 
-#plaza-app .evento-description p {
+#plaza-app .evento-description p,
+#product-detail-app .evento-description p {
     font-size: 0.95rem !important;
     color: #F5F0E8 !important;
     line-height: 1.6;
@@ -478,19 +498,23 @@ body.evento-detail-open {
 }
 
 /* Scrollbar Styling */
-#plaza-app .evento-detail-content::-webkit-scrollbar {
+#plaza-app .evento-detail-content::-webkit-scrollbar,
+#product-detail-app .evento-detail-content::-webkit-scrollbar {
     width: 6px;
 }
 
-#plaza-app .evento-detail-content::-webkit-scrollbar-track {
+#plaza-app .evento-detail-content::-webkit-scrollbar-track,
+#product-detail-app .evento-detail-content::-webkit-scrollbar-track {
     background: transparent;
 }
 
-#plaza-app .evento-detail-content::-webkit-scrollbar-thumb {
+#plaza-app .evento-detail-content::-webkit-scrollbar-thumb,
+#product-detail-app .evento-detail-content::-webkit-scrollbar-thumb {
     background: rgba(212, 119, 58, 0.3);
     border-radius: 3px;
 }
 
-#plaza-app .evento-detail-content::-webkit-scrollbar-thumb:hover {
+#plaza-app .evento-detail-content::-webkit-scrollbar-thumb:hover,
+#product-detail-app .evento-detail-content::-webkit-scrollbar-thumb:hover {
     background: rgba(212, 119, 58, 0.5);
 }

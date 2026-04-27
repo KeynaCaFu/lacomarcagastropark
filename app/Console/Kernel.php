@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -15,7 +16,17 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Limpiar tokens expirados cada noche a las 3:00 AM
+        // CA2 + CA5: Gestión de tokens y limpieza automática
+        $schedule->command('clean:expired-tokens --days=7')
+            ->dailyAt('03:00')
+            ->timezone('America/Costa_Rica')
+            ->onSuccess(function () {
+                Log::info(' Limpieza de tokens completada exitosamente');
+            })
+            ->onFailure(function () {
+                Log::error(' Error en la limpieza de tokens');
+            });
     }
 
     /**

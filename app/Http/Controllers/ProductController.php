@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
@@ -134,8 +136,20 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:255|unique:tbproduct,name',
+        $user = auth()->user();
+        $localId = null;
+
+        // Si es gerente, obtener su local
+        if ($user->isAdminLocal()) {
+            $local = $user->locals()->first();
+            if ($local) {
+                $localId = $local->local_id;
+            }
+        }
+
+        // Validación base
+        $rules = [
+            'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'categoria' => 'nullable|string|max:100',
             'etiqueta' => 'nullable|string|max:100',
@@ -143,9 +157,10 @@ class ProductController extends Controller
             'precio' => 'required|numeric|min:0',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'estado' => 'required|string|in:Disponible,No disponible'
-        ], [
+        ];
+
+        $messages = [
             'nombre.required' => 'El nombre del producto es obligatorio',
-            'nombre.unique' => 'Ya existe un producto con este nombre',
             'precio.required' => 'El precio es obligatorio',
             'precio.numeric' => 'El precio debe ser un número',
             'precio.min' => 'El precio no puede ser negativo',
@@ -153,7 +168,42 @@ class ProductController extends Controller
             'foto.mimes' => 'La imagen debe ser JPG, PNG o GIF',
             'foto.max' => 'La imagen no puede ser mayor a 2MB',
             'estado.in' => 'El estado debe ser Disponible o No disponible'
-        ]);
+        ];
+
+        // Crear validador
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        // Agregar validación personalizada para el nombre
+        if ($localId) {
+            $validator->after(function ($validator) use ($request, $localId) {
+                $nombreProducto = $request->input('nombre');
+                
+                // Verificar si existe otro producto con el mismo nombre en este local
+                $exists = DB::table('tbproduct as p')
+                    ->join('tblocal_product as lp', 'p.product_id', '=', 'lp.product_id')
+                    ->where('p.name', $nombreProducto)
+                    ->where('lp.local_id', $localId)
+                    ->exists();
+
+                if ($exists) {
+                    $validator->errors()->add('nombre', 'Ya existe un producto con este nombre en tu local');
+                }
+            });
+        } else {
+            // Para admin global: validar unicidad global
+            $validator->after(function ($validator) use ($request) {
+                $nombreProducto = $request->input('nombre');
+                $exists = DB::table('tbproduct')
+                    ->where('name', $nombreProducto)
+                    ->exists();
+
+                if ($exists) {
+                    $validator->errors()->add('nombre', 'Ya existe un producto con este nombre');
+                }
+            });
+        }
+
+        $validated = $validator->validate();
 
         // Procesar la foto si se envía
         $photoPath = null;
@@ -184,20 +234,16 @@ class ProductController extends Controller
         $product = $this->productData->create($data);
 
         // Si es gerente, crear automáticamente la relación con su local
-        $user = auth()->user();
-        if ($user->isAdminLocal()) {
-            $local = $user->locals()->first();
-            if ($local) {
-                // Crear relación en tblocal_product
-                DB::table('tblocal_product')->insert([
-                    'local_id' => $local->local_id,
-                    'product_id' => $product->product_id,
-                    'price' => $validated['precio'],
-                    'is_available' => 1,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
-            }
+        if ($localId) {
+            // Crear relación en tblocal_product
+            DB::table('tblocal_product')->insert([
+                'local_id' => $localId,
+                'product_id' => $product->product_id,
+                'price' => $validated['precio'],
+                'is_available' => 1,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
         }
 
         // Agregar imágenes a la galería si se envían
@@ -261,8 +307,20 @@ class ProductController extends Controller
         }
 
         // Full update - validate all fields
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:255|unique:tbproduct,name,' . $id . ',product_id',
+        $user = auth()->user();
+        $localId = null;
+
+        // Si es gerente, obtener su local
+        if ($user->isAdminLocal()) {
+            $local = $user->locals()->first();
+            if ($local) {
+                $localId = $local->local_id;
+            }
+        }
+
+        // Validación base
+        $rules = [
+            'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'categoria' => 'nullable|string|max:100',
             'etiqueta' => 'nullable|string|max:100',
@@ -270,9 +328,10 @@ class ProductController extends Controller
             'precio' => 'required|numeric|min:0',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'estado' => 'required|string|in:Disponible,No disponible'
-        ], [
+        ];
+
+        $messages = [
             'nombre.required' => 'El nombre del producto es obligatorio',
-            'nombre.unique' => 'Ya existe otro producto con este nombre',
             'precio.required' => 'El precio es obligatorio',
             'precio.numeric' => 'El precio debe ser un número',
             'precio.min' => 'El precio no puede ser negativo',
@@ -280,7 +339,44 @@ class ProductController extends Controller
             'foto.mimes' => 'La imagen debe ser JPG, PNG o GIF',
             'foto.max' => 'La imagen no puede ser mayor a 2MB',
             'estado.in' => 'El estado debe ser Disponible o No disponible'
-        ]);
+        ];
+
+        // Crear validador
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        // Agregar validación personalizada para el nombre
+        if ($localId) {
+            $validator->after(function ($validator) use ($request, $localId, $id) {
+                $nombreProducto = $request->input('nombre');
+                
+                // Verificar si existe OTRO producto con el mismo nombre en este local (excluyendo el actual)
+                $exists = DB::table('tbproduct as p')
+                    ->join('tblocal_product as lp', 'p.product_id', '=', 'lp.product_id')
+                    ->where('p.name', $nombreProducto)
+                    ->where('lp.local_id', $localId)
+                    ->where('p.product_id', '!=', $id)
+                    ->exists();
+
+                if ($exists) {
+                    $validator->errors()->add('nombre', 'Ya existe otro producto con este nombre en tu local');
+                }
+            });
+        } else {
+            // Para admin global: validar unicidad global (excluyendo el actual)
+            $validator->after(function ($validator) use ($request, $id) {
+                $nombreProducto = $request->input('nombre');
+                $exists = DB::table('tbproduct')
+                    ->where('name', $nombreProducto)
+                    ->where('product_id', '!=', $id)
+                    ->exists();
+
+                if ($exists) {
+                    $validator->errors()->add('nombre', 'Ya existe otro producto con este nombre');
+                }
+            });
+        }
+
+        $validated = $validator->validate();
 
         // Procesar la foto si se envía
         $photoPath = $product->photo; // Mantener la foto actual por defecto
@@ -319,18 +415,14 @@ class ProductController extends Controller
         $updatedProduct = $this->productData->update($id, $data);
 
         // Si es gerente, actualizar también el precio en tblocal_product
-        $user = auth()->user();
-        if ($user->isAdminLocal()) {
-            $local = $user->locals()->first();
-            if ($local) {
-                DB::table('tblocal_product')
-                    ->where('local_id', $local->local_id)
-                    ->where('product_id', $id)
-                    ->update([
-                        'price' => $validated['precio'],
-                        'updated_at' => now()
-                    ]);
-            }
+        if ($localId) {
+            DB::table('tblocal_product')
+                ->where('local_id', $localId)
+                ->where('product_id', $id)
+                ->update([
+                    'price' => $validated['precio'],
+                    'updated_at' => now()
+                ]);
         }
 
         if ($request->wantsJson() || $request->ajax()) {

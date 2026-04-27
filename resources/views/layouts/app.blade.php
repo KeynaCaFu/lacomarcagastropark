@@ -28,8 +28,12 @@
         }
         
         .main-content {
+            flex: 1;
+            min-width: 0;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
         }
         
         .container-fluid {
@@ -333,6 +337,17 @@
                             <li>
                                 <a href="{{ route('eventos.index') }}" class="{{ request()->routeIs('eventos*') ? 'active' : '' }}" data-tooltip="Eventos">
                                     <i class="fas fa-calendar-days"></i> Eventos
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="{{ route('admin.qr.index') }}" class="{{ request()->routeIs('admin.qr*') ? 'active' : '' }}" data-tooltip="QR Validación">
+                                    <i class="fas fa-qrcode"></i> QR Validación
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('admin.plaza-config.index') }}" class="{{ request()->routeIs('admin.plaza-config*') ? 'active' : '' }}" data-tooltip="Perímetro de Seguridad">
+                                    <i class="fas fa-map-marked-alt"></i> Perímetro de Seguridad
                                 </a>
                             </li>
                         @else

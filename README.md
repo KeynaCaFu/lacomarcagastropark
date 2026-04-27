@@ -15,7 +15,6 @@ LaComarca GastroPark es una plataforma web basada en **Laravel** diseñada para 
 ---
 
 
-
 ## Documentación Completa
 
 Toda la documentación está organizada en la carpeta `/docs`:
@@ -109,7 +108,8 @@ npm install
 ```bash
 cp .env.example .env
 php artisan key:generate
-```
+```
+
 ### 5. Ejecutar Migraciones
 ```bash
 php artisan migrate --seed
@@ -117,7 +117,7 @@ php artisan migrate --seed
 
 ### 6. Compilar Assets
 ```bash
-npm run dev
+npm run dev o npm run build
 ```
 
 ### 7. Iniciar Servidor
