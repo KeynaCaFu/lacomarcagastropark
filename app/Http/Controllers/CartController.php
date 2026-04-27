@@ -553,6 +553,51 @@ class CartController extends Controller
     }
 
     /**
+     * Obtener historial de órdenes del cliente (Ready, Delivered, Cancelled)
+     */
+    public function getOrderHistory()
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Debes iniciar sesión'], 401);
+        }
+
+        $orders = Order::whereHas('user', function ($query) use ($user) {
+            $query->where('tbuser.user_id', $user->user_id);
+        })
+        ->whereIn('status', [Order::STATUS_READY, Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
+        ->with(['items.product', 'local'])
+        ->orderBy('created_at', 'desc')
+        ->limit(30)
+        ->get();
+
+        $ordersFormatted = $orders->map(function ($order) {
+            return [
+                'order_id'     => $order->order_id,
+                'order_number' => $order->order_number,
+                'token'        => $order->verification_token,
+                'status'       => $order->status,
+                'status_label' => Order::getStatuses()[$order->status] ?? $order->status,
+                'total_amount' => $order->total_amount,
+                'local_name'   => $order->local->name ?? 'Local desconocido',
+                'created_at'   => $order->created_at->format('Y-m-d H:i:s'),
+                'can_cancel'   => false,
+                'items'        => $order->items->map(function ($item) {
+                    return [
+                        'product_id'    => $item->product_id,
+                        'product_name'  => $item->product->name,
+                        'quantity'      => $item->quantity,
+                        'customization' => $item->customization,
+                        'price'         => $item->product->price,
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json(['success' => true, 'orders' => $ordersFormatted]);
+    }
+
+    /**
      * Cancelar una orden (solo si está en Pending)
      * Devuelve los items al carrito
      */

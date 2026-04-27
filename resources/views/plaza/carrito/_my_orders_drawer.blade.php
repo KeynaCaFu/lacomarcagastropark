@@ -9,6 +9,17 @@
         <h3>Mis Órdenes</h3>
     </div>
 
+    <!-- Tabs -->
+    <div class="orders-tabs" v-if="!selectedOrderToCancel">
+        <button class="orders-tab-btn" :class="{ active: ordersTab === 'current' }" @click="switchOrdersTab('current')">
+            <i class="fas fa-clock"></i> Actuales
+            <span v-if="myOrders.length > 0" class="tab-badge">@{{ myOrders.length }}</span>
+        </button>
+        <button class="orders-tab-btn" :class="{ active: ordersTab === 'history' }" @click="switchOrdersTab('history')">
+            <i class="fas fa-history"></i> Historial
+        </button>
+    </div>
+
     <!-- Body -->
     <div class="drawer-body">
         <!-- Confirmación de Cancelación -->
@@ -24,13 +35,13 @@
                 <p class="confirm-text" style="color: #d32f2f; margin-top: 12px;">
                      Una vez confirmada la preparación, no podrás cancelarla.
                 </p>
-                
+
                 <!-- Motivo de cancelación (opcional) -->
                 <div style="margin-top: 16px;">
                     <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: var(--muted);">
                         Motivo (opcional):
                     </label>
-                    <textarea 
+                    <textarea
                         v-model="cancelReason"
                         placeholder="¿Por qué cancelas la orden?"
                         style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 0.85rem; resize: vertical; min-height: 60px;">
@@ -48,73 +59,140 @@
             </div>
         </div>
 
-        <!-- Empty State -->
-        <div v-else-if="myOrders.length === 0" class="drawer-empty">
-            <i class="fas fa-inbox"></i>
-            <p>No tienes órdenes pendientes</p>
-            <p class="empty-hint">Tus órdenes confirmadas aparecerán aquí</p>
-        </div>
+        <!-- ══ TAB: ÓRDENES ACTUALES ══ -->
+        <template v-else-if="ordersTab === 'current'">
+            <div v-if="myOrders.length === 0" class="drawer-empty">
+                <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                <p>No tienes órdenes activas</p>
+                <p class="empty-hint">Aquí verás tus pedidos pendientes y en preparación</p>
+            </div>
 
-        <!-- Orders List -->
-        <div v-else class="my-orders-list">
-            <div v-for="order in myOrders" :key="order.order_id" class="order-card">
-                <!-- Status Badge -->
-                <div class="order-header">
-                    <div class="order-number">
-                        <strong>@{{ order.order_number }}</strong>
-                        <span class="order-token" title="Token de verificación">@{{ order.token }}</span>
+            <div v-else class="my-orders-list">
+                <div v-for="order in myOrders" :key="order.order_id" class="order-card">
+                    <div class="order-header">
+                        <div class="order-number">
+                            <strong>@{{ order.order_number }}</strong>
+                            <span class="order-token" title="Token de verificación">@{{ order.token }}</span>
+                        </div>
+                        <div class="order-status" :class="order.status === 'Pending' ? 'status-pending' : 'status-preparing'">
+                            <i class="fas" :class="order.status === 'Pending' ? 'fa-clock' : 'fa-fire'"></i>
+                            @{{ order.status_label }}
+                        </div>
                     </div>
-                    <div class="order-status" :class="order.status === 'Pending' ? 'status-pending' : 'status-preparing'">
-                        <i class="fas" :class="order.status === 'Pending' ? 'fa-clock' : 'fa-fire'"></i>
-                        @{{ order.status_label }}
-                    </div>
-                </div>
 
-                <!-- Local info -->
-                <div class="order-local">
-                    <i class="fas fa-store"></i>
-                    @{{ order.local_name }}
-                </div>
-
-                <!-- Items Summary -->
-                <div class="order-items">
-                    <div v-for="item in order.items" :key="item.product_id" class="order-item-summary">
-                        <span class="item-name">@{{ item.product_name }}</span>
-                        <span class="item-qty">x@{{ item.quantity }}</span>
-                        <span class="item-price">₡@{{ (item.price * item.quantity).toFixed(2) }}</span>
+                    <div class="order-local">
+                        <i class="fas fa-store"></i>
+                        @{{ order.local_name }}
                     </div>
-                </div>
 
-                <!-- Customization if exists -->
-                <div v-if="order.items.some(i => i.customization)" class="order-customization">
-                    <div v-for="item in order.items.filter(i => i.customization)" :key="item.product_id" class="custom-note">
-                        <small><strong>@{{ item.product_name }}:</strong> @{{ item.customization }}</small>
+                    <div class="order-items">
+                        <div v-for="item in order.items" :key="item.product_id" class="order-item-summary">
+                            <span class="item-name">@{{ item.product_name }}</span>
+                            <span class="item-qty">x@{{ item.quantity }}</span>
+                            <span class="item-price">₡@{{ (item.price * item.quantity).toFixed(2) }}</span>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Total and Time -->
-                <div class="order-footer">
-                    <div class="order-total">
-                        <strong>Total:</strong>
-                        <span style="font-weight: 600; color: var(--primary);">₡@{{ order.total_amount }}</span>
+                    <div v-if="order.items.some(i => i.customization)" class="order-customization">
+                        <div v-for="item in order.items.filter(i => i.customization)" :key="item.product_id" class="custom-note">
+                            <small><strong>@{{ item.product_name }}:</strong> @{{ item.customization }}</small>
+                        </div>
                     </div>
-                    <div class="order-time">
-                        <small>@{{ order.created_at }}</small>
-                    </div>
-                </div>
 
-                <!-- Actions -->
-                <div v-if="order.can_cancel" class="order-actions">
-                    <button class="btn-cancel-order" @click="seleccionarParaCancelar(order)">
-                        <i class="fas fa-ban"></i> Cancelar Orden
-                    </button>
-                    <p class="help-text">Aún puedes cancelar esta orden. Una vez en preparación, no será posible.</p>
-                </div>
-                <div v-else class="order-locked">
-                    <i class="fas fa-lock"></i> Orden en preparación - No se puede cancelar
+                    <div class="order-footer">
+                        <div class="order-total">
+                            <strong>Total:</strong>
+                            <span style="font-weight: 600; color: var(--primary);">₡@{{ order.total_amount }}</span>
+                        </div>
+                        <div class="order-time">
+                            <small>@{{ order.created_at }}</small>
+                        </div>
+                    </div>
+
+                    <div v-if="order.can_cancel" class="order-actions">
+                        <button class="btn-cancel-order" @click="seleccionarParaCancelar(order)">
+                            <i class="fas fa-ban"></i> Cancelar Orden
+                        </button>
+                        <p class="help-text">Aún puedes cancelar esta orden. Una vez en preparación, no será posible.</p>
+                    </div>
+                    <div v-else class="order-locked">
+                        <i class="fas fa-lock"></i> Orden en preparación - No se puede cancelar
+                    </div>
                 </div>
             </div>
-        </div>
+        </template>
+
+        <!-- ══ TAB: HISTORIAL ══ -->
+        <template v-else-if="ordersTab === 'history'">
+            <!-- Cargando -->
+            <div v-if="isLoadingHistory" class="drawer-empty">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
+                <p>Cargando historial...</p>
+            </div>
+
+            <!-- Sin historial -->
+            <div v-else-if="orderHistory.length === 0" class="drawer-empty">
+                <i class="fas fa-inbox"></i>
+                <p>Sin historial de órdenes</p>
+                <p class="empty-hint">Las órdenes completadas o canceladas aparecerán aquí</p>
+            </div>
+
+            <!-- Lista historial -->
+            <div v-else class="my-orders-list">
+                <div v-for="order in orderHistory" :key="order.id" class="order-card">
+                    <div class="order-header">
+                        <div class="order-number">
+                            <strong>@{{ order.order_number }}</strong>
+                        </div>
+                        <div class="order-status" :class="{
+                            'status-delivered': order.status_en === 'Delivered',
+                            'status-ready':     order.status_en === 'Ready',
+                            'status-cancelled': order.status_en === 'Cancelled'
+                        }">
+                            <i class="fas" :class="{
+                                'fa-check-circle': order.status_en === 'Delivered',
+                                'fa-bell':         order.status_en === 'Ready',
+                                'fa-times-circle': order.status_en === 'Cancelled'
+                            }"></i>
+                            @{{ order.status }}
+                        </div>
+                    </div>
+
+                    <div class="order-local">
+                        <i class="fas fa-store"></i>
+                        @{{ order.local.name }}
+                    </div>
+
+                    <div class="order-items">
+                        <div v-for="item in order.items" :key="item.name" class="order-item-summary">
+                            <span class="item-name">@{{ item.name }}</span>
+                            <span class="item-qty">x@{{ item.quantity }}</span>
+                        </div>
+                    </div>
+
+                    <div v-if="order.items.some(i => i.customization)" class="order-customization">
+                        <div v-for="item in order.items.filter(i => i.customization)" :key="item.name" class="custom-note">
+                            <small><strong>@{{ item.name }}:</strong> @{{ item.customization }}</small>
+                        </div>
+                    </div>
+
+                    <div class="order-footer">
+                        <div class="order-total">
+                            <strong>Total:</strong>
+                            <span style="font-weight: 600; color: var(--primary);">₡@{{ order.total_amount }}</span>
+                        </div>
+                        <div class="order-time">
+                            <small>@{{ order.date }} @{{ order.time }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Link al historial completo -->
+                <a href="{{ route('client.orders.history') }}" class="btn-ver-historial">
+                    <i class="fas fa-external-link-alt"></i> Ver historial completo
+                </a>
+            </div>
+        </template>
     </div>
 </div>
 
@@ -167,6 +245,50 @@
     padding: 8px;
 }
 
+/* ── Tabs ── */
+.orders-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.orders-tab-btn {
+    flex: 1;
+    padding: 10px 8px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.orders-tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.orders-tab-btn:hover:not(.active) {
+    color: var(--text);
+    background: rgba(0,0,0,0.03);
+}
+
+.tab-badge {
+    background: var(--primary);
+    color: white;
+    border-radius: 10px;
+    padding: 1px 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+/* ── Body ── */
 .my-orders-drawer .drawer-body {
     flex: 1;
     overflow-y: auto;
@@ -233,6 +355,21 @@
 .order-status.status-preparing {
     background: #f8d7da;
     color: #721c24;
+}
+
+.order-status.status-ready {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.order-status.status-delivered {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.order-status.status-cancelled {
+    background: #f3f4f6;
+    color: #6b7280;
 }
 
 .order-local {
@@ -362,6 +499,26 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
+}
+
+.btn-ver-historial {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    color: var(--primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-ver-historial:hover {
+    background: rgba(0,0,0,0.03);
+    border-color: var(--primary);
 }
 
 .drawer-confirm-order {

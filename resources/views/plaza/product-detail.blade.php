@@ -359,7 +359,6 @@
 
     <!-- ═══ DRAWER: CARRITO (PANEL LATERAL) ═══ -->
     @include('plaza.carrito._cart_drawer')
-    @include('plaza.carrito._my_orders_drawer')
 
     <!-- ═══ DRAWER: EVENTO DETAIL (PANEL LATERAL) ═══ -->
     <div v-if="showEventoDetail" class="evento-detail-overlay" @click="closeEventoDetail"></div>
@@ -633,14 +632,7 @@
                 eventosProximos: {!! json_encode(isset($eventosProximos) ? $eventosProximos : []) !!},
                 currentEvento: {},
                 showEventoDetail: false,
-                eventosTab: 'hoy',
-
-                // Órdenes del cliente
-                myOrders: [],
-                showMyOrdersDrawer: false,
-                isCancellingOrder: false,
-                selectedOrderToCancel: null,
-                cancelReason: ''
+                eventosTab: 'hoy'
             }
         },
         computed: {
@@ -933,10 +925,6 @@
                             const tokensMsg = data.orders.map(o => `${o.order_number}: ${o.token}`).join('\n');
                             console.log('Tokens de verificación:\n' + tokensMsg);
                         }
-                        // Cargar órdenes después de un tiempo
-                        setTimeout(() => {
-                            this.loadMyOrders();
-                        }, 1000);
                     } else {
                         showToast({ icon: 'error', title: 'No se pudo procesar', message: data.message || 'Hubo un problema', timer: 5500 });
                     }
@@ -1009,85 +997,6 @@
                         }
                     });
                 });
-            },
-
-            // ── ÓRDENES METHODS ──
-            async loadMyOrders() {
-                try {
-                    const response = await fetch('{{ route("plaza.my.orders") }}', {
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        }
-                    });
-
-                    const data = await response.json();
-                    if (data.success) {
-                        this.myOrders = data.orders;
-                        this.showMyOrdersDrawer = true;
-                    } else {
-                        showToast({ icon: 'error', title: 'Error', message: data.message, timer: 4000 });
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    showToast({ icon: 'error', title: 'Error', message: 'No se pudieron cargar las órdenes', timer: 4000 });
-                }
-            },
-
-            closeMyOrdersDrawer() {
-                this.showMyOrdersDrawer = false;
-                this.selectedOrderToCancel = null;
-                this.cancelReason = '';
-            },
-
-            seleccionarParaCancelar(order) {
-                this.selectedOrderToCancel = order;
-            },
-
-            cancelarSeleccion() {
-                this.selectedOrderToCancel = null;
-                this.cancelReason = '';
-            },
-
-            async confirmarCancelacion() {
-                if (!this.selectedOrderToCancel) return;
-
-                this.isCancellingOrder = true;
-
-                try {
-                    const response = await fetch(`{{ url('/plaza/carrito/api/cancelar') }}/${this.selectedOrderToCancel.order_id}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: JSON.stringify({ reason: this.cancelReason })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        showToast({ icon: 'success', title: '¡Orden Cancelada!', message: data.message, timer: 5000 });
-                        
-                        // Remover de la lista
-                        this.myOrders = this.myOrders.filter(o => o.order_id !== this.selectedOrderToCancel.order_id);
-                        
-                        // Limpiar selección
-                        this.selectedOrderToCancel = null;
-                        this.cancelReason = '';
-                        
-                        // Cerrar drawer si no quedan órdenes
-                        if (this.myOrders.length === 0) {
-                            this.closeMyOrdersDrawer();
-                        }
-                    } else {
-                        showToast({ icon: 'error', title: 'No se pudo cancelar', message: data.message, timer: 5000 });
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    showToast({ icon: 'error', title: 'Error', message: error.message || 'Hubo un problema de conexión', timer: 5000 });
-                } finally {
-                    this.isCancellingOrder = false;
-                }
             },
 
             // ── EVENTOS METHODS ──

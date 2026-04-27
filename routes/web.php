@@ -333,7 +333,7 @@ Route::prefix('plaza')->name('plaza.')->middleware(['preserve.admin.session', 'v
         Route::get('carrito/api/mis-ordenes', [\App\Http\Controllers\CartController::class, 'getMyOrders'])->name('my.orders');
         Route::post('carrito/api/cancelar/{orderId}', [\App\Http\Controllers\CartController::class, 'cancelOrder'])->name('cancel.order');
     });
-    Route::post('carrito/api/confirmar', [\App\Http\Controllers\CartController::class, 'confirmOrder'])->name('order.create');
+   
     Route::post('carrito/api/reordenar', [\App\Http\Controllers\CartController::class, 'reorderOrder'])->name('cart.reorder');
 });
 

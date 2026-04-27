@@ -165,7 +165,7 @@ class PlazaController extends Controller
             });
 
         $now = now();
-        $dayOfWeek = $now->translatedFormat('l');
+        $dayOfWeek = $now->format('l');
 
         $dayTranslation = [
             'Monday'    => 'Lunes',
@@ -391,7 +391,7 @@ class PlazaController extends Controller
 
             // Obtener horario del día actual
             $now = now();
-            $dayOfWeek = $now->translatedFormat('l');
+            $dayOfWeek = $now->format('l');
 
             $dayTranslation = [
                 'Monday'    => 'Lunes',
