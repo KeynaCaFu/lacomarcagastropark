@@ -19,6 +19,8 @@ use App\Http\Controllers\QrAdminController;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Http\Controllers\PlazaConfigController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -323,6 +325,12 @@ Route::prefix('plaza')->name('plaza.')->middleware(['preserve.admin.session', 'v
     Route::post('carrito/api/limpiar', [\App\Http\Controllers\CartController::class, 'clearCart'])->name('cart.clear');
     Route::post('carrito/api/confirmar', [\App\Http\Controllers\CartController::class, 'confirmOrder'])->name('order.create');
 });
+
+// RUTAS PARA CONFIGURACIÓN DE PERÍMETRO DE SEGURIDAD (Solo admin global)
+Route::get('/admin/perimetro-seguridad', [PlazaConfigController::class, 'index'])->name('admin.plaza-config.index');
+Route::get('/admin/perimetro-seguridad/editar', [PlazaConfigController::class, 'edit'])->name('admin.plaza-config.edit');
+Route::post('/admin/config-perimetro', [PlazaConfigController::class, 'update'])->name('admin.plaza-config.update');
+
 
 // ==========================================
 // RUTAS DE PRUEBA - Errores de Conexión

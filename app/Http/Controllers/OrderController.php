@@ -8,16 +8,19 @@ use App\Models\Order;
 use App\Models\Receipt;
 use App\Http\Controllers\ReceiptController;
 use App\Services\OrderTokenService;
+use App\Services\LocationService;
 
 class OrderController extends Controller
 {
     protected $orderData;
     protected OrderTokenService $tokenService;
+    protected LocationService $locationService;
 
-    public function __construct(OrderData $orderData, OrderTokenService $tokenService)
+    public function __construct(OrderData $orderData, OrderTokenService $tokenService, LocationService $locationService)
     {
         $this->orderData = $orderData;
         $this->tokenService = $tokenService;
+        $this->locationService = $locationService;
     }
 
     /**
@@ -357,7 +360,24 @@ class OrderController extends Controller
                 'items.*.customization' => 'nullable|string|max:500',
                 'preparation_time' => 'required|integer|min:1',
                 'additional_notes' => 'nullable|string|max:500',
+                'latitude' => 'nullable|numeric',
+                'longitude' => 'nullable|numeric',
             ]);
+
+            // Validar ubicación solo si se proporcionan coordenadas (Geofencing)
+            if ($request->has('latitude') && $request->has('longitude')) {
+                $isWithin = $this->locationService->isWithinPlaza(
+                    $validated['latitude'], 
+                    $validated['longitude']
+                );
+
+                if (!$isWithin) {
+                    return response()->json([
+                        'success' => false, 
+                        'error' => 'Debes estar en el restaurante para realizar un pedido.'
+                    ], 403);
+                }
+            }
 
             // ═════════════════════════════════════════════════════════════════
             // CA2: Generar token único de verificación (LCGP-XXXX)
