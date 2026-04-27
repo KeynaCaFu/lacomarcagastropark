@@ -248,7 +248,7 @@ class CartController extends Controller
                 ->findOrFail($validated['order_id']);
 
             // Verificar que la orden pertenece al usuario autenticado o que es un admin
-            $userHasOrder = $order->user()->where('user_id', auth()->id())->exists();
+            $userHasOrder = $order->user()->where('tbuser.user_id', auth()->id())->exists();
             if (!$userHasOrder && !auth()->user()->isAdminGlobal()) {
                 return response()->json([
                     'success' => false,
