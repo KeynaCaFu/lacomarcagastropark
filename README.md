@@ -14,31 +14,6 @@ LaComarca GastroPark es una plataforma web basada en **Laravel** diseñada para 
 
 ---
 
-## Inicio Rápido
-
-### Credenciales de Acceso Predeterminadas
-
-####  Administrador
-
-- **Email:** `admin@gmail.com`
-- **Contraseña:** `admin`
-- **Acceso:** Completo al sistema
-
-**Email:** `gerente.leskas@gmail.com`  
-**Contraseña:** `local`
-
-**Email:** `gerente.cevichito@gmail.com`  
-**Contraseña:** `local`
-
-**Email:** `gerente.donchente@gmail.com`  
-**Contraseña:** `local`
-
-**Email:** `gerente.muu@gmail.com`  
-**Contraseña:** `local`
-
-- **Acceso:** Productos y dashboard del local
-
----
 
 ## Documentación Completa
 
@@ -153,7 +128,7 @@ php artisan migrate --seed
 
 ### 6. Compilar Assets
 ```bash
-npm run dev
+npm run dev o npm run build
 ```
 
 ### 7. Iniciar Servidor
