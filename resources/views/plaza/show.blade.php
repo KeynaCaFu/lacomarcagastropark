@@ -22,8 +22,9 @@
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.index.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.show.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.reviews.css') }}">
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></link>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
 </head>
 <body>
@@ -250,8 +251,9 @@
                                         local_id: {{ $local->local_id }},
                                         name: '{{ addslashes($producto->name) }}',
                                         description: '{{ addslashes($producto->description ?? '') }}',
-                                        photo_url: '{{ $producto->photo_url ?? asset('images/product-placeholder.png') }}',
-                                        price: {{ $producto->price }},                                    })">
+                                        photo_url: '{{ $producto->photo_url ?? asset("images/product-placeholder.png") }}',
+                                        price: {{ $producto->price }}
+                                    })">
                                     <i class="fas fa-shopping-cart"></i>
                                 </button>
                             </div>
@@ -274,6 +276,7 @@
 
     <!-- ═══ DRAWER: CARRITO (PANEL LATERAL) ═══ -->
     @include('plaza.carrito._cart_drawer')
+    @include('plaza.carrito._my_orders_drawer')
 
     <!-- ═══ DRAWER: EVENTO DETAIL (PANEL LATERAL) ═══ -->
     <div v-if="showEventoDetail" class="evento-detail-overlay" @click="closeEventoDetail"></div>
@@ -556,7 +559,26 @@
                 customerName: '',
                 customerEmail: '',
                 customerPhone: '',
-                additionalNotes: ''
+                additionalNotes: '',
+
+                // Órdenes del cliente
+                myOrders: [],
+                showMyOrdersDrawer: false,
+                isCancellingOrder: false,
+                selectedOrderToCancel: null,
+                ordersTab: 'current',
+                orderHistory: [],
+                isLoadingHistory: false,
+                historyLoaded: false,
+                cancelReason: '',
+
+                // Product Detail Modal (propiedades para openProductDetailModal)
+                selectedProduct: {},
+                selectedProductGallery: [],
+                selectedGalleryIndex: 0,
+                detailQuantity: 1,
+                detailCustomization: '',
+                showProductDetailModal: false
             }
         },
         methods: {
@@ -902,32 +924,396 @@
             cancelConfirmOrder() {
                 this.showConfirmOrder = false;
             },
-            processCheckout() {
+            async processCheckout() {
                 this.isCheckingOut = true;
-                fetch('{{ route("plaza.order.create") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ items: this.drawerCart })
-                })
-                .then(response => response.json())
-                .then(data => {
+
+                try {
+                    // PASO 1: Solicitar QR key
+                    const qrKey = await this.solicitarQRKey();
+                    if (!qrKey) {
+                        this.isCheckingOut = false;
+                        return; // Usuario canceló
+                    }
+
+                    // PASO 2: Solicitar permisos GPS
+                    const coords = await this.obtenerUbicacion();
+                    if (!coords) {
+                        this.isCheckingOut = false;
+                        return; // Usuario denegó o hubo error
+                    }
+
+                    // PASO 3: Enviar orden con QR y GPS
+                    const response = await fetch('{{ route("plaza.order.confirm") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ 
+                            qr_key: qrKey,
+                            latitude: coords.latitude,
+                            longitude: coords.longitude
+                        })
+                    });
+
+                    const data = await response.json();
+
                     if (data.success) {
-                        this.showConfirmOrder = false;
-                        showToast({ icon: 'success', title: '¡Orden confirmada!', message: 'Tu orden se ha procesado correctamente', timer: 6000 });
+                        showToast({ icon: 'success', title: '¡Órdenes confirmadas!', message: data.message, timer: 6000 });
                         this.drawerCart = [];
+                        this.showConfirmOrder = false;
                         this.closeCartDrawer();
+                        if (data.orders && data.orders.length > 0) {
+                            const tokensMsg = data.orders.map(o => `${o.order_number}: ${o.token}`).join('\n');
+                            console.log('Tokens de verificación:\n' + tokensMsg);
+                        }
+                        // Cargar órdenes después de un tiempo
+                        setTimeout(() => {
+                            this.loadMyOrders();
+                        }, 1000);
                     } else {
                         showToast({ icon: 'error', title: 'No se pudo procesar', message: data.message || 'Hubo un problema', timer: 5500 });
                     }
-                })
-                .catch(error => {
-                    showToast({ icon: 'error', title: 'Oops', message: 'Problema de conexión', timer: 5500 });
-                })
-                .finally(() => { this.isCheckingOut = false; });
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast({ icon: 'error', title: 'Error', message: error.message || 'Hubo un problema de conexión', timer: 5500 });
+                } finally {
+                    this.isCheckingOut = false;
+                }
+            },
+
+            // Solicitar QR key al usuario (escanear o ingresar manualmente)
+            solicitarQRKey() {
+                return new Promise((resolve) => {
+                    let stream = null;
+                    let scanInterval = null;
+                    let resolved = false;
+
+                    function stopCamera() {
+                        if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+                        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+                    }
+
+                    function doResolve(value) {
+                        if (!resolved) {
+                            resolved = true;
+                            stopCamera();
+                            Swal.close();
+                            resolve(value);
+                        }
+                    }
+
+                    const html = `
+                        <div style="text-align:center;">
+                            <p style="color:#555;margin-bottom:14px;font-size:14px;">¿Cómo deseas ingresar el código de tu mesa?</p>
+                            <div id="qr-options" style="display:flex;gap:10px;margin-bottom:4px;">
+                                <button id="btn-scan-qr" type="button"
+                                    style="flex:1;padding:14px 8px;background:#10b981;color:white;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">
+                                    <div><i class="fas fa-qrcode" style="font-size:24px;margin-bottom:5px;"></i></div>
+                                    Escanear QR
+                                </button>
+                                <button id="btn-manual-code" type="button"
+                                    style="flex:1;padding:14px 8px;background:#3b82f6;color:white;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">
+                                    <div><i class="fas fa-keyboard" style="font-size:24px;margin-bottom:5px;"></i></div>
+                                    Ingresar código
+                                </button>
+                            </div>
+
+                            <div id="qr-scanner-section" style="display:none;">
+                                <div style="position:relative;display:inline-block;width:100%;max-width:280px;">
+                                    <video id="qr-video" style="width:100%;border-radius:12px;background:#000;display:block;" autoplay playsinline muted></video>
+                                    <canvas id="qr-canvas" style="display:none;"></canvas>
+                                    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:170px;height:170px;border:3px solid #10b981;border-radius:10px;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,0.45);"></div>
+                                </div>
+                                <p id="scan-status" style="color:#10b981;font-size:13px;margin:8px 0 2px;font-weight:500;">Iniciando cámara...</p>
+                                <button id="btn-back-scan" type="button" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;padding:4px 8px;">
+                                    <i class="fas fa-arrow-left"></i> Volver
+                                </button>
+                            </div>
+
+                            <div id="qr-manual-section" style="display:none;">
+                                <input id="qr-code-input" type="text"
+                                    placeholder="Ingresa el código QR"
+                                    style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:16px;box-sizing:border-box;text-align:center;letter-spacing:1px;margin-bottom:6px;"
+                                    autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+                                <p style="color:#888;font-size:12px;margin:0 0 6px;">Ingresa el código que aparece en el QR de tu mesa</p>
+                                <button id="btn-back-manual" type="button" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;padding:4px 8px;">
+                                    <i class="fas fa-arrow-left"></i> Volver
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    Swal.fire({
+                        title: '<i class="fas fa-qrcode" style="margin-right:8px;"></i>Verificación de Mesa',
+                        html: html,
+                        showCancelButton: true,
+                        showConfirmButton: false,
+                        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+                        confirmButtonText: '<i class="fas fa-check"></i> Continuar',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            const optionsDiv  = document.getElementById('qr-options');
+                            const scanSection = document.getElementById('qr-scanner-section');
+                            const manualSection = document.getElementById('qr-manual-section');
+
+                            function showOptions() {
+                                stopCamera();
+                                optionsDiv.style.display   = 'flex';
+                                scanSection.style.display  = 'none';
+                                manualSection.style.display = 'none';
+                                Swal.update({ showConfirmButton: false });
+                            }
+
+                            document.getElementById('btn-back-scan')?.addEventListener('click', showOptions);
+                            document.getElementById('btn-back-manual')?.addEventListener('click', showOptions);
+
+                            // --- MODO ESCANEAR ---
+                            document.getElementById('btn-scan-qr').addEventListener('click', async () => {
+                                optionsDiv.style.display  = 'none';
+                                scanSection.style.display = 'block';
+                                const statusEl = document.getElementById('scan-status');
+
+                                if (!window.isSecureContext) {
+                                    statusEl.innerHTML = `
+                                        <span style="color:#ef4444;font-weight:600;">Se requiere HTTPS para usar la cámara.</span><br>
+                                        <small style="color:#888;">Estás en HTTP. Usa "Ingresar código" o accede al sitio por HTTPS.</small>`;
+                                    return;
+                                }
+
+                                if (!navigator.mediaDevices?.getUserMedia) {
+                                    statusEl.innerHTML = `
+                                        <span style="color:#ef4444;font-weight:600;">Cámara no disponible en este navegador.</span><br>
+                                        <small style="color:#888;">Usa "Ingresar código" para continuar.</small>`;
+                                    return;
+                                }
+
+                                statusEl.textContent = 'Solicitando permiso de cámara...';
+
+                                try {
+                                    stream = await navigator.mediaDevices.getUserMedia({
+                                        video: { facingMode: { ideal: 'environment' } }
+                                    });
+                                    const video = document.getElementById('qr-video');
+                                    video.srcObject = stream;
+                                    await video.play();
+                                    statusEl.textContent = 'Apunta al código QR de tu mesa...';
+
+                                    const canvas = document.getElementById('qr-canvas');
+                                    const ctx = canvas.getContext('2d');
+
+                                    scanInterval = setInterval(() => {
+                                        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                                            canvas.width  = video.videoWidth;
+                                            canvas.height = video.videoHeight;
+                                            ctx.drawImage(video, 0, 0);
+                                            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                                            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+                                            if (code?.data) {
+                                                // El QR puede contener una URL con ?key=... — extraer solo el key
+                                                let qrValue = code.data;
+                                                try {
+                                                    const url = new URL(qrValue);
+                                                    const keyParam = url.searchParams.get('key');
+                                                    if (keyParam) qrValue = keyParam;
+                                                } catch (e) { /* no es URL, usar tal cual */ }
+                                                statusEl.textContent = '✓ QR detectado!';
+                                                doResolve(qrValue);
+                                            }
+                                        }
+                                    }, 200);
+                                } catch (err) {
+                                    let msg = 'No se pudo acceder a la cámara.';
+                                    let hint = 'Usa "Ingresar código" para continuar.';
+                                    if (err.name === 'NotAllowedError') {
+                                        msg = 'Permiso de cámara denegado.';
+                                        hint = 'Haz clic en el ícono de cámara en la barra de dirección de Chrome y permite el acceso.';
+                                    } else if (err.name === 'NotFoundError') {
+                                        msg = 'No se encontró cámara en este dispositivo.';
+                                    }
+                                    statusEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">${msg}</span><br><small style="color:#888;">${hint}</small>`;
+                                }
+                            });
+
+                            // --- MODO MANUAL ---
+                            document.getElementById('btn-manual-code').addEventListener('click', () => {
+                                optionsDiv.style.display    = 'none';
+                                manualSection.style.display = 'block';
+                                Swal.update({ showConfirmButton: true });
+                                document.getElementById('qr-code-input')?.focus();
+                            });
+                        },
+                        preConfirm: () => {
+                            const value = document.getElementById('qr-code-input')?.value?.trim();
+                            if (!value) {
+                                Swal.showValidationMessage('Debes ingresar el código QR');
+                                return false;
+                            }
+                            return value;
+                        },
+                        willClose: () => stopCamera()
+                    }).then((result) => {
+                        if (!resolved) {
+                            resolved = true;
+                            if (result.isConfirmed && result.value) {
+                                resolve(result.value);
+                            } else {
+                                resolve(null);
+                            }
+                        }
+                    });
+                });
+            },
+
+            // Obtener ubicación GPS
+            obtenerUbicacion() {
+                return new Promise((resolve) => {
+                    if (!navigator.geolocation) {
+                        Swal.fire('Error', 'Tu navegador no soporta geolocalización', 'error');
+                        resolve(null);
+                        return;
+                    }
+
+                    Swal.fire({
+                        title: 'Obteniendo ubicación...',
+                        text: 'Verificando que estés en Gastropark',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    // getCurrentPosition fuera del didOpen para que Swal.close() funcione limpio
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            Swal.close();
+                            resolve({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude
+                            });
+                        },
+                        (error) => {
+                            let msg = 'Hubo un error al obtener tu ubicación.';
+                            if (error.code === 1) {
+                                msg = 'Has denegado los permisos de ubicación. Necesitamos saber que estás en Gastropark.';
+                            }
+                            Swal.fire('Ubicación no disponible', msg, 'error');
+                            resolve(null);
+                        },
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    );
+                });
+            },
+
+            // ── ÓRDENES METHODS ──
+            async loadMyOrders() {
+                try {
+                    const response = await fetch('{{ route("plaza.my.orders") }}', {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        this.myOrders = data.orders;
+                        this.showMyOrdersDrawer = true;
+                    } else {
+                        showToast({ icon: 'error', title: 'Error', message: data.message, timer: 4000 });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast({ icon: 'error', title: 'Error', message: 'No se pudieron cargar las órdenes', timer: 4000 });
+                }
+            },
+
+            async loadOrderHistory() {
+                if (this.historyLoaded || this.isLoadingHistory) return;
+                this.isLoadingHistory = true;
+                try {
+                    const response = await fetch('{{ route("client.orders.history") }}', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        this.orderHistory = data.orders;
+                        this.historyLoaded = true;
+                    }
+                } catch (error) {
+                    console.error('Error cargando historial:', error);
+                } finally {
+                    this.isLoadingHistory = false;
+                }
+            },
+
+            switchOrdersTab(tab) {
+                this.ordersTab = tab;
+                if (tab === 'history' && !this.historyLoaded) {
+                    this.loadOrderHistory();
+                }
+            },
+
+            closeMyOrdersDrawer() {
+                this.showMyOrdersDrawer = false;
+                this.selectedOrderToCancel = null;
+                this.cancelReason = '';
+                this.ordersTab = 'current';
+                this.orderHistory = [];
+                this.historyLoaded = false;
+            },
+
+            seleccionarParaCancelar(order) {
+                this.selectedOrderToCancel = order;
+            },
+
+            cancelarSeleccion() {
+                this.selectedOrderToCancel = null;
+                this.cancelReason = '';
+            },
+
+            async confirmarCancelacion() {
+                if (!this.selectedOrderToCancel) return;
+
+                this.isCancellingOrder = true;
+
+                try {
+                    const response = await fetch(`{{ url('/plaza/carrito/api/cancelar') }}/${this.selectedOrderToCancel.order_id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ reason: this.cancelReason })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showToast({ icon: 'success', title: '¡Orden Cancelada!', message: data.message, timer: 5000 });
+                        
+                        // Remover de la lista
+                        this.myOrders = this.myOrders.filter(o => o.order_id !== this.selectedOrderToCancel.order_id);
+                        
+                        // Limpiar selección
+                        this.selectedOrderToCancel = null;
+                        this.cancelReason = '';
+                        
+                        // Cerrar drawer si no quedan órdenes
+                        if (this.myOrders.length === 0) {
+                            this.closeMyOrdersDrawer();
+                        }
+                    } else {
+                        showToast({ icon: 'error', title: 'No se pudo cancelar', message: data.message, timer: 5000 });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast({ icon: 'error', title: 'Error', message: error.message || 'Hubo un problema de conexión', timer: 5000 });
+                } finally {
+                    this.isCancellingOrder = false;
+                }
             },
 
             // ── CUSTOM DROPDOWN SELECT ──
@@ -1105,7 +1491,7 @@
                     gridHtml += `
                         <div class="p-card ${featured}" data-product-id="${producto.product_id}" data-local-id="${this.currentLocalId}" style="cursor: pointer;">
                             <div class="p-card-img">
-                                <img src="${producto.photo_url || '{{ asset("images/product-placeholder.png") }}'}" alt="${producto.name}" loading="${i < 4 ? 'eager' : 'lazy'}">
+                                <img src="${producto.photo_url || '/images/product-placeholder.png'}" alt="${producto.name}" loading="${i < 4 ? 'eager' : 'lazy'}">
                                 <div class="p-card-img-fade"></div>
                                 ${categoryTag}
                             </div>
@@ -1206,36 +1592,6 @@
             // ── PRODUCT DETAIL MODAL METHODS ──
             navigateToProduct(url) {
                 window.location.href = url;
-            },
-
-            openProductDetailModal(productId) {
-                if (!this.isAuthenticated) {
-                    this.showAuthNotification();
-                    return;
-                }
-
-                // Obtener datos del producto desde la variable global
-                const product = window.productsData[productId];
-                if (!product) {
-                    console.error('Producto no encontrado:', productId);
-                    return;
-                }
-
-                this.selectedProduct = product;
-                this.selectedProductGallery = (product.gallery || []).map(item => ({
-                    image_url: item.image_url || item.url
-                }));
-                
-                // Si no hay galería, agregar la foto principal
-                if (this.selectedProductGallery.length === 0 && product.photo_url) {
-                    this.selectedProductGallery.push({ image_url: product.photo_url });
-                }
-
-                this.selectedGalleryIndex = 0;
-                this.detailQuantity = 1;
-                this.detailCustomization = '';
-                this.showProductDetailModal = true;
-                document.body.classList.add('modal-open');
             },
 
             openProductDetailModal(productId) {

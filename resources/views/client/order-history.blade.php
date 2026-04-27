@@ -34,6 +34,12 @@
                         <i class="fas fa-calendar"></i>
                     </button>
                     
+                    <!-- Pending Orders Button -->
+                    <button @click="showMyOrdersDrawer = !showMyOrdersDrawer" class="cart-btn" :style="{ borderColor: showMyOrdersDrawer ? 'var(--primary)' : 'var(--border-light)' }" v-if="myOrders.length > 0">
+                        <i class="fas fa-clock"></i>
+                        <span style="background: var(--primary); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;">@{{ myOrders.length }}</span>
+                    </button>
+                    
                     @auth
                         <button @click="openCartDrawer" class="cart-btn" :style="{ borderColor: false ? 'var(--primary)' : 'var(--border-light)' }">
                             <i class="fas fa-shopping-cart"></i>
@@ -266,6 +272,9 @@
         </div>
     </main>
 
+    <!-- ═══ DRAWER: ÓRDENES PENDIENTES ═══ -->
+    @include('plaza.carrito._my_orders_drawer')
+
      <!-- ══ FOOTER ══ -->
     <footer class="footer-v2">
         <!-- Mountains silhouette - separator -->
@@ -382,7 +391,13 @@
                 showEventsDrawer: false,
                 showCartDrawer: false,
                 filterAccordionOpen: false,
-                isLoading: false
+                isLoading: false,
+                // Órdenes pendientes
+                myOrders: [],
+                showMyOrdersDrawer: false,
+                isCancellingOrder: false,
+                selectedOrderToCancel: null,
+                cancelReason: ''
             };
         },
         methods: {
@@ -487,9 +502,105 @@
                         confirmButtonColor: '#d4423e'
                     });
                 }
+            },
+
+            // ── ÓRDENES PENDIENTES METHODS ──
+            async loadMyOrders() {
+                try {
+                    const response = await fetch('{{ route("plaza.my.orders") }}', {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        this.myOrders = data.orders;
+                        if (this.myOrders.length > 0) {
+                            this.showMyOrdersDrawer = true;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            },
+
+            closeMyOrdersDrawer() {
+                this.showMyOrdersDrawer = false;
+                this.selectedOrderToCancel = null;
+                this.cancelReason = '';
+            },
+
+            seleccionarParaCancelar(order) {
+                this.selectedOrderToCancel = order;
+            },
+
+            cancelarSeleccion() {
+                this.selectedOrderToCancel = null;
+                this.cancelReason = '';
+            },
+
+            async confirmarCancelacion() {
+                if (!this.selectedOrderToCancel) return;
+
+                this.isCancellingOrder = true;
+
+                try {
+                    const response = await fetch(`{{ url('/plaza/carrito/api/cancelar') }}/${this.selectedOrderToCancel.order_id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ reason: this.cancelReason })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Orden Cancelada!',
+                            text: data.message,
+                            confirmButtonText: 'OK'
+                        });
+                        
+                        // Remover de la lista
+                        this.myOrders = this.myOrders.filter(o => o.order_id !== this.selectedOrderToCancel.order_id);
+                        
+                        // Limpiar selección
+                        this.selectedOrderToCancel = null;
+                        this.cancelReason = '';
+                        
+                        // Cerrar drawer si no quedan órdenes
+                        if (this.myOrders.length === 0) {
+                            this.closeMyOrdersDrawer();
+                        }
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'No se pudo cancelar',
+                            text: data.message,
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Hubo un problema de conexión',
+                        confirmButtonText: 'OK'
+                    });
+                } finally {
+                    this.isCancellingOrder = false;
+                }
             }
         },
-        mounted() {}
+        mounted() {
+            // Cargar órdenes pendientes al iniciar
+            this.loadMyOrders();
+        }
     }).mount('#order-history-app');
 
     // Control de acordeones con JavaScript puro (independiente de Vue)

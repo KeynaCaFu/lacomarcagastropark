@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\QrSetting;
 use App\Helpers\CartHelper;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
@@ -230,6 +234,11 @@ class CartController extends Controller
     }
 
     /**
+     * Confirmar orden cliente (Plaza Gastropark)
+     * CA1: Validar QR
+     * CA2: Generar Token de Verificación
+     * CA3/CA4: Validar ubicación GPS dentro del perímetro
+     * CA5: Registrar timestamp de confirmación
      * Reordenar un pedido anterior
      * 
      * Agrega todos los items de un pedido anterior al carrito
@@ -359,30 +368,346 @@ class CartController extends Controller
     /**
      * Confirmar orden desde drawer
      */
-    public function confirmOrder(Request $request)
-    {
+    public function confirmOrder(
+        Request $request, 
+        \App\Services\OrderTokenService $tokenService, 
+        \App\Services\LocationService $locationService
+    ) {
+        $cart = session()->get('cart', []);
+
+        // VALIDACIÓN 1: Carrito vacío
+        if (empty($cart)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tu carrito está vacío. Agrega productos antes de confirmar.'
+            ], 422);
+        }
+
         $validated = $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|integer',
-            'items.*.local_id' => 'required|integer',
-            'items.*.quantity' => 'required|integer|min:1',
+            'qr_key' => 'required|string',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ]);
+
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Debes iniciar sesión para confirmar tu orden.'
+            ], 401);
+        }
+
+        // VALIDACIÓN 2: QR válido y activo (CA1)
+        $qrSetting = QrSetting::where('qr_key', $validated['qr_key'])
+            ->where('is_active', true)
+            ->first();
+
+        if (!$qrSetting) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El código QR es inválido o ha expirado. Por favor escanea el QR actual de la plaza.'
+            ], 403);
+        }
+
+        // VALIDACIÓN 3: Ubicación dentro del perímetro (CA3/CA4)
+        if (!$locationService->isWithinPlaza($validated['latitude'], $validated['longitude'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Intento de pedido fuera del área GPS permitida. Debes estar físicamente en Gastropark para realizar tu pedido.'
+            ], 403);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $createdOrders = [];
+            $confirmedAt = now(); // CA5: Timestamp
+
+            // Agrupar items por local (carrito puede tener múltiples locales)
+            $itemsByLocal = [];
+            foreach ($cart as $item) {
+                $itemsByLocal[$item['local_id']][] = $item;
+            }
+
+            // Crear una orden por cada local
+            foreach ($itemsByLocal as $localId => $items) {
+                // Generar número de orden
+                $orderNumber = 'ORD-' . str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+                
+                // CA2: Generar token único de verificación
+                $verificationToken = $tokenService->generateUniqueToken();
+
+                $totalAmount = array_sum(array_map(fn($i) => $i['price'] * $i['quantity'], $items));
+                $totalQuantity = array_sum(array_column($items, 'quantity'));
+                $notes = collect($items)->pluck('additional_notes')->filter()->first() ?? null;
+
+                // Insertar en tborder
+                $order = Order::create([
+                    'order_number' => $orderNumber,
+                    'status' => Order::STATUS_PENDING,
+                    'origin' => Order::ORIGIN_WEB,
+                    'local_id' => $localId,
+                    'total_amount' => $totalAmount,
+                    'quantity' => $totalQuantity,
+                    'additional_notes' => $notes,
+                    'verification_token' => $verificationToken,
+                    'confirmed_at' => $confirmedAt,
+                    'date' => now()->toDateString(),
+                    'time' => now()->toTimeString(),
+                ]);
+
+                // Asociar local en tblocal_order
+                $order->locals()->attach($localId);
+
+                // Asociar usuario en tbuser_order
+                $order->user()->attach($user->user_id);
+
+                // Guardar items en tborder_item
+                foreach ($items as $item) {
+                    OrderItem::create([
+                        'order_id' => $order->order_id,
+                        'product_id' => $item['product_id'],
+                        'quantity' => $item['quantity'],
+                        'customization' => $item['customization'] ?? null,
+                    ]);
+                }
+
+                $createdOrders[] = [
+                    'order_number' => $orderNumber,
+                    'token' => $verificationToken,
+                    'local_id' => $localId,
+                ];
+            }
+
+            DB::commit();
+
+            // Limpiar sesión
+            session()->forget('cart');
+
+            return response()->json([
+                'success' => true,
+                'message' => '¡Órdenes procesadas con éxito!',
+                'orders' => $createdOrders
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al procesar la orden: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener órdenes pendientes del cliente actual
+     */
+    public function getMyOrders()
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Debes iniciar sesión'
+            ], 401);
+        }
+
+        // Obtener órdenes del cliente que estén en estado Pending o Preparing
+        $orders = Order::whereHas('user', function ($query) use ($user) {
+            $query->where('tbuser.user_id', $user->user_id);
+        })
+        ->whereIn('status', [Order::STATUS_PENDING, Order::STATUS_PREPARATION])
+        ->with(['items.product', 'local'])
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+        $ordersFormatted = $orders->map(function ($order) {
+            return [
+                'order_id' => $order->order_id,
+                'order_number' => $order->order_number,
+                'token' => $order->verification_token,
+                'status' => $order->status,
+                'status_label' => Order::getStatuses()[$order->status] ?? $order->status,
+                'total_amount' => $order->total_amount,
+                'quantity' => $order->quantity,
+                'local_name' => $order->local->name ?? 'Local desconocido',
+                'created_at' => $order->created_at->format('Y-m-d H:i:s'),
+                'confirmed_at' => $order->confirmed_at ? $order->confirmed_at->format('Y-m-d H:i:s') : null,
+                'can_cancel' => $order->status === Order::STATUS_PENDING, // Solo puede cancelar si está Pending
+                'items' => $order->items->map(function ($item) {
+                    return [
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product->name,
+                        'quantity' => $item->quantity,
+                        'customization' => $item->customization,
+                        'price' => $item->product->price,
+                    ];
+                })
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'orders' => $ordersFormatted
+        ]);
+    }
+
+    /**
+     * Obtener historial de órdenes del cliente (Ready, Delivered, Cancelled)
+     */
+    public function getOrderHistory()
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Debes iniciar sesión'], 401);
+        }
+
+        $orders = Order::whereHas('user', function ($query) use ($user) {
+            $query->where('tbuser.user_id', $user->user_id);
+        })
+        ->whereIn('status', [Order::STATUS_READY, Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
+        ->with(['items.product', 'local'])
+        ->orderBy('created_at', 'desc')
+        ->limit(30)
+        ->get();
+
+        $ordersFormatted = $orders->map(function ($order) {
+            return [
+                'order_id'     => $order->order_id,
+                'order_number' => $order->order_number,
+                'token'        => $order->verification_token,
+                'status'       => $order->status,
+                'status_label' => Order::getStatuses()[$order->status] ?? $order->status,
+                'total_amount' => $order->total_amount,
+                'local_name'   => $order->local->name ?? 'Local desconocido',
+                'created_at'   => $order->created_at->format('Y-m-d H:i:s'),
+                'can_cancel'   => false,
+                'items'        => $order->items->map(function ($item) {
+                    return [
+                        'product_id'    => $item->product_id,
+                        'product_name'  => $item->product->name,
+                        'quantity'      => $item->quantity,
+                        'customization' => $item->customization,
+                        'price'         => $item->product->price,
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json(['success' => true, 'orders' => $ordersFormatted]);
+    }
+
+    /**
+     * Cancelar una orden (solo si está en Pending)
+     * Devuelve los items al carrito
+     */
+    public function cancelOrder(Request $request, $orderId)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Debes iniciar sesión'
+            ], 401);
+        }
+
+        $validated = $request->validate([
+            'reason' => 'nullable|string|max:500'
         ]);
 
         try {
-            // TODO: Aquí irá la lógica para crear la orden en base de datos
-            // Por ahora, devolver éxito y limpiar sesión
+            $order = Order::with('items.product', 'local')->findOrFail($orderId);
 
-            session()->forget('cart');
-            
+            // Validar que el orden pertenece al usuario
+            $isOwner = $order->user()->where('tbuser.user_id', $user->user_id)->exists();
+            if (!$isOwner) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No tienes permiso para cancelar esta orden'
+                ], 403);
+            }
+
+            // Validar que la orden esté en estado Pending
+            if ($order->status !== Order::STATUS_PENDING) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se puede cancelar una orden que ya está en ' . Order::getStatuses()[$order->status] ?? 'otro estado'
+                ], 422);
+            }
+
+            // Iniciar transacción
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            // Actualizar estado de la orden
+            $order->update([
+                'status' => Order::STATUS_CANCELLED,
+                'cancellation_reason' => $validated['reason'] ?? 'Cancelada por el cliente'
+            ]);
+
+            // Recuperar items y devolverlos al carrito
+            $cart = session()->get('cart', []);
+
+            foreach ($order->items as $item) {
+                // Crear item para el carrito con datos del producto
+                $product = $item->product;
+                $cartItem = [
+                    'item_key' => CartHelper::generateItemKey($product->product_id, $item->customization ?? ''),
+                    'product_id' => $product->product_id,
+                    'local_id' => $order->local_id,
+                    'name' => $product->name,
+                    'description' => $product->description ?? '',
+                    'price' => $product->price, // Usar precio actual
+                    'quantity' => $item->quantity,
+                    'customization' => $item->customization ?? '',
+                    'customization_normalized' => CartHelper::normalizeCustomization($item->customization ?? ''),
+                    'photo_url' => $product->photo_url ?? asset('images/product-placeholder.png'),
+                    'added_at' => now()->toIso8601String(),
+                    // Datos del cliente (recuperar de la orden anterior si existe)
+                    'customer_name' => $user->full_name ?? $user->name,
+                    'customer_email' => $user->email,
+                    'customer_phone' => $user->phone ?? '',
+                    'delivery_address' => '',
+                    'additional_notes' => '',
+                ];
+
+                // Verificar si el item ya existe en el carrito (mismo producto, local y customización)
+                $existingIndex = null;
+                foreach ($cart as $idx => $existing) {
+                    if ($existing['item_key'] === $cartItem['item_key'] && $existing['local_id'] === $cartItem['local_id']) {
+                        $existingIndex = $idx;
+                        break;
+                    }
+                }
+
+                if ($existingIndex !== null) {
+                    // Incrementar cantidad si ya existe
+                    $cart[$existingIndex]['quantity'] += $cartItem['quantity'];
+                } else {
+                    // Agregar como nuevo item
+                    $cart[] = $cartItem;
+                }
+            }
+
+            session()->put('cart', $cart);
+
+            \Illuminate\Support\Facades\DB::commit();
+
             return response()->json([
                 'success' => true,
-                'message' => 'Orden confirmada exitosamente',
-                'order_id' => 1  // Temporalmente, se actualizará cuando se implemente BD
+                'message' => 'Orden cancelada exitosamente. Los items han sido devueltos a tu carrito.',
+                'cart_count' => count($cart)
             ]);
-        } catch (\Exception $e) {
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Orden no encontrada'
+            ], 404);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cancelar la orden: ' . $e->getMessage()
             ], 500);
         }
     }

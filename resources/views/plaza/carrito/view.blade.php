@@ -387,8 +387,8 @@
         </div>
 
         <div class="checkout-section">
-            <button class="btn-checkout" onclick="alert('🚀 Checkout coming soon! (en la siguiente historia)')">
-                <i class="fas fa-credit-card"></i> Proceder al Pago
+            <button class="btn-checkout" onclick="iniciarCheckout()">
+                <i class="fas fa-credit-card"></i> Confirmar Orden
             </button>
             <a href="{{ route('plaza.index') }}" class="btn-continue">
                 <i class="fas fa-plus"></i> Agregar Más

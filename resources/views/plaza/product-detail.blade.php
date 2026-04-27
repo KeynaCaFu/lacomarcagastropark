@@ -632,7 +632,7 @@
                 eventosProximos: {!! json_encode(isset($eventosProximos) ? $eventosProximos : []) !!},
                 currentEvento: {},
                 showEventoDetail: false,
-                eventosTab: 'hoy',
+                eventosTab: 'hoy'
             }
         },
         computed: {
@@ -881,30 +881,122 @@
                 }
                 this.showConfirmOrder = true;
             },
-            processCheckout() {
+            async processCheckout() {
                 this.isCheckingOut = true;
-                fetch('{{ route("plaza.order.create") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({items: this.drawerCart})
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        this.showConfirmOrder = false;
-                        showToast({icon: 'success', title: '¡Orden confirmada!', message: 'Tu orden se ha procesado correctamente', timer: 6000});
-                        this.drawerCart = [];
-                        this.closeCartDrawer();
-                    } else {
-                        showToast({icon: 'error', title: 'No se pudo procesar', message: data.message || 'Hubo un problema', timer: 5500});
+
+                try {
+                    // PASO 1: Solicitar QR key
+                    const qrKey = await this.solicitarQRKey();
+                    if (!qrKey) {
+                        this.isCheckingOut = false;
+                        return; // Usuario canceló
                     }
-                })
-                .catch(() => showToast({icon: 'error', title: 'Oops', message: 'Problema de conexión', timer: 5500}))
-                .finally(() => {this.isCheckingOut = false;});
+
+                    // PASO 2: Solicitar permisos GPS
+                    const coords = await this.obtenerUbicacion();
+                    if (!coords) {
+                        this.isCheckingOut = false;
+                        return; // Usuario denegó o hubo error
+                    }
+
+                    // PASO 3: Enviar orden con QR y GPS
+                    const response = await fetch('{{ route("plaza.order.confirm") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ 
+                            qr_key: qrKey,
+                            latitude: coords.latitude,
+                            longitude: coords.longitude
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showToast({ icon: 'success', title: '¡Órdenes confirmadas!', message: data.message, timer: 6000 });
+                        this.drawerCart = [];
+                        this.showConfirmOrder = false;
+                        this.closeCartDrawer();
+                        if (data.orders && data.orders.length > 0) {
+                            const tokensMsg = data.orders.map(o => `${o.order_number}: ${o.token}`).join('\n');
+                            console.log('Tokens de verificación:\n' + tokensMsg);
+                        }
+                    } else {
+                        showToast({ icon: 'error', title: 'No se pudo procesar', message: data.message || 'Hubo un problema', timer: 5500 });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast({ icon: 'error', title: 'Error', message: error.message || 'Hubo un problema de conexión', timer: 5500 });
+                } finally {
+                    this.isCheckingOut = false;
+                }
+            },
+
+            // Solicitar QR key al usuario
+            solicitarQRKey() {
+                return new Promise((resolve) => {
+                    Swal.fire({
+                        title: 'Verificación de Plaza',
+                        text: 'Ingresa el código QR de tu mesa o recinto',
+                        icon: 'info',
+                        input: 'text',
+                        inputPlaceholder: 'Escanea o ingresa el QR',
+                        showCancelButton: true,
+                        confirmButtonText: 'Continuar',
+                        cancelButtonText: 'Cancelar',
+                        allowOutsideClick: false,
+                        inputValidator: (value) => {
+                            if (!value) return 'Debes ingresar el código QR'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            resolve(result.value);
+                        } else {
+                            resolve(null);
+                        }
+                    });
+                });
+            },
+
+            // Obtener ubicación GPS
+            obtenerUbicacion() {
+                return new Promise((resolve) => {
+                    if (!navigator.geolocation) {
+                        Swal.fire('Error', 'Tu navegador no soporta geolocalización', 'error');
+                        resolve(null);
+                        return;
+                    }
+
+                    Swal.fire({
+                        title: 'Obteniendo ubicación...',
+                        text: 'Verificando que estés en Gastropark',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                            navigator.geolocation.getCurrentPosition(
+                                (position) => {
+                                    resolve({
+                                        latitude: position.coords.latitude,
+                                        longitude: position.coords.longitude
+                                    });
+                                },
+                                (error) => {
+                                    let msg = 'Hubo un error al obtener tu ubicación.';
+                                    if (error.code === 1) {
+                                        msg = 'Has denegado los permisos de ubicación. Necesitamos saber que estás en Gastropark.';
+                                    }
+                                    Swal.fire('Ubicación no disponible', msg, 'error');
+                                    resolve(null);
+                                },
+                                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                            );
+                        }
+                    });
+                });
             },
 
             // ── EVENTOS METHODS ──
