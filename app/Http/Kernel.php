@@ -67,5 +67,6 @@ class Kernel extends HttpKernel
         'admin.global' => \App\Http\Middleware\IsAdminGlobal::class,
         'admin.local' => \App\Http\Middleware\IsAdminLocal::class,
         'preserve.admin.session' => \App\Http\Middleware\PreserveAdminSessionForPlaza::class,
+        'business.hours' => \App\Http\Middleware\CheckBusinessHours::class,
     ];
 }
