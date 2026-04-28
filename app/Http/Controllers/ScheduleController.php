@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ScheduleUpdated;
 use App\Models\Local;
 use App\Models\LocalGallery;
 use Illuminate\Support\Str;
 use App\Models\Schedule;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class ScheduleController extends Controller
 {
@@ -46,6 +48,13 @@ class ScheduleController extends Controller
     public function updateSchedule(Request $request, $scheduleId)
     {
         $user = $request->user();
+
+        // Solo el Gerente puede actualizar horarios
+        if (!$user->isAdminLocal()) {
+            return redirect()->route('dashboard')
+                ->with('error', 'No tienes permisos para modificar horarios.');
+        }
+
         $local = $user->locals()->first();
 
         if (!$local) {
@@ -65,14 +74,14 @@ class ScheduleController extends Controller
         $validated = $request->validate([
             'opening_time' => 'nullable|date_format:H:i',
             'closing_time' => 'nullable|date_format:H:i',
-            'status' => 'required|boolean',
+            'status'       => 'required|boolean',
         ], [
             'opening_time.date_format' => 'La hora de apertura debe tener el formato HH:MM.',
             'closing_time.date_format' => 'La hora de cierre debe tener el formato HH:MM.',
-            'status.required' => 'El estado del horario es obligatorio.',
+            'status.required'          => 'El estado del horario es obligatorio.',
         ]);
 
-        $isOpenDay = (bool) $validated['status'];
+        $isOpenDay   = (bool) $validated['status'];
         $openingTime = $validated['opening_time'] ?? null;
         $closingTime = $validated['closing_time'] ?? null;
 
@@ -94,8 +103,28 @@ class ScheduleController extends Controller
         $schedule->update([
             'opening_time' => $openingTime,
             'closing_time' => $closingTime,
-            'status' => $isOpenDay,
+            'status'       => $isOpenDay,
         ]);
+
+        // Emitir evento SOLO con el horario del día actual para no saturar
+        // Obtener el día actual en español
+        $dayOfWeek = \App\Helpers\PlazaHelper::translateDayToSpanish(now()->format('l'));
+        
+        // Obtener solo el horario del día actual
+        $todaySchedule = Schedule::where('local_id', $local->local_id)
+            ->where('day_of_week', $dayOfWeek)
+            ->first();
+
+        if ($todaySchedule) {
+            $schedules = [[
+                'day_of_week'  => $todaySchedule->day_of_week,
+                'opening_time' => $todaySchedule->opening_time?->format('H:i'),
+                'closing_time' => $todaySchedule->closing_time?->format('H:i'),
+                'status'       => (bool) $todaySchedule->status,
+            ]];
+
+            broadcast(new ScheduleUpdated($schedules, $local->local_id))->toOthers();
+        }
 
         return redirect()->route('local.schedule')
             ->with('success', '✓ Horario actualizado correctamente.');
@@ -175,6 +204,20 @@ class ScheduleController extends Controller
             'closing_time' => $closingTime,
             'status' => $isOpenDay,
         ]);
+
+        // Emitir evento SOLO si el horario que se acaba de crear es el de hoy
+        $dayOfWeek = \App\Helpers\PlazaHelper::translateDayToSpanish(now()->format('l'));
+        
+        if ($validated['day_of_week'] === $dayOfWeek) {
+            $schedules = [[
+                'day_of_week'  => $validated['day_of_week'],
+                'opening_time' => $openingTime,
+                'closing_time' => $closingTime,
+                'status'       => (bool) $isOpenDay,
+            ]];
+
+            broadcast(new ScheduleUpdated($schedules, $local->local_id))->toOthers();
+        }
 
         $message = '✓ Horario agregado correctamente para ' . $validated['day_of_week'] . '.';
 

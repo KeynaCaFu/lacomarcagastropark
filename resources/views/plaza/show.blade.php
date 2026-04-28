@@ -25,10 +25,11 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    @vite(['resources/js/app.js'])
 
 </head>
 <body>
-<div id="plaza-app" v-cloak>
+<div id="plaza-app" v-cloak data-local-id="{{ $local->local_id }}">
 
     <!-- ── HEADER ── -->
     <header class="site-header">
@@ -108,17 +109,17 @@
                         <h1 class="hero-name">@{{ localActual.name }}</h1>
                         <p class="hero-desc" v-if="localActual.description">@{{ localActual.description }}</p>
                     </div>
-                    <div class="user-info-row" v-if="horarioActual.status">
+                    <div class="user-info-row" v-if="horarioActual.status" :data-schedule-day="diaActual">
                         <div class="time-display">
                             <div class="time-label">@{{ diaActual }}</div>
                             <div class="time-value" v-if="horarioActual.opening_time || horarioActual.closing_time">
-                                @{{ horarioActual.opening_time || 'N/A' }} - @{{ horarioActual.closing_time || 'N/A' }}
+                                <span data-opening-time>@{{ horarioActual.opening_time || 'N/A' }}</span> - <span data-closing-time>@{{ horarioActual.closing_time || 'N/A' }}</span>
                             </div>
                             <div class="status-label">
-                                <span class="status-text-open" v-if="estaAbierto">
+                                <span class="status-text-open" v-if="estaAbierto" data-schedule-status="open">
                                     <i class="fas fa-circle status-open"></i> Abierto
                                 </span>
-                                <span class="status-text-closed" v-else>
+                                <span class="status-text-closed" v-else data-schedule-status="closed">
                                     <i class="fas fa-circle status-closed"></i> Cerrado
                                 </span>
                             </div>
@@ -1643,6 +1644,57 @@
                 setTimeout(() => {
                     this.currentEvento = {};
                 }, 300);
+            },
+
+            // Recalcular automáticamente si el local está abierto o cerrado basado en la hora actual
+            recalculateEstadoLocal() {
+                if (!this.horarioActual.opening_time || !this.horarioActual.closing_time) {
+                    this.estaAbierto = false;
+                    return;
+                }
+
+                const isOpen = Boolean(this.horarioActual.status);
+                if (!isOpen) {
+                    this.estaAbierto = false;
+                    return;
+                }
+
+                const now = new Date();
+                const current = now.getHours() * 60 + now.getMinutes();
+                
+                try {
+                    const [oh, om] = this.horarioActual.opening_time.split(':').map(Number);
+                    const [ch, cm] = this.horarioActual.closing_time.split(':').map(Number);
+                    const openMinutes = oh * 60 + om;
+                    const closeMinutes = ch * 60 + cm;
+                    
+                    const wasOpen = this.estaAbierto;
+                    this.estaAbierto = current >= openMinutes && current < closeMinutes;
+                    
+                    // Mostrar notificación cuando cambia de estado
+                    if (wasOpen && !this.estaAbierto) {
+                        console.log('🔴 El local acaba de CERRAR automáticamente');
+                        if (window.swToast) {
+                            window.swToast.fire({
+                                icon: 'warning',
+                                title: 'El local ha cerrado',
+                                timer: 3000
+                            });
+                        }
+                    } else if (!wasOpen && this.estaAbierto) {
+                        console.log('🟢 El local acaba de ABRIR automáticamente');
+                        if (window.swToast) {
+                            window.swToast.fire({
+                                icon: 'success',
+                                title: 'El local ha abierto',
+                                timer: 3000
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error al recalcular estado:', error);
+                    this.estaAbierto = false;
+                }
             }
         },
 
@@ -1657,6 +1709,41 @@
                     this.showLocalDropdown = false;
                 }
             });
+
+            // CA1 & CA2 — Escuchar actualizaciones de horario en tiempo real (desde Echo via CustomEvent)
+            document.addEventListener('schedule-updated', (event) => {
+                const { schedules } = event.detail;
+                console.log('📢 Vue recibió evento schedule-updated:', schedules);
+                
+                const todaySchedule = schedules.find(s => s.day_of_week === this.diaActual);
+                console.log(`🔍 Buscando horario para día: ${this.diaActual}`);
+                console.log(`✓ Horario encontrado:`, todaySchedule);
+                
+                if (!todaySchedule) {
+                    console.warn(`⚠ No se encontró horario para ${this.diaActual}`);
+                    return;
+                }
+
+                // Asegurar que status es boolean
+                const isOpen = Boolean(todaySchedule.status);
+                
+                this.horarioActual = {
+                    opening_time: todaySchedule.opening_time,
+                    closing_time: todaySchedule.closing_time,
+                    status: isOpen,
+                };
+
+                console.log(`📊 horarioActual actualizado:`, this.horarioActual);
+
+                // Recalcular el estado del local basado en la nueva información
+                this.recalculateEstadoLocal();
+            });
+
+            // Recalcular el estado del local cada 10 segundos (10000 ms)
+            // Esto permite que el estado cambie automáticamente de "Abierto" a "Cerrado" cuando pasa la hora de cierre
+            setInterval(() => {
+                this.recalculateEstadoLocal();
+            }, 10000); // 10 segundos para testing
         },
 
         watch: {
@@ -1678,6 +1765,27 @@
             }
         }
     }).mount('#plaza-app');
+
+    // Inicializar listener de horario en tiempo real para la vista show
+    (function() {
+        const localId = {{ $local->local_id }};
+
+        if (window.Echo && window.initScheduleListener) {
+            window.initScheduleListener(localId);
+            return;
+        }
+
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && window.initScheduleListener) {
+                window.initScheduleListener(localId);
+                clearInterval(retry);
+            } else if (attempts >= 10) {
+                clearInterval(retry);
+            }
+        }, 500);
+    })();
 </script>
 
 <script>
