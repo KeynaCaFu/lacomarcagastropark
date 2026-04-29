@@ -76,6 +76,39 @@ function showScheduleToast() {
     }, 4000);
 }
 
+// Función para inicializar listeners de estado de productos
+window.initProductStatusListener = function(localId) {
+    if (!window.Echo) {
+        console.error('✗ Echo no disponible para ProductStatusListener');
+        return false;
+    }
+
+    try {
+        const channelName = `establishment-updates.${localId}`;
+        console.log(`📦 Conectando listener de productos al canal: ${channelName}`);
+
+        window.Echo.channel(channelName)
+            .listen('ProductStatusUpdated', (data) => {
+                console.log('✓ Evento ProductStatusUpdated recibido:', data);
+                document.dispatchEvent(new CustomEvent('product-status-updated', {
+                    detail: {
+                        product_id:   data.product_id,
+                        local_id:     data.local_id,
+                        status:       data.status,
+                        product_name: data.product_name,
+                    }
+                }));
+            });
+
+        console.log('✓ Listener de estado de productos inicializado');
+        return true;
+
+    } catch (error) {
+        console.error('✗ Error al inicializar ProductStatusListener:', error);
+        return false;
+    }
+};
+
 // ── Listener para la vista index (múltiples locales) ──
 window.initIndexScheduleListeners = function(localIds) {
     if (!window.Echo) return false;
