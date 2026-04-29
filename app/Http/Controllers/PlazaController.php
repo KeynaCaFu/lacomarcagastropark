@@ -287,13 +287,13 @@ class PlazaController extends Controller
                 $review = $productReview->review;
 
                 return [
-                   'product_review_id' => $productReview->product_review_id,
+                    'product_review_id' => $productReview->product_review_id,
                     'user_id'           => $productReview->user_id,
                     'reviewer_name'     => $user->full_name ?? $user->name ?? 'Cliente',
-                        'rating'            => $review->rating ?? 0,
-                        'comment'           => $review->comment ?? '',
-                        'response'          => $review->response ?? null,
-                        'created_at'        => $review->created_at ?? $review->date ?? $productReview->created_at,
+                    'rating'            => $review->rating ?? 0,
+                    'comment'           => $review->comment ?? '',
+                    'response'          => $review->response ?? null,
+                    'created_at'        => $review->created_at ?? $review->date ?? $productReview->created_at,
                 ];
             })
             ->values();
@@ -537,6 +537,7 @@ public function storeLocalReview(Request $request, $localId)
             return response()->json(['error' => 'Debes iniciar sesión para dejar una reseña.'], 401);
         }
 
+        // CA-3: Solo puede reseñar si tiene un pedido previo en ese local
         $tienePedido = Order::where('local_id', $localId)
             ->whereIn('status', [Order::STATUS_DELIVERED])
             ->whereIn('order_id', function ($query) use ($userId) {
@@ -658,16 +659,42 @@ public function storeProductReview(Request $request, $productId)
     $user = Auth::user();
 
     return response()->json([
-        'success' => true,
-        'review' => [
-            'product_review_id' => $productReview->product_review_id,
-            'user_id'           => $userId,
-            'nombre'            => $user->full_name ?? $user->name ?? 'Cliente',
-            'rating'            => $review->rating,
-            'comment'           => $review->comment,
-            'date'              => $review->created_at ?? now(),
-        ]
-    ], 201);
+    'success' => true,
+    'review' => [
+        'product_review_id' => $productReview->product_review_id,
+        'user_id'           => $userId,
+        'nombre'            => $user->full_name ?? $user->name ?? 'Cliente',
+        'rating'            => $review->rating,
+        'comment'           => $review->comment,
+        'date'              => $review->created_at ?? now(),
+    ]
+], 201);
 }
 
+public function deleteProductReview($productReviewId)
+{
+    $review = ProductReview::where('product_review_id', $productReviewId)
+        ->where('user_id', auth()->id())
+        ->firstOrFail();
+
+    $review->review()->delete(); // elimina la review padre
+    $review->delete();
+
+    return response()->json(['success' => true]);
 }
+
+public function deleteLocalReview($localId, $localReviewId)
+{
+    $review = LocalReview::where('local_review_id', $localReviewId)
+        ->where('local_id', $localId)
+        ->where('user_id', auth()->id())
+        ->firstOrFail();
+
+    $review->review()->delete();
+    $review->delete();
+
+    return response()->json(['success' => true]);
+}
+}
+
+            
