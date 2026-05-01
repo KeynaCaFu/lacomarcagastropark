@@ -308,13 +308,12 @@ class PlazaController extends Controller
 
                 return [
                     'product_review_id' => $productReview->product_review_id,
+                    'user_id'           => $productReview->user_id,
                     'reviewer_name'     => $user->full_name ?? $user->name ?? 'Cliente',
                     'rating'            => $review->rating ?? 0,
                     'comment'           => $review->comment ?? '',
+                    'response'          => $review->response ?? null,
                     'created_at'        => $review->created_at ?? $review->date ?? $productReview->created_at,
-                    'can_edit'          => auth()->check()
-                        && auth()->id() === $productReview->user_id
-                        && $productReview->created_at->diffInSeconds(now()) <= 900,
                 ];
             })
             ->values();
@@ -566,11 +565,13 @@ public function storeLocalReview(Request $request, $localId)
         }
 
         // CA-3: Solo puede reseñar si tiene un pedido previo en ese local
-        $tienePedido = Order::where('user_id', $userId)
-            ->where('local_id', $localId)
-            ->whereIn('status', [
-                Order::STATUS_DELIVERED,  // solo pedidos completados
-            ])
+        $tienePedido = Order::where('local_id', $localId)
+            ->whereIn('status', [Order::STATUS_DELIVERED])
+            ->whereIn('order_id', function ($query) use ($userId) {
+                $query->select('order_id')
+                    ->from('tbuser_order')
+                    ->where('user_id', $userId);
+            })
             ->exists();
 
         if (!$tienePedido) {
@@ -606,11 +607,13 @@ public function storeLocalReview(Request $request, $localId)
             'success' => true,
             'message' => 'Reseña guardada correctamente.',
             'review'  => [
-                'nombre'    => $nombre,
-                'iniciales' => $iniciales ?: 'CL',
-                'rating'    => $request->rating,
-                'comment'   => $request->comment,
-                'date'      => now()->toISOString(),
+                'local_review_id' => $localReview->local_review_id,
+                'local_id'        => (int) $localId,
+                'nombre'          => $nombre,
+                'iniciales'       => $iniciales ?: 'CL',
+                'rating'          => $request->rating,
+                'comment'         => $request->comment,
+                'date'            => now()->toISOString(),
             ],
         ], 200);
 
@@ -683,18 +686,44 @@ public function storeProductReview(Request $request, $productId)
     $user = Auth::user();
 
     return response()->json([
-        'success' => true,
-        'review' => [
-            'product_review_id' => $productReview->product_review_id,
-            'nombre' => $user->full_name ?? $user->name ?? 'Cliente',
-            'rating' => $review->rating,
-            'comment' => $review->comment,
-            'date' => $review->created_at ?? now(),
-        ]
-    ], 201);
-    }
+    'success' => true,
+    'review' => [
+        'product_review_id' => $productReview->product_review_id,
+        'user_id'           => $userId,
+        'nombre'            => $user->full_name ?? $user->name ?? 'Cliente',
+        'rating'            => $review->rating,
+        'comment'           => $review->comment,
+        'date'              => $review->created_at ?? now(),
+    ]
+], 201);
+}
 
-    /**
+public function deleteProductReview($productReviewId)
+{
+    $review = ProductReview::where('product_review_id', $productReviewId)
+        ->where('user_id', auth()->id())
+        ->firstOrFail();
+
+    $review->review()->delete(); // elimina la review padre
+    $review->delete();
+
+    return response()->json(['success' => true]);
+}
+
+public function deleteLocalReview($localId, $localReviewId)
+{
+    $review = LocalReview::where('local_review_id', $localReviewId)
+        ->where('local_id', $localId)
+        ->where('user_id', auth()->id())
+        ->firstOrFail();
+
+    $review->review()->delete();
+    $review->delete();
+
+    return response()->json(['success' => true]);
+}
+  
+      /**
      * Obtener todos los horarios de todos los locales (para recalc automático en index)
      */
     public function getAllSchedules()
@@ -718,6 +747,6 @@ public function storeProductReview(Request $request, $productId)
             'success' => true,
             'schedules' => $schedules
         ]);
-    }
-
 }
+
+            

@@ -236,6 +236,20 @@
             onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 18px 40px rgba(0,0,0,0.38)'; this.style.borderColor='rgba(229,138,58,0.38)'"
             onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.28)'; this.style.borderColor='rgba(229,138,58,0.18)'"
         >
+            
+            <!-- Basurero eliminar reseña -->
+            <div v-if="r.user_id == authUserId" style="display:flex; justify-content:flex-end;">
+                <!-- Basurero eliminar reseña -->
+            <button v-if="r.user_id == authUserId"
+                    @click="deleteProductReview(r, i)"
+                    style="position:absolute; bottom:16px; right:16px; background:transparent; border:none; color:rgba(231,76,60,0.6); cursor:pointer; font-size:16px; padding:4px; transition:color .2s;"
+                    @mouseover="$event.currentTarget.style.color='#e74c3c'"
+                    @mouseout="$event.currentTarget.style.color='rgba(231,76,60,0.6)'"
+                    title="Eliminar reseña">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+            </div>
+
             <div style="display:flex; align-items:flex-start; gap:16px;">
                 <div
                     style="
@@ -574,6 +588,7 @@
             return {
                 // Reseñas
                 puedeResenar: null,
+                yaReseno: false,
                 showReviewModal: false,
                 newReview: { rating: 0, comment: '' },
                 starHover: 0,
@@ -632,8 +647,11 @@
                 eventosProximos: {!! json_encode(isset($eventosProximos) ? $eventosProximos : []) !!},
                 currentEvento: {},
                 showEventoDetail: false,
-                eventosTab: 'hoy'
+                eventosTab: 'hoy',
+                authUserId: {{ auth()->check() ? auth()->id() : 'null' }},
             }
+
+            
         },
         computed: {
             currentImage() {
@@ -1021,18 +1039,25 @@
 
             // ── RESEÑAS METHODS ──
             openReviewModal() {
-                if (this.puedeResenar !== true) {
-                    showToast({
-                        icon: 'warning',
-                        title: 'No disponible',
-                        message: 'Solo puedes reseñar productos que hayas pedido y recibido.'
-                    });
-                    return;
-                }
-
-                this.showReviewModal = true;
-                document.body.classList.add('modal-open');
-            },
+    if (this.puedeResenar !== true) {
+        showToast({
+            icon: 'warning',
+            title: 'No disponible',
+            message: 'Solo puedes reseñar productos que hayas pedido y recibido.'
+        });
+        return;
+    }
+    if (this.yaReseno) {
+        showToast({
+            icon: 'warning',
+            title: 'Ya tienes una reseña',
+            message: 'Solo puedes publicar una reseña por producto.'
+        });
+        return;
+    }
+    this.showReviewModal = true;
+    document.body.classList.add('modal-open');
+},
 
             closeReviewModal() {
                 this.showReviewModal = false;
@@ -1054,7 +1079,12 @@
                     });
 
                     const data = await res.json();
-                    this.puedeResenar = data.puede ?? false;
+this.puedeResenar = data.puede ?? false;
+this.yaReseno = data.ya_reseno ?? false;
+if (this.yaReseno) {
+    this.puedeResenar = true;
+}
+            
                 } catch (error) {
                     console.error('Error verificando si puede reseñar:', error);
                     this.puedeResenar = false;
@@ -1099,13 +1129,16 @@
 
                     const data = await res.json();
 
-                    if (res.ok && data.success) {
-                        this.reviews.unshift({
-                            reviewer_name: data.review.nombre,
-                            rating: data.review.rating,
-                            comment: data.review.comment,
-                            created_at: data.review.date,
-                        });
+                   if (res.ok && data.success) {
+    this.yaReseno = true;
+    this.reviews.unshift({
+                     product_review_id: data.review.product_review_id,
+                    user_id: data.review.user_id,
+                    reviewer_name: data.review.nombre,
+                    rating: data.review.rating,
+                    comment: data.review.comment,
+                    created_at: data.review.date,
+                    });
 
                         this.newReview = { rating: 0, comment: '' };
                         this.starHover = 0;
@@ -1124,6 +1157,15 @@
                         this.puedeResenar = false;
                     }
 
+                    if (res.status === 409) {
+    this.puedeResenar = false;
+    showToast({
+        icon: 'warning',
+        title: 'Ya tienes una reseña',
+        message: 'Ya habías publicado una reseña para este producto.'
+    });
+}
+
                     showToast({
                         icon: 'error',
                         title: 'Error',
@@ -1140,6 +1182,38 @@
                     this.isSendingReview = false;
                 }
             },
+
+            async deleteProductReview(review, index) {
+    const confirm = await Swal.fire({
+        title: '¿Eliminar reseña?',
+        text: 'Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        background: '#14110f',
+        color: '#F5F0E8'
+    });
+    if (!confirm.isConfirmed) return;
+
+    const res = await fetch(`/plaza/producto/${review.product_review_id}/resena`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+        }
+    });
+    const data = await res.json();
+    if (data.success) {
+       this.reviews.splice(index, 1);
+        this.puedeResenar = true;
+        this.yaReseno = false;
+        showToast({ icon: 'success', title: 'Reseña eliminada' });
+    }
+},
+
+
+
         },
         mounted() {
             this.checkPuedeResenar();
