@@ -588,6 +588,7 @@
             return {
                 // Reseñas
                 puedeResenar: null,
+                yaReseno: false,
                 showReviewModal: false,
                 newReview: { rating: 0, comment: '' },
                 starHover: 0,
@@ -1038,18 +1039,25 @@
 
             // ── RESEÑAS METHODS ──
             openReviewModal() {
-                if (this.puedeResenar !== true) {
-                    showToast({
-                        icon: 'warning',
-                        title: 'No disponible',
-                        message: 'Solo puedes reseñar productos que hayas pedido y recibido.'
-                    });
-                    return;
-                }
-
-                this.showReviewModal = true;
-                document.body.classList.add('modal-open');
-            },
+    if (this.puedeResenar !== true) {
+        showToast({
+            icon: 'warning',
+            title: 'No disponible',
+            message: 'Solo puedes reseñar productos que hayas pedido y recibido.'
+        });
+        return;
+    }
+    if (this.yaReseno) {
+        showToast({
+            icon: 'warning',
+            title: 'Ya tienes una reseña',
+            message: 'Solo puedes publicar una reseña por producto.'
+        });
+        return;
+    }
+    this.showReviewModal = true;
+    document.body.classList.add('modal-open');
+},
 
             closeReviewModal() {
                 this.showReviewModal = false;
@@ -1071,7 +1079,12 @@
                     });
 
                     const data = await res.json();
-                    this.puedeResenar = data.puede ?? false;
+this.puedeResenar = data.puede ?? false;
+this.yaReseno = data.ya_reseno ?? false;
+if (this.yaReseno) {
+    this.puedeResenar = true;
+}
+            
                 } catch (error) {
                     console.error('Error verificando si puede reseñar:', error);
                     this.puedeResenar = false;
@@ -1116,8 +1129,9 @@
 
                     const data = await res.json();
 
-                    if (res.ok && data.success) {
-                        this.reviews.unshift({
+                   if (res.ok && data.success) {
+    this.yaReseno = true;
+    this.reviews.unshift({
                      product_review_id: data.review.product_review_id,
                     user_id: data.review.user_id,
                     reviewer_name: data.review.nombre,
@@ -1142,6 +1156,15 @@
                     if (res.status === 403) {
                         this.puedeResenar = false;
                     }
+
+                    if (res.status === 409) {
+    this.puedeResenar = false;
+    showToast({
+        icon: 'warning',
+        title: 'Ya tienes una reseña',
+        message: 'Ya habías publicado una reseña para este producto.'
+    });
+}
 
                     showToast({
                         icon: 'error',
@@ -1182,7 +1205,9 @@
     });
     const data = await res.json();
     if (data.success) {
-        this.reviews.splice(index, 1);
+       this.reviews.splice(index, 1);
+        this.puedeResenar = true;
+        this.yaReseno = false;
         showToast({ icon: 'success', title: 'Reseña eliminada' });
     }
 },

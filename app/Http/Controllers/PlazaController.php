@@ -292,10 +292,8 @@ class PlazaController extends Controller
                     'reviewer_name'     => $user->full_name ?? $user->name ?? 'Cliente',
                     'rating'            => $review->rating ?? 0,
                     'comment'           => $review->comment ?? '',
+                    'response'          => $review->response ?? null,
                     'created_at'        => $review->created_at ?? $review->date ?? $productReview->created_at,
-                    'can_edit'          => auth()->check()
-                        && auth()->id() === $productReview->user_id
-                        && $productReview->created_at->diffInSeconds(now()) <= 900,
                 ];
             })
             ->values();
@@ -578,19 +576,19 @@ public function storeLocalReview(Request $request, $localId)
             $iniciales .= strtoupper(substr($p, 0, 1));
         }
 
-       return response()->json([
-    'success' => true,
-    'message' => 'Reseña guardada correctamente.',
-    'review'  => [
-        'local_review_id' => $localReview->local_review_id,
-        'local_id'        => $localId,
-        'nombre'          => $nombre,
-        'iniciales'       => $iniciales ?: 'CL',
-        'rating'          => $request->rating,
-        'comment'         => $request->comment,
-        'date'            => now()->toISOString(),
-    ],
-], 200);
+        return response()->json([
+            'success' => true,
+            'message' => 'Reseña guardada correctamente.',
+            'review'  => [
+                'local_review_id' => $localReview->local_review_id,
+                'local_id'        => (int) $localId,
+                'nombre'          => $nombre,
+                'iniciales'       => $iniciales ?: 'CL',
+                'rating'          => $request->rating,
+                'comment'         => $request->comment,
+                'date'            => now()->toISOString(),
+            ],
+        ], 200);
 
     } catch (\Illuminate\Validation\ValidationException $e) {
         return response()->json([
@@ -697,5 +695,6 @@ public function deleteLocalReview($localId, $localReviewId)
 
     return response()->json(['success' => true]);
 }
-
 }
+
+            

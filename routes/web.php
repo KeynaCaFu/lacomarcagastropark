@@ -278,10 +278,10 @@ Route::get('/plaza/producto/{productId}/puede-resenar', function ($productId) {
     $userId = Auth::id();
 
     if (!$userId) {
-        return response()->json(['puede' => false]);
+        return response()->json(['puede' => false, 'ya_reseno' => false]);
     }
 
-    $puede = Order::where('status', 'Delivered')
+    $tienePedido = Order::where('status', 'Delivered')
         ->whereIn('order_id', function ($query) use ($userId) {
             $query->select('order_id')
                 ->from('tbuser_order')
@@ -292,16 +292,27 @@ Route::get('/plaza/producto/{productId}/puede-resenar', function ($productId) {
         })
         ->exists();
 
-    return response()->json(['puede' => $puede]);
-})->middleware('auth')->name('plaza.product.can-review');
+    $yaReseno = \App\Models\ProductReview::where('product_id', $productId)
+        ->where('user_id', $userId)
+        ->exists();
 
+    return response()->json([
+        'puede' => $tienePedido,
+        'ya_reseno' => $yaReseno
+    ]);
+})->middleware('auth')->name('plaza.product.can-review');
 // Guardar reseña del producto
 Route::post('/plaza/producto/{productId}/resena', [PlazaController::class, 'storeProductReview'])
     ->middleware('auth')
     ->name('plaza.product.review.store');
+Route::delete('/plaza/producto/{productReviewId}/resena', [PlazaController::class, 'deleteProductReview'])->middleware('auth');
+Route::delete('/plaza/{localId}/review/{localReviewId}', [PlazaController::class, 'deleteLocalReview'])->middleware('auth');
+
+}
+
+);
 
 
-});
 
 Route::delete('/plaza/producto/{productReviewId}/resena', [PlazaController::class, 'deleteProductReview'])->middleware('auth');
 Route::delete('/plaza/{localId}/review/{localReviewId}', [PlazaController::class, 'deleteLocalReview'])->middleware('auth');
