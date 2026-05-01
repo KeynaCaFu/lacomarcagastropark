@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Data\OrderData;
+use App\Models\Event;
 use App\Models\Order;
 use App\Models\Receipt;
 use App\Http\Controllers\ReceiptController;
@@ -354,6 +355,7 @@ class OrderController extends Controller
         try {
             $validated = $request->validate([
                 'user_id' => 'nullable|exists:tbuser,user_id',
+                'event_id' => 'nullable|exists:tbevents,event_id',
                 'items' => 'required|array|min:1',
                 'items.*.product_id' => 'required|exists:tbproduct,product_id',
                 'items.*.quantity' => 'required|integer|min:1',
@@ -363,6 +365,16 @@ class OrderController extends Controller
                 'latitude' => 'nullable|numeric',
                 'longitude' => 'nullable|numeric',
             ]);
+
+            if (!empty($validated['event_id'])) {
+                $eventExists = Event::active()->where('event_id', $validated['event_id'])->exists();
+                if (!$eventExists) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'El evento ya no está disponible.',
+                    ], 422);
+                }
+            }
 
             // Validar ubicación solo si se proporcionan coordenadas (Geofencing)
             if ($request->has('latitude') && $request->has('longitude')) {
