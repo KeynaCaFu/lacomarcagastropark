@@ -682,6 +682,32 @@ public function storeProductReview(Request $request, $productId)
             'date' => $review->created_at ?? now(),
         ]
     ], 201);
-}
+    }
+
+    /**
+     * Obtener todos los horarios de todos los locales (para recalc automático en index)
+     */
+    public function getAllSchedules()
+    {
+        $locales = Local::where('status', 'Active')->get();
+        $schedules = [];
+
+        foreach ($locales as $local) {
+            $schedules[$local->local_id] = Schedule::where('local_id', $local->local_id)
+                ->get()
+                ->map(fn($s) => [
+                    'day_of_week' => $s->day_of_week,
+                    'opening_time' => $s->opening_time?->format('H:i'),
+                    'closing_time' => $s->closing_time?->format('H:i'),
+                    'status' => (bool) $s->status,
+                ])
+                ->toArray();
+        }
+
+        return response()->json([
+            'success' => true,
+            'schedules' => $schedules
+        ]);
+    }
 
 }
