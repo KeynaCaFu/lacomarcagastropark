@@ -22,7 +22,7 @@ window.initScheduleListener = function(localId) {
             .listen('ScheduleUpdated', (data) => {
                 console.log('✓ Evento ScheduleUpdated recibido:', data);
                 if (data.schedules) {
-                    updateScheduleDOM(data.schedules);
+                    updateScheduleDOM(data.schedules, data.local_id);
                     showScheduleToast();
                 } else {
                     console.warn('⚠ Evento recibido pero sin datos de schedules');
@@ -41,22 +41,20 @@ window.initScheduleListener = function(localId) {
     }
 };
 
-function updateScheduleDOM(schedules) {
+function updateScheduleDOM(schedules, localId) {
     console.log('📝 Actualizando DOM con horarios del día actual:', schedules);
-    
+
     if (!schedules || !Array.isArray(schedules) || schedules.length === 0) {
         console.error('⚠ Schedules inválido, no es un array, o está vacío');
         return;
     }
 
-    // Disparar evento personalizado para que Vue lo escuche
-    // IMPORTANTE: El nombre debe ser 'schedule-updated' (singular) porque Vue lo espera así
     document.dispatchEvent(new CustomEvent('schedule-updated', {
-        detail: { schedules }
+        detail: { schedules, local_id: localId }
     }));
 
     console.log('✓ Evento CustomEvent "schedule-updated" dispatched para Vue');
-    console.log(`✓ Emitiendo cambios solo del día: ${schedules[0].day_of_week}`);
+    console.log(`✓ Emitiendo cambios para local_id=${localId}, día: ${schedules[0]?.day_of_week}`);
 }
 
 function showScheduleToast() {
@@ -151,4 +149,9 @@ function updateLocalStatusDot(localId, schedules) {
     if (chip) {
         chip.innerHTML = `<span class="status-dot ${isOpen ? 'status-dot-open' : 'status-dot-closed'}"></span> ${isOpen ? 'Abierto' : 'Cerrado'}`;
     }
+
+    // Notificar para actualizar el cache de horarios
+    document.dispatchEvent(new CustomEvent('local-schedule-updated', {
+        detail: { local_id: localId, schedules: schedules }
+    }));
 }

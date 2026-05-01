@@ -106,21 +106,15 @@ class ScheduleController extends Controller
             'status'       => $isOpenDay,
         ]);
 
-        // Emitir evento SOLO con el horario del día actual para no saturar
-        // Obtener el día actual en español
+        // Emitir evento SOLO si el horario actualizado es el de hoy
         $dayOfWeek = \App\Helpers\PlazaHelper::translateDayToSpanish(now()->format('l'));
-        
-        // Obtener solo el horario del día actual
-        $todaySchedule = Schedule::where('local_id', $local->local_id)
-            ->where('day_of_week', $dayOfWeek)
-            ->first();
 
-        if ($todaySchedule) {
+        if ($schedule->day_of_week === $dayOfWeek) {
             $schedules = [[
-                'day_of_week'  => $todaySchedule->day_of_week,
-                'opening_time' => $todaySchedule->opening_time?->format('H:i'),
-                'closing_time' => $todaySchedule->closing_time?->format('H:i'),
-                'status'       => (bool) $todaySchedule->status,
+                'day_of_week'  => $schedule->day_of_week,
+                'opening_time' => $schedule->opening_time?->format('H:i'),
+                'closing_time' => $schedule->closing_time?->format('H:i'),
+                'status'       => (bool) $schedule->status,
             ]];
 
             broadcast(new ScheduleUpdated($schedules, $local->local_id))->toOthers();
@@ -253,7 +247,23 @@ class ScheduleController extends Controller
                 ->with('error', 'Horario no encontrado.');
         }
 
+        // Guardar datos antes de eliminar para emitir evento
+        $dayOfWeek = $schedule->day_of_week;
+        $currentDayOfWeek = \App\Helpers\PlazaHelper::translateDayToSpanish(now()->format('l'));
+
         $schedule->delete();
+
+        // Emitir evento SOLO si el horario eliminado era el de hoy
+        if ($dayOfWeek === $currentDayOfWeek) {
+            $schedules = [[
+                'day_of_week'  => $dayOfWeek,
+                'opening_time' => null,
+                'closing_time' => null,
+                'status'       => false,
+            ]];
+
+            broadcast(new ScheduleUpdated($schedules, $local->local_id))->toOthers();
+        }
 
         return redirect()->route('local.schedule')
             ->with('success', '✓ Horario eliminado correctamente.');

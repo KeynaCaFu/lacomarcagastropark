@@ -319,7 +319,11 @@
             @else
                 <div class="grid-locals-v2">
                     @foreach($locales as $local)
-                    <article class="local-card-v2" data-local-id="{{ $local->local_id }}">
+                    @php $schHoy = $horariosPorLocal->get($local->local_id); @endphp
+                    <article class="local-card-v2"
+                             data-local-id="{{ $local->local_id }}"
+                             data-opening="{{ $schHoy['opening_time'] ?? '' }}"
+                             data-closing="{{ $schHoy['closing_time'] ?? '' }}">
                         <div class="local-img-wrap-v2">
                             <img src="{{ $local->image_logo ? asset($local->image_logo) : 'https://via.placeholder.com/400x225/171410/D4773A?text=' . urlencode($local->name) }}"
                                  alt="{{ $local->name }}" class="local-img-v2" loading="lazy">
@@ -557,6 +561,9 @@
 @include('plaza.carrito._toast-notifications')
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    // Horarios de hoy por local_id → { opening_time: "HH:MM", closing_time: "HH:MM" }
+    window.localesScheduleData = {!! json_encode($horariosPorLocal) !!};
+
     // Función helper para mostrar toasts personalizados
     const showToast = (config) => { if (window.showNotification) { window.showNotification(config); } };
     /* ── User menu ── */
@@ -585,6 +592,7 @@
                 categoriaSelectNombre: 'Todos',
                 productosFiltrados: [],
                 cargandoProductos: false,
+                disabledProductIds: [],
                 // Eventos
                 eventosTab: 'hoy',
                 eventosHoy: {!! json_encode($eventosHoy) !!},
@@ -614,6 +622,78 @@
             document.addEventListener('mousemove', this.onMouseMove);
             window.addEventListener('scroll', this.onScroll, { passive: true });
             this.loadCartDrawer();
+
+            // Timer: recalcula estado abierto/cerrado cada 10 segundos
+            // Permite que se actualice automáticamente cuando pase la hora de cierre/apertura
+            const recalculateAllLocalStatuses = () => {
+                const now = new Date();
+                const current = now.getHours() * 60 + now.getMinutes();
+
+                document.querySelectorAll('.local-card-v2[data-local-id]').forEach(card => {
+                    const openTime = card.dataset.opening;
+                    const closeTime = card.dataset.closing;
+                    if (!openTime || !closeTime) return;
+
+                    const chip = card.querySelector('.meta-chip.nowrap');
+                    if (!chip) return;
+
+                    try {
+                        const [oh, om] = openTime.split(':').map(Number);
+                        const [ch, cm] = closeTime.split(':').map(Number);
+                        const openMinutes = oh * 60 + om;
+                        const closeMinutes = ch * 60 + cm;
+                        const isOpen = current >= openMinutes && current < closeMinutes;
+                        
+                        // Obtener el estado visual actual
+                        const statusDot = chip.querySelector('.status-dot');
+                        const wasOpen = statusDot && statusDot.classList.contains('status-dot-open');
+
+                        // Solo actualizar si cambió el estado
+                        if (isOpen !== wasOpen) {
+                            chip.innerHTML = `<span class="status-dot ${isOpen ? 'status-dot-open' : 'status-dot-closed'}"></span> ${isOpen ? 'Abierto' : 'Cerrado'}`;
+                            console.log(`⏰ Timer: Local ${card.dataset.localId} cambió → ${isOpen ? '🟢 ABIERTO' : '🔴 CERRADO'}`);
+                        }
+                    } catch (e) {
+                        console.error(`Error procesando local ${card.dataset.localId}:`, e);
+                    }
+                });
+            };
+
+            // Recalcular al cargar (por si la página viene de caché)
+            recalculateAllLocalStatuses();
+            // Recalcular cada 10 segundos (permite que cambie de estado cuando pasa la hora)
+            setInterval(recalculateAllLocalStatuses, 10000);
+
+            // Escuchar actualizaciones de horario en tiempo real (desde Echo via CustomEvent)
+            document.addEventListener('schedule-updated', (event) => {
+                const { schedules, local_id } = event.detail;
+                console.log('📢 Vue Index recibió evento schedule-updated:', { local_id, schedules });
+
+                if (!schedules || schedules.length === 0 || !local_id) {
+                    console.warn('⚠ Evento incompleto (sin schedules o local_id)');
+                    return;
+                }
+
+                // Actualizar inmediatamente cuando llega el evento
+                this.updateLocalStatus(schedules, local_id);
+            });
+
+            // Escuchar cambios de estado de productos en tiempo real
+            document.addEventListener('product-status-updated', (event) => {
+                const { product_id, status, product_name } = event.detail;
+                console.log('📢 Vue Index recibió evento product-status-updated:', event.detail);
+
+                if (status === 'Unavailable') {
+                    if (!this.disabledProductIds.includes(product_id)) {
+                        this.disabledProductIds.push(product_id);
+                    }
+                } else if (status === 'Available') {
+                    const idx = this.disabledProductIds.indexOf(product_id);
+                    if (idx !== -1) {
+                        this.disabledProductIds.splice(idx, 1);
+                    }
+                }
+            });
         },
 
         beforeUnmount() {
@@ -666,6 +746,95 @@
                 const scrollY = window.scrollY;
                 const bg = document.getElementById('heroBgImg');
                 if (bg) bg.style.transform = `scale(1.06) translateY(${scrollY * 0.14}px)`;
+            },
+
+            updateLocalStatus(schedules, localId) {
+                if (!localId || !schedules || schedules.length === 0) return;
+
+                const card = document.querySelector(`.local-card-v2[data-local-id="${localId}"]`);
+                if (!card) return;
+
+                const chip = card.querySelector('.meta-chip.nowrap');
+                if (!chip) return;
+
+                // Buscar el horario del día de hoy
+                const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+                const today = days[new Date().getDay()];
+                const todaySchedule = schedules.find(s => s.day_of_week === today);
+
+                if (!todaySchedule) {
+                    console.log(`ℹ El evento es para un día distinto al actual (${today}), sin cambio visual`);
+                    return;
+                }
+
+                // Actualizar los data-attributes del card
+                if (todaySchedule.opening_time) {
+                    card.dataset.opening = todaySchedule.opening_time;
+                }
+                if (todaySchedule.closing_time) {
+                    card.dataset.closing = todaySchedule.closing_time;
+                }
+
+                // Recalcular el estado del local basado en la hora actual (igual a show.blade.php)
+                const isOpen = this.isLocalOpen(todaySchedule);
+                
+                // Actualizar el visual
+                chip.innerHTML = `<span class="status-dot ${isOpen ? 'status-dot-open' : 'status-dot-closed'}"></span> ${isOpen ? 'Abierto' : 'Cerrado'}`;
+                
+                console.log(`✓ Local ${localId} actualizado por evento en tiempo real: ${isOpen ? '🟢 ABIERTO' : '🔴 CERRADO'}`);
+            },
+
+            isLocalOpen(schedule) {
+                // Validar que el horario tiene los campos requeridos
+                if (!schedule) {
+                    return false;
+                }
+
+                let openTime = schedule.opening_time;
+                let closeTime = schedule.closing_time;
+
+                // Si no hay horarios configurados, no está abierto
+                if (!openTime || !closeTime) {
+                    return false;
+                }
+
+                // Si status es explícitamente false, está cerrado
+                if (schedule.status === false || schedule.status === 0 || schedule.status === '0') {
+                    return false;
+                }
+
+                const now = new Date();
+                const current = now.getHours() * 60 + now.getMinutes();
+                
+                try {
+                    // Normalizar tiempos si vienen como objetos
+                    if (typeof openTime === 'object' && openTime.time) {
+                        openTime = openTime.time;
+                    }
+                    if (typeof closeTime === 'object' && closeTime.time) {
+                        closeTime = closeTime.time;
+                    }
+
+                    // Asegurar que son strings
+                    openTime = String(openTime).trim();
+                    closeTime = String(closeTime).trim();
+
+                    // Parsear los horarios
+                    if (openTime.includes(':') && closeTime.includes(':')) {
+                        const [oh, om] = openTime.split(':').map(Number);
+                        const [ch, cm] = closeTime.split(':').map(Number);
+                        
+                        const openMinutes = oh * 60 + om;
+                        const closeMinutes = ch * 60 + cm;
+                        
+                        return current >= openMinutes && current < closeMinutes;
+                    }
+
+                    return false;
+                } catch (error) {
+                    console.error('Error al calcular si local está abierto:', error, schedule);
+                    return false;
+                }
             },
 
             filtrarPorCategoria(slug) {
@@ -1113,8 +1282,22 @@
         const localIds = {!! json_encode($locales->pluck('local_id')->toArray()) !!};
         if (!localIds.length) return;
 
-        if (window.Echo && window.initIndexScheduleListeners) {
-            window.initIndexScheduleListeners(localIds);
+        // Inicializar listener para cada local
+        const initListeners = () => {
+            let successCount = 0;
+            localIds.forEach(localId => {
+                if (window.initScheduleListener) {
+                    window.initScheduleListener(localId);
+                    if (window.initProductStatusListener) {
+                        window.initProductStatusListener(localId);
+                    }
+                    successCount++;
+                }
+            });
+            return successCount === localIds.length;
+        };
+
+        if (window.Echo && initListeners()) {
             return;
         }
 
@@ -1122,14 +1305,14 @@
         let attempts = 0;
         const retry = setInterval(() => {
             attempts++;
-            if (window.Echo && window.initIndexScheduleListeners) {
-                window.initIndexScheduleListeners(localIds);
+            if (window.Echo && initListeners()) {
                 clearInterval(retry);
             } else if (attempts >= 10) {
                 clearInterval(retry);
             }
         }, 500);
     })();
+
 </script>
 
 </body>

@@ -65,6 +65,15 @@ class PlazaController extends Controller
                 return $local;
             });
 
+        // Horarios de hoy para todos los locales (una sola query) — usados por el timer JS
+        $horariosPorLocal = Schedule::todayForLocals($locales->pluck('local_id')->toArray())
+            ->get()
+            ->keyBy('local_id')
+            ->map(fn($s) => [
+                'opening_time' => $s->opening_time?->format('H:i'),
+                'closing_time' => $s->closing_time?->format('H:i'),
+            ]);
+
         $productosAleatorios = collect();
         foreach ($locales as $local) {
             $productosLocal = $local->products()
@@ -124,13 +133,14 @@ class PlazaController extends Controller
             ->get();
 
         return view('plaza.index', [
-            'locales' => $locales,
-            'productos' => $productosAleatorios,
-            'categorias' => $categorias,
-            'stats' => $stats,
+            'locales'          => $locales,
+            'productos'        => $productosAleatorios,
+            'categorias'       => $categorias,
+            'stats'            => $stats,
             'categoria_actual' => $request->categoria ?? 'todos',
-            'eventosHoy' => $eventosHoy,
-            'eventosProximos' => $eventosProximos,
+            'eventosHoy'       => $eventosHoy,
+            'eventosProximos'  => $eventosProximos,
+            'horariosPorLocal' => $horariosPorLocal,
         ]);
     }
 
@@ -679,42 +689,67 @@ public function storeProductReview(Request $request, $productId)
     $user = Auth::user();
 
     return response()->json([
-    'success' => true,
-    'review' => [
-        'product_review_id' => $productReview->product_review_id,
-        'user_id'           => $userId,
-        'nombre'            => $user->full_name ?? $user->name ?? 'Cliente',
-        'rating'            => $review->rating,
-        'comment'           => $review->comment,
-        'date'              => $review->created_at ?? now(),
-    ]
-], 201);
+        'success' => true,
+        'review' => [
+            'product_review_id' => $productReview->product_review_id,
+            'user_id'=> $userId,
+            'nombre' => $user->full_name ?? $user->name ?? 'Cliente',
+            'rating' => $review->rating,
+            'comment' => $review->comment,
+            'date' => $review->created_at ?? now(),
+        ]
+    ], 201);
 }
 
-public function deleteProductReview($productReviewId)
-{
-    $review = ProductReview::where('product_review_id', $productReviewId)
-        ->where('user_id', auth()->id())
-        ->firstOrFail();
+    /**
+     * Obtener todos los horarios de todos los locales (para recalc automático en index)
+     */
+    public function getAllSchedules()
+    {
+        $locales = Local::where('status', 'Active')->get();
+        $schedules = [];
 
-    $review->review()->delete(); // elimina la review padre
-    $review->delete();
+        foreach ($locales as $local) {
+            $schedules[$local->local_id] = Schedule::where('local_id', $local->local_id)
+                ->get()
+                ->map(fn($s) => [
+                    'day_of_week' => $s->day_of_week,
+                    'opening_time' => $s->opening_time?->format('H:i'),
+                    'closing_time' => $s->closing_time?->format('H:i'),
+                    'status' => (bool) $s->status,
+                ])
+                ->toArray();
+        }
 
-    return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'schedules' => $schedules
+        ]);
+    }
+
+    public function deleteProductReview($productReviewId)
+    {
+        $review = ProductReview::where('product_review_id', $productReviewId)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $review->review()->delete(); // elimina la review padre
+        $review->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function deleteLocalReview($localId, $localReviewId)
+    {
+        $review = LocalReview::where('local_review_id', $localReviewId)
+            ->where('local_id', $localId)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $review->review()->delete();
+        $review->delete();
+
+        return response()->json(['success' => true]);
+    }
+
 }
-
-public function deleteLocalReview($localId, $localReviewId)
-{
-    $review = LocalReview::where('local_review_id', $localReviewId)
-        ->where('local_id', $localId)
-        ->where('user_id', auth()->id())
-        ->firstOrFail();
-
-    $review->review()->delete();
-    $review->delete();
-
-    return response()->json(['success' => true]);
-}
-}
-
-            
