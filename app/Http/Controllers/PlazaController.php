@@ -156,6 +156,7 @@ class PlazaController extends Controller
         $productosInactivosIds = $productos
             ->where('status', 'Unavailable')
             ->pluck('product_id')
+            ->map(fn($id) => (int) $id)
             ->values();
 
         // Categorías solo de productos disponibles (para no mostrar categorías vacías)
@@ -367,9 +368,11 @@ class PlazaController extends Controller
                 ->get();
 
             // IDs de productos inactivos para pre-inicializar disabledProductIds en Vue
+            // Cast to int to avoid JS strict-equality mismatch (PDO returns strings).
             $productosInactivosIds = $todosProductos
                 ->where('status', 'Unavailable')
                 ->pluck('product_id')
+                ->map(fn($id) => (int) $id)
                 ->values()
                 ->toArray();
 

@@ -210,6 +210,7 @@
                 <div class="products-grid">
                     @foreach($productos as $i => $producto)
                     <div class="p-card {{ $i === 0 ? 'featured' : '' }}"
+                         data-product-id="{{ $producto->product_id }}"
                          v-show="(activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory) && !disabledProductIds.includes({{ $producto->product_id }})"
                          @click="navigateToProduct('{{ route('plaza.product.detail', [$local->local_id, $producto->product_id]) }}')"
                          style="cursor: pointer;">
@@ -1583,13 +1584,22 @@
             aplicarFiltroCategoria() {
                 const grid = document.querySelector('.products-grid');
                 if (!grid) return;
-                
+
                 const cards = grid.querySelectorAll('.p-card');
                 let visibleCount = 0;
-                
+
                 cards.forEach(card => {
-                    // Productos marcados como inactivos nunca se muestran
+                    // Productos inactivos (dynamic cards con data-disabled)
                     if (card.dataset.disabled === 'true') {
+                        card.style.display = 'none';
+                        return;
+                    }
+
+                    // Productos inactivos (Blade cards con data-product-id)
+                    // v-show="false" pone display:none, pero este función lo sobreescribiría
+                    // sin esta verificación, revelando productos desactivados.
+                    const productId = parseInt(card.dataset.productId);
+                    if (!isNaN(productId) && this.disabledProductIds.includes(productId)) {
                         card.style.display = 'none';
                         return;
                     }
