@@ -144,7 +144,6 @@ class PlazaController extends Controller
         $productos = Product::whereHas('locals', function ($query) use ($id) {
             $query->where('tblocal_product.local_id', $id);
         })
-            ->where('status', 'Available')
             ->with([
                 'gallery',
                 'productReviews.review' => function ($query) {
@@ -153,7 +152,17 @@ class PlazaController extends Controller
             ])
             ->get();
 
-        $categorias = $productos->pluck('category')
+        // IDs de productos actualmente inactivos (para pre-inicializar disabledProductIds en Vue)
+        $productosInactivosIds = $productos
+            ->where('status', 'Unavailable')
+            ->pluck('product_id')
+            ->map(fn($id) => (int) $id)
+            ->values();
+
+        // Categorías solo de productos disponibles (para no mostrar categorías vacías)
+        $categorias = $productos
+            ->where('status', 'Available')
+            ->pluck('category')
             ->unique()
             ->filter()
             ->map(function ($category) {
@@ -162,7 +171,8 @@ class PlazaController extends Controller
                     'slug' => Str::slug($category),
                     'icono' => $this->getCategoryIcon($category),
                 ];
-            });
+            })
+            ->values();
 
         $now = now();
         $dayOfWeek = $now->format('l');
@@ -244,6 +254,7 @@ class PlazaController extends Controller
         return view('plaza.show', [
             'local' => $local,
             'productos' => $productos,
+            'productosInactivosIds' => $productosInactivosIds,
             'categorias' => $categorias,
             'horarioHoy' => $horarioHoy,
             'diaActual' => $dayInSpanish,
@@ -343,47 +354,55 @@ class PlazaController extends Controller
             // Buscar local
             $local = Local::where('local_id', $id)->firstOrFail();
 
-            // Obtener productos del local
-            $productos = Product::whereHas('locals', function ($query) use ($id) {
+            // Obtener TODOS los productos del local (activos e inactivos)
+            $todosProductos = Product::whereHas('locals', function ($query) use ($id) {
                 $query->where('tblocal_product.local_id', $id);
             })
-                ->where('status', 'Available')
                 ->with([
                     'gallery',
                     'productReviews.review' => function ($query) {
                         $query->select('review_id', 'rating');
                     }
                 ])
-                ->get()
-                ->map(function ($product) {
-                    return [
-                        'product_id' => $product->product_id,
-                        'local_id' => $product->pivot->local_id ?? null,
-                        'name' => $product->name,
-                        'description' => $product->description,
-                        'category' => $product->category,
-                        'photo_url' => $product->photo_url ? asset($product->photo_url) : null,
-                        'price' => $product->price,
-                        'average_rating' => $product->average_rating,
-                        'gallery' => $product->gallery ? $product->gallery->map(fn($img) => [
-                            'image_url' => $img->image_url ? asset($img->image_url) : null
-                        ])->toArray() : []
-                    ];
-                })
+                ->get();
+
+            // IDs de productos inactivos para pre-inicializar disabledProductIds en Vue
+            // Cast to int to avoid JS strict-equality mismatch (PDO returns strings).
+            $productosInactivosIds = $todosProductos
+                ->where('status', 'Unavailable')
+                ->pluck('product_id')
+                ->map(fn($id) => (int) $id)
+                ->values()
                 ->toArray();
 
-            // Obtener categorías - extraer las únicas de los productos mapeados
+            $productos = $todosProductos->map(function ($product) {
+                return [
+                    'product_id'     => $product->product_id,
+                    'local_id'       => $product->pivot->local_id ?? null,
+                    'name'           => $product->name,
+                    'description'    => $product->description,
+                    'category'       => $product->category,
+                    'status'         => $product->status,
+                    'photo_url'      => $product->photo_url ? asset($product->photo_url) : null,
+                    'price'          => $product->price,
+                    'average_rating' => $product->average_rating,
+                    'gallery'        => $product->gallery ? $product->gallery->map(fn($img) => [
+                        'image_url' => $img->image_url ? asset($img->image_url) : null
+                    ])->toArray() : []
+                ];
+            })->toArray();
+
+            // Categorías solo de productos disponibles
             $categoriasArray = [];
-            $categoriasNames = array_column($categoriasArray, 'nombre');
-            
-            foreach ($productos as $product) {
-                if ($product['category'] && !in_array($product['category'], $categoriasNames)) {
+            $categoriasNames = [];
+            foreach ($todosProductos->where('status', 'Available') as $product) {
+                if ($product->category && !in_array($product->category, $categoriasNames)) {
                     $categoriasArray[] = [
-                        'nombre' => $product['category'],
-                        'slug' => Str::slug($product['category']),
-                        'icono' => $this->getCategoryIcon($product['category']),
+                        'nombre' => $product->category,
+                        'slug'   => Str::slug($product->category),
+                        'icono'  => $this->getCategoryIcon($product->category),
                     ];
-                    $categoriasNames[] = $product['category'];
+                    $categoriasNames[] = $product->category;
                 }
             }
             $categorias = $categoriasArray;
@@ -414,22 +433,23 @@ class PlazaController extends Controller
             }
 
             return response()->json([
-                'success' => true,
+                'success'              => true,
                 'local' => [
-                    'local_id' => $local->local_id,
-                    'name' => $local->name,
+                    'local_id'    => $local->local_id,
+                    'name'        => $local->name,
                     'description' => $local->description,
-                    'logo_url' => $local->image_logo ? asset($local->image_logo) : null,
+                    'logo_url'    => $local->image_logo ? asset($local->image_logo) : null,
                 ],
                 'horarioHoy' => $horarioHoy ? [
                     'opening_time' => $horarioHoy->opening_time ? \Carbon\Carbon::parse($horarioHoy->opening_time)->format('H:i') : null,
                     'closing_time' => $horarioHoy->closing_time ? \Carbon\Carbon::parse($horarioHoy->closing_time)->format('H:i') : null,
-                    'status' => $horarioHoy->status,
+                    'status'       => $horarioHoy->status,
                 ] : null,
-                'diaActual' => $dayInSpanish,
-                'estaAbierto' => $estaAbierto,
-                'categorias' => $categorias,
-                'productos' => $productos,
+                'diaActual'            => $dayInSpanish,
+                'estaAbierto'          => $estaAbierto,
+                'categorias'           => $categorias,
+                'productos'            => $productos,
+                'productosInactivosIds' => $productosInactivosIds,
             ]);
         } catch (\Exception $e) {
             return response()->json([

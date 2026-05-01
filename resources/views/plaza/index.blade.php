@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.index.css') }}">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    @vite(['resources/js/app.js'])
 </head>
 <body>
 <div id="plaza-app" v-cloak>
@@ -318,7 +319,7 @@
             @else
                 <div class="grid-locals-v2">
                     @foreach($locales as $local)
-                    <article class="local-card-v2">
+                    <article class="local-card-v2" data-local-id="{{ $local->local_id }}">
                         <div class="local-img-wrap-v2">
                             <img src="{{ $local->image_logo ? asset($local->image_logo) : 'https://via.placeholder.com/400x225/171410/D4773A?text=' . urlencode($local->name) }}"
                                  alt="{{ $local->name }}" class="local-img-v2" loading="lazy">
@@ -1106,6 +1107,29 @@
             }
         }
     }).mount('#plaza-app');
+
+    // Actualizaciones de horario en tiempo real para todos los locales de la página
+    (function initSchedules() {
+        const localIds = {!! json_encode($locales->pluck('local_id')->toArray()) !!};
+        if (!localIds.length) return;
+
+        if (window.Echo && window.initIndexScheduleListeners) {
+            window.initIndexScheduleListeners(localIds);
+            return;
+        }
+
+        // Reintentar hasta que Echo esté listo (máx 5 s)
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && window.initIndexScheduleListeners) {
+                window.initIndexScheduleListeners(localIds);
+                clearInterval(retry);
+            } else if (attempts >= 10) {
+                clearInterval(retry);
+            }
+        }, 500);
+    })();
 </script>
 
 </body>

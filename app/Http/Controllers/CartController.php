@@ -429,6 +429,28 @@ class CartController extends Controller
                 $itemsByLocal[$item['local_id']][] = $item;
             }
 
+            // VALIDACIÓN DE SEGURIDAD: verificar que todos los productos siguen disponibles
+            foreach ($itemsByLocal as $localId => $items) {
+                foreach ($items as $item) {
+                    $isAvailable = DB::table('tbproduct')
+                        ->join('tblocal_product', 'tbproduct.product_id', '=', 'tblocal_product.product_id')
+                        ->where('tbproduct.product_id', $item['product_id'])
+                        ->where('tbproduct.status', 'Available')
+                        ->where('tblocal_product.local_id', $localId)
+                        ->where('tblocal_product.is_available', 1)
+                        ->exists();
+
+                    if (!$isAvailable) {
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'message' => "El producto \"{$item['name']}\" ya no está disponible. Actualiza tu carrito antes de continuar.",
+                            'unavailable_product_id' => $item['product_id'],
+                        ], 422);
+                    }
+                }
+            }
+
             // Crear una orden por cada local
             foreach ($itemsByLocal as $localId => $items) {
                 // Generar número de orden

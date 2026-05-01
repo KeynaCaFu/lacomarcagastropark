@@ -168,10 +168,12 @@
                     // Extraer solo la tabla del HTML
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
-                    const newTable = doc.querySelector('#productsTableContainer');
+                    // Buscar el contenedor en la respuesta, o usar el cuerpo si es una vista parcial
+                    const newTable = doc.querySelector('#productsTableContainer') || doc.body;
                     
-                    if (newTable) {
-                        document.getElementById('productsTableContainer').innerHTML = newTable.innerHTML;
+                    const container = document.getElementById('productsTableContainer');
+                    if (container && newTable) {
+                        container.innerHTML = newTable.innerHTML;
                     }
                 }
             } catch (error) {
@@ -202,32 +204,101 @@
             helpButtonContainer.style.display = 'none';
         }
 
-        // Interceptar formularios de eliminación de producto en la tabla
-        document.querySelectorAll('form[action*="products/"][method="POST"]').forEach(function(form){
-            const deleteMethod = form.querySelector('input[name="_method"][value="DELETE"]');
-            if (deleteMethod) {
-                form.addEventListener('submit', function(e){
+        // --- DELEGACIÓN DE EVENTOS PARA LA TABLA (AJAX Friendly) ---
+        const tableContainer = document.getElementById('productsTableContainer');
+        
+        if (tableContainer) {
+            // 1. Manejar Clics (Cambio de Estado)
+            tableContainer.addEventListener('click', function(e) {
+                const toggler = e.target.closest('.status-toggler');
+                if (toggler) {
                     e.preventDefault();
-                    const productName = form.closest('tr')?.querySelector('td:nth-child(2) strong')?.textContent || 'este producto';
+                    // Intentar obtener el ID desde data-id o data-product-id
+                    const id = toggler.dataset.id || toggler.dataset.productId;
+                    const name = toggler.dataset.name || 'este producto';
+                    const currentStatus = toggler.dataset.status;
+                    const newStatus = currentStatus === 'Available' ? 'Unavailable' : 'Available';
+                    const statusLabel = newStatus === 'Available' ? 'Disponible' : 'No disponible';
+
+                    if (!id) {
+                        console.error('Error: No se encontró el ID del producto en el elemento clickeado.', toggler);
+                        return;
+                    }
+
                     if (window.swConfirm) {
                         swConfirm({
-                            title: 'Eliminar producto',
-                            text: `¿Desea eliminar "${productName}"?`,
-                            icon: 'warning',
-                            confirmButtonColor: '#dc2626',
-                            confirmButtonText: 'Sí, eliminar'
+                            title: '¿Cambiar disponibilidad?',
+                            text: `El producto "${name}" pasará a estar ${statusLabel}.`,
+                            icon: 'question',
+                            confirmButtonText: 'Sí, cambiar',
+                            cancelButtonText: 'Cancelar'
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                form.submit();
+                                updateProductStatus(id, newStatus);
                             }
                         });
-                    } else {
-                        const ok = confirm(`¿Desea eliminar "${productName}"?`);
-                        if (ok) form.submit();
                     }
+                }
+            });
+
+            // 2. Manejar Envío de Formularios (Eliminación)
+            tableContainer.addEventListener('submit', function(e) {
+                if (e.target.matches('form[action*="products/"]')) {
+                    const methodInput = e.target.querySelector('input[name="_method"][value="DELETE"]');
+                    if (methodInput) {
+                        e.preventDefault();
+                        const form = e.target;
+                        const productName = form.closest('tr')?.querySelector('td:nth-child(2) strong')?.textContent || 'este producto';
+                        
+                        if (window.swConfirm) {
+                            swConfirm({
+                                title: 'Eliminar producto',
+                                text: `¿Desea eliminar "${productName}"?`,
+                                icon: 'warning',
+                                confirmButtonColor: '#dc2626',
+                                confirmButtonText: 'Sí, eliminar'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    form.submit();
+                                }
+                            });
+                        } else if (confirm(`¿Desea eliminar "${productName}"?`)) {
+                            form.submit();
+                        }
+                    }
+                }
+            });
+        }
+
+        // Función para actualizar el estado vía AJAX
+        async function updateProductStatus(id, status) {
+            try {
+                // Construir la URL dinámicamente usando el helper route() para evitar errores de 404
+                let url = "{{ route('products.update', ':id') }}";
+                url = url.replace(':id', id);
+
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ status: status })
                 });
+
+                const data = await response.json();
+                if (data.success) {
+                    if (window.swToast) swToast.fire({ icon: 'success', title: data.message });
+                    loadFilteredProducts(); // Recargar la tabla para reflejar el cambio
+                } else {
+                    throw new Error(data.message || 'Error al actualizar');
+                }
+            } catch (error) {
+                if (window.swAlert) swAlert({ icon: 'error', title: 'Error', text: error.message });
             }
-        });
+        }
 
         // Mostrar alertas de éxito desde sesión (si existen)
         const successMsg = @json(session('success'));

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Data\ProductData;
 use App\Data\ProductGalleryData;
+use App\Events\ProductStatusUpdated;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
@@ -299,6 +300,21 @@ class ProductController extends Controller
             $data = ['status' => $validated['status']];
             $updatedProduct = $this->productData->update($id, $data);
 
+            // Broadcast cambio de estado en tiempo real
+            $currentUser = auth()->user();
+            $broadcastLocal = $currentUser->isAdminLocal()
+                ? $currentUser->locals()->first()
+                : $product->locals()->first();
+
+            if ($broadcastLocal) {
+                broadcast(new ProductStatusUpdated(
+                    (int) $id,
+                    $broadcastLocal->local_id,
+                    $validated['status'],
+                    $product->name
+                ))->toOthers();
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => '✓ Estado actualizado exitosamente',
@@ -413,6 +429,20 @@ class ProductController extends Controller
         ];
 
         $updatedProduct = $this->productData->update($id, $data);
+
+        // Broadcast cambio de estado en tiempo real (solo si el estado realmente cambió)
+        $newStatus = $this->mapStatusToEnglish($validated['estado']);
+        if ($product->status !== $newStatus) {
+            $localForBroadcast = isset($local) ? $local : $product->locals()->first();
+            if ($localForBroadcast) {
+                broadcast(new ProductStatusUpdated(
+                    (int) $id,
+                    $localForBroadcast->local_id,
+                    $newStatus,
+                    $validated['nombre']
+                ))->toOthers();
+            }
+        }
 
         // Si es gerente, actualizar también el precio en tblocal_product
         if ($localId) {

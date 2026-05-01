@@ -2,17 +2,20 @@
 
 namespace Database\Factories;
 
+use App\Models\LocalReview;
+use App\Models\Review;
 use App\Models\Local;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class LocalFactory extends Factory
+class LocalReviewFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
      * @var string
      */
-    protected $model = Local::class;
+    protected $model = LocalReview::class;
 
     /**
      * Define the model's default state.
@@ -22,11 +25,9 @@ class LocalFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->company(),
-            'description' => $this->faker->sentence(10),
-            'contact' => $this->faker->phoneNumber(),
-            'status' => 'Active',
-            'image_logo' => $this->faker->imageUrl(),
+            'review_id' => Review::factory(),
+            'local_id' => Local::factory(),
+            'user_id' => User::factory(),
         ];
     }
 }
