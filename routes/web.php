@@ -303,6 +303,9 @@ Route::post('/plaza/producto/{productId}/resena', [PlazaController::class, 'stor
 
 });
 
+Route::delete('/plaza/producto/{productReviewId}/resena', [PlazaController::class, 'deleteProductReview'])->middleware('auth');
+Route::delete('/plaza/{localId}/review/{localReviewId}', [PlazaController::class, 'deleteLocalReview'])->middleware('auth');
+
 
 // Profile routes (authenticated users)
 Route::middleware('auth')->group(function () {
