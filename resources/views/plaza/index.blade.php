@@ -678,6 +678,52 @@
                 this.updateLocalStatus(schedules, local_id);
             });
 
+            // Sincronización en tiempo real del drawer de eventos.
+            // Definido en mounted() (script inline) para estar disponible antes de que app.js
+            // (módulo ES, diferido) cargue y suscriba el canal Echo.
+            window.syncEventoInDrawer = (data) => {
+                if (!data || !data.event_id) return;
+
+                // Eliminar de ambas listas (limpia cambios de fecha o desactivaciones)
+                this.eventosHoy = this.eventosHoy.filter(e => e.event_id !== data.event_id);
+                this.eventosProximos = this.eventosProximos.filter(e => e.event_id !== data.event_id);
+
+                if (data.action === 'remove') return;
+
+                // 'upsert': agregar al lugar correcto si el evento no está expirado
+                const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                if (new Date(data.start_at) < threshold) return;
+
+                const today = new Date().toDateString();
+                new Date(data.start_at).toDateString() === today
+                    ? this.eventosHoy.unshift(data)
+                    : this.eventosProximos.unshift(data);
+            };
+
+            document.addEventListener('evento-synced', (e) => {
+                window.syncEventoInDrawer && window.syncEventoInDrawer(e.detail);
+            });
+
+            // Timer: purgar eventos expirados (start_at > 24h atrás) cada minuto
+            const purgeExpiredEvents = () => {
+                const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                const before = this.eventosHoy.length + this.eventosProximos.length;
+
+                this.eventosHoy = this.eventosHoy.filter(
+                    e => new Date(e.start_at) >= threshold
+                );
+                this.eventosProximos = this.eventosProximos.filter(
+                    e => new Date(e.start_at) >= threshold
+                );
+
+                const removed = before - (this.eventosHoy.length + this.eventosProximos.length);
+                if (removed > 0) {
+                    console.log(`⏰ Expiración: ${removed} evento(s) eliminado(s) del drawer`);
+                }
+            };
+            purgeExpiredEvents();
+            setInterval(purgeExpiredEvents, 60000);
+
             // Escuchar cambios de estado de productos en tiempo real
             document.addEventListener('product-status-updated', (event) => {
                 const { product_id, status, product_name } = event.detail;
@@ -1276,6 +1322,23 @@
             }
         }
     }).mount('#plaza-app');
+
+    // Listener de nuevos eventos publicados en tiempo real
+    (function initEvents() {
+        const init = () => window.initEventListener ? window.initEventListener() : false;
+
+        if (window.Echo && init()) return;
+
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && init()) {
+                clearInterval(retry);
+            } else if (attempts >= 10) {
+                clearInterval(retry);
+            }
+        }, 500);
+    })();
 
     // Actualizaciones de horario en tiempo real para todos los locales de la página
     (function initSchedules() {
