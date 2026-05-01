@@ -65,6 +65,15 @@ class PlazaController extends Controller
                 return $local;
             });
 
+        // Horarios de hoy para todos los locales (una sola query) — usados por el timer JS
+        $horariosPorLocal = Schedule::todayForLocals($locales->pluck('local_id')->toArray())
+            ->get()
+            ->keyBy('local_id')
+            ->map(fn($s) => [
+                'opening_time' => $s->opening_time?->format('H:i'),
+                'closing_time' => $s->closing_time?->format('H:i'),
+            ]);
+
         $productosAleatorios = collect();
         foreach ($locales as $local) {
             $productosLocal = $local->products()
@@ -124,13 +133,14 @@ class PlazaController extends Controller
             ->get();
 
         return view('plaza.index', [
-            'locales' => $locales,
-            'productos' => $productosAleatorios,
-            'categorias' => $categorias,
-            'stats' => $stats,
+            'locales'          => $locales,
+            'productos'        => $productosAleatorios,
+            'categorias'       => $categorias,
+            'stats'            => $stats,
             'categoria_actual' => $request->categoria ?? 'todos',
-            'eventosHoy' => $eventosHoy,
-            'eventosProximos' => $eventosProximos,
+            'eventosHoy'       => $eventosHoy,
+            'eventosProximos'  => $eventosProximos,
+            'horariosPorLocal' => $horariosPorLocal,
         ]);
     }
 
