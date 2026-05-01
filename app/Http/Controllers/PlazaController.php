@@ -698,7 +698,7 @@ public function storeProductReview(Request $request, $productId)
     ], 201);
 }
 
- /**
+    /**
      * Obtener todos los horarios de todos los locales (para recalc automático en index)
      */
     public function getAllSchedules()
@@ -722,6 +722,31 @@ public function storeProductReview(Request $request, $productId)
             'success' => true,
             'schedules' => $schedules
         ]);
+    }
+
+    public function deleteProductReview($productReviewId)
+    {
+        $review = ProductReview::where('product_review_id', $productReviewId)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $review->review()->delete(); // elimina la review padre
+        $review->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function deleteLocalReview($localId, $localReviewId)
+    {
+        $review = LocalReview::where('local_review_id', $localReviewId)
+            ->where('local_id', $localId)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $review->review()->delete();
+        $review->delete();
+
+        return response()->json(['success' => true]);
     }
 
 }
