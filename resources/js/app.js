@@ -1,4 +1,5 @@
 import './bootstrap';
+import './plaza-index-listeners';
 
 import Alpine from 'alpinejs';
 
@@ -151,4 +152,9 @@ function updateLocalStatusDot(localId, schedules) {
     if (chip) {
         chip.innerHTML = `<span class="status-dot ${isOpen ? 'status-dot-open' : 'status-dot-closed'}"></span> ${isOpen ? 'Abierto' : 'Cerrado'}`;
     }
+
+    // Notificar para actualizar el cache de horarios
+    document.dispatchEvent(new CustomEvent('local-schedule-updated', {
+        detail: { local_id: localId, schedules: schedules }
+    }));
 }

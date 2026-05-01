@@ -1108,28 +1108,31 @@
         }
     }).mount('#plaza-app');
 
-    // Actualizaciones de horario en tiempo real para todos los locales de la página
-    (function initSchedules() {
+    // Real-time schedule updates via WebSocket
+    (function initRealTimeSchedules() {
         const localIds = {!! json_encode($locales->pluck('local_id')->toArray()) !!};
         if (!localIds.length) return;
 
-        if (window.Echo && window.initIndexScheduleListeners) {
-            window.initIndexScheduleListeners(localIds);
+        if (window.Echo && window.initPlazaIndexListeners) {
+            window.initPlazaIndexListeners(localIds);
             return;
         }
 
-        // Reintentar hasta que Echo esté listo (máx 5 s)
+        // Wait for Echo to be ready (max 5s)
         let attempts = 0;
         const retry = setInterval(() => {
             attempts++;
-            if (window.Echo && window.initIndexScheduleListeners) {
-                window.initIndexScheduleListeners(localIds);
+            if (window.Echo && window.initPlazaIndexListeners) {
+                window.initPlazaIndexListeners(localIds);
                 clearInterval(retry);
             } else if (attempts >= 10) {
                 clearInterval(retry);
+                console.warn('⚠ Plaza index listeners could not be initialized');
             }
         }, 500);
     })();
+
+
 </script>
 
 </body>
