@@ -25,6 +25,7 @@ class UserFactory extends Factory
             'role_id' => 1, // Cliente por defecto
             'status' => 'Active',
             'remember_token' => Str::random(10),
+            'status' => 'Active',
         ];
     }
 
