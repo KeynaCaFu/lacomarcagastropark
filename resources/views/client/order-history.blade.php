@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Mi Historial de Pedidos - La Comarca Gastro Park</title>
+    <title>Mis Pedidos - La Comarca Gastro Park</title>
     <link rel="icon" type="image/ico" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
     <link rel="apple-touch-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
@@ -17,6 +17,54 @@
     <link rel="stylesheet" href="{{ asset('css/plaza/order-history.css') }}">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <style>
+        .orders-nav-tabs {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-light, #e2e8f0);
+            padding-bottom: 2px;
+        }
+        .nav-tab-item {
+            padding: 12px 5px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--muted, #64748b);
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.05rem;
+            user-select: none;
+        }
+        .nav-tab-item i {
+            font-size: 1.15rem;
+        }
+        .nav-tab-item:hover {
+            color: var(--primary, #d4773a);
+        }
+        .nav-tab-item.active {
+            color: var(--primary, #d4773a);
+        }
+        .nav-tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--primary, #d4773a);
+            border-radius: 10px 10px 0 0;
+        }
+        .order-card[v-cloak] {
+            display: none;
+        }
+        .order-status.status-ready {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+    </style>
 </head>
 <body>
 <div id="order-history-app" v-cloak>
@@ -85,8 +133,20 @@
         <div class="container">
             <!-- PAGE HEADER -->
             <div class="page-header">
-                <h1 class="page-title">Mi Historial de Pedidos</h1>
-                <p class="page-subtitle">Revisa todos tus pedidos anteriores</p>
+                <h1 class="page-title">Mis Pedidos</h1>
+                <p class="page-subtitle">Revisa todos tus pedidos</p>
+            </div>
+
+            <!-- TABS NAVIGATION -->
+            <div class="orders-nav-tabs">
+                <div class="nav-tab-item" :class="{ active: activeTab === 'actuales' }" @click="activeTab = 'actuales'">
+                    <i class="fas fa-utensils"></i>
+                    <span>Pedidos Actuales</span>
+                </div>
+                <div class="nav-tab-item" :class="{ active: activeTab === 'historial' }" @click="activeTab = 'historial'">
+                    <i class="fas fa-history"></i>
+                    <span>Historial de Pedidos</span>
+                </div>
             </div>
 
             <!-- FILTERS ACCORDION -->
@@ -126,7 +186,7 @@
             @if($orders->count() > 0)
                 <div class="orders-list">
                     @foreach($orders as $order)
-                        <div class="order-card">
+                        <div class="order-card" v-show="shouldShowOrder('{{ $order->status }}')" data-status="{{ $order->status }}">
                             <!-- ACCORDION HEADER (ALWAYS VISIBLE) -->
                             <div class="order-card-header">
                                 <div class="order-card-header-left">
@@ -213,11 +273,20 @@
                             </div>
                         </div>
                     @endforeach
+
+                    <!-- Mensaje si no hay órdenes de este tipo en la página actual -->
+                    <div class="empty-state" v-if="!hasVisibleOrders" style="padding: 40px 20px; background: transparent; border: none; box-shadow: none;">
+                        <div class="empty-icon" style="font-size: 2.5rem; opacity: 0.3;">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <p class="empty-text" style="color: var(--muted);">No hay pedidos @{{ activeTab === 'actuales' ? 'actuales' : 'finalizados' }} en esta página.</p>
+                        <p v-if="activeTab === 'actuales'" style="font-size: 0.85rem; color: var(--muted); margin-top: 5px;">Revisa el Historial o las otras páginas de la lista.</p>
+                    </div>
                 </div>
 
                 <!-- PAGINATION -->
                 @if($orders->hasPages())
-                    <div class="pagination-wrapper">
+                    <div class="pagination-wrapper" v-if="activeTab === 'historial'">
                         {{-- Previous Page Link --}}
                         @if($orders->onFirstPage())
                             <span class="pagination-link disabled">
@@ -271,9 +340,6 @@
             @endif
         </div>
     </main>
-
-    <!-- ═══ DRAWER: ÓRDENES PENDIENTES ═══ -->
-    @include('plaza.carrito._my_orders_drawer')
 
      <!-- ══ FOOTER ══ -->
     <footer class="footer-v2">
@@ -397,7 +463,9 @@
                 showMyOrdersDrawer: false,
                 isCancellingOrder: false,
                 selectedOrderToCancel: null,
-                cancelReason: ''
+                activeTab: 'actuales',
+                cancelReason: '',
+                hasVisibleOrders: true
             };
         },
         methods: {
@@ -406,6 +474,34 @@
             },
             openCartDrawer() {
                 // Cart is disabled in order history page
+            },
+            /**
+             * Determina si una orden debe mostrarse según la pestaña activa y su estado
+             */
+            shouldShowOrder(status) {
+                // Estados para "Pedidos Actuales"
+                const actuales = ['Pending', 'Preparing', 'In Progress', 'Ready'];
+                // Estados para "Historial"
+                const historial = ['Delivered', 'Cancelled'];
+                
+                if (this.activeTab === 'actuales') {
+                    return actuales.includes(status);
+                }
+                return historial.includes(status);
+            },
+            /**
+             * Verifica si hay órdenes visibles en el DOM para la pestaña activa
+             */
+            updateVisibilityFlag() {
+                const actuales = ['Pending', 'Preparing', 'In Progress', 'Ready'];
+                const historial = ['Delivered', 'Cancelled'];
+                
+                // Escaneamos las tarjetas generadas por Blade en el DOM
+                const cards = Array.from(document.querySelectorAll('.order-card'));
+                this.hasVisibleOrders = cards.some(card => {
+                    const status = card.getAttribute('data-status');
+                    return this.activeTab === 'actuales' ? actuales.includes(status) : historial.includes(status);
+                });
             },
             toggleFilterAccordion() {
                 this.filterAccordionOpen = !this.filterAccordionOpen;
@@ -597,9 +693,19 @@
                 }
             }
         },
+        watch: {
+            // Actualizar la bandera de visibilidad cuando cambie la pestaña
+            activeTab() {
+                this.$nextTick(() => {
+                    this.updateVisibilityFlag();
+                });
+            }
+        },
         mounted() {
             // Cargar órdenes pendientes al iniciar
             this.loadMyOrders();
+            // Verificar visibilidad inicial
+            this.updateVisibilityFlag();
         }
     }).mount('#order-history-app');
 

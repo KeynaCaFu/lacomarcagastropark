@@ -280,7 +280,6 @@
 
     <!-- ═══ DRAWER: CARRITO (PANEL LATERAL) ═══ -->
     @include('plaza.carrito._cart_drawer')
-    @include('plaza.carrito._my_orders_drawer')
 
     <!-- ═══ DRAWER: EVENTO DETAIL (PANEL LATERAL) ═══ -->
     <div v-if="showEventoDetail" class="evento-detail-overlay" @click="closeEventoDetail"></div>
