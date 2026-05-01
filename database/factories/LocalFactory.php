@@ -12,10 +12,11 @@ class LocalFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->word(),
+            'name' => $this->faker->name(),
             'description' => $this->faker->paragraph(),
             'contact' => $this->faker->phoneNumber(),
             'status' => 'Active',
+            'image_logo' => null,
         ];
     }
 }
