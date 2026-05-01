@@ -72,8 +72,22 @@
                             }
                         @endphp
                         <div class="lrc-slide">
-                            <div class="local-review-card">
-                                <div class="local-review-card__header">
+                            
+    <div class="local-review-card" style="position:relative;">
+    @auth
+    @if((int)$item->user_id === (int)auth()->id())
+    <button onclick="eliminarResenaLocal({{ $item->local_review_id }}, {{ $local->local_id }}, this)"
+            style="position:absolute; bottom:12px; right:12px; background:transparent; border:none; color:rgba(231,76,60,0.6); cursor:pointer; font-size:16px; padding:4px; transition:color .2s;"
+            onmouseover="this.style.color='#e74c3c'"
+            onmouseout="this.style.color='rgba(231,76,60,0.6)'"
+            title="Eliminar reseña">
+        <i class="fas fa-trash-alt"></i>
+    </button>
+    @endif
+    @endauth
+   
+    
+                 <div class="local-review-card__header">
                                     <div class="local-review-card__avatar">{{ $iniciales ?: 'CL' }}</div>
                                     <div class="local-review-card__user">
                                         <div class="local-review-card__name">{{ $nombre }}</div>
@@ -90,7 +104,7 @@
                                     @endfor
                                 </div>
                                 @if($comment)
-                                    <p class="local-review-card__comment">"{{ $comment }}"</p>
+                                    <p class="local-review-card__comment" style="word-break:break-word; overflow-wrap:break-word;">"{{ $comment }}"</p>
                                 @endif
                                 @if($respuesta)
                                     <div class="local-review-card__response">
@@ -276,7 +290,14 @@ function agregarResenaAlCarrusel(r) {
     const slide = document.createElement('div');
     slide.className = 'lrc-slide';
     slide.innerHTML = `
-        <div class="local-review-card">
+        <div class="local-review-card" style="position:relative;">
+            <button onclick="eliminarResenaLocal(${r.local_review_id}, ${r.local_id}, this)"
+                    style="position:absolute; bottom:12px; right:12px; background:transparent; border:none; color:rgba(231,76,60,0.6); cursor:pointer; font-size:16px; padding:4px; transition:color .2s;"
+                    onmouseover="this.style.color='#e74c3c'"
+                    onmouseout="this.style.color='rgba(231,76,60,0.6)'"
+                    title="Eliminar reseña">
+                <i class="fas fa-trash-alt"></i>
+            </button>
             <div class="local-review-card__header">
                 <div class="local-review-card__avatar">${r.iniciales}</div>
                 <div class="local-review-card__user">
@@ -290,8 +311,52 @@ function agregarResenaAlCarrusel(r) {
 
     trackEl.insertBefore(slide, trackEl.firstChild);
 
-    if (typeof window.reiniciarCarrusel === 'function') {
+   if (typeof window.reiniciarCarrusel === 'function') {
         window.reiniciarCarrusel();
     }
 }
+
+function toggleMenuResena(btn) {
+    const dropdown = btn.nextElementSibling;
+    document.querySelectorAll('.resena-menu-dropdown').forEach(d => {
+        if (d !== dropdown) d.style.display = 'none';
+    });
+    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.resena-menu-wrap')) {
+        document.querySelectorAll('.resena-menu-dropdown').forEach(d => d.style.display = 'none');
+    }
+});
+
+async function eliminarResenaLocal(localReviewId, localId, btn) {
+    const confirmResult = await Swal.fire({
+        title: '¿Eliminar reseña?',
+        text: 'Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        background: '#14110f',
+        color: '#F5F0E8'
+    });
+    if (!confirmResult.isConfirmed) return;
+
+    const res = await fetch(`/plaza/${localId}/review/${localReviewId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+        }
+    });
+
+    const data = await res.json();
+    if (data.success) {
+        btn.closest('.lrc-slide').remove();
+        if (typeof window.reiniciarCarrusel === 'function') window.reiniciarCarrusel();
+        if (window.showNotification) window.showNotification({ icon: 'success', title: 'Reseña eliminada' });
+    }
+}
+
 </script>
