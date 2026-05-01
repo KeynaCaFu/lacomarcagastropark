@@ -20,10 +20,48 @@ class UserFactory extends Factory
         return [
             'full_name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'phone' => fake()->phoneNumber(),
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
             'remember_token' => Str::random(10),
+            'role_id' => 1, // Client (default)
             'status' => 'Active',
         ];
+    }
+
+    /**
+     * Indicate that the user is a manager.
+     *
+     * @return static
+     */
+    public function manager()
+    {
+        return $this->state(fn (array $attributes) => [
+            'role_id' => 2, // Manager
+        ]);
+    }
+
+    /**
+     * Indicate that the user is an admin.
+     *
+     * @return static
+     */
+    public function admin()
+    {
+        return $this->state(fn (array $attributes) => [
+            'role_id' => 3, // Admin
+        ]);
+    }
+
+    /**
+     * Indicate that the user is inactive.
+     *
+     * @return static
+     */
+    public function inactive()
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'Inactive',
+        ]);
     }
 
     /**
