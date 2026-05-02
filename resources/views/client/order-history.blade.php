@@ -64,6 +64,26 @@
             background-color: #dcfce7;
             color: #166534;
         }
+        .cancel-order-btn-link {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        .cancel-order-btn-link:hover {
+            background: #fecaca;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(153, 27, 27, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -265,9 +285,16 @@
                                                 </small>
                                             @endif
                                         </div>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
+                                        @if($order->status === 'Pending')
+                                            <button class="cancel-order-btn-link" @click.prevent="confirmCancellationRequest({{ $order->order_id }}, '{{ $order->order_number }}')">
+                                                <i class="fas fa-times-circle"></i> Cancelar y Editar
+                                            </button>
+                                        @endif
                                         <button class="reorder-btn" @click.prevent="reorderOrder({{ $order->order_id }})">
                                             <i class="fas fa-redo"></i> Reordenar
                                         </button>
+                                    </div>
                                     </div>
                                 </div>
                             </div>
@@ -460,11 +487,8 @@
                 isLoading: false,
                 // Órdenes pendientes
                 myOrders: [],
-                showMyOrdersDrawer: false,
                 isCancellingOrder: false,
-                selectedOrderToCancel: null,
                 activeTab: 'actuales',
-                cancelReason: '',
                 hasVisibleOrders: true
             };
         },
@@ -599,6 +623,69 @@
                     });
                 }
             },
+            /**
+             * Inicia el proceso de cancelación desde la lista de órdenes (Pestaña Actuales)
+             */
+            confirmCancellationRequest(orderId, orderNumber) {
+                Swal.fire({
+                    title: '¿Cancelar Pedido #' + orderNumber + '?',
+                    text: 'La orden se cancelará y los productos volverán a tu carrito para que puedas editarlos o agregar más.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d4423e',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Sí, cancelar y editar',
+                    cancelButtonText: 'No, mantener pedido'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.processOrderCancellation(orderId);
+                    }
+                });
+            },
+
+            /**
+             * Lógica de cancelación llamando al API
+             */
+            async processOrderCancellation(orderId) {
+                this.isLoading = true;
+                try {
+                    const response = await fetch(`{{ url('/plaza/carrito/api/cancelar') }}/${orderId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ reason: 'Cancelado por el cliente para realizar cambios' })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Orden Cancelada',
+                            text: 'Los productos se han devuelto a tu carrito correctamente.',
+                            confirmButtonText: 'Ir al carrito / Plaza',
+                            confirmButtonColor: '#d4773a',
+                            showCancelButton: true,
+                            cancelButtonText: 'Cerrar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '{{ route("plaza.index") }}';
+                            } else {
+                                window.location.reload();
+                            }
+                        });
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'No se pudo cancelar la orden. Inténtalo de nuevo.', 'error');
+                } finally {
+                    this.isLoading = false;
+                }
+            },
 
             // ── ÓRDENES PENDIENTES METHODS ──
             async loadMyOrders() {
@@ -620,78 +707,6 @@
                     console.error('Error:', error);
                 }
             },
-
-            closeMyOrdersDrawer() {
-                this.showMyOrdersDrawer = false;
-                this.selectedOrderToCancel = null;
-                this.cancelReason = '';
-            },
-
-            seleccionarParaCancelar(order) {
-                this.selectedOrderToCancel = order;
-            },
-
-            cancelarSeleccion() {
-                this.selectedOrderToCancel = null;
-                this.cancelReason = '';
-            },
-
-            async confirmarCancelacion() {
-                if (!this.selectedOrderToCancel) return;
-
-                this.isCancellingOrder = true;
-
-                try {
-                    const response = await fetch(`{{ url('/plaza/carrito/api/cancelar') }}/${this.selectedOrderToCancel.order_id}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: JSON.stringify({ reason: this.cancelReason })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: '¡Orden Cancelada!',
-                            text: data.message,
-                            confirmButtonText: 'OK'
-                        });
-                        
-                        // Remover de la lista
-                        this.myOrders = this.myOrders.filter(o => o.order_id !== this.selectedOrderToCancel.order_id);
-                        
-                        // Limpiar selección
-                        this.selectedOrderToCancel = null;
-                        this.cancelReason = '';
-                        
-                        // Cerrar drawer si no quedan órdenes
-                        if (this.myOrders.length === 0) {
-                            this.closeMyOrdersDrawer();
-                        }
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'No se pudo cancelar',
-                            text: data.message,
-                            confirmButtonText: 'OK'
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Hubo un problema de conexión',
-                        confirmButtonText: 'OK'
-                    });
-                } finally {
-                    this.isCancellingOrder = false;
-                }
-            }
         },
         watch: {
             // Actualizar la bandera de visibilidad cuando cambie la pestaña
