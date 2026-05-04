@@ -34,4 +34,12 @@ class LocalReview extends Model
     {
         return $this->belongsTo(Local::class, 'local_id', 'local_id');
     }
+
+
+/** Metodo para la prueba unitaria que me compara si el user_id de la reseña es igual al usuario que se le pasa. Devuelve true o false. */
+
+    public function perteneceAlUsuario($userId)
+{
+    return $this->user_id === $userId;
+}
 }
