@@ -268,6 +268,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // Historial de pedidos del cliente
     Route::get('/my-orders', [ClienteController::class, 'showOrderHistory'])->name('client.orders.history');
+   //Reseñas en bandeja 
+    Route::get('/mis-resenas', [PlazaController::class, 'misResenas'])->name('client.reviews');
 
 // Guardar reseña del local por cliente 
     Route::post('/plaza/{localId}/review', [PlazaController::class, 'storeLocalReview'])
