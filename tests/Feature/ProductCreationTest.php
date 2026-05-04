@@ -4,25 +4,23 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 /**
  * PRUEBA DE INTEGRACIÓN: Validación de Creación de Productos
  * 
- * Objetivo: Validar el flujo de validación sin necesidad de BD
- * Prueba la lógica de validación de formularios del controlador
- * 
  * Casos de prueba:
- * 1. Validación de campos obligatorios (nombre, precio, estado)
- * 2. Validación de límites de caracteres
- * 3. Validación de valores permitidos (estado)
- * 4. Mensajes de error personalizados
- * 5. Validación de múltiples errores simultáneamente
- * 6. Validación con datos opcionales
+ * 1. Crear productos en la base de datos
+ * 2. Validación de campos obligatorios (nombre, precio, estado)
+ * 3. Validación de límites de caracteres
+ * 4. Validación de valores permitidos (estado)
+ * 5. Mensajes de error personalizados
+ * 6. Validación de múltiples errores simultáneamente
+ * 7. Validación con datos opcionales
  */
 class ProductCreationTest extends TestCase
 {
-
-
+    protected $localId = 7; // Local de prueba
 
     /**
      * Obtener reglas de validación (idénticas a ProductController)
@@ -37,7 +35,7 @@ class ProductCreationTest extends TestCase
             'tipo_producto' => 'nullable|string|max:50',
             'precio' => 'required|numeric|min:0',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'estado' => 'required|string|in:Disponible,No disponible'
+            'estado' => 'required|string|in:Available,Unavailable'
         ];
     }
 
@@ -54,7 +52,7 @@ class ProductCreationTest extends TestCase
             'foto.image' => 'El archivo debe ser una imagen',
             'foto.mimes' => 'La imagen debe ser JPG, PNG o GIF',
             'foto.max' => 'La imagen no puede ser mayor a 2MB',
-            'estado.in' => 'El estado debe ser Disponible o No disponible'
+            'estado.in' => 'El estado debe ser Available o Unavailable'
         ];
     }
 
@@ -64,18 +62,18 @@ class ProductCreationTest extends TestCase
     protected function getValidProductData()
     {
         return [
-            'nombre' => 'Ceviche Fresco',
+            'nombre' => 'Ceviche Test ' . uniqid(),
             'descripcion' => 'Ceviche con pescado fresco del día',
             'categoria' => 'Mariscos',
             'etiqueta' => 'Especialidad',
             'tipo_producto' => 'Plato Principal',
             'precio' => 15.99,
-            'estado' => 'Disponible'
+            'estado' => 'Available'
         ];
     }
 
     // ============================================================
-    // PRUEBAS DE VALIDACIÓN - SIN BD
+    // PRUEBAS DE VALIDACIÓN - 
     // ============================================================
 
     /**
@@ -104,7 +102,7 @@ class ProductCreationTest extends TestCase
         $data = [
             'nombre' => 'Producto Mínimo',
             'precio' => 9.99,
-            'estado' => 'Disponible'
+            'estado' => 'Available'
         ];
 
         $validator = Validator::make(
@@ -268,13 +266,13 @@ class ProductCreationTest extends TestCase
     }
 
     /**
-     * TEST 11: Estado "Disponible" es válido
+     * TEST 11: Estado "Available" es válido
      * Esperado: Validación exitosa
      */
-    public function test_acepta_estado_disponible()
+    public function test_acepta_estado_available()
     {
         $data = $this->getValidProductData();
-        $data['estado'] = 'Disponible';
+        $data['estado'] = 'Available';
 
         $validator = Validator::make(
             $data,
@@ -286,13 +284,13 @@ class ProductCreationTest extends TestCase
     }
 
     /**
-     * TEST 12: Estado "No disponible" es válido
+     * TEST 12: Estado "Unavailable" es válido
      * Esperado: Validación exitosa
      */
-    public function test_acepta_estado_no_disponible()
+    public function test_acepta_estado_unavailable()
     {
         $data = $this->getValidProductData();
-        $data['estado'] = 'No disponible';
+        $data['estado'] = 'Unavailable';
 
         $validator = Validator::make(
             $data,
@@ -361,7 +359,6 @@ class ProductCreationTest extends TestCase
         $this->assertTrue($validator->fails());
         $errors = $validator->errors()->toArray();
         
-        // Verificar que los mensajes contienen el idioma español
         $this->assertTrue(
             count($errors) > 0,
             'Debe haber al menos un error'
@@ -431,8 +428,7 @@ class ProductCreationTest extends TestCase
         $data = [
             'nombre' => 'Producto',
             'precio' => 10,
-            'estado' => 'Disponible'
-            // Sin descripción, categoría, etiqueta, tipo_producto
+            'estado' => 'Available'
         ];
 
         $validator = Validator::make(
@@ -451,7 +447,7 @@ class ProductCreationTest extends TestCase
     public function test_nombre_debe_ser_string()
     {
         $data = $this->getValidProductData();
-        $data['nombre'] = 12345; // Número en lugar de string
+        $data['nombre'] = 12345;
 
         $validator = Validator::make(
             $data,
@@ -462,4 +458,153 @@ class ProductCreationTest extends TestCase
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('nombre', $validator->errors()->toArray());
     }
+
+    // ============================================================
+    // PRUEBAS DE INTEGRACIÓN - Crear productos en BD
+    // ============================================================
+
+    /**
+     * TEST 21: Insertar producto válido en la base de datos
+     * Esperado: El producto se guarda y se puede recuperar
+     */
+    public function test_crear_producto_valido_en_base_datos()
+    {
+        $data = [
+            'name' => 'Tiradito Integration Test ' . uniqid(),
+            'description' => 'Atún fresco con salsa de ají amarillo',
+            'category' => 'Mariscos',
+            'tag' => 'Premium',
+            'product_type' => 'Plato Principal',
+            'price' => 18.50,
+            'status' => 'Available'
+        ];
+
+        $productId = DB::table('tbproduct')->insertGetId($data);
+
+        $this->assertGreaterThan(0, $productId);
+        $this->assertDatabaseHas('tbproduct', [
+            'product_id' => $productId,
+            'name' => $data['name']
+        ]);
+    }
+
+    /**
+     * TEST 22: Asociar producto a local
+     * Esperado: El producto se asocia correctamente a tblocal_product
+     */
+    public function test_asociar_producto_a_local()
+    {
+        $data = [
+            'name' => 'Causa Integration Test ' . uniqid(),
+            'description' => 'Papa amarilla con aguacate',
+            'category' => 'Entradas',
+            'tag' => 'Clásico',
+            'product_type' => 'Entrada',
+            'price' => 12.00,
+            'status' => 'Available'
+        ];
+
+        $productId = DB::table('tbproduct')->insertGetId($data);
+
+        DB::table('tblocal_product')->insert([
+            'local_id' => $this->localId,
+            'product_id' => $productId,
+            'price' => $data['price'],
+            'is_available' => 1,
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        $this->assertDatabaseHas('tblocal_product', [
+            'local_id' => $this->localId,
+            'product_id' => $productId
+        ]);
+    }
+
+    /**
+     * TEST 23: Recuperar producto por ID
+     * Esperado: Se obtiene el producto correcto de la BD
+     */
+    public function test_recuperar_producto_por_id()
+    {
+        $data = [
+            'name' => 'Ceviche Integration Test ' . uniqid(),
+            'description' => 'Ceviche con pescado fresco',
+            'category' => 'Mariscos',
+            'tag' => 'Especialidad',
+            'product_type' => 'Plato Principal',
+            'price' => 15.99,
+            'status' => 'Available'
+        ];
+
+        $productId = DB::table('tbproduct')->insertGetId($data);
+        
+        $product = DB::table('tbproduct')->where('product_id', $productId)->first();
+
+        $this->assertNotNull($product);
+        $this->assertEquals($data['name'], $product->name);
+        $this->assertEquals($data['price'], $product->price);
+    }
+
+    /**
+     * TEST 24: Listar productos de un local
+     * Esperado: Se obtienen todos los productos del local
+     */
+    public function test_listar_productos_de_local()
+    {
+        // Contar productos iniciales del local 7
+        $initialCount = DB::table('tblocal_product')
+            ->where('local_id', $this->localId)
+            ->count();
+
+        // Crear 3 productos nuevos
+        for ($i = 0; $i < 3; $i++) {
+            $productId = DB::table('tbproduct')->insertGetId([
+                'name' => "Test Product $i " . uniqid(),
+                'description' => "Test description $i",
+                'price' => 10 + $i,
+                'status' => 'Available'
+            ]);
+
+            DB::table('tblocal_product')->insert([
+                'local_id' => $this->localId,
+                'product_id' => $productId,
+                'price' => 10 + $i,
+                'is_available' => 1,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
+
+        // Verificar que se agregaron
+        $finalCount = DB::table('tblocal_product')
+            ->where('local_id', $this->localId)
+            ->count();
+
+        $this->assertEquals($initialCount + 3, $finalCount);
+    }
+
+    /**
+     * TEST 25: Actualizar estado de producto
+     * Esperado: El estado se actualiza correctamente
+     */
+    public function test_actualizar_estado_producto()
+    {
+        $data = [
+            'name' => 'Product Status Test ' . uniqid(),
+            'price' => 20.00,
+            'status' => 'Available'
+        ];
+
+        $productId = DB::table('tbproduct')->insertGetId($data);
+
+        DB::table('tbproduct')
+            ->where('product_id', $productId)
+            ->update(['status' => 'Unavailable']);
+
+        $product = DB::table('tbproduct')->where('product_id', $productId)->first();
+
+        $this->assertEquals('Unavailable', $product->status);
+    }
 }
+
