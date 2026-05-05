@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Order;
+use App\Events\NewReviewPosted;
 use App\Models\OrderItem;
 class PlazaController extends Controller
 {
@@ -596,6 +597,14 @@ public function storeLocalReview(Request $request, $localId)
             'local_id'  => $localId,
             'user_id'   => $userId,
         ]);
+        // Disparar notificación al gerente en tiempo real
+        broadcast(new NewReviewPosted(
+          localId:     (int) $localId,
+             reviewId:    $review->review_id,
+             clientName:  Auth::user()->full_name ?? Auth::user()->name ?? 'Cliente',
+             productName: 'el local',
+             rating:      $request->rating
+        ))->toOthers();
 
         // Devolver la nueva reseña completa para renderizarla sin recargar
         $user = Auth::user();
@@ -685,7 +694,19 @@ public function storeProductReview(Request $request, $productId)
         'user_id' => $userId,
         'responded_by' => null,
     ]);
+    // Obtener el local_id del producto para notificar al gerente correcto
+$product = Product::find($productId);
+$localDelProducto = $product?->locals()->first();
 
+if ($localDelProducto) {
+    broadcast(new NewReviewPosted(
+        localId:     (int) $localDelProducto->local_id,
+        reviewId:    $review->review_id,
+        clientName:  Auth::user()->full_name ?? Auth::user()->name ?? 'Cliente',
+        productName: $product->name,
+        rating:      $request->rating
+    ));
+}
     $user = Auth::user();
 
     return response()->json([
