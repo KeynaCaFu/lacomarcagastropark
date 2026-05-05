@@ -10,17 +10,18 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 /**
  * PRUEBA DE SISTEMA: Flujo Completo (End-to-End)
- * 
+ *
  * Objetivo: Validar el flujo COMPLETO del negocio:
  * 1. Registrar un Usuario con rol Gerente
- * 2. Registrar un Local
+ * 2. Registrar un Local (solo nombre)
  * 3. Asociar el Gerente al Local
  * 4. Verificar que todo funciona correctamente
- * 
+ *
  * Casos de prueba: 4
- * 
+ *
  * Requisito de Negocio:
  * "Un Local DEBE TENER al menos un Gerente registrado"
+ * "Para crear un local solo se necesita: nombre + seleccionar un gerente"
  */
 class LocalRegistrationWorkflowTest extends TestCase
 {
@@ -28,14 +29,14 @@ class LocalRegistrationWorkflowTest extends TestCase
 
     /**
      * Test Principal: Flujo Completo
-     * 
+     *
      * Escenario: Registrar un Gerente, Registrar un Local, Asociarlos
-     * 
+     *
      * Pasos:
      * 1. Crear rol Gerente
      * 2. Crear usuario con rol Gerente
      * 3. Verificar que usuario es Gerente
-     * 4. Crear Local
+     * 4. Crear Local (solo nombre, estado Inactive)
      * 5. Asociar Gerente a Local
      * 6. Verificar que relación existe
      * 7. Verificar desde ambos lados (Local.users / User.locals)
@@ -43,27 +44,24 @@ class LocalRegistrationWorkflowTest extends TestCase
     public function test_complete_workflow_register_manager_and_local()
     {
         // ===== PASO 1: REGISTRAR USUARIO GERENTE =====
-        
+
         // Prerequisito: Rol Gerente debe existir
-        $role = Role::firstOrCreate(
-            ['role_type' => 'Gerente'],
-            ['description' => 'Gerente de Local']
-        );
+        $role = Role::firstOrCreate(['role_type' => 'Gerente']);
 
         // Crear usuario Gerente
         $manager = User::create([
             'full_name' => 'Juan Carlos Gerente',
-            'email' => 'juan.gerente@lacomarca.com',
-            'phone' => '8765-4321',
-            'password' => bcrypt('SecurePass123!'),
-            'role_id' => $role->role_id,
-            'status' => 'Active'
+            'email'     => 'juan.gerente@lacomarca.com',
+            'phone'     => '8765-4321',
+            'password'  => bcrypt('SecurePass123!'),
+            'role_id'   => $role->role_id,
+            'status'    => 'Active',
         ]);
 
         // VALIDACIÓN 1.1: Usuario debe existir en BD
         $this->assertDatabaseHas('tbuser', [
-            'email' => 'juan.gerente@lacomarca.com',
-            'full_name' => 'Juan Carlos Gerente'
+            'email'     => 'juan.gerente@lacomarca.com',
+            'full_name' => 'Juan Carlos Gerente',
         ]);
 
         // VALIDACIÓN 1.2: Usuario debe tener ID asignado
@@ -74,31 +72,28 @@ class LocalRegistrationWorkflowTest extends TestCase
 
         // VALIDACIÓN 1.4: Usuario debe ser Gerente (rol correcto)
         $manager->load('role');
-        $this->assertTrue($manager->isAdminLocal(), 
+        $this->assertTrue($manager->isAdminLocal(),
             'El usuario debe tener rol de Gerente/Administrador Local');
 
         // ===== PASO 2: REGISTRAR LOCAL =====
+        // El formulario solo acepta nombre; el estado inicial es Inactive
 
         $local = Local::create([
-            'name' => 'La Comarca - Sarapiquí',
-            'description' => 'Primer local del proyecto',
-            'contact' => '2765-1234',
-            'status' => 'Active',
-            'image_logo' => 'images/logo-comarca.png'
+            'name'   => 'La Comarca - Sarapiquí',
+            'status' => 'Inactive',
         ]);
 
-        // VALIDACIÓN 2.1: Local debe existir en BD
+        // VALIDACIÓN 2.1: Local debe existir en BD con estado Inactive
         $this->assertDatabaseHas('tblocal', [
-            'name' => 'La Comarca - Sarapiquí',
-            'status' => 'Active'
+            'name'   => 'La Comarca - Sarapiquí',
+            'status' => 'Inactive',
         ]);
 
         // VALIDACIÓN 2.2: Local debe tener ID asignado
         $this->assertNotNull($local->local_id);
 
-        // VALIDACIÓN 2.3: Datos deben ser correctos
+        // VALIDACIÓN 2.3: Nombre debe ser correcto
         $this->assertEquals('La Comarca - Sarapiquí', $local->name);
-        $this->assertEquals('Primer local del proyecto', $local->description);
 
         // ===== PASO 3: ASOCIAR GERENTE A LOCAL =====
 
@@ -108,7 +103,7 @@ class LocalRegistrationWorkflowTest extends TestCase
         // VALIDACIÓN 3.1: Relación debe existir en tabla pivot
         $this->assertDatabaseHas('tbuser_local', [
             'local_id' => $local->local_id,
-            'user_id' => $manager->user_id
+            'user_id'  => $manager->user_id,
         ]);
 
         // ===== PASO 4: VERIFICAR RELACIÓN COMPLETA =====
@@ -142,36 +137,33 @@ class LocalRegistrationWorkflowTest extends TestCase
 
     /**
      * Test 2: Verificar que Local sin Gerente es detectado
-     * 
+     *
      * Requisito de negocio: Un Local DEBE TENER al menos un Gerente
-     * 
+     *
      * Pasos:
      * 1. Crear Local sin asociar Gerente
      * 2. Verificar que no tiene gerentes
      */
     public function test_local_without_managers_should_be_detected()
     {
-        // Crear Local sin gerentes
+        // Crear Local sin gerentes (escenario inválido que se debe detectar)
         $local = Local::create([
-            'name' => 'Local sin gerente',
-            'description' => 'Test',
-            'contact' => '2765-5555',
-            'status' => 'Active'
+            'name'   => 'Local sin gerente',
+            'status' => 'Inactive',
         ]);
 
         // VALIDACIÓN: Local NO debe tener gerentes
         $this->assertEquals(0, $local->users->count(),
             'Un Local sin asociación no debe tener gerentes');
 
-        // En tu controlador, deberías validar que no se puede guardar
-        // un Local sin al menos 1 Gerente
+        // El controlador valida que manager_id sea obligatorio antes de guardar
     }
 
     /**
      * Test 3: Múltiples Gerentes en un Local
-     * 
+     *
      * Escenario: Un Local puede tener varios gerentes
-     * 
+     *
      * Pasos:
      * 1. Crear 3 gerentes
      * 2. Crear 1 Local
@@ -181,29 +173,24 @@ class LocalRegistrationWorkflowTest extends TestCase
     public function test_local_can_have_multiple_managers_workflow()
     {
         // Crear rol
-        $role = Role::firstOrCreate(
-            ['role_type' => 'Gerente'],
-            ['description' => 'Gerente de Local']
-        );
+        $role = Role::firstOrCreate(['role_type' => 'Gerente']);
 
         // Crear 3 gerentes
         $managers = [];
         for ($i = 1; $i <= 3; $i++) {
             $managers[] = User::create([
                 'full_name' => "Gerente $i",
-                'email' => "gerente$i@test.com",
-                'password' => bcrypt('password123'),
-                'role_id' => $role->role_id,
-                'status' => 'Active'
+                'email'     => "gerente$i@test.com",
+                'password'  => bcrypt('password123'),
+                'role_id'   => $role->role_id,
+                'status'    => 'Active',
             ]);
         }
 
         // Crear Local
         $local = Local::create([
-            'name' => 'Local Compartido',
-            'description' => 'Con múltiples gerentes',
-            'contact' => '2765-9999',
-            'status' => 'Active'
+            'name'   => 'Local Compartido',
+            'status' => 'Inactive',
         ]);
 
         // Asociar todos los gerentes
@@ -227,16 +214,16 @@ class LocalRegistrationWorkflowTest extends TestCase
         for ($i = 1; $i <= 3; $i++) {
             $this->assertDatabaseHas('tbuser_local', [
                 'local_id' => $local->local_id,
-                'user_id' => $managers[$i - 1]->user_id
+                'user_id'  => $managers[$i - 1]->user_id,
             ]);
         }
     }
 
     /**
      * Test 4: Validar integridad de datos después de asociación
-     * 
+     *
      * Objetivo: Asegurar que los datos no se corrompen al asociar
-     * 
+     *
      * Pasos:
      * 1. Crear usuario con datos
      * 2. Crear Local con datos
@@ -248,38 +235,38 @@ class LocalRegistrationWorkflowTest extends TestCase
     {
         // Crear rol
         $role = Role::firstOrCreate(['role_type' => 'Gerente']);
-        
+
         // Crear usuario con datos específicos
         $manager = User::create([
             'full_name' => 'Test Manager Integrity',
-            'email' => 'test.integrity@test.com',
-            'phone' => '9999-8888',
-            'password' => bcrypt('TestPass123!'),
-            'role_id' => $role->role_id,
-            'status' => 'Active'
+            'email'     => 'test.integrity@test.com',
+            'phone'     => '9999-8888',
+            'password'  => bcrypt('TestPass123!'),
+            'role_id'   => $role->role_id,
+            'status'    => 'Active',
         ]);
 
-        // Crear Local con datos específicos
+        // Crear Local con datos específicos (incluye campos editables opcionales)
         $local = Local::create([
-            'name' => 'Test Local Integrity',
+            'name'        => 'Test Local Integrity',
             'description' => 'Description with special chars: á é í ó ú ñ',
-            'contact' => '2765-7777',
-            'status' => 'Active',
-            'image_logo' => 'images/test-integrity.png'
+            'contact'     => '2765-7777',
+            'status'      => 'Inactive',
+            'image_logo'  => 'images/test-integrity.png',
         ]);
 
         // Asociar
         $local->users()->attach($manager->user_id);
 
         // Recargar desde BD para asegurar coherencia
-        $localFresh = Local::find($local->local_id);
+        $localFresh   = Local::find($local->local_id);
         $managerFresh = User::find($manager->user_id);
 
         // VALIDACIÓN 1: Datos del Local intactos
         $this->assertEquals('Test Local Integrity', $localFresh->name);
         $this->assertEquals('Description with special chars: á é í ó ú ñ', $localFresh->description);
         $this->assertEquals('2765-7777', $localFresh->contact);
-        $this->assertEquals('Active', $localFresh->status);
+        $this->assertEquals('Inactive', $localFresh->status);
 
         // VALIDACIÓN 2: Datos del Manager intactos
         $this->assertEquals('Test Manager Integrity', $managerFresh->full_name);

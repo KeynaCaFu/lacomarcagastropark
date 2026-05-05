@@ -10,54 +10,70 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 /**
  * PRUEBA DE INTEGRACIÓN: Registro de Local
- * 
+ *
  * Objetivo: Validar que se puede registrar un Local en la BD
  * Casos de prueba: 3
- * 
+ *
  * Requisitos:
  * - Base de datos de testing debe existir
  * - Tabla tblocal debe estar disponible
  * - Tabla tbuser_local (pivot) debe estar disponible
+ * - Un gerente debe existir antes de crear el local (regla de negocio)
  */
 class LocalRegistrationTest extends TestCase
 {
     use DatabaseTransactions;
 
     /**
-     * Test 1: Crear Local en BD
-     * 
+     * Test 1: Crear Local en BD con gerente asignado
+     *
      * Pasos:
-     * 1. Crear Local con datos válidos
-     * 2. Verificar que fue creado en BD
-     * 3. Verificar que tiene ID asignado
+     * 1. Crear gerente (requisito previo obligatorio)
+     * 2. Crear Local con solo nombre (como en el formulario real)
+     * 3. Asociar el gerente al local
+     * 4. Verificar que fue creado en BD con estado Inactive
+     * 5. Verificar que tiene ID asignado y gerente asociado
      */
     public function test_can_create_local_in_database()
     {
-        $local = Local::create([
-            'name' => 'Local Test',
-            'description' => 'Un local de prueba',
-            'contact' => '2765-3456',
-            'status' => 'Active',
-            'image_logo' => 'images/logo.png'
+        // Requisito previo: el gerente debe existir antes de crear el local
+        $role = Role::firstOrCreate(['role_type' => 'Gerente']);
+        $manager = User::create([
+            'full_name' => 'Gerente Test',
+            'email'     => 'gerente.test@test.com',
+            'password'  => bcrypt('password123'),
+            'role_id'   => $role->role_id,
+            'status'    => 'Active',
         ]);
 
-        // VALIDACIÓN 1: Debe existir en BD
+        // Crear local con solo nombre (únicos campos del formulario de creación)
+        $local = Local::create([
+            'name'   => 'Local Test',
+            'status' => 'Inactive',
+        ]);
+
+        // Asociar gerente al local (obligatorio según regla de negocio)
+        $local->users()->attach($manager->user_id);
+
+        // VALIDACIÓN 1: Debe existir en BD con estado Inactive
         $this->assertDatabaseHas('tblocal', [
-            'name' => 'Local Test',
-            'status' => 'Active'
+            'name'   => 'Local Test',
+            'status' => 'Inactive',
         ]);
 
         // VALIDACIÓN 2: Debe tener ID asignado
         $this->assertNotNull($local->local_id);
 
-        // VALIDACIÓN 3: Datos deben coincidir
+        // VALIDACIÓN 3: Nombre debe coincidir
         $this->assertEquals('Local Test', $local->name);
-        $this->assertEquals('Un local de prueba', $local->description);
+
+        // VALIDACIÓN 4: Debe tener exactamente un gerente asignado
+        $this->assertEquals(1, $local->users()->count());
     }
 
     /**
      * Test 2: Local puede tener múltiples gerentes (relación)
-     * 
+     *
      * Pasos:
      * 1. Crear Local
      * 2. Crear 2 gerentes
@@ -67,34 +83,29 @@ class LocalRegistrationTest extends TestCase
     public function test_local_can_have_multiple_managers()
     {
         // Crear rol Gerente
-        $role = Role::firstOrCreate(
-            ['role_type' => 'Gerente'],
-            ['description' => 'Gerente de Local']
-        );
+        $role = Role::firstOrCreate(['role_type' => 'Gerente']);
 
         // Crear Local
         $local = Local::create([
-            'name' => 'Local Multiple Managers',
-            'description' => 'Test múltiples gerentes',
-            'contact' => '1234-5678',
-            'status' => 'Active'
+            'name'   => 'Local Multiple Managers',
+            'status' => 'Inactive',
         ]);
 
         // Crear 2 gerentes
         $manager1 = User::create([
             'full_name' => 'Manager 1',
-            'email' => 'manager1@test.com',
-            'password' => bcrypt('pass1'),
-            'role_id' => $role->role_id,
-            'status' => 'Active'
+            'email'     => 'manager1@test.com',
+            'password'  => bcrypt('pass1'),
+            'role_id'   => $role->role_id,
+            'status'    => 'Active',
         ]);
 
         $manager2 = User::create([
             'full_name' => 'Manager 2',
-            'email' => 'manager2@test.com',
-            'password' => bcrypt('pass2'),
-            'role_id' => $role->role_id,
-            'status' => 'Active'
+            'email'     => 'manager2@test.com',
+            'password'  => bcrypt('pass2'),
+            'role_id'   => $role->role_id,
+            'status'    => 'Active',
         ]);
 
         // Asociar gerentes al local usando belongsToMany
@@ -106,12 +117,12 @@ class LocalRegistrationTest extends TestCase
         // VALIDACIÓN 2: Relación en tabla pivot debe existir
         $this->assertDatabaseHas('tbuser_local', [
             'local_id' => $local->local_id,
-            'user_id' => $manager1->user_id
+            'user_id'  => $manager1->user_id,
         ]);
 
         $this->assertDatabaseHas('tbuser_local', [
             'local_id' => $local->local_id,
-            'user_id' => $manager2->user_id
+            'user_id'  => $manager2->user_id,
         ]);
 
         // VALIDACIÓN 3: Local debe contener ambos managers
@@ -121,27 +132,38 @@ class LocalRegistrationTest extends TestCase
 
     /**
      * Test 3: Local debe existir en BD después de creación
-     * 
+     *
      * Pasos:
-     * 1. Crear Local
-     * 2. Buscar Local por nombre
-     * 3. Verificar que fue encontrado
+     * 1. Crear gerente (requisito previo obligatorio)
+     * 2. Crear Local con solo nombre
+     * 3. Asociar gerente
+     * 4. Buscar Local por nombre
+     * 5. Verificar que fue encontrado con estado correcto
      */
     public function test_created_local_exists_in_database()
     {
-        Local::create([
-            'name' => 'Existing Local',
-            'description' => 'Test existencia',
-            'contact' => '9999-8888',
-            'status' => 'Active'
+        // Requisito previo: el gerente debe existir antes de crear el local
+        $role = Role::firstOrCreate(['role_type' => 'Gerente']);
+        $manager = User::create([
+            'full_name' => 'Gerente Existencia',
+            'email'     => 'gerente.existencia@test.com',
+            'password'  => bcrypt('password123'),
+            'role_id'   => $role->role_id,
+            'status'    => 'Active',
         ]);
 
+        $local = Local::create([
+            'name'   => 'Existing Local',
+            'status' => 'Inactive',
+        ]);
+        $local->users()->attach($manager->user_id);
+
         // Buscar Local
-        $local = Local::where('name', 'Existing Local')->first();
-        
-        // VALIDACIÓN: Debe existir
-        $this->assertNotNull($local);
-        $this->assertEquals('Existing Local', $local->name);
-        $this->assertEquals('Test existencia', $local->description);
+        $found = Local::where('name', 'Existing Local')->first();
+
+        // VALIDACIÓN: Debe existir con nombre y estado correctos
+        $this->assertNotNull($found);
+        $this->assertEquals('Existing Local', $found->name);
+        $this->assertEquals('Inactive', $found->status);
     }
 }
