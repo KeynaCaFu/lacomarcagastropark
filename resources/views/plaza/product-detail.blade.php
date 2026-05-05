@@ -22,9 +22,11 @@
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.show.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.index.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/product-detail-page.css') }}">
+    <!-- Críticos: cargan sincronicamente (Vue y SweetAlert son necesarios para la inicialización) -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <!-- Opcionales: cargan de forma diferida -->
+    <script defer src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 </head>
 <body>
 <div id="product-detail-app" v-cloak>
@@ -192,344 +194,396 @@
                 </div>
             </section>
             
-<section class="reviews-section" style="margin-top:40px;">
-    <h2 style="color:#e58a3a; font-size:1.4rem; font-weight:700; margin-bottom:20px; text-transform:uppercase;">
-        Reseñas del producto
-    </h2>
+            <section class="reviews-section" style="margin-top:40px;">
+                <h2 style="color:#e58a3a; font-size:1.4rem; font-weight:700; margin-bottom:20px; text-transform:uppercase;">
+                    Reseñas del producto
+                </h2>
 
-    @auth
-        <div class="review-blocked" v-if="puedeResenar === false"
-             style="margin-bottom:20px; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(229,138,58,0.3); color:#fff;">
-            Solo puedes reseñar productos que hayas pedido y recibido.
-        </div>
-
-        <div class="review-actions" v-if="puedeResenar === true" style="margin-bottom:20px;">
-            <button @click="openReviewModal"
-                    style="background:#e58a3a; color:white; border:none; padding:12px 18px; border-radius:12px; font-weight:700; cursor:pointer;">
-                <i class="fas fa-star"></i> Dejar reseña
-            </button>
-        </div>
-
-        <div class="review-checking" v-if="puedeResenar === null"
-             style="margin-bottom:20px; color:#fff;">
-            Verificando...
-        </div>
-    @else
-        <div class="review-login-prompt"
-             style="margin-bottom:20px; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(229,138,58,0.3); color:#fff;">
-            Debes <a href="{{ route('login') }}">iniciar sesión</a> para dejar una reseña.
-        </div>
-    @endauth
-
-    <div class="reviews-list" v-if="reviews.length > 0" style="display:flex; flex-direction:column; gap:22px; margin-top:22px;">
-        <div
-            v-for="(r, i) in reviews"
-            :key="i"
-            style="
-                background: linear-gradient(180deg, rgba(28,20,16,0.98) 0%, rgba(18,13,10,0.98) 100%);
-                border: 1px solid rgba(229,138,58,0.18);
-                border-radius: 22px;
-                padding: 22px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.28);
-                transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
-                cursor: default;
-            "
-            onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 18px 40px rgba(0,0,0,0.38)'; this.style.borderColor='rgba(229,138,58,0.38)'"
-            onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.28)'; this.style.borderColor='rgba(229,138,58,0.18)'"
-        >
-            
-            <!-- Basurero eliminar reseña -->
-            <div v-if="r.user_id == authUserId" style="display:flex; justify-content:flex-end;">
-                <!-- Basurero eliminar reseña -->
-            <button v-if="r.user_id == authUserId"
-                    @click="deleteProductReview(r, i)"
-                    style="position:absolute; bottom:16px; right:16px; background:transparent; border:none; color:rgba(231,76,60,0.6); cursor:pointer; font-size:16px; padding:4px; transition:color .2s;"
-                    @mouseover="$event.currentTarget.style.color='#e74c3c'"
-                    @mouseout="$event.currentTarget.style.color='rgba(231,76,60,0.6)'"
-                    title="Eliminar reseña">
-                <i class="fas fa-trash-alt"></i>
-            </button>
-            </div>
-
-            <div style="display:flex; align-items:flex-start; gap:16px;">
-                <div
-                    style="
-                        width:58px;
-                        height:58px;
-                        min-width:58px;
-                        border-radius:50%;
-                        background: linear-gradient(135deg, #d4773a, #a9541f);
-                        color:#fff;
-                        display:flex;
-                        align-items:center;
-                        justify-content:center;
-                        font-weight:700;
-                        font-size:1.15rem;
-                        font-family:'DM Sans',sans-serif;
-                        box-shadow: 0 8px 20px rgba(212,119,58,0.28);
-                    "
-                >
-                    @{{ r.reviewer_name ? r.reviewer_name.substring(0,2).toUpperCase() : 'CL' }}
-                </div>
-
-                <div style="flex:1; min-width:0;">
-                    <div>
-                        <div style="color:#F5F0E8; font-weight:700; font-size:1.35rem; margin-bottom:4px;">
-                            @{{ r.reviewer_name || 'Cliente' }}
-                        </div>
-
-                        <div style="color:rgba(245,240,232,0.58); font-size:0.95rem; margin-bottom:12px;">
-                            @{{ formatDate(r.created_at) }}
-                        </div>
+                @auth
+                    <div class="review-blocked" v-if="puedeResenar === false"
+                         style="margin-bottom:20px; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(229,138,58,0.3); color:#fff;">
+                        Solo puedes reseñar productos que hayas pedido y recibido.
                     </div>
 
-                    <div style="display:flex; gap:5px; margin-bottom:16px;">
-                        <i
-                            v-for="s in 5"
-                            :key="s"
-                            class="fas fa-star"
-                            :style="{ color: s <= r.rating ? '#e58a3a' : 'rgba(229,138,58,0.16)', fontSize: '16px' }"
-                        ></i>
+                    <div class="review-actions" v-if="puedeResenar === true" style="margin-bottom:20px;">
+                        <button @click="openReviewModal"
+                                style="background:#e58a3a; color:white; border:none; padding:12px 18px; border-radius:12px; font-weight:700; cursor:pointer;">
+                            <i class="fas fa-star"></i> Dejar reseña
+                        </button>
                     </div>
 
-                    <p style="margin:0; color:#F5F0E8; font-size:1.08rem; line-height:1.9; font-style:italic;">
-                        “@{{ r.comment }}”
-                    </p>
+                    <div class="review-checking" v-if="puedeResenar === null"
+                         style="margin-bottom:20px; color:#fff;">
+                        Verificando...
+                    </div>
+                @else
+                    <div class="review-login-prompt"
+                         style="margin-bottom:20px; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(229,138,58,0.3); color:#fff;">
+                        Debes <a href="{{ route('login') }}">iniciar sesión</a> para dejar una reseña.
+                    </div>
+                @endauth
 
+                <div class="reviews-list" v-if="reviews.length > 0" style="display:flex; flex-direction:column; gap:22px; margin-top:22px;">
                     <div
-                        v-if="r.response"
+                        v-for="(r, i) in reviews"
+                        :key="i"
                         style="
-                            margin-top:18px;
-                            padding:15px 18px;
-                            border-left:4px solid #d4773a;
-                            border-radius:0 14px 14px 0;
-                            background: linear-gradient(90deg, rgba(212,119,58,0.13), rgba(212,119,58,0.05));
+                            background: linear-gradient(180deg, rgba(28,20,16,0.98) 0%, rgba(18,13,10,0.98) 100%);
+                            border: 1px solid rgba(229,138,58,0.18);
+                            border-radius: 22px;
+                            padding: 22px;
+                            box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+                            transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+                            cursor: default;
                         "
+                        onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 18px 40px rgba(0,0,0,0.38)'; this.style.borderColor='rgba(229,138,58,0.38)'"
+                        onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.28)'; this.style.borderColor='rgba(229,138,58,0.18)'"
                     >
-                        <div style="color:#e58a3a; font-weight:700; text-transform:uppercase; letter-spacing:1px; font-size:0.95rem; margin-bottom:8px;">
-                            <i class="fas fa-reply" style="margin-right:8px;"></i>
-                            Respuesta del local
+                        <div v-if="r.user_id == authUserId" style="display:flex; justify-content:flex-end;">
+                            <button v-if="r.user_id == authUserId"
+                                    @click="deleteProductReview(r, i)"
+                                    style="position:absolute; bottom:16px; right:16px; background:transparent; border:none; color:rgba(231,76,60,0.6); cursor:pointer; font-size:16px; padding:4px; transition:color .2s;"
+                                    @mouseover="$event.currentTarget.style.color='#e74c3c'"
+                                    @mouseout="$event.currentTarget.style.color='rgba(231,76,60,0.6)'"
+                                    title="Eliminar reseña">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </div>
 
-                        <p style="margin:0; color:rgba(245,240,232,0.88); font-size:1rem; line-height:1.7;">
-                            @{{ r.response }}
-                        </p>
+                        <div style="display:flex; align-items:flex-start; gap:16px;">
+                            <div
+                                style="
+                                    width:58px;
+                                    height:58px;
+                                    min-width:58px;
+                                    border-radius:50%;
+                                    background: linear-gradient(135deg, #d4773a, #a9541f);
+                                    color:#fff;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    font-weight:700;
+                                    font-size:1.15rem;
+                                    font-family:'DM Sans',sans-serif;
+                                    box-shadow: 0 8px 20px rgba(212,119,58,0.28);
+                                "
+                            >
+                                @{{ r.reviewer_name ? r.reviewer_name.substring(0,2).toUpperCase() : 'CL' }}
+                            </div>
+
+                            <div style="flex:1; min-width:0;">
+                                <div>
+                                    <div style="color:#F5F0E8; font-weight:700; font-size:1.35rem; margin-bottom:4px;">
+                                        @{{ r.reviewer_name || 'Cliente' }}
+                                    </div>
+
+                                    <div style="color:rgba(245,240,232,0.58); font-size:0.95rem; margin-bottom:12px;">
+                                        @{{ formatDate(r.created_at) }}
+                                    </div>
+                                </div>
+
+                                <div style="display:flex; gap:5px; margin-bottom:16px;">
+                                    <i
+                                        v-for="s in 5"
+                                        :key="s"
+                                        class="fas fa-star"
+                                        :style="{ color: s <= r.rating ? '#e58a3a' : 'rgba(229,138,58,0.16)', fontSize: '16px' }"
+                                    ></i>
+                                </div>
+
+                                <p style="margin:0; color:#F5F0E8; font-size:1.08rem; line-height:1.9; font-style:italic;">
+                                    “@{{ r.comment }}”
+                                </p>
+
+                                <div
+                                    v-if="r.response"
+                                    style="
+                                        margin-top:18px;
+                                        padding:15px 18px;
+                                        border-left:4px solid #d4773a;
+                                        border-radius:0 14px 14px 0;
+                                        background: linear-gradient(90deg, rgba(212,119,58,0.13), rgba(212,119,58,0.05));
+                                    "
+                                >
+                                    <div style="color:#e58a3a; font-weight:700; text-transform:uppercase; letter-spacing:1px; font-size:0.95rem; margin-bottom:8px;">
+                                        <i class="fas fa-reply" style="margin-right:8px;"></i>
+                                        Respuesta del local
+                                    </div>
+
+                                    <p style="margin:0; color:rgba(245,240,232,0.88); font-size:1rem; line-height:1.7;">
+                                        @{{ r.response }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reviews-empty" v-else style="color:#aaa; margin-top:20px;">
+                    No hay reseñas todavía.
+                </div>
+            </section>
+
+            <div v-if="showReviewModal" class="review-modal-overlay" @click="closeReviewModal"
+                 style="position:fixed; inset:0; background:rgba(0,0,0,0.68); z-index:9998;"></div>
+
+            <div v-if="showReviewModal"
+                 style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:min(92vw,520px); background:#14110f; border:1px solid rgba(229,138,58,0.22); border-radius:18px; z-index:9999; box-shadow:0 20px 50px rgba(0,0,0,0.35); overflow:hidden;">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.06); color:#fff;">
+                    <h3 style="margin:0;">Dejar reseña</h3>
+                    <button @click="closeReviewModal" style="background:transparent; border:none; color:#fff; cursor:pointer; font-size:18px;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div style="padding:18px;">
+                    <div style="margin-bottom:12px; color:#f5f0e8; font-weight:600;">Calificación</div>
+
+                    <div style="display:flex; gap:6px; margin-bottom:14px;">
+                        <i v-for="s in 5"
+                           :key="s"
+                           class="fas fa-star"
+                           :class="{ selected: s <= newReview.rating, hovered: s <= starHover }"
+                           @mouseenter="starHover = s"
+                           @mouseleave="starHover = 0"
+                           @click="newReview.rating = s"
+                           :style="{ color: (s <= newReview.rating || s <= starHover) ? '#e58a3a' : '#5a4636', fontSize:'24px', cursor:'pointer' }"></i>
+                    </div>
+
+                    <textarea
+                        v-model="newReview.comment"
+                        maxlength="500"
+                        rows="4"
+                        placeholder="Describe tu experiencia con este producto..."
+                        style="width:100%; box-sizing:border-box; background:#0f0d0b; color:#fff; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; resize:vertical;"></textarea>
+
+                    <button
+                        @click="submitProductReview"
+                        :disabled="isSendingReview || newReview.rating === 0 || newReview.comment.trim().length < 10"
+                        style="margin-top:14px; background:#e58a3a; color:#fff; border:none; border-radius:12px; padding:12px 18px; font-weight:700; cursor:pointer;">
+                        <span v-if="isSendingReview">Guardando...</span>
+                        <span v-else>Publicar reseña</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ═══ MODAL: AGREGAR AL CARRITO ═══ -->
+            @include('plaza.carrito._add_to_cart_modal')
+
+            <!-- ═══ DRAWER: EVENTOS (PANEL LATERAL) ═══ -->
+            @include('plaza.evento.drawer')
+
+            <!-- ═══ DRAWER: CARRITO (PANEL LATERAL) ═══ -->
+            @include('plaza.carrito._cart_drawer')
+
+            <!-- ═══ DRAWER: EVENTO DETAIL (PANEL LATERAL) ═══ -->
+            <div v-if="showEventoDetail" class="evento-detail-overlay" @click="closeEventoDetail"></div>
+            <div class="evento-detail-drawer" :class="{ 'active': showEventoDetail }">
+                <!-- Header -->
+                <div class="evento-detail-header">
+                    <h2>Detalles del Evento</h2>
+                    <button @click="closeEventoDetail" class="close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Content -->
+                <div class="evento-detail-content">
+                    <div v-if="currentEvento && currentEvento.event_id" class="evento-detail-body">
+                        <!-- Image -->
+                        <div class="evento-detail-image">
+                            <img :src="currentEvento.image_url" :alt="currentEvento.title" loading="lazy">
+                        </div>
+
+                        <!-- Info -->
+                        <div class="evento-detail-info">
+                            <h3 class="evento-title">@{{ currentEvento.title }}</h3>
+                            
+                            <div class="evento-meta-group">
+                                <div class="evento-meta-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span><strong>Hora:</strong> @{{ new Date(currentEvento.start_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) }}</span>
+                                </div>
+                                <div class="evento-meta-item">
+                                    <i class="fas fa-calendar"></i>
+                                    <span><strong>Fecha:</strong> @{{ new Date(currentEvento.start_at).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
+                                </div>
+                                <div class="evento-meta-item">
+                                    <i class="fas fa-map-pin"></i>
+                                    <span><strong>Ubicación:</strong> @{{ currentEvento.location }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="evento-description">
+                                <p>@{{ currentEvento.description }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- ══ FOOTER ══ -->
+            <footer class="footer-v2">
+                <!-- Mountains silhouette - separator -->
+                <div class="footer-landscape">
+                    <svg viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0,40 C80,100 160,20 240,60 C280,80 300,30 340,50 C380,70 400,35 440,55
+                                 C480,75 510,25 560,65 C600,95 630,30 680,70 C720,105 750,40 800,75
+                                 C840,105 870,45 920,80 C960,110 990,50 1040,85 C1080,115 1110,55 1160,90
+                                 C1200,120 1240,65 1280,95 C1320,120 1360,70 1400,100 L1440,120 L1440,0 L0,0 Z"
+                              fill="#0A0908" stroke="none"/>
+                    </svg>
+                </div>
+
+                <div class="footer-main">
+                    <div class="container">
+                        <div class="footer-grid">
+                            <!-- Brand column -->
+                            <div>
+                                <div class="footer-brand-logo">
+                                    <img src="{{ asset('images/iconoblanco.png') }}" alt="La Comarca">
+                                    <span class="footer-brand-name">La Comarca Gastropark</span>
+                                </div>
+                                <p class="footer-brand-desc">
+                                    Un espacio gastronómico único en Guápiles, Limón. Sabores auténticos, ambiente inigualable y la magia de comer bajo las estrellas.
+                                </p>
+                                <div class="footer-horario-badge">
+                                    <span class="pulsedot"></span>
+                                    Mar–Dom &nbsp;·&nbsp; 12:00 MD – 10:00 PM
+                                </div>
+                            </div>
+
+                            <!-- Contacto column -->
+                            <div>
+                                <h3 class="footer-col-title">Contáctanos</h3>
+                                <div class="footer-contact">
+                                    <div class="footer-contact-item">
+                                        <i class="fas fa-location-dot"></i>
+                                        <span>
+                                            <a href="https://maps.app.goo.gl/UYkQZhrKbVnTKgWj8?g_st=aw" target="_blank" rel="noopener">La Comarca Gastro Park</a><br>
+                                            Guápiles, Limón, Costa Rica
+                                        </span>
+                                    </div>
+                                    <div class="footer-contact-item">
+                                        <i class="fas fa-phone"></i>
+                                        <span>+506 8888 8888</span>
+                                    </div>
+                                    <div class="footer-contact-item">
+                                        <i class="fas fa-envelope"></i>
+                                        <span><a href="mailto:info@lacomarcagastropark.com">info@lacomarcagastropark.com</a></span>
+                                    </div>
+                                    <div class="footer-contact-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>Lunes: Cerrado<br>Mar–Dom: 12:00 MD – 10:00 PM</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Síguenos column -->
+                            <div>
+                                <h3 class="footer-col-title">Síguenos</h3>
+                                <p class="description-text">
+                                    Conecta con nosotros en redes sociales y mantente al día con nuestros eventos y promociones especiales.
+                                </p>
+                                <div class="footer-socials">
+                                    <a href="https://www.facebook.com/share/1CYem5AGeo/" target="_blank" rel="noopener"
+                                       class="footer-social-btn" aria-label="Facebook">
+                                        <i class="fab fa-facebook-f"></i>
+                                    </a>
+                                    <a href="https://www.instagram.com/la.comarcagastropark?igsh=bW43MHB0OG9yMG8y" target="_blank" rel="noopener"
+                                       class="footer-social-btn" aria-label="Instagram">
+                                        <i class="fab fa-instagram"></i>
+                                    </a>
+                                    <a href="https://www.tiktok.com/@la.comarcagastropark?_t=ZM-8z8TOSBnnGv&_r=1" target="_blank" rel="noopener"
+                                       class="footer-social-btn" aria-label="TikTok">
+                                        <i class="fab fa-tiktok"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="footer-divider">
+
+                        <div class="footer-bottom">
+                            <p class="footer-copy">&copy; 2026 La Comarca Gastro Park. Todos los derechos reservados.</p>
+                        </div>
+                    </div>
+                </div>
+            </footer>
         </div>
-    </div>
-
-    <div class="reviews-empty" v-else style="color:#aaa; margin-top:20px;">
-        No hay reseñas todavía.
-    </div>
-</section>
-<div v-if="showReviewModal" class="review-modal-overlay" @click="closeReviewModal"
-     style="position:fixed; inset:0; background:rgba(0,0,0,0.68); z-index:9998;"></div>
-
-<div v-if="showReviewModal"
-     style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:min(92vw,520px); background:#14110f; border:1px solid rgba(229,138,58,0.22); border-radius:18px; z-index:9999; box-shadow:0 20px 50px rgba(0,0,0,0.35); overflow:hidden;">
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.06); color:#fff;">
-        <h3 style="margin:0;">Dejar reseña</h3>
-        <button @click="closeReviewModal" style="background:transparent; border:none; color:#fff; cursor:pointer; font-size:18px;">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-
-    <div style="padding:18px;">
-        <div style="margin-bottom:12px; color:#f5f0e8; font-weight:600;">Calificación</div>
-
-        <div style="display:flex; gap:6px; margin-bottom:14px;">
-            <i v-for="s in 5"
-               :key="s"
-               class="fas fa-star"
-               :class="{ selected: s <= newReview.rating, hovered: s <= starHover }"
-               @mouseenter="starHover = s"
-               @mouseleave="starHover = 0"
-               @click="newReview.rating = s"
-               :style="{ color: (s <= newReview.rating || s <= starHover) ? '#e58a3a' : '#5a4636', fontSize:'24px', cursor:'pointer' }"></i>
-        </div>
-
-        <textarea
-            v-model="newReview.comment"
-            maxlength="500"
-            rows="4"
-            placeholder="Describe tu experiencia con este producto..."
-            style="width:100%; box-sizing:border-box; background:#0f0d0b; color:#fff; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; resize:vertical;"></textarea>
-
-        <button
-            @click="submitProductReview"
-            :disabled="isSendingReview || newReview.rating === 0 || newReview.comment.trim().length < 10"
-            style="margin-top:14px; background:#e58a3a; color:#fff; border:none; border-radius:12px; padding:12px 18px; font-weight:700; cursor:pointer;">
-            <span v-if="isSendingReview">Guardando...</span>
-            <span v-else>Publicar reseña</span>
-        </button>
     </div>
 </div>
-    <!-- ═══ MODAL: AGREGAR AL CARRITO ═══ -->
-    @include('plaza.carrito._add_to_cart_modal')
 
-    <!-- ═══ DRAWER: EVENTOS (PANEL LATERAL) ═══ -->
-    @include('plaza.evento.drawer')
-
-    <!-- ═══ DRAWER: CARRITO (PANEL LATERAL) ═══ -->
-    @include('plaza.carrito._cart_drawer')
-
-    <!-- ═══ DRAWER: EVENTO DETAIL (PANEL LATERAL) ═══ -->
-    <div v-if="showEventoDetail" class="evento-detail-overlay" @click="closeEventoDetail"></div>
-    <div class="evento-detail-drawer" :class="{ 'active': showEventoDetail }">
-        <!-- Header -->
-        <div class="evento-detail-header">
-            <h2>Detalles del Evento</h2>
-            <button @click="closeEventoDetail" class="close-btn">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <!-- Content -->
-        <div class="evento-detail-content">
-            <div v-if="currentEvento && currentEvento.event_id" class="evento-detail-body">
-                <!-- Image -->
-                <div class="evento-detail-image">
-                    <img :src="currentEvento.image_url" :alt="currentEvento.title" loading="lazy">
-                </div>
-
-                <!-- Info -->
-                <div class="evento-detail-info">
-                    <h3 class="evento-title">@{{ currentEvento.title }}</h3>
-                    
-                    <div class="evento-meta-group">
-                        <div class="evento-meta-item">
-                            <i class="fas fa-clock"></i>
-                            <span><strong>Hora:</strong> @{{ new Date(currentEvento.start_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) }}</span>
-                        </div>
-                        <div class="evento-meta-item">
-                            <i class="fas fa-calendar"></i>
-                            <span><strong>Fecha:</strong> @{{ new Date(currentEvento.start_at).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
-                        </div>
-                        <div class="evento-meta-item">
-                            <i class="fas fa-map-pin"></i>
-                            <span><strong>Ubicación:</strong> @{{ currentEvento.location }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Description -->
-                    <div class="evento-description">
-                        <p>@{{ currentEvento.description }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ══ FOOTER ══ -->
-    <footer class="footer-v2">
-        <!-- Mountains silhouette - separator -->
-        <div class="footer-landscape">
-            <svg viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0,40 C80,100 160,20 240,60 C280,80 300,30 340,50 C380,70 400,35 440,55
-                         C480,75 510,25 560,65 C600,95 630,30 680,70 C720,105 750,40 800,75
-                         C840,105 870,45 920,80 C960,110 990,50 1040,85 C1080,115 1110,55 1160,90
-                         C1200,120 1240,65 1280,95 C1320,120 1360,70 1400,100 L1440,120 L1440,0 L0,0 Z"
-                      fill="#0A0908" stroke="none"/>
-            </svg>
-        </div>
-
-        <div class="footer-main">
-            <div class="container">
-                <div class="footer-grid">
-                    <!-- Brand column -->
-                    <div>
-                        <div class="footer-brand-logo">
-                            <img src="{{ asset('images/iconoblanco.png') }}" alt="La Comarca">
-                            <span class="footer-brand-name">La Comarca Gastropark</span>
-                        </div>
-                        <p class="footer-brand-desc">
-                            Un espacio gastronómico único en Guápiles, Limón. Sabores auténticos, ambiente inigualable y la magia de comer bajo las estrellas.
-                        </p>
-                        <div class="footer-horario-badge">
-                            <span class="pulsedot"></span>
-                            Mar–Dom &nbsp;·&nbsp; 12:00 MD – 10:00 PM
-                        </div>
-                    </div>
-
-                    <!-- Contacto column -->
-                    <div>
-                        <h3 class="footer-col-title">Contáctanos</h3>
-                        <div class="footer-contact">
-                            <div class="footer-contact-item">
-                                <i class="fas fa-location-dot"></i>
-                                <span>
-                                    <a href="https://maps.app.goo.gl/UYkQZhrKbVnTKgWj8?g_st=aw" target="_blank" rel="noopener">La Comarca Gastro Park</a><br>
-                                    Guápiles, Limón, Costa Rica
-                                </span>
-                            </div>
-                            <div class="footer-contact-item">
-                                <i class="fas fa-phone"></i>
-                                <span>+506 8888 8888</span>
-                            </div>
-                            <div class="footer-contact-item">
-                                <i class="fas fa-envelope"></i>
-                                <span><a href="mailto:info@lacomarcagastropark.com">info@lacomarcagastropark.com</a></span>
-                            </div>
-                            <div class="footer-contact-item">
-                                <i class="fas fa-clock"></i>
-                                <span>Lunes: Cerrado<br>Mar–Dom: 12:00 MD – 10:00 PM</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Síguenos column -->
-                    <div>
-                        <h3 class="footer-col-title">Síguenos</h3>
-                        <p class="description-text">
-                            Conecta con nosotros en redes sociales y mantente al día con nuestros eventos y promociones especiales.
-                        </p>
-                        <div class="footer-socials">
-                            <a href="https://www.facebook.com/share/1CYem5AGeo/" target="_blank" rel="noopener"
-                               class="footer-social-btn" aria-label="Facebook">
-                                <i class="fab fa-facebook-f"></i>
-                            </a>
-                            <a href="https://www.instagram.com/la.comarcagastropark?igsh=bW43MHB0OG9yMG8y" target="_blank" rel="noopener"
-                               class="footer-social-btn" aria-label="Instagram">
-                                <i class="fab fa-instagram"></i>
-                            </a>
-                            <a href="https://www.tiktok.com/@la.comarcagastropark?_t=ZM-8z8TOSBnnGv&_r=1" target="_blank" rel="noopener"
-                               class="footer-social-btn" aria-label="TikTok">
-                                <i class="fab fa-tiktok"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <hr class="footer-divider">
-
-                <div class="footer-bottom">
-                    <p class="footer-copy">&copy; 2026 La Comarca Gastro Park. Todos los derechos reservados.</p>
-                </div>
-            </div>
-        </div>
-    </footer>
-</div>
-
-<!-- ═══ TOAST NOTIFICATIONS (OUTSIDE TEMPLATE) ═══ -->
-@include('plaza.carrito._toast-notifications')
-
+<!-- ═══ SCRIPTS FUERA DEL TEMPLATE DE VUE ═══ -->
 <script>
-    // Validar si el usuario está autenticado
-    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+    // Sistema mejorado de notificaciones
+    window.showNotification = function(config) {
+        // Crear contenedor de notificaciones si no existe
+        let container = document.querySelector('.notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'notification-container';
+            document.body.appendChild(container);
+        }
 
-    // Inyectar datos del usuario autenticado si existe
-    @auth
-    window.authData = {
-        name: '{{ auth()->user()->name ?? explode("@", auth()->user()->email)[0] }}',
-        email: '{{ auth()->user()->email }}',
-        phone: '{{ auth()->user()->phone ?? "" }}'
+        // Determinar el ícono según el tipo
+        let iconClass = 'fas fa-check-circle';
+        let notificationType = 'info';
+        
+        if (config.icon === 'success' || config.type === 'success') {
+            iconClass = 'fas fa-check-circle';
+            notificationType = 'success';
+        } else if (config.icon === 'error' || config.type === 'error') {
+            iconClass = 'fas fa-times-circle';
+            notificationType = 'error';
+        } else if (config.icon === 'warning' || config.type === 'warning') {
+            iconClass = 'fas fa-exclamation-circle';
+            notificationType = 'warning';
+        }
+
+        // Crear el elemento de notificación
+        const notification = document.createElement('div');
+        notification.className = `notification-item ${notificationType}`;
+        notification.innerHTML = `
+            <button class="notification-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+            <div class="notification-content">
+                <div class="notification-icon-wrapper">
+                    <i class="${iconClass}"></i>
+                </div>
+                <div class="notification-text">
+                    <p class="notification-title">${config.title || 'Notificación'}</p>
+                    ${config.message ? `<p class="notification-message">${config.message}</p>` : ''}
+                </div>
+            </div>
+            <div class="notification-progress"></div>
+        `;
+
+        container.appendChild(notification);
+
+        // Cerrar al hacer clic en la X
+        const dismissFn = () => {
+            if (notification.classList.contains('fade-out')) return;
+            clearTimeout(autoTimer);
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 400);
+        };
+        notification.querySelector('.notification-close').addEventListener('click', dismissFn);
+
+        // Animación de entrada
+        const timeout = config.timer || 5500;
+        const autoTimer = setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                notification.remove();
+            }, 400);
+        }, timeout);
     };
-    @endauth
 
-    // Función helper para mostrar toasts personalizados
-    const showToast = (config) => { if (window.showNotification) { window.showNotification(config); } };
+    // Para compatibilidad, hacer que showToast use el nuevo sistema
+    window.showToast = function(config) {
+        window.showNotification(config);
+    };
 
     // Inicializar SweetAlert Toast
     const initSwToast = () => {
@@ -557,16 +611,38 @@
         }
     };
 
-    // Inicializar swToast cuando esté listo
-    if (typeof Swal !== 'undefined') {
-        initSwToast();
+    // Inicializar swToast cuando esté listo y el DOM esté completamente cargado
+    const initSwalWhenReady = () => {
+        if (typeof Swal !== 'undefined') {
+            initSwToast();
+        } else {
+            // Si Swal no está listo aún, esperar un poco más
+            setTimeout(initSwalWhenReady, 100);
+        }
+    };
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSwalWhenReady);
+    } else {
+        initSwalWhenReady();
     }
+</script>
 
-    // User menu toggle
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inicializar swToast si no está ya
-        initSwToast();
-        
+<script>
+    // Validar si el usuario está autenticado
+    window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+
+    // Inyectar datos del usuario autenticado si existe
+    @auth
+    window.authData = {
+        name: '{{ auth()->user()->name ?? explode("@", auth()->user()->email)[0] }}',
+        email: '{{ auth()->user()->email }}',
+        phone: '{{ auth()->user()->phone ?? "" }}'
+    };
+    @endauth
+
+    // User menu toggle - esperar a que los estilos estén listos
+    const setupUserMenu = () => {
         const menuBtn = document.getElementById('userMenuBtn');
         const menuDropdown = document.getElementById('userMenuDropdown');
 
@@ -579,8 +655,16 @@
                 menuDropdown.classList.remove('open');
             });
         }
-    });
+    };
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupUserMenu);
+    } else {
+        setupUserMenu();
+    }
+</script>
 
+<script>
     // Vue app
     const { createApp } = Vue;
 
@@ -651,8 +735,6 @@
                 eventosTab: 'hoy',
                 authUserId: {{ auth()->check() ? auth()->id() : 'null' }},
             }
-
-            
         },
         computed: {
             currentImage() {
@@ -833,7 +915,7 @@
                     });
                     const data = await response.json();
                     if (response.ok && data.success) {
-                        showToast({
+                        window.showToast({
                             icon: 'success',
                             title: isEditing ? '¡Item actualizado!' : '¡Producto agregado!',
                             message: isEditing
@@ -844,7 +926,7 @@
                         this.loadCartDrawer();
                         this.closeAddToCartModal();
                     } else {
-                        showToast({
+                        window.showToast({
                             icon: 'error',
                             title: 'Oops, algo salió mal',
                             message: data.message || 'No pudimos procesar el carrito',
@@ -853,7 +935,7 @@
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    showToast({ icon: 'error', title: isEditing ? 'Error al actualizar item' : 'Error al agregar al carrito' });
+                    window.showToast({ icon: 'error', title: isEditing ? 'Error al actualizar item' : 'Error al agregar al carrito' });
                 } finally {
                     this.isAddingToCart = false;
                 }
@@ -942,7 +1024,7 @@
             },
             goToCheckout() {
                 if (this.drawerCart.length === 0) {
-                    showToast({icon: 'warning', title: 'El carrito está vacío'});
+                    window.showToast({icon: 'warning', title: 'El carrito está vacío'});
                     return;
                 }
                 this.showConfirmOrder = true;
@@ -983,7 +1065,7 @@
                     const data = await response.json();
 
                     if (data.success) {
-                        showToast({ icon: 'success', title: '¡Órdenes confirmadas!', message: data.message, timer: 6000 });
+                        window.showToast({ icon: 'success', title: '¡Órdenes confirmadas!', message: data.message, timer: 6000 });
                         this.drawerCart = [];
                         this.showConfirmOrder = false;
                         this.closeCartDrawer();
@@ -992,11 +1074,11 @@
                             console.log('Tokens de verificación:\n' + tokensMsg);
                         }
                     } else {
-                        showToast({ icon: 'error', title: 'No se pudo procesar', message: data.message || 'Hubo un problema', timer: 5500 });
+                        window.showToast({ icon: 'error', title: 'No se pudo procesar', message: data.message || 'Hubo un problema', timer: 5500 });
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    showToast({ icon: 'error', title: 'Error', message: error.message || 'Hubo un problema de conexión', timer: 5500 });
+                    window.showToast({ icon: 'error', title: 'Error', message: error.message || 'Hubo un problema de conexión', timer: 5500 });
                 } finally {
                     this.isCheckingOut = false;
                 }
@@ -1244,25 +1326,25 @@
 
             // ── RESEÑAS METHODS ──
             openReviewModal() {
-    if (this.puedeResenar !== true) {
-        showToast({
-            icon: 'warning',
-            title: 'No disponible',
-            message: 'Solo puedes reseñar productos que hayas pedido y recibido.'
-        });
-        return;
-    }
-    if (this.yaReseno) {
-        showToast({
-            icon: 'warning',
-            title: 'Ya tienes una reseña',
-            message: 'Solo puedes publicar una reseña por producto.'
-        });
-        return;
-    }
-    this.showReviewModal = true;
-    document.body.classList.add('modal-open');
-},
+                if (this.puedeResenar !== true) {
+                    window.showToast({
+                        icon: 'warning',
+                        title: 'No disponible',
+                        message: 'Solo puedes reseñar productos que hayas pedido y recibido.'
+                    });
+                    return;
+                }
+                if (this.yaReseno) {
+                    window.showToast({
+                        icon: 'warning',
+                        title: 'Ya tienes una reseña',
+                        message: 'Solo puedes publicar una reseña por producto.'
+                    });
+                    return;
+                }
+                this.showReviewModal = true;
+                document.body.classList.add('modal-open');
+            },
 
             closeReviewModal() {
                 this.showReviewModal = false;
@@ -1284,12 +1366,11 @@
                     });
 
                     const data = await res.json();
-this.puedeResenar = data.puede ?? false;
-this.yaReseno = data.ya_reseno ?? false;
-if (this.yaReseno) {
-    this.puedeResenar = true;
-}
-            
+                    this.puedeResenar = data.puede ?? false;
+                    this.yaReseno = data.ya_reseno ?? false;
+                    if (this.yaReseno) {
+                        this.puedeResenar = true;
+                    }
                 } catch (error) {
                     console.error('Error verificando si puede reseñar:', error);
                     this.puedeResenar = false;
@@ -1300,7 +1381,7 @@ if (this.yaReseno) {
                 if (this.isSendingReview) return;
 
                 if (this.newReview.rating === 0) {
-                    showToast({
+                    window.showToast({
                         icon: 'warning',
                         title: 'Selecciona una calificación'
                     });
@@ -1308,7 +1389,7 @@ if (this.yaReseno) {
                 }
 
                 if (this.newReview.comment.trim().length < 10) {
-                    showToast({
+                    window.showToast({
                         icon: 'warning',
                         title: 'Comentario inválido',
                         message: 'El comentario debe tener al menos 10 caracteres.'
@@ -1334,22 +1415,22 @@ if (this.yaReseno) {
 
                     const data = await res.json();
 
-                   if (res.ok && data.success) {
-    this.yaReseno = true;
-    this.reviews.unshift({
-                     product_review_id: data.review.product_review_id,
-                    user_id: data.review.user_id,
-                    reviewer_name: data.review.nombre,
-                    rating: data.review.rating,
-                    comment: data.review.comment,
-                    created_at: data.review.date,
-                    });
+                    if (res.ok && data.success) {
+                        this.yaReseno = true;
+                        this.reviews.unshift({
+                            product_review_id: data.review.product_review_id,
+                            user_id: data.review.user_id,
+                            reviewer_name: data.review.nombre,
+                            rating: data.review.rating,
+                            comment: data.review.comment,
+                            created_at: data.review.date,
+                        });
 
                         this.newReview = { rating: 0, comment: '' };
                         this.starHover = 0;
                         this.closeReviewModal();
 
-                        showToast({
+                        window.showToast({
                             icon: 'success',
                             title: '¡Reseña publicada!',
                             message: 'Tu reseña ya es visible para otros usuarios.'
@@ -1363,15 +1444,15 @@ if (this.yaReseno) {
                     }
 
                     if (res.status === 409) {
-    this.puedeResenar = false;
-    showToast({
-        icon: 'warning',
-        title: 'Ya tienes una reseña',
-        message: 'Ya habías publicado una reseña para este producto.'
-    });
-}
+                        this.puedeResenar = false;
+                        window.showToast({
+                            icon: 'warning',
+                            title: 'Ya tienes una reseña',
+                            message: 'Ya habías publicado una reseña para este producto.'
+                        });
+                    }
 
-                    showToast({
+                    window.showToast({
                         icon: 'error',
                         title: 'Error',
                         message: data.error || 'No se pudo guardar la reseña.'
@@ -1379,7 +1460,7 @@ if (this.yaReseno) {
 
                 } catch (error) {
                     console.error('Error guardando reseña:', error);
-                    showToast({
+                    window.showToast({
                         icon: 'error',
                         title: 'Error de conexión'
                     });
@@ -1389,47 +1470,53 @@ if (this.yaReseno) {
             },
 
             async deleteProductReview(review, index) {
-    const confirm = await Swal.fire({
-        title: '¿Eliminar reseña?',
-        text: 'Esta acción no se puede deshacer.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar',
-        background: '#14110f',
-        color: '#F5F0E8'
-    });
-    if (!confirm.isConfirmed) return;
+                const confirm = await Swal.fire({
+                    title: '¿Eliminar reseña?',
+                    text: 'Esta acción no se puede deshacer.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar',
+                    background: '#14110f',
+                    color: '#F5F0E8'
+                });
+                if (!confirm.isConfirmed) return;
 
-    const res = await fetch(`/plaza/producto/${review.product_review_id}/resena`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Accept': 'application/json'
-        }
-    });
-    const data = await res.json();
-    if (data.success) {
-       this.reviews.splice(index, 1);
-        this.puedeResenar = true;
-        this.yaReseno = false;
-        showToast({ icon: 'success', title: 'Reseña eliminada' });
-    }
-},
-
-
-
+                const res = await fetch(`/plaza/producto/${review.product_review_id}/resena`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.reviews.splice(index, 1);
+                    this.puedeResenar = true;
+                    this.yaReseno = false;
+                    window.showToast({ icon: 'success', title: 'Reseña eliminada' });
+                }
+            },
         },
         mounted() {
-            this.loadCartDrawer();
-            this.checkPuedeResenar();
             console.log('Producto cargado:', this.product.name);
+            
+            // Agregar listener de teclado
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'ArrowLeft' && this.currentImageIndex > 0) {
                     this.currentImageIndex--;
                 } else if (e.key === 'ArrowRight' && this.currentImageIndex < this.gallery.length - 1) {
                     this.currentImageIndex++;
                 }
+            });
+            
+            // Retardar operaciones que manipulan el DOM para evitar forzar layout
+            // Esto permite que los estilos CSS se carguen completamente primero
+            this.$nextTick(() => {
+                setTimeout(() => {
+                    this.loadCartDrawer();
+                    this.checkPuedeResenar();
+                }, 50);
             });
         }
     }).mount('#product-detail-app');
