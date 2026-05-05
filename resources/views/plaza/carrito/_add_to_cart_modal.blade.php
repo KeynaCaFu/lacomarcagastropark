@@ -8,7 +8,7 @@
             </button>
             <!-- Línea para mobile (WhatsApp style) -->
             <button class="modal-handle" @click="closeAddToCartModal" style="position: absolute; left: 50%; transform: translateX(-50%); top: 10px; background: none; border: none; cursor: pointer; padding: 0; width: 40px; height: 40px; z-index: 10;" title="Salir"></button>
-            <h3>Agregar al Carrito</h3>
+            <h3>@{{ editingCartItemKey ? 'Editar Item' : 'Agregar al Carrito' }}</h3>
         </div>
 
         <div class="modal-body">
@@ -64,8 +64,14 @@
         <div class="modal-footer">
             <button class="btn-cancel" @click="closeAddToCartModal">Cancelar</button>
             <button class="btn-confirm" @click="proceedAddToCart" :disabled="isAddingToCart || quantity < 1">
-                <span v-if="!isAddingToCart"><i class="fas fa-shopping-cart"></i> Agregar al Carrito</span>
-                <span v-else><i class="fas fa-spinner fa-spin"></i> Agregando...</span>
+                <span v-if="!isAddingToCart">
+                    <i :class="editingCartItemKey ? 'fas fa-save' : 'fas fa-shopping-cart'"></i>
+                    @{{ editingCartItemKey ? 'Guardar Cambios' : 'Agregar al Carrito' }}
+                </span>
+                <span v-else>
+                    <i class="fas fa-spinner fa-spin"></i>
+                    @{{ editingCartItemKey ? 'Guardando...' : 'Agregando...' }}
+                </span>
             </button>
         </div>
     </div>

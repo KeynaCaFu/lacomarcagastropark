@@ -28,6 +28,7 @@
         const notification = document.createElement('div');
         notification.className = `notification-item ${notificationType}`;
         notification.innerHTML = `
+            <button class="notification-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
             <div class="notification-content">
                 <div class="notification-icon-wrapper">
                     <i class="${iconClass}"></i>
@@ -42,9 +43,18 @@
 
         container.appendChild(notification);
 
+        // Cerrar al hacer clic en la X
+        const dismissFn = () => {
+            if (notification.classList.contains('fade-out')) return;
+            clearTimeout(autoTimer);
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 400);
+        };
+        notification.querySelector('.notification-close').addEventListener('click', dismissFn);
+
         // Animación de entrada
         const timeout = config.timer || 5500;
-        setTimeout(() => {
+        const autoTimer = setTimeout(() => {
             notification.classList.add('fade-out');
             setTimeout(() => {
                 notification.remove();
