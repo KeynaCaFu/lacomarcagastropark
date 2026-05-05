@@ -6,6 +6,18 @@ window.Alpine = Alpine;
 
 Alpine.start();
 
+// Desbloquear Audio Context con la primera interacción del usuario
+let audioCtxUnlocked = false;
+document.addEventListener('click', function() {
+    if (!audioCtxUnlocked) {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        ctx.resume().then(() => {
+            audioCtxUnlocked = true;
+            console.log('✓ Audio desbloqueado');
+        });
+    }
+}, { once: false });
+
 // Función para inicializar listeners de horario
 window.initScheduleListener = function(localId) {
     if (!window.Echo) {
@@ -150,8 +162,64 @@ function updateLocalStatusDot(localId, schedules) {
         chip.innerHTML = `<span class="status-dot ${isOpen ? 'status-dot-open' : 'status-dot-closed'}"></span> ${isOpen ? 'Abierto' : 'Cerrado'}`;
     }
 
-    // Notificar para actualizar el cache de horarios
     document.dispatchEvent(new CustomEvent('local-schedule-updated', {
         detail: { local_id: localId, schedules: schedules }
     }));
+}
+
+// ── Listener de reseñas para notificación al gerente ──
+window.initReviewListener = function(localId) {
+    if (!window.Echo) {
+        console.error('✗ Echo no disponible para ReviewListener');
+        return false;
+    }
+
+    try {
+        const channelName = `local.${localId}`;
+        console.log(`⭐ Conectando listener de reseñas al canal: ${channelName}`);
+
+        window.Echo.channel(channelName)
+            .listen('NewReviewPosted', (data) => {
+                console.log('✓ Evento NewReviewPosted recibido:', data);
+                mostrarToastReview(data);
+            });
+
+        console.log('✓ Listener de reseñas inicializado');
+        return true;
+
+    } catch (error) {
+        console.error('✗ Error al inicializar ReviewListener:', error);
+        return false;
+    }
+};
+
+function mostrarToastReview(data) {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioCtx.resume().then(() => {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime + 0.15);
+            oscillator.frequency.setValueAtTime(900, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        });
+    } catch(e) {
+        console.log('Audio no disponible:', e);
+    }
+
+    if (window.swToast) {
+        window.swToast.fire({
+            icon: 'info',
+            title: '⭐ Nueva reseña',
+            text: `${data.client_name} dejó una reseña en ${data.product_name}`,
+            timer: 6000,
+        });
+    }
 }
