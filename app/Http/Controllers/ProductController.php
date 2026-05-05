@@ -26,6 +26,47 @@ class ProductController extends Controller
     }
 
     /**
+     * MÉTODOS PARA VALIDACIÓN - Usados por Tests y Store
+     * ====================================================
+     */
+
+    /**
+     * Obtener las reglas de validación para crear productos
+     * Usado por: store() y tests
+     */
+    public function getValidationRules()
+    {
+        return [
+            'nombre' => 'required|string|max:100',  
+            'descripcion' => 'nullable|string',
+            'categoria' => 'nullable|string|max:100',
+            'etiqueta' => 'nullable|string|max:100',
+            'tipo_producto' => 'nullable|string|max:50',
+            'precio' => 'required|numeric|min:0',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'estado' => 'required|string|in:Disponible,No disponible'
+        ];
+    }
+
+    /**
+     * Obtener los mensajes de validación personalizados
+     * Usado por: store() y tests
+     */
+    public function getValidationMessages()
+    {
+        return [
+            'nombre.required' => 'El nombre del producto es obligatorio',
+            'precio.required' => 'El precio es obligatorio',
+            'precio.numeric' => 'El precio debe ser un número',
+            'precio.min' => 'El precio no puede ser negativo',
+            'foto.image' => 'El archivo debe ser una imagen',
+            'foto.mimes' => 'La imagen debe ser JPG, PNG o GIF',
+            'foto.max' => 'La imagen no puede ser mayor a 2MB',
+            'estado.in' => 'El estado debe ser Disponible o No disponible'
+        ];
+    }
+
+    /**
      * Mostrar lista de Productos con filtros
      */
     public function index(Request $request)
@@ -148,28 +189,9 @@ class ProductController extends Controller
             }
         }
 
-        // Validación base
-        $rules = [
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'categoria' => 'nullable|string|max:100',
-            'etiqueta' => 'nullable|string|max:100',
-            'tipo_producto' => 'nullable|string|max:50',
-            'precio' => 'required|numeric|min:0',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'estado' => 'required|string|in:Disponible,No disponible'
-        ];
-
-        $messages = [
-            'nombre.required' => 'El nombre del producto es obligatorio',
-            'precio.required' => 'El precio es obligatorio',
-            'precio.numeric' => 'El precio debe ser un número',
-            'precio.min' => 'El precio no puede ser negativo',
-            'foto.image' => 'El archivo debe ser una imagen',
-            'foto.mimes' => 'La imagen debe ser JPG, PNG o GIF',
-            'foto.max' => 'La imagen no puede ser mayor a 2MB',
-            'estado.in' => 'El estado debe ser Disponible o No disponible'
-        ];
+        // Usar métodos públicos de validación
+        $rules = $this->getValidationRules();
+        $messages = $this->getValidationMessages();
 
         // Crear validador
         $validator = Validator::make($request->all(), $rules, $messages);

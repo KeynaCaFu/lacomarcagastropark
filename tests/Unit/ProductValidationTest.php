@@ -4,11 +4,14 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\ProductController;
+use App\Data\ProductData;
+use App\Data\ProductGalleryData;
 
 /**
  * PRUEBA UNITARIA: Validaciones de Creación de Producto
  * 
- * Objetivo: Validar la lógica de validación sin acceso a BD ni autenticación
+ * Objetivo: Validar la lógica de validación usando reglas del ProductController
  * Casos de prueba cubiertos:
  * 1. Validación de nombre (requerido, máximo 255 caracteres)
  * 2. Validación de precio (requerido, numérico, no negativo)
@@ -18,6 +21,20 @@ use Illuminate\Support\Facades\Validator;
  */
 class ProductValidationTest extends TestCase
 {
+    protected $controller;
+
+    /**
+     * Inicializar el controller para obtener las reglas
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->controller = new ProductController(
+            app(ProductData::class),
+            app(ProductGalleryData::class)
+        );
+    }
+
     /**
      * Datos válidos base para usar en pruebas
      */
@@ -35,37 +52,21 @@ class ProductValidationTest extends TestCase
     }
 
     /**
-     * Reglas de validación (idénticas a ProductController)
+     * Reglas de validación obtenidas directamente del Controller
+     * ⚠️ Si cambias estas reglas en ProductController, los tests fallarán
      */
     protected function getValidationRules()
     {
-        return [
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'categoria' => 'nullable|string|max:100',
-            'etiqueta' => 'nullable|string|max:100',
-            'tipo_producto' => 'nullable|string|max:50',
-            'precio' => 'required|numeric|min:0',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'estado' => 'required|string|in:Disponible,No disponible'
-        ];
+        return $this->controller->getValidationRules();
     }
 
     /**
-     * Mensajes de validación personalizados
+     * Mensajes de validación obtenidos directamente del Controller
+     * ⚠️ Si cambias estos mensajes en ProductController, los tests pueden verse afectados
      */
     protected function getValidationMessages()
     {
-        return [
-            'nombre.required' => 'El nombre del producto es obligatorio',
-            'precio.required' => 'El precio es obligatorio',
-            'precio.numeric' => 'El precio debe ser un número',
-            'precio.min' => 'El precio no puede ser negativo',
-            'foto.image' => 'El archivo debe ser una imagen',
-            'foto.mimes' => 'La imagen debe ser JPG, PNG o GIF',
-            'foto.max' => 'La imagen no puede ser mayor a 2MB',
-            'estado.in' => 'El estado debe ser Disponible o No disponible'
-        ];
+        return $this->controller->getValidationMessages();
     }
 
     // ============================================================

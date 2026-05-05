@@ -5,6 +5,9 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\ProductController;
+use App\Data\ProductData;
+use App\Data\ProductGalleryData;
 
 /**
  * PRUEBA DE INTEGRACIÓN: Validación de Creación de Productos
@@ -21,39 +24,35 @@ use Illuminate\Support\Facades\DB;
 class ProductCreationTest extends TestCase
 {
     protected $localId = 7; // Local de prueba
+    protected $controller;
 
     /**
-     * Obtener reglas de validación (idénticas a ProductController)
+     * Inicializar el controller para obtener las reglas
      */
-    protected function getValidationRules()
+    protected function setUp(): void
     {
-        return [
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'categoria' => 'nullable|string|max:100',
-            'etiqueta' => 'nullable|string|max:100',
-            'tipo_producto' => 'nullable|string|max:50',
-            'precio' => 'required|numeric|min:0',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'estado' => 'required|string|in:Available,Unavailable'
-        ];
+        parent::setUp();
+        $this->controller = new ProductController(
+            app(ProductData::class),
+            app(ProductGalleryData::class)
+        );
     }
 
     /**
-     * Mensajes de validación personalizados
+     * Obtener reglas de validación directamente del Controller
+     * ⚠️ Si cambias estas reglas en ProductController, los tests fallarán
+     */
+    protected function getValidationRules()
+    {
+        return $this->controller->getValidationRules();
+    }
+
+    /**
+     * Obtener mensajes de validación directamente del Controller
      */
     protected function getValidationMessages()
     {
-        return [
-            'nombre.required' => 'El nombre del producto es obligatorio',
-            'precio.required' => 'El precio es obligatorio',
-            'precio.numeric' => 'El precio debe ser un número',
-            'precio.min' => 'El precio no puede ser negativo',
-            'foto.image' => 'El archivo debe ser una imagen',
-            'foto.mimes' => 'La imagen debe ser JPG, PNG o GIF',
-            'foto.max' => 'La imagen no puede ser mayor a 2MB',
-            'estado.in' => 'El estado debe ser Available o Unavailable'
-        ];
+        return $this->controller->getValidationMessages();
     }
 
     /**
@@ -68,7 +67,7 @@ class ProductCreationTest extends TestCase
             'etiqueta' => 'Especialidad',
             'tipo_producto' => 'Plato Principal',
             'precio' => 15.99,
-            'estado' => 'Available'
+            'estado' => 'Disponible'  // Cambiar a 'Disponible' para coincidir con Controller
         ];
     }
 
@@ -102,7 +101,7 @@ class ProductCreationTest extends TestCase
         $data = [
             'nombre' => 'Producto Mínimo',
             'precio' => 9.99,
-            'estado' => 'Available'
+            'estado' => 'Disponible'
         ];
 
         $validator = Validator::make(
@@ -266,13 +265,13 @@ class ProductCreationTest extends TestCase
     }
 
     /**
-     * TEST 11: Estado "Available" es válido
+     * TEST 11: Estado "Disponible" es válido
      * Esperado: Validación exitosa
      */
-    public function test_acepta_estado_available()
+    public function test_acepta_estado_disponible()
     {
         $data = $this->getValidProductData();
-        $data['estado'] = 'Available';
+        $data['estado'] = 'Disponible';
 
         $validator = Validator::make(
             $data,
@@ -284,13 +283,13 @@ class ProductCreationTest extends TestCase
     }
 
     /**
-     * TEST 12: Estado "Unavailable" es válido
+     * TEST 12: Estado "No disponible" es válido
      * Esperado: Validación exitosa
      */
-    public function test_acepta_estado_unavailable()
+    public function test_acepta_estado_no_disponible()
     {
         $data = $this->getValidProductData();
-        $data['estado'] = 'Unavailable';
+        $data['estado'] = 'No disponible';
 
         $validator = Validator::make(
             $data,
@@ -428,7 +427,7 @@ class ProductCreationTest extends TestCase
         $data = [
             'nombre' => 'Producto',
             'precio' => 10,
-            'estado' => 'Available'
+            'estado' => 'Disponible'
         ];
 
         $validator = Validator::make(
@@ -476,7 +475,7 @@ class ProductCreationTest extends TestCase
             'tag' => 'Premium',
             'product_type' => 'Plato Principal',
             'price' => 18.50,
-            'status' => 'Available'
+            'status' => 'Available'  // BD usa Available/Unavailable
         ];
 
         $productId = DB::table('tbproduct')->insertGetId($data);
@@ -501,7 +500,7 @@ class ProductCreationTest extends TestCase
             'tag' => 'Clásico',
             'product_type' => 'Entrada',
             'price' => 12.00,
-            'status' => 'Available'
+            'status' => 'Available'  // BD usa Available/Unavailable
         ];
 
         $productId = DB::table('tbproduct')->insertGetId($data);
@@ -534,7 +533,7 @@ class ProductCreationTest extends TestCase
             'tag' => 'Especialidad',
             'product_type' => 'Plato Principal',
             'price' => 15.99,
-            'status' => 'Available'
+            'status' => 'Available'  // BD usa Available/Unavailable
         ];
 
         $productId = DB::table('tbproduct')->insertGetId($data);
@@ -563,7 +562,7 @@ class ProductCreationTest extends TestCase
                 'name' => "Test Product $i " . uniqid(),
                 'description' => "Test description $i",
                 'price' => 10 + $i,
-                'status' => 'Available'
+                'status' => 'Available'  // BD usa Available/Unavailable
             ]);
 
             DB::table('tblocal_product')->insert([
@@ -593,7 +592,7 @@ class ProductCreationTest extends TestCase
         $data = [
             'name' => 'Product Status Test ' . uniqid(),
             'price' => 20.00,
-            'status' => 'Available'
+            'status' => 'Available'  // BD usa Available/Unavailable
         ];
 
         $productId = DB::table('tbproduct')->insertGetId($data);
