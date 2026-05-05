@@ -560,6 +560,7 @@
                 quantity: 1,
                 customization: '',
                 isAddingToCart: false,
+                editingCartItemKey: null,
                 // Datos del cliente
                 customerName: '',
                 customerEmail: '',
@@ -621,6 +622,7 @@
             closeAddToCartModal() {
                 document.body.classList.remove('modal-open');
                 this.showAddToCartModal = false;
+                this.editingCartItemKey = null;
                 setTimeout(() => {
                     this.currentProduct = { name: '', description: '', photo_url: '', price: 0, product_id: 0, local_id: 0 };
                     this.quantity = 1;
@@ -630,6 +632,28 @@
                     this.customerPhone = '';
                     this.additionalNotes = '';
                 }, 300);
+            },
+            openEditCartItem(index) {
+                const item = this.drawerCart[index];
+                if (!item) return;
+                this.editingCartItemKey = item.item_key;
+                this.currentProduct = {
+                    name: item.name,
+                    description: item.description || '',
+                    photo_url: item.photo_url || '',
+                    price: parseFloat(item.price),
+                    product_id: item.product_id,
+                    local_id: item.local_id
+                };
+                this.quantity = item.quantity;
+                this.customization = item.customization || '';
+                if (window.authData) {
+                    this.customerName = window.authData.name || '';
+                    this.customerEmail = window.authData.email || '';
+                    this.customerPhone = window.authData.phone || '';
+                }
+                this.showAddToCartModal = true;
+                document.body.classList.add('modal-open');
             },
             showAuthNotification() {
                 // Crear contenedor si no existe
@@ -684,6 +708,9 @@
             async proceedAddToCart() {
                 if (this.isAddingToCart) return;
 
+                const isEditing = !!this.editingCartItemKey;
+                const editingKey = this.editingCartItemKey;
+
                 // Sincronizar notas: ambos campos lleven lo mismo
                 this.additionalNotes = this.customization;
 
@@ -705,6 +732,19 @@
                 this.isAddingToCart = true;
 
                 try {
+                    // Si estamos editando, eliminar el item antiguo primero
+                    if (isEditing) {
+                        await fetch('{{ route("plaza.cart.remove") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ item_key: editingKey })
+                        });
+                    }
+
                     const response = await fetch('{{ route("plaza.add.cart") }}', {
                         method: 'POST',
                         headers: {
@@ -725,27 +765,23 @@
                     });
 
                     const data = await response.json();
-                    console.log('Add to cart response:', data);
 
                     if (response.ok && data.success) {
-                        // Mostrar toast de �xito
                         showToast({
                             icon: 'success',
-                            title: '¡Producto agregado!',
-                            message: this.currentProduct.name + ' se agregó al carrito correctamente',
+                            title: isEditing ? '¡Item actualizado!' : '¡Producto agregado!',
+                            message: isEditing
+                                ? this.currentProduct.name + ' se actualizó correctamente'
+                                : this.currentProduct.name + ' se agregó al carrito correctamente',
                             timer: 5500
                         });
-
-                        // Cargar carrito actualizado para que Vue reaccione
                         this.loadCartDrawer();
-
-                        // Cerrar modal
                         this.closeAddToCartModal();
                     } else {
                         showToast({
                             icon: 'error',
                             title: 'Oops, algo salió mal',
-                            message: data.message || 'No pudimos agregar el producto al carrito',
+                            message: data.message || 'No pudimos procesar el carrito',
                             timer: 5500
                         });
                     }
@@ -753,7 +789,7 @@
                     console.error('Error:', error);
                     showToast({
                         icon: 'error',
-                        title: 'Error al agregar al carrito'
+                        title: isEditing ? 'Error al actualizar item' : 'Error al agregar al carrito'
                     });
                 } finally {
                     this.isAddingToCart = false;

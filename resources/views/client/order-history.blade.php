@@ -64,11 +64,14 @@
             background-color: #dcfce7;
             color: #166534;
         }
+        .order-card-quick-action {
+            padding: 0 16px 14px;
+        }
         .cancel-order-btn-link {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-            padding: 8px 14px;
+            background: linear-gradient(135deg, #d4773a 0%, #c06830 100%);
+            color: #fff;
+            border: none;
+            padding: 10px 16px;
             border-radius: 8px;
             font-size: 0.85rem;
             font-weight: 600;
@@ -76,13 +79,15 @@
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
+            width: 100%;
             text-decoration: none;
         }
         .cancel-order-btn-link:hover {
-            background: #fecaca;
+            background: linear-gradient(135deg, #c06830 0%, #a85a28 100%);
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(153, 27, 27, 0.1);
+            box-shadow: 0 4px 12px rgba(212, 119, 58, 0.35);
         }
     </style>
 </head>
@@ -224,6 +229,15 @@
                                 </div>
                             </div>
 
+                            <!-- CANCELAR - SIEMPRE VISIBLE (solo Pending) -->
+                            @if($order->status === 'Pending')
+                            <div class="order-card-quick-action">
+                                <button class="cancel-order-btn-link" @click="confirmCancellationRequest({{ $order->order_id }}, '{{ $order->order_number }}')">
+                                    <i class="fas fa-times-circle"></i> Cancelar y Editar
+                                </button>
+                            </div>
+                            @endif
+
                             <!-- ACCORDION CONTENT (COLLAPSIBLE) -->
                             <div class="order-card-content" style="display: none;">
                                 <!-- META INFO -->
@@ -286,11 +300,6 @@
                                             @endif
                                         </div>
                                     <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
-                                        @if($order->status === 'Pending')
-                                            <button class="cancel-order-btn-link" @click.prevent="confirmCancellationRequest({{ $order->order_id }}, '{{ $order->order_number }}')">
-                                                <i class="fas fa-times-circle"></i> Cancelar y Editar
-                                            </button>
-                                        @endif
                                         <button class="reorder-btn" @click.prevent="reorderOrder({{ $order->order_id }})">
                                             <i class="fas fa-redo"></i> Reordenar
                                         </button>
@@ -367,6 +376,15 @@
             @endif
         </div>
     </main>
+
+    <!-- ══ EVENTS DRAWER ══ -->
+    @include('plaza.evento.drawer')
+
+    <!-- ══ CART DRAWER ══ -->
+    @include('plaza.carrito._cart_drawer')
+
+    <!-- ══ EDIT ITEM MODAL ══ -->
+    @include('plaza.carrito._add_to_cart_modal')
 
      <!-- ══ FOOTER ══ -->
     <footer class="footer-v2">
@@ -458,7 +476,19 @@
     </footer>
 </div>
 
+@include('plaza.carrito._toast-notifications')
+
 <script>
+    @auth
+    window.authData = {
+        name: '{{ auth()->user()->name ?? explode("@", auth()->user()->email)[0] }}',
+        email: '{{ auth()->user()->email }}',
+        phone: '{{ auth()->user()->phone ?? "" }}'
+    };
+    @endauth
+
+    const showToast = (config) => { if (window.showNotification) { window.showNotification(config); } };
+
     // User menu toggle
     document.addEventListener('DOMContentLoaded', function() {
         const menuBtn = document.getElementById('userMenuBtn');
@@ -481,23 +511,163 @@
     createApp({
         data() {
             return {
-                showEventsDrawer: false,
-                showCartDrawer: false,
+                // Tabs y filtros
                 filterAccordionOpen: false,
                 isLoading: false,
-                // Órdenes pendientes
-                myOrders: [],
-                isCancellingOrder: false,
                 activeTab: 'actuales',
-                hasVisibleOrders: true
+                hasVisibleOrders: true,
+                // Órdenes pendientes (header)
+                myOrders: [],
+                showMyOrdersDrawer: false,
+                isCancellingOrder: false,
+                // Eventos
+                showEventsDrawer: false,
+                eventosTab: 'hoy',
+                eventosHoy: {!! json_encode($eventosHoy) !!},
+                eventosProximos: {!! json_encode($eventosProximos) !!},
+                showEventoDetail: false,
+                currentEvento: {},
+                // Carrito
+                showCartDrawer: false,
+                drawerCart: [],
+                showConfirmOrder: false,
+                showConfirmClear: false,
+                showConfirmRemove: false,
+                itemToRemoveIndex: null,
+                isCheckingOut: false,
+                // Editar item del carrito
+                showAddToCartModal: false,
+                editingCartItemKey: null,
+                currentProduct: { name: '', description: '', photo_url: '', price: 0, product_id: 0, local_id: 0 },
+                quantity: 1,
+                customization: '',
+                isAddingToCart: false,
+                customerName: '',
+                customerEmail: '',
+                customerPhone: '',
+                additionalNotes: '',
             };
         },
-        methods: {
-            openEventsDrawer() {
-                this.showEventsDrawer = !this.showEventsDrawer;
+        computed: {
+            totalDrawerQty() {
+                return this.drawerCart.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
             },
+            totalDrawerPrice() {
+                return this.drawerCart.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0);
+            },
+        },
+        methods: {
+            // ── EVENTOS ──
+            openEventsDrawer() { this.showEventsDrawer = true; },
+            closeEventsDrawer() { this.showEventsDrawer = false; },
+            openEventoDetail(evento) { this.currentEvento = evento; this.showEventoDetail = true; },
+            closeEventoDetail() { this.showEventoDetail = false; setTimeout(() => { this.currentEvento = {}; }, 300); },
+            // ── CARRITO ──
             openCartDrawer() {
-                // Cart is disabled in order history page
+                this.showCartDrawer = true;
+                document.body.classList.add('cart-drawer-open');
+                this.loadCartDrawer();
+            },
+            closeCartDrawer() {
+                this.showCartDrawer = false;
+                document.body.classList.remove('cart-drawer-open');
+            },
+            loadCartDrawer() {
+                fetch('{{ route("plaza.cart.get") }}', {
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    this.drawerCart = (data.cart || []).map(item => ({ ...item, price: parseFloat(item.price), quantity: parseInt(item.quantity) }));
+                });
+            },
+            updateItemQty(index, newQty) {
+                if (newQty < 1) newQty = 1;
+                if (!this.drawerCart[index]) return;
+                this.drawerCart[index].quantity = newQty;
+                fetch('{{ route("plaza.cart.update.qty") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
+                    body: JSON.stringify({ item_index: index, quantity: newQty })
+                }).then(r => r.json()).then(data => { if (!data.success) this.loadCartDrawer(); });
+            },
+            removeFromCart(index) { this.itemToRemoveIndex = index; this.showConfirmRemove = true; },
+            cancelRemoveItem() { this.showConfirmRemove = false; this.itemToRemoveIndex = null; },
+            confirmRemoveItem() {
+                if (this.itemToRemoveIndex === null) return;
+                const index = this.itemToRemoveIndex;
+                const itemKey = this.drawerCart[index].item_key;
+                this.drawerCart.splice(index, 1);
+                this.showConfirmRemove = false;
+                this.itemToRemoveIndex = null;
+                fetch('{{ route("plaza.cart.remove") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
+                    body: JSON.stringify({ item_key: itemKey })
+                }).then(r => r.json()).then(data => { if (!data.success) this.loadCartDrawer(); });
+            },
+            goToClearCart() { this.showConfirmClear = true; },
+            cancelClearCart() { this.showConfirmClear = false; },
+            confirmClearCart() {
+                this.drawerCart = [];
+                this.showConfirmClear = false;
+                fetch('{{ route("plaza.cart.clear") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }
+                }).then(r => r.json()).then(data => { if (!data.success) this.loadCartDrawer(); });
+            },
+            goToCheckout() { this.showConfirmOrder = true; },
+            cancelConfirmOrder() { this.showConfirmOrder = false; },
+            async processCheckout() {
+                window.location.href = '{{ route("plaza.index") }}';
+            },
+            // ── EDITAR ITEM ──
+            openEditCartItem(index) {
+                const item = this.drawerCart[index];
+                if (!item) return;
+                this.editingCartItemKey = item.item_key;
+                this.currentProduct = { name: item.name, description: item.description || '', photo_url: item.photo_url || '', price: parseFloat(item.price), product_id: item.product_id, local_id: item.local_id };
+                this.quantity = item.quantity;
+                this.customization = item.customization || '';
+                if (window.authData) { this.customerName = window.authData.name || ''; this.customerEmail = window.authData.email || ''; this.customerPhone = window.authData.phone || ''; }
+                this.showAddToCartModal = true;
+                document.body.classList.add('modal-open');
+            },
+            closeAddToCartModal() {
+                document.body.classList.remove('modal-open');
+                this.showAddToCartModal = false;
+                this.editingCartItemKey = null;
+                setTimeout(() => { this.currentProduct = { name: '', description: '', photo_url: '', price: 0, product_id: 0, local_id: 0 }; this.quantity = 1; this.customization = ''; }, 300);
+            },
+            increaseQuantity() { this.quantity++; },
+            decreaseQuantity() { if (this.quantity > 1) this.quantity--; },
+            validateQuantity() { if (this.quantity < 1) this.quantity = 1; },
+            validateCustomization() { if (this.customization.length > 500) this.customization = this.customization.substring(0, 500); },
+            async proceedAddToCart() {
+                if (this.isAddingToCart) return;
+                const isEditing = !!this.editingCartItemKey;
+                const editingKey = this.editingCartItemKey;
+                if (window.authData) { this.customerName = window.authData.name || this.customerName; this.customerEmail = window.authData.email || this.customerEmail; this.customerPhone = window.authData.phone || this.customerPhone; }
+                if (!this.customerName || !this.customerEmail) { alert('Error: Nombre y email son requeridos.'); return; }
+                this.isAddingToCart = true;
+                try {
+                    if (isEditing) {
+                        await fetch('{{ route("plaza.cart.remove") }}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }, body: JSON.stringify({ item_key: editingKey }) });
+                    }
+                    const response = await fetch('{{ route("plaza.add.cart") }}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }, body: JSON.stringify({ product_id: this.currentProduct.product_id, local_id: this.currentProduct.local_id, quantity: this.quantity, customization: this.customization.trim(), customer_name: this.customerName, customer_email: this.customerEmail, customer_phone: this.customerPhone, additional_notes: this.customization.trim() }) });
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        showToast({ icon: 'success', title: isEditing ? '¡Item actualizado!' : '¡Agregado!', message: this.currentProduct.name + (isEditing ? ' se actualizó.' : ' se agregó al carrito.'), timer: 4000 });
+                        this.loadCartDrawer();
+                        this.closeAddToCartModal();
+                    } else {
+                        showToast({ icon: 'error', title: 'Error', message: data.message || 'No se pudo procesar.', timer: 4000 });
+                    }
+                } catch (e) {
+                    showToast({ icon: 'error', title: 'Error de conexión' });
+                } finally {
+                    this.isAddingToCart = false;
+                }
             },
             /**
              * Determina si una orden debe mostrarse según la pestaña activa y su estado
