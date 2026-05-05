@@ -1864,7 +1864,37 @@
             // Esto permite que el estado cambie automáticamente de "Abierto" a "Cerrado" cuando pasa la hora de cierre
             setInterval(() => {
                 this.recalculateEstadoLocal();
-            }, 10000); // 10 segundos para testing
+            }, 10000);
+
+            window.syncEventoInDrawer = (data) => {
+                if (!data || !data.event_id) return;
+
+                this.eventosHoy = this.eventosHoy.filter(e => e.event_id !== data.event_id);
+                this.eventosProximos = this.eventosProximos.filter(e => e.event_id !== data.event_id);
+
+                if (data.action === 'remove') return;
+
+                const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                if (new Date(data.start_at) < threshold) return;
+
+                const today = new Date().toDateString();
+                new Date(data.start_at).toDateString() === today
+                    ? this.eventosHoy.unshift(data)
+                    : this.eventosProximos.unshift(data);
+            };
+
+            document.addEventListener('evento-synced', (e) => {
+                window.syncEventoInDrawer && window.syncEventoInDrawer(e.detail);
+            });
+
+            // Timer: purgar eventos expirados (start_at > 24h) cada minuto
+            const purgeExpiredEvents = () => {
+                const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                this.eventosHoy = this.eventosHoy.filter(e => new Date(e.start_at) >= threshold);
+                this.eventosProximos = this.eventosProximos.filter(e => new Date(e.start_at) >= threshold);
+            };
+            purgeExpiredEvents();
+            setInterval(purgeExpiredEvents, 60000);
         },
 
         watch: {
@@ -1886,6 +1916,21 @@
             }
         }
     }).mount('#plaza-app');
+
+    // Listener de eventos publicados en tiempo real
+    (function initEvents() {
+        const init = () => window.initEventListener ? window.initEventListener() : false;
+        if (window.Echo && init()) return;
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && init()) {
+                clearInterval(retry);
+            } else if (attempts >= 10) {
+                clearInterval(retry);
+            }
+        }, 500);
+    })();
 
     // Inicializar listener de horario en tiempo real para la vista show
     (function() {

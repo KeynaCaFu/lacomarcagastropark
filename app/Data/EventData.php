@@ -38,9 +38,9 @@ class EventData
         return Event::find($id);
     }
 
-    public function create(array $data)
+    public function create(array $data): Event
     {
-        return Event::create($data)->event_id;
+        return Event::create($data);
     }
 
     public function update($id, array $data)
