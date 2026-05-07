@@ -752,4 +752,37 @@ public function storeProductReview(Request $request, $productId)
         return response()->json(['success' => true]);
     }
 
+
+    public function misResenas()
+{
+    $userId = Auth::id();
+
+    $resenasLocales = LocalReview::with(['review', 'local'])
+        ->where('user_id', $userId)
+        ->whereHas('review')
+        ->orderByDesc('created_at')
+        ->get();
+
+    $resenasProductos = ProductReview::with(['review', 'product.locals'])
+        ->where('user_id', $userId)
+        ->whereHas('review')
+        ->orderByDesc('created_at')
+        ->get();
+
+        
+    $user   = Auth::user();
+    $nombre = $user->full_name ?? $user->name ?? 'Cliente';
+    $partes = explode(' ', trim($nombre));
+    $iniciales = strtoupper(substr($partes[0], 0, 1) . (isset($partes[1]) ? substr($partes[1], 0, 1) : ''));
+
+
+
+
+    return view('plaza.mis-resenas', [
+    'resenasLocales'   => $resenasLocales,
+    'resenasProductos' => $resenasProductos,
+    'iniciales'        => $iniciales,
+]);
+}
+
 }

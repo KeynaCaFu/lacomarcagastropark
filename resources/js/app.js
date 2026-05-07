@@ -16,7 +16,7 @@ window.initScheduleListener = function(localId) {
     try {
         console.log(`✓ Inicializando listener para local ID: ${localId}`);
         const channelName = `establishment-updates.${localId}`;
-        console.log(`📡 Conectando a canal: ${channelName}`);
+        console.log(`Conectando a canal: ${channelName}`);
 
         window.Echo.channel(channelName)
             .listen('ScheduleUpdated', (data) => {
@@ -25,7 +25,7 @@ window.initScheduleListener = function(localId) {
                     updateScheduleDOM(data.schedules, data.local_id);
                     showScheduleToast();
                 } else {
-                    console.warn('⚠ Evento recibido pero sin datos de schedules');
+                    console.warn('Evento recibido pero sin datos de schedules');
                 }
             })
             .error((error) => {
@@ -42,7 +42,7 @@ window.initScheduleListener = function(localId) {
 };
 
 function updateScheduleDOM(schedules, localId) {
-    console.log('📝 Actualizando DOM con horarios del día actual:', schedules);
+    console.log('Actualizando DOM con horarios del día actual:', schedules);
 
     if (!schedules || !Array.isArray(schedules) || schedules.length === 0) {
         console.error('⚠ Schedules inválido, no es un array, o está vacío');
@@ -83,7 +83,7 @@ window.initProductStatusListener = function(localId) {
 
     try {
         const channelName = `establishment-updates.${localId}`;
-        console.log(`📦 Conectando listener de productos al canal: ${channelName}`);
+        console.log(`Conectando listener de productos al canal: ${channelName}`);
 
         window.Echo.channel(channelName)
             .listen('ProductStatusUpdated', (data) => {
@@ -103,6 +103,35 @@ window.initProductStatusListener = function(localId) {
 
     } catch (error) {
         console.error('✗ Error al inicializar ProductStatusListener:', error);
+        return false;
+    }
+};
+
+// Listener de eventos publicados en tiempo real
+window.initEventListener = function() {
+    if (!window.Echo) {
+        console.error('✗ Echo no disponible para EventListener');
+        return false;
+    }
+
+    try {
+        console.log('Conectando listener de eventos al canal: public-events');
+
+        window.Echo.channel('public-events')
+            .listen('EventSynced', (data) => {
+                console.log('✓ EventSynced recibido:', data);
+                if (typeof window.syncEventoInDrawer === 'function') {
+                    window.syncEventoInDrawer(data);
+                } else {
+                    document.dispatchEvent(new CustomEvent('evento-synced', { detail: data }));
+                }
+            });
+
+        console.log('✓ Listener de eventos inicializado');
+        return true;
+
+    } catch (error) {
+        console.error('✗ Error al inicializar EventListener:', error);
         return false;
     }
 };
