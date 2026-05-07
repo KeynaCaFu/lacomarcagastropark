@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Data\EventData;
+use App\Events\EventSynced;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -77,7 +78,10 @@ class EventController extends Controller
         ];
 
         try {
-            $this->eventData->create($data);
+            $event = $this->eventData->create($data);
+            if ($isActive) {
+                broadcast(new EventSynced('upsert', $event));
+            }
         } catch (\Exception $e) {
             return redirect()->route('eventos.index')->with('error', 'Error al crear el evento: ' . $e->getMessage());
         }
@@ -100,9 +104,10 @@ class EventController extends Controller
                 'is_active' => 'required|boolean',
             ]);
             
-            $this->eventData->update($evento->event_id, [
+            $updated = $this->eventData->update($evento->event_id, [
                 'is_active' => $validated['is_active']
             ]);
+            broadcast(new EventSynced($validated['is_active'] ? 'upsert' : 'remove', $updated));
 
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Estado actualizado exitosamente', 'is_active' => $validated['is_active']]);
@@ -155,7 +160,8 @@ class EventController extends Controller
         }
 
         try {
-            $this->eventData->update($evento->event_id, $data);
+            $updated = $this->eventData->update($evento->event_id, $data);
+            broadcast(new EventSynced($isActive ? 'upsert' : 'remove', $updated));
         } catch (\Exception $e) {
             return redirect()->route('eventos.index')->with('error', 'Error al actualizar el evento: ' . $e->getMessage());
         }
@@ -171,6 +177,8 @@ class EventController extends Controller
 
     public function destroy(Event $evento)
     {
+        broadcast(new EventSynced('remove', $evento));
+
         if ($evento->image_url) {
             $oldPath = public_path(str_replace('public/', '', $evento->image_url));
             if (File::exists($oldPath)) {
