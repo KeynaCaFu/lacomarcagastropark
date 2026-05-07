@@ -73,6 +73,9 @@
                                     <a href="{{ route('client.orders.history') }}" class="dropdown-item">
                                         <i class="fas fa-history text-muted"></i> Ver mis pedidos
                                     </a>
+                                    <a href="{{ route('client.reviews') }}" class="dropdown-item">
+                                        <i class="fas fa-star text-muted"></i> Mis reseñas
+                                        </a>
                                     <form method="POST" action="{{ route('logout') }}" class="m-0">
                                         @csrf
                                         <button type="submit" class="dropdown-item danger">
