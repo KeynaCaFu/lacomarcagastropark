@@ -183,4 +183,84 @@ function updateLocalStatusDot(localId, schedules) {
     document.dispatchEvent(new CustomEvent('local-schedule-updated', {
         detail: { local_id: localId, schedules: schedules }
     }));
+
+
+
+    // ── Listener para notificar al cliente cuando el gerente responde su reseña ──
+window.initReviewResponseListener = function(userId) {
+    if (!window.Echo) {
+        console.error('✗ Echo no disponible para ReviewResponseListener');
+        return false;
+    }
+
+    try {
+        const channelName = `user.${userId}`;
+        console.log(`💬 Conectando listener de respuestas al canal: ${channelName}`);
+
+        window.Echo.channel(channelName)
+            .listen('ReviewResponded', (data) => {
+                console.log('✓ Evento ReviewResponded recibido:', data);
+                mostrarNotificacionRespuesta(data);
+            });
+
+        console.log('✓ Listener de respuestas inicializado');
+        return true;
+
+    } catch (error) {
+        console.error('✗ Error al inicializar ReviewResponseListener:', error);
+        return false;
+    }
+};
+
+function mostrarNotificacionRespuesta(data) {
+    // Sonido de notificación
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioCtx.resume().then(() => {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime + 0.15);
+            oscillator.frequency.setValueAtTime(700, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        });
+    } catch(e) {
+        console.log('Audio no disponible:', e);
+    }
+
+    // Toast visual
+    if (window.swToast) {
+        window.swToast.fire({
+            icon: 'info',
+            title: '💬 Respondieron tu reseña',
+            text: data.message,
+            timer: 7000,
+        });
+    }
+
+    // Punto rojo en "Mis reseñas" del menú (CA5)
+    const misResenasLink = document.querySelector('a[href*="reviews"]');
+    if (misResenasLink) {
+        const dot = document.createElement('span');
+        dot.id = 'reviews-notif-dot';
+        dot.style.cssText = `
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            margin-left: 6px;
+            vertical-align: middle;
+            animation: pulse 1.5s infinite;
+        `;
+        if (!document.getElementById('reviews-notif-dot')) {
+            misResenasLink.appendChild(dot);
+        }
+    }
+}
 }
