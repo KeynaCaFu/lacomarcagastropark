@@ -1252,15 +1252,8 @@
                                  onmouseout="this.style.background='#fafafa'">
                                 <div style="font-weight: 600; color: #111827; font-size: 13px; margin-bottom: 6px;">Orden #${order.order_number}</div>
                                 <div style="color: #6b7280; font-size: 11px; margin-bottom: 8px;">Hace ${order.created_at}</div>
-                                <div style="display: flex; gap: 12px; align-items: flex-start;">
-                                    <div style="color: #6b7280; font-size: 12px; max-height: 50px; overflow-y: auto; flex: 1;">
-                                        ${(order.items || []).map(item => `<div>• ${item.product_name} (${item.quantity}x)</div>`).join('')}
-                                    </div>
-                                    <select onchange="if(this.value) changeOrderStatusFromNotif(${order.order_id}, this.value); this.value='';" style="padding: 5px 8px; background: #fff7ed; color: #e18018; border: 1px solid #e18018; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0; white-space: nowrap; margin-top: -53px;">
-                                        <option value=""> PENDIENTE </option>
-                                        <option value="Preparing">Preparar</option>
-                                        <option value="Cancelled">Cancelar</option>
-                                    </select>
+                                <div style="color: #6b7280; font-size: 12px; max-height: 50px; overflow-y: auto;">
+                                    ${(order.items || []).map(item => `<div>• ${item.product_name} (${item.quantity}x)</div>`).join('')}
                                 </div>
                             </div>
                         `).join('');
