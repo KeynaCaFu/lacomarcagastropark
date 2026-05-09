@@ -1164,7 +1164,8 @@
                                 optionsDiv.style.display    = 'flex';
                                 scanSection.style.display   = 'none';
                                 manualSection.style.display = 'none';
-                                Swal.update({ showConfirmButton: false });
+                                const confirmBtn = document.querySelector('.swal2-confirm');
+                                if (confirmBtn) confirmBtn.style.display = 'none';
                             }
 
                             document.getElementById('btn-back-scan')?.addEventListener('click', showOptions);
@@ -1240,7 +1241,11 @@
                             document.getElementById('btn-manual-code').addEventListener('click', () => {
                                 optionsDiv.style.display    = 'none';
                                 manualSection.style.display = 'block';
-                                Swal.update({ showConfirmButton: true });
+                                const confirmBtn = document.querySelector('.swal2-confirm');
+                                if (confirmBtn) {
+                                    confirmBtn.style.display    = 'inline-block';
+                                    confirmBtn.style.visibility = 'visible';
+                                }
                                 document.getElementById('qr-code-input')?.focus();
                             });
                         },
