@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Data\OrderData;
+use App\Events\OrderStatusUpdated;
 use App\Models\Event;
 use App\Models\Order;
 use App\Models\Receipt;
@@ -170,6 +171,7 @@ class OrderController extends Controller
 
                 // Cambiar estado primero
                 $this->orderData->changeStatus($orderId, $newStatus);
+                broadcast(new OrderStatusUpdated((int) $orderId, $newStatus, now()->toIso8601String()));
 
                 // Verificar si debe saltar la generación de comprobante (para Gerentes)
                 $skipReceiptGeneration = $request->input('skip_receipt_generation', false);
@@ -222,6 +224,7 @@ class OrderController extends Controller
             }
 
             $this->orderData->changeStatus($orderId, $newStatus);
+            broadcast(new OrderStatusUpdated((int) $orderId, $newStatus, now()->toIso8601String()));
 
             return response()->json([
                 'success' => true,
