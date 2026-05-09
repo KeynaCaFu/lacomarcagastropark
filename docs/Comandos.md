@@ -57,3 +57,5 @@ php artisan test --filter=ClientReviewsVisualizationTest --verbose
 8. PRUEBA QA para validar cambio en horario tiempo real
 comando php artisan test tests/Feature/LocalScheduleUpdateTest.php --no-coverge
 
+9. Prueba QA para validar nueva orden o cancelada en tiempo real
+php artisan test tests/Feature/OrderBroadcastTest.php --verbose
