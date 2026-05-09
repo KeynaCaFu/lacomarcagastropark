@@ -24,6 +24,25 @@ import Pusher from 'pusher-js';
 window.Pusher = Pusher;
 
 try {
+    // Log de configuración
+    const viteConfig = {
+        key: import.meta.env.VITE_PUSHER_APP_KEY,
+        cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+        host: import.meta.env.VITE_PUSHER_HOST,
+        port: import.meta.env.VITE_PUSHER_PORT,
+        scheme: import.meta.env.VITE_PUSHER_SCHEME,
+    };
+
+    console.log('[Bootstrap] Configuración VITE_PUSHER:', viteConfig);
+
+    // Validar que tenemos al menos key y cluster
+    if (!viteConfig.key) {
+        throw new Error('VITE_PUSHER_APP_KEY no está configurado en .env');
+    }
+    if (!viteConfig.cluster) {
+        throw new Error('VITE_PUSHER_APP_CLUSTER no está configurado en .env');
+    }
+
     // Configurar Echo
     window.Echo = new Echo({
         broadcaster: 'pusher',
