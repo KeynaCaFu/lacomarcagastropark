@@ -494,6 +494,18 @@ class CartController extends Controller
                     ]);
                 }
 
+                // Broadcast nueva orden al gerente del local
+                $eventItems = array_map(fn($i) => [
+                    'product_name' => $i['name'],
+                    'quantity'     => $i['quantity'],
+                ], $items);
+
+                broadcast(new \App\Events\NewOrderPlaced(
+                    $order,
+                    $user->full_name ?? $user->name ?? 'Cliente',
+                    $eventItems
+                ));
+
                 $createdOrders[] = [
                     'order_number' => $orderNumber,
                     'token' => $verificationToken,
@@ -713,6 +725,12 @@ class CartController extends Controller
             session()->put('cart', $cart);
 
             \Illuminate\Support\Facades\DB::commit();
+
+            // Broadcast cancelación al gerente del local
+            broadcast(new \App\Events\OrderCancelled(
+                $order,
+                $user->full_name ?? $user->name ?? 'Cliente'
+            ));
 
             return response()->json([
                 'success' => true,
