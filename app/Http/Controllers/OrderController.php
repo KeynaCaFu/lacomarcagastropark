@@ -52,8 +52,9 @@ class OrderController extends Controller
         $orders = $this->orderData->all($filters);
         $statuses = Order::getStatuses();
         $counts = $this->orderData->getCountsByStatus($filters['local_id'] ?? null);
+        $localId = $filters['local_id'] ?? null;
 
-        return view('orders.index', compact('orders', 'statuses', 'counts'));
+        return view('orders.index', compact('orders', 'statuses', 'counts', 'localId'));
     }
 
     /**

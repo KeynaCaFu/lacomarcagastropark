@@ -272,6 +272,230 @@ window.initReviewListener = function(localId) {
     }
 };
 
+// ── Listener de nuevas órdenes para notificación al gerente ──
+window.initOrderListener = function(localId) {
+    if (!window.Echo) {
+        console.error('✗ Echo no disponible para OrderListener');
+        return false;
+    }
+
+    try {
+        const channelName = `orders.${localId}`;
+        console.log(`🛒 Conectando listener de órdenes al canal: ${channelName}`);
+
+        window.Echo.channel(channelName)
+            .listen('NewOrderPlaced', (data) => {
+                console.log('✓ Evento NewOrderPlaced recibido:', data);
+                playOrderSound();
+                mostrarToastOrden(data);
+                if (typeof window.loadPendingOrdersNotif === 'function') {
+                    window.loadPendingOrdersNotif();
+                }
+                agregarTarjetaOrden(data);
+            })
+            .listen('OrderCancelled', (data) => {
+                console.log('✓ Evento OrderCancelled recibido:', data);
+                playCancelSound();
+                mostrarToastCancelacion(data);
+                if (typeof window.loadPendingOrdersNotif === 'function') {
+                    window.loadPendingOrdersNotif();
+                }
+                actualizarTarjetaCancelada(data);
+            });
+
+        console.log('✓ Listener de órdenes inicializado');
+        return true;
+
+    } catch (error) {
+        console.error('✗ Error al inicializar OrderListener:', error);
+        return false;
+    }
+};
+
+function playOrderSound() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioCtx.resume().then(() => {
+            [0, 0.22, 0.44].forEach(offset => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + offset);
+                gain.gain.setValueAtTime(0.5, audioCtx.currentTime + offset);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + offset + 0.18);
+                osc.start(audioCtx.currentTime + offset);
+                osc.stop(audioCtx.currentTime + offset + 0.18);
+            });
+        });
+    } catch(e) {
+        console.log('Audio no disponible:', e);
+    }
+}
+
+function mostrarToastOrden(data) {
+    if (window.swToast) {
+        window.swToast.fire({
+            icon: 'info',
+            title: '🛒 Nueva orden recibida',
+            text: `${data.order_number} — ${data.customer_name}`,
+            timer: 8000,
+        });
+    }
+}
+
+function agregarTarjetaOrden(data) {
+    const ordersList = document.querySelector('.orders-grid-list');
+    if (!ordersList) return;
+
+    const amount = parseFloat(data.total_amount).toLocaleString('es-CR', { minimumFractionDigits: 2 });
+    const itemCount = data.items ? data.items.length : data.quantity;
+    const timeStr = data.time ? String(data.time).substring(0, 5) : new Date().toTimeString().substring(0, 5);
+
+    const card = document.createElement('div');
+    card.className = 'order-card-item';
+    card.dataset.orderId = data.order_id;
+    card.dataset.status = 'Pending';
+    card.dataset.userRoleId = '3';
+    card.style.animation = 'fadeInDown 0.4s ease';
+    card.innerHTML = `
+        <div class="order-card-header">
+            <div>
+                <div class="order-card-number">${data.order_number}</div>
+                <div class="order-card-customer">
+                    <span style="display:inline-block;background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;margin-right:6px;">Cliente</span>
+                    <span style="font-size:12px;color:#666;">${data.customer_name}</span>
+                </div>
+            </div>
+            <div class="order-card-time">${timeStr}</div>
+        </div>
+        <div class="order-card-status">
+            <span class="status-badge status-pending status-badge-clickable" data-order-id="${data.order_id}" style="cursor:pointer;position:relative;">
+                <i class="fas fa-hourglass-start"></i>
+                Pendiente
+                <i class="fas fa-chevron-down" style="margin-left:6px;font-size:10px;"></i>
+                <div class="status-dropdown" style="display:none;position:absolute;top:100%;left:0;margin-top:8px;background:white;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:1000;min-width:180px;">
+                    <button type="button" class="status-dropdown-item status-dropdown-item-Preparing" data-status="Preparing">
+                        <i class="fas fa-fire"></i> En Preparación
+                    </button>
+                    <button type="button" class="status-dropdown-item status-dropdown-item-Cancelled" data-status="Cancelled">
+                        <i class="fas fa-times-circle"></i> Cancelado
+                    </button>
+                </div>
+            </span>
+        </div>
+        <div class="order-card-footer">
+            <div class="order-card-amount">₡${amount}</div>
+            <div class="order-card-items">${itemCount} items</div>
+        </div>
+    `;
+
+    // Si el tab activo no es Pending, ocultar la tarjeta
+    const activeTab = document.querySelector('.order-tab.active');
+    if (activeTab && activeTab.dataset.status !== 'Pending') {
+        card.style.display = 'none';
+    }
+
+    // Reemplazar estado vacío si existe
+    const emptyState = ordersList.parentElement?.querySelector('[style*="text-align: center"]');
+    if (emptyState) emptyState.remove();
+
+    // Insertar al inicio de la lista
+    ordersList.insertBefore(card, ordersList.firstChild);
+
+    // Click para cargar detalles (usa función global expuesta desde el blade)
+    card.addEventListener('click', function() {
+        document.querySelectorAll('.order-card-item').forEach(el => el.classList.remove('active'));
+        this.classList.add('active');
+        if (typeof window.loadOrderDetails === 'function') {
+            window.loadOrderDetails(data.order_id);
+        }
+    });
+
+    // Actualizar contador en tab Pending
+    const pendingTabCount = document.querySelector('.order-tab[data-status="Pending"] .order-tab-count');
+    if (pendingTabCount) {
+        pendingTabCount.textContent = (parseInt(pendingTabCount.textContent) || 0) + 1;
+    }
+
+    // Actualizar stat card Total y Pendientes (primeras dos)
+    const statNumbers = document.querySelectorAll('.order-stat-number');
+    if (statNumbers[0]) statNumbers[0].textContent = (parseInt(statNumbers[0].textContent) || 0) + 1;
+    if (statNumbers[1]) statNumbers[1].textContent = (parseInt(statNumbers[1].textContent) || 0) + 1;
+}
+
+function playCancelSound() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioCtx.resume().then(() => {
+            // Tono descendente para cancelación
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.4);
+            gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.4);
+        });
+    } catch(e) {
+        console.log('Audio no disponible:', e);
+    }
+}
+
+function mostrarToastCancelacion(data) {
+    if (window.swToast) {
+        window.swToast.fire({
+            icon: 'warning',
+            title: '❌ Orden cancelada por el cliente',
+            text: `${data.order_number} — ${data.customer_name}`,
+            timer: 8000,
+        });
+    }
+}
+
+function actualizarTarjetaCancelada(data) {
+    const card = document.querySelector(`.order-card-item[data-order-id="${data.order_id}"]`);
+    if (!card) return;
+
+    // Actualizar el estado interno de la tarjeta
+    card.dataset.status = 'Cancelled';
+
+    // Actualizar el badge de estado
+    const badge = card.querySelector('.status-badge');
+    if (badge) {
+        badge.className = 'status-badge status-cancelled';
+        badge.style.cursor = 'default';
+        badge.innerHTML = `<i class="fas fa-times-circle"></i> Cancelado`;
+    }
+
+    // Ocultar o mostrar según el tab activo
+    const activeTab = document.querySelector('.order-tab.active');
+    const activeStatus = activeTab ? activeTab.dataset.status : null;
+    card.style.display = (activeStatus === 'Cancelled') ? 'block' : 'none';
+
+    // Actualizar contadores: Pending -1, Cancelled +1
+    const pendingTabCount = document.querySelector('.order-tab[data-status="Pending"] .order-tab-count');
+    if (pendingTabCount) {
+        pendingTabCount.textContent = Math.max(0, (parseInt(pendingTabCount.textContent) || 0) - 1);
+    }
+
+    const cancelledTabCount = document.querySelector('.order-tab[data-status="Cancelled"] .order-tab-count');
+    if (cancelledTabCount) {
+        cancelledTabCount.textContent = (parseInt(cancelledTabCount.textContent) || 0) + 1;
+    }
+
+    // Stat card Pendientes -1
+    const statNumbers = document.querySelectorAll('.order-stat-number');
+    if (statNumbers[1]) {
+        statNumbers[1].textContent = Math.max(0, (parseInt(statNumbers[1].textContent) || 0) - 1);
+    }
+}
+
 function mostrarToastReview(data) {
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
