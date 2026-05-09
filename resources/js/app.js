@@ -496,6 +496,20 @@ function actualizarTarjetaCancelada(data) {
     }
 }
 
+// Auto-registro de listeners para órdenes activas en la página de historial.
+// app.js corre como módulo diferido, DESPUÉS de que el inline script montó Vue
+// y estableció los atributos data-status, por lo que el DOM ya está listo.
+(function registerActiveOrderListeners() {
+    const activeStatuses = ['Pending', 'Preparing', 'Ready'];
+    document.querySelectorAll('.order-card[data-order-id]').forEach(function (card) {
+        const orderId = parseInt(card.getAttribute('data-order-id'), 10);
+        const status  = card.getAttribute('data-status');
+        if (orderId && activeStatuses.includes(status)) {
+            window.initOrderStatusListener(orderId);
+        }
+    });
+})();
+
 function mostrarToastReview(data) {
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
