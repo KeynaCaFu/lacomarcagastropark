@@ -196,6 +196,56 @@ function updateLocalStatusDot(localId, schedules) {
     }));
 }
 
+// ── Listener de estado de orden (canal privado para cliente) ──
+window.initOrderStatusListener = function(orderId) {
+    if (!window.Echo) {
+        console.error('✗ Echo no disponible para OrderStatusListener');
+        return false;
+    }
+
+    try {
+        const channelName = `order.${orderId}`;
+        console.log(`[OrderListener] Conectando a canal privado: ${channelName}`);
+
+        const subscription = window.Echo.private(channelName)
+            .listen('OrderStatusUpdated', (data) => {
+                console.log(`[OrderListener] ✅ Evento recibido en ${channelName}:`, {
+                    order_id: data.order_id,
+                    status: data.status,
+                    updated_at: data.updated_at,
+                });
+                
+                // Disparar evento personalizado
+                document.dispatchEvent(new CustomEvent('order-status-updated', {
+                    detail: {
+                        order_id:   data.order_id,
+                        status:     data.status,
+                        updated_at: data.updated_at,
+                    }
+                }));
+            })
+            .error((status, message) => {
+                console.error(`[OrderListener]  Error de autorización en ${channelName}:`, {
+                    status: status,
+                    message: message,
+                });
+            });
+
+        console.log(`[OrderListener] ✓ Listener de orden ${orderId} inicializado`);
+        
+        // Guardar referencia para debugging
+        window._orderListeners = window._orderListeners || {};
+        window._orderListeners[orderId] = subscription;
+        
+        return true;
+
+    } catch (error) {
+        console.error(`[OrderListener] ✗ Error al inicializar:`, error);
+        console.log('Stack trace:', error.stack);
+        return false;
+    }
+};
+
 // ── Listener de reseñas para notificación al gerente ──
 window.initReviewListener = function(localId) {
     if (!window.Echo) {
@@ -445,6 +495,20 @@ function actualizarTarjetaCancelada(data) {
         statNumbers[1].textContent = Math.max(0, (parseInt(statNumbers[1].textContent) || 0) - 1);
     }
 }
+
+// Auto-registro de listeners para órdenes activas en la página de historial.
+// app.js corre como módulo diferido, DESPUÉS de que el inline script montó Vue
+// y estableció los atributos data-status, por lo que el DOM ya está listo.
+(function registerActiveOrderListeners() {
+    const activeStatuses = ['Pending', 'Preparing', 'Ready'];
+    document.querySelectorAll('.order-card[data-order-id]').forEach(function (card) {
+        const orderId = parseInt(card.getAttribute('data-order-id'), 10);
+        const status  = card.getAttribute('data-status');
+        if (orderId && activeStatuses.includes(status)) {
+            window.initOrderStatusListener(orderId);
+        }
+    });
+})();
 
 function mostrarToastReview(data) {
     try {
