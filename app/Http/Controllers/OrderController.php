@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Data\OrderData;
 use App\Events\OrderStatusUpdated;
+use App\Events\UserNotification;
 use App\Models\Event;
 use App\Models\Order;
 use App\Models\Receipt;
@@ -172,6 +173,7 @@ class OrderController extends Controller
                 // Cambiar estado primero
                 $this->orderData->changeStatus($orderId, $newStatus);
                 broadcast(new OrderStatusUpdated((int) $orderId, $newStatus, now()->toIso8601String()));
+                $this->notifyOrderClient($order, $newStatus);
 
                 // Verificar si debe saltar la generación de comprobante (para Gerentes)
                 $skipReceiptGeneration = $request->input('skip_receipt_generation', false);
@@ -225,6 +227,7 @@ class OrderController extends Controller
 
             $this->orderData->changeStatus($orderId, $newStatus);
             broadcast(new OrderStatusUpdated((int) $orderId, $newStatus, now()->toIso8601String()));
+            $this->notifyOrderClient($order, $newStatus);
 
             return response()->json([
                 'success' => true,
@@ -514,5 +517,31 @@ class OrderController extends Controller
             ->get();
 
         return response()->json(['customers' => $customers]);
+    }
+
+    private function notifyOrderClient(Order $order, string $status): void
+    {
+        $statusLabels = [
+            Order::STATUS_PENDING      => 'Pendiente',
+            Order::STATUS_PREPARATION  => 'En preparación',
+            Order::STATUS_READY        => '¡Tu pedido está listo!',
+            Order::STATUS_DELIVERED    => 'Entregado',
+            Order::STATUS_CANCELLED    => 'Cancelado',
+        ];
+
+        $clientUser = $order->user()->first();
+        if (!$clientUser) return;
+
+        $label   = $statusLabels[$status] ?? $status;
+        $message = $status === Order::STATUS_READY
+            ? "¡Tu pedido #{$order->order_number} está listo para recoger!"
+            : "Tu pedido #{$order->order_number} cambió a: {$label}";
+
+        broadcast(new UserNotification(
+            (int) $clientUser->user_id,
+            'order_update',
+            $message,
+            'pedidos'
+        ));
     }
 }

@@ -6,15 +6,18 @@ window.Alpine = Alpine;
 
 Alpine.start();
 
-// Desbloquear Audio Context con la primera interacción del usuario
-let audioCtxUnlocked = false;
+// Contexto de audio compartido — se crea en el primer click del usuario y se reutiliza
+window._notifAudioCtx = null;
 document.addEventListener('click', function() {
-    if (!audioCtxUnlocked) {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        ctx.resume().then(() => {
-            audioCtxUnlocked = true;
-            console.log('✓ Audio desbloqueado');
-        });
+    if (!window._notifAudioCtx) {
+        try {
+            window._notifAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            window._notifAudioCtx.resume().then(() => {
+                console.log('✓ Audio desbloqueado');
+            });
+        } catch(e) {}
+    } else if (window._notifAudioCtx.state === 'suspended') {
+        window._notifAudioCtx.resume();
     }
 }, { once: false });
 
@@ -225,10 +228,6 @@ window.initReviewListener = function(localId) {
     try {
         const channelName = `local.${localId}`;
         console.log(`⭐ Conectando listener de reseñas al canal: ${channelName}`);
-
-    try {
-        const channelName = `local.${localId}`;
-        console.log(`⭐ Conectando listener de reseñas al canal: ${channelName}`);
         window.Echo.channel(channelName)
             .listen('NewReviewPosted', (data) => {
                 console.log('✓ Evento NewReviewPosted recibido:', data);
@@ -238,8 +237,6 @@ window.initReviewListener = function(localId) {
         console.log('✓ Listener de reseñas inicializado');
         return true;
 
-        console.log('✓ Listener de reseñas inicializado');
-        return true;
     } catch (error) {
         console.error('✗ Error al inicializar ReviewListener:', error);
         return false;
@@ -514,84 +511,192 @@ function mostrarToastReview(data) {
         });
     }
 }
+
+// ── Notificaciones en tiempo real para el cliente ──────────────────────────
+
+const NOTIF_SECTIONS = ['pedidos', 'resenas'];
+
+const NOTIF_LABELS = {
+    pedidos: 'Ver mis pedidos',
+    resenas: 'Mis reseñas',
+};
+
+function playNotifSound() {
+    const ctx = window._notifAudioCtx;
+    if (!ctx || ctx.state === 'suspended') return; // esperando primer click del usuario
+    try {
+        [[0, 880, 0.35], [0.18, 1318, 0.3]].forEach(([t, freq, vol]) => {
+            const osc  = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + t);
+            gain.gain.setValueAtTime(vol, ctx.currentTime + t);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.38);
+            osc.start(ctx.currentTime + t);
+            osc.stop(ctx.currentTime + t + 0.38);
+        });
+    } catch(e) {}
 }
 
-// ── Listener de respuestas a reseñas para el cliente ──
-window.initReviewResponseListener = function(userId) {
+function showNotifToast(message, section) {
+    const label = NOTIF_LABELS[section] || section;
+    console.log('[UserNotif] showNotifToast:', message, '| sección:', section);
+
+    // CSS toast centrado en la parte superior — siempre visible, sin depender de SweetAlert
+    if (!document.getElementById('comarca-notif-toast-style')) {
+        const style = document.createElement('style');
+        style.id = 'comarca-notif-toast-style';
+        style.textContent = `
+            @keyframes comarca-drop-in {
+                from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+                to   { transform: translateX(-50%) translateY(0);     opacity: 1; }
+            }
+            .comarca-notif-toast {
+                position: fixed;
+                top: 18px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 2147483647;
+                background: #1a1410;
+                border: 2px solid #D4773A;
+                border-radius: 12px;
+                padding: 14px 20px;
+                color: #F5F0E8;
+                font-family: 'DM Sans', 'Segoe UI', sans-serif;
+                font-size: 0.88rem;
+                max-width: 380px;
+                min-width: 260px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                animation: comarca-drop-in 0.3s ease;
+                transition: opacity 0.35s ease;
+            }
+            .comarca-notif-toast-icon { color: #D4773A; font-size: 1.25rem; margin-top: 2px; flex-shrink: 0; }
+            .comarca-notif-toast-title { font-weight: 700; margin-bottom: 3px; font-size: 0.9rem; }
+            .comarca-notif-toast-sub { font-size: 0.75rem; color: #9A8070; }
+        `;
+        document.head.appendChild(style);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'comarca-notif-toast';
+    toast.innerHTML = `
+        <span class="comarca-notif-toast-icon">&#128276;</span>
+        <div>
+            <div class="comarca-notif-toast-title">${message}</div>
+            <div class="comarca-notif-toast-sub">Ir a: ${label}</div>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 350);
+    }, 6000);
+}
+
+// Inyectar CSS de clases de puntos una sola vez (sobrescribe cualquier display:none del template)
+(function injectNotifDotCSS() {
+    if (document.getElementById('comarca-notif-dot-style')) return;
+    const s = document.createElement('style');
+    s.id = 'comarca-notif-dot-style';
+    s.textContent = `
+        #notifDotBtn.comarca-dot-active  { display: block !important; }
+        #notifDot_pedidos.comarca-dot-active { display: inline-block !important; }
+        #notifDot_resenas.comarca-dot-active  { display: inline-block !important; }
+    `;
+    document.head.appendChild(s);
+})();
+
+function renderNotifDots() {
+    let anyActive = false;
+
+    NOTIF_SECTIONS.forEach(section => {
+        const active = localStorage.getItem('comarca_notif_' + section) === '1';
+        if (active) anyActive = true;
+
+        const dot = document.getElementById('notifDot_' + section);
+        console.log(`[NotifDot] ${section}: active=${active}, elem=`, dot);
+        if (dot) {
+            dot.classList.toggle('comarca-dot-active', active);
+            dot.style.display = active ? 'inline-block' : 'none';
+        }
+    });
+
+    const btnDot = document.getElementById('notifDotBtn');
+    console.log('[NotifDot] btnDot:', btnDot, '| anyActive:', anyActive);
+    if (btnDot) {
+        btnDot.classList.toggle('comarca-dot-active', anyActive);
+        btnDot.style.display = anyActive ? 'block' : 'none';
+    }
+}
+
+window.setNotifDot = function(section) {
+    localStorage.setItem('comarca_notif_' + section, '1');
+    renderNotifDots();
+};
+
+window.clearNotifDot = function(section) {
+    localStorage.removeItem('comarca_notif_' + section);
+    renderNotifDots();
+};
+
+window.loadNotifDots = function() {
+    renderNotifDots();
+};
+
+window.initUserNotificationListener = function(userId) {
     if (!window.Echo) {
-        console.error('✗ Echo no disponible para ReviewResponseListener');
+        console.error('[UserNotif] ✗ window.Echo no disponible — app.js no cargó o Echo falló en bootstrap.js');
         return false;
     }
+
+    // Detectar si Echo está en modo log (fallback sin Pusher real)
+    if (window.Echo.connector && window.Echo.connector.constructor && window.Echo.connector.constructor.name === 'NullConnector') {
+        console.error('[UserNotif] ✗ Echo está en modo NullConnector (fallback). Verifica VITE_PUSHER_APP_KEY.');
+        return false;
+    }
+
+    console.log(`[UserNotif] Suscribiendo al canal privado: App.Models.User.${userId}`);
+
     try {
-        const channelName = `user.${userId}`;
-        console.log(`💬 Conectando listener de respuestas al canal: ${channelName}`);
-        window.Echo.channel(channelName)
-            .listen('ReviewResponded', (data) => {
-                console.log('✓ Evento ReviewResponded recibido:', data);
-                mostrarNotificacionRespuesta(data);
-            });
-        console.log('✓ Listener de respuestas inicializado');
+        const ch = window.Echo.private(`App.Models.User.${userId}`);
+
+        ch.listen('.UserNotification', (data) => {
+            console.log('[UserNotif] ✓ Evento recibido:', data);
+            playNotifSound();
+            showNotifToast(data.message, data.section);
+            window.setNotifDot(data.section);
+        });
+
+        // Capturar errores de autenticación del canal privado
+        ch.error((error) => {
+            console.error('[UserNotif] ✗ Error en canal privado (auth 403?):', error);
+        });
+
+        // Acceder al canal Pusher subyacente para monitorear estado
+        try {
+            const pusherChannel = window.Echo.connector.pusher.channel(`private-App.Models.User.${userId}`);
+            if (pusherChannel) {
+                pusherChannel.bind('pusher:subscription_succeeded', () => {
+                    console.log(`[UserNotif] ✓ Suscripción exitosa al canal privado para usuario ${userId}`);
+                });
+                pusherChannel.bind('pusher:subscription_error', (err) => {
+                    console.error(`[UserNotif] ✗ Error de suscripción Pusher:`, err);
+                });
+            }
+        } catch(pusherErr) {
+            // No es crítico si no podemos acceder al canal Pusher directamente
+        }
+
+        console.log(`[UserNotif] ✓ Listener registrado para usuario ${userId}`);
         return true;
-    } catch (error) {
-        console.error('✗ Error al inicializar ReviewResponseListener:', error);
+
+    } catch(e) {
+        console.error('[UserNotif] ✗ Excepción al suscribir:', e);
         return false;
     }
 };
-
-window.mostrarNotificacionRespuesta = function(data) {
-    console.log('🔔 Mostrando notificación de respuesta:', data);
-
-    // Sonido
-    try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        audioCtx.resume().then(() => {
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
-            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime + 0.15);
-            oscillator.frequency.setValueAtTime(700, audioCtx.currentTime + 0.3);
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-            oscillator.start(audioCtx.currentTime);
-            oscillator.stop(audioCtx.currentTime + 0.5);
-        });
-    } catch(e) {}
-
-    // Toast del sistema
-    if (window.showNotification) {
-        window.showNotification({
-            icon: 'info',
-            title: 'Respondieron tu reseña💬',
-            message: data.message,
-            timer: 7000
-        });
-    }
-
-    // Punto rojo en "Mis reseñas"
-setTimeout(() => {
-    const links = document.querySelectorAll('a');
-    let misResenasLink = null;
-    links.forEach(link => {
-        if (link.href && link.href.includes('mis-resenas')) {
-            misResenasLink = link;
-        }
-    });
-    if (misResenasLink && !document.getElementById('reviews-notif-dot')) {
-        const dot = document.createElement('span');
-        dot.id = 'reviews-notif-dot';
-        dot.style.cssText = `
-            position: absolute; top: 0px; right: -8px;
-            width: 8px; height: 8px;
-            background: #ef4444; border-radius: 50%;
-            display: inline-block;
-        `;
-        misResenasLink.style.position = 'relative';
-        misResenasLink.appendChild(dot);
-    }
-}, 500);
-}
-
-
