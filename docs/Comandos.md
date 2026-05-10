@@ -32,26 +32,26 @@ npm run build
 
 # COMANDOS PARA LAS PRUEBAS QA
 
-1. PR PROBADA CON PHPUNIT
+1. PRUEBA QA G4DS-238 PR PARA VISUALIZAR RESEÑAS 
 php artisan test tests/Feature/ReviewDisplayTest.php
 
-2. Pruebas QA 07-05-2026
+2. Pruebas G4DS-264 QA 07-05-2026 para validar que cambie algo del estado
 para probar la prueba de que un evento fue publicado aparezca en el sitio web el tiempo real con webSocket
 php artisan test --filter=Event --verbose
 
-3.  Ejecutar todas las pruebas de cancelación de pedidos
+3.  PRUEBA QA GADS-199 Ejecutar todas las pruebas de cancelación de pedidos
 php artisan test --filter=OrderCancellationTest
 
 4. PRUEBA QA para validar cambio en horario tiempo real
 comando php artisan test tests/Feature/LocalScheduleUpdateTest.php --no-coverge
 
-5. PRUEBA QA PARA CAMBIAR EL ESTADO DE UN PRODUCTO TIEMPO REAL 
+5. PRUEBA QA G4DS-263 PARA CAMBIAR EL ESTADO DE UN PRODUCTO TIEMPO REAL 
 para ejecutar php artisan test tests/Feacture/ProductDeactivationTest.php --no-coverage
 
-6. PR REVISADA Y PROBADA CON PHPUNIT
+6. PREUBA QA G4DS-236 para validar el listado de reseñas de un cliente
 para probar: php artisan test tests/Feature/ReviewDeletionTest.php
 
-7. para probar prueba sobre listado de reseñas de un cliente 
+7. PRUEBA QA G4DS- 237 para validar prueba sobre listado de reseñas de un cliente 
 php artisan test --filter=ClientReviewsVisualizationTest --verbose
 
 8. PRUEBA QA para validar cambio en horario tiempo real
@@ -59,3 +59,6 @@ comando php artisan test tests/Feature/LocalScheduleUpdateTest.php --no-coverge
 
 9. Prueba QA para validar nueva orden o cancelada en tiempo real
 php artisan test tests/Feature/OrderBroadcastTest.php --verbose
+
+10. PRUEBA QA para validar el cambio estado en una orden 
+php artisan test tests/Feature/OrderStatusUpdatedBroadcastTest.php
