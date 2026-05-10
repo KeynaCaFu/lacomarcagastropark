@@ -307,6 +307,30 @@
         .swal2-confirm:active {
             background: linear-gradient(135deg, #c9690f, #a84f0a) !important;
         }
+
+        /* SweetAlert2 Toast - Diseño mejorado */
+        .swal2-timer-progress-bar {
+            background: linear-gradient(135deg, #e18018, #c9690f) !important;
+        }
+
+        .comarca-toast-popup {
+            border-radius: 14px !important;
+            padding: 14px 16px !important;
+        }
+
+        .comarca-toast-title {
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            color: #111827 !important;
+            line-height: 1.3 !important;
+        }
+
+        .comarca-toast-popup .swal2-html-container,
+        .comarca-toast-popup .swal2-content {
+            font-size: 13px !important;
+            color: #6b7280 !important;
+            margin-top: 2px !important;
+        }
     </style>
     
     @stack('styles')
@@ -569,6 +593,7 @@
                     </div>
                 </div>
 
+                @section('global_errors')
                 @if($errors->any())
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <i class="fas fa-exclamation-triangle"></i>
@@ -580,6 +605,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
+                @show
 
                 <!-- Contenido específico de cada página -->
                 <div class="fade-in">
@@ -647,8 +673,14 @@
                         toast: true,
                         position: 'top-end',
                         showConfirmButton: false,
-                        timer: 7000,
+                        showCloseButton: true,
+                        timer: 5000,
                         timerProgressBar: true,
+                        iconColor: '#e18018',
+                        customClass: {
+                            popup: 'comarca-toast-popup',
+                            title: 'comarca-toast-title',
+                        },
                         didOpen: (toast) => {
                             toast.addEventListener('mouseenter', Swal.stopTimer);
                             toast.addEventListener('mouseleave', Swal.resumeTimer);
@@ -674,7 +706,7 @@
             window.showNotification = function(type, message) {
                 const iconMap = { success: 'success', error: 'error', info: 'info', warning: 'warning' };
                 const icon = iconMap[type] || 'info';
-                if (window.swAlert) return swAlert({ icon, title: '', text: message, timer: 1600, showConfirmButton: false });
+                if (window.swToast) return swToast.fire({ icon, title: message });
                 return Promise.resolve();
             };
 
@@ -762,42 +794,12 @@
 
                 // Función interna para mostrar feedback visual estilo panel horizontal
                 const showFeedbackToast = (msg, isCancel = false) => {
-                    const feedback = document.createElement('div');
-                    feedback.style.background = '#ffffff';
-                    feedback.style.color = '#374151';
-                    feedback.style.border = '2px solid #e18018';
-                    feedback.style.borderRadius = '12px';
-                    feedback.style.boxShadow = '0 10px 24px rgba(0,0,0,0.1)';
-                    feedback.style.padding = '12px 16px';
-                    feedback.style.marginBottom = '8px';
-                    feedback.style.display = 'flex';
-                    feedback.style.alignItems = 'center';
-                    feedback.style.gap = '12px';
-                    feedback.style.minWidth = '280px';
-                    feedback.style.animation = 'slideInFromLeft 0.3s ease-out';
-                    feedback.style.zIndex = '1070';
-
-                    const icon = document.createElement('i');
-                    // Icono naranja para cancelación, verde para éxito
-                    icon.className = isCancel ? 'fas fa-info-circle' : 'fas fa-check-circle';
-                    icon.style.color = isCancel ? '#e18018' : '#16a34a';
-                    icon.style.fontSize = '20px';
-
-                    const textStr = document.createElement('span');
-                    textStr.textContent = msg;
-                    textStr.style.fontWeight = '700';
-                    textStr.style.fontSize = '14px';
-
-                    feedback.appendChild(icon);
-                    feedback.appendChild(textStr);
-                    container.appendChild(feedback);
-
-                    setTimeout(() => {
-                        feedback.style.opacity = '0';
-                        feedback.style.transform = 'translateX(-20px)';
-                        feedback.style.transition = 'all 0.4s ease';
-                        setTimeout(() => feedback.remove(), 400);
-                    }, 3000);
+                    if (window.swToast) {
+                        window.swToast.fire({
+                            icon: isCancel ? 'info' : 'success',
+                            title: msg
+                        });
+                    }
                 };
 
                 let undone = false;
@@ -828,9 +830,14 @@
             let retries = 0;
             const showSuccess = () => {
                 if (window.swToast) {
+                    const fullMsg = @json(session('success'));
+                    const lastSpace = fullMsg.lastIndexOf(' ');
+                    const toastTitle = lastSpace > 0 ? fullMsg.substring(0, lastSpace) : fullMsg;
+                    const toastText  = lastSpace > 0 ? fullMsg.substring(lastSpace + 1) : undefined;
                     window.swToast.fire({
                         icon: 'success',
-                        title: @json(session('success'))
+                        title: toastTitle,
+                        text: toastText
                     });
                 } else if (retries < 50) {
                     retries++;
