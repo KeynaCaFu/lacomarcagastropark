@@ -2109,6 +2109,27 @@
         updateDots();
         startAutoPlay();
     }
+
+
+
+    @auth
+    window.addEventListener('load', function() {
+        const userId = {{ auth()->id() }};
+        console.log('💬 Iniciando listener de respuestas para usuario:', userId);
+
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && window.initReviewResponseListener) {
+                window.initReviewResponseListener(userId);
+                clearInterval(retry);
+                console.log('💬 Listener conectado exitosamente');
+            } else if (attempts >= 20) {
+                clearInterval(retry);
+            }
+        }, 300);
+    });
+    @endauth
 })();
 </script>
 </body>

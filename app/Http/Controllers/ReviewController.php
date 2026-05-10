@@ -101,31 +101,36 @@ class ReviewController extends Controller
         ->with('error', 'La reseña no pertenece a tu local o a tus productos.');
 }
 
-        // Disparar notificación al cliente en tiempo real (CA1, CA2, CA3)
-        $review = \App\Models\Review::find($id);
-        if ($review) {
-             // Obtener el usuario que hizo la reseña
-             $localReview   = \App\Models\LocalReview::where('review_id', $id)->first();
-             $productReview = \App\Models\ProductReview::where('review_id', $id)->first();
+// Disparar notificación al cliente en tiempo real
+$clienteUserId = null;
+$reviewId = null;
+$productName = $local->name ?? 'el local';
 
-             $clienteUserId = $localReview?->user_id ?? $productReview?->user_id;
-            $localName     = $local->name ?? 'el local';
-            $productName   = $productReview?->product->name ?? 'el local';
+if ($request->review_type === 'local') {
+    $localReview = \App\Models\LocalReview::find($id);
+    $clienteUserId = $localReview?->user_id;
+    $reviewId = $localReview?->review_id;
+} else {
+    $productReview = \App\Models\ProductReview::find($id);
+    $clienteUserId = $productReview?->user_id;
+    $reviewId = $productReview?->review_id;
+    $productName = $productReview?->product->name ?? $local->name;
+}
 
-            if ($clienteUserId) {
-                  broadcast(new ReviewResponded(
-            userId:      $clienteUserId,
-            reviewId:    (int) $id,
-            localName:   $localName,
-            productName: $productName
-        ));
-    }
+if ($clienteUserId && $reviewId) {
+    broadcast(new ReviewResponded(
+        userId:      $clienteUserId,
+        reviewId:    (int) $reviewId,
+        localName:   $local->name ?? 'el local',
+        productName: $productName
+    ));
 }
 
 return redirect()->route('reviews.index')
     ->with('success', 'Respuesta guardada correctamente.');
     }
-
+    
+   
     
     public function updateResponse(Request $request, $reviewId)
 {

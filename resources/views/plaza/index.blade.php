@@ -689,32 +689,7 @@
             recalculateAllLocalStatuses();
             // Recalcular cada 10 segundos (permite que cambie de estado cuando pasa la hora)
             setInterval(recalculateAllLocalStatuses, 10000);
-            // Listener de respuestas a reseñas para el cliente
-    @auth
-    (function initReviewResponse() {
-        const userId = {{ auth()->id() }};
-        console.log('💬 Iniciando listener de respuestas para usuario:', userId);
 
-        const init = () => {
-            if (window.initReviewResponseListener) {
-                return window.initReviewResponseListener(userId);
-            }
-            return false;
-        };
-
-        if (window.Echo && init()) return;
-
-        let attempts = 0;
-        const retry = setInterval(() => {
-            attempts++;
-            if (window.Echo && init()) {
-                clearInterval(retry);
-            } else if (attempts >= 10) {
-                clearInterval(retry);
-            }
-        }, 500);
-    })();
-    @endauth
             // Escuchar actualizaciones de horario en tiempo real (desde Echo via CustomEvent)
             document.addEventListener('schedule-updated', (event) => {
                 const { schedules, local_id } = event.detail;
@@ -1660,6 +1635,9 @@
             }
         }, 500);
     })();
+                // Listener de respuestas a reseñas para el cliente
+    
+   
 
     // Actualizaciones de horario en tiempo real para todos los locales de la página
     (function initSchedules() {
