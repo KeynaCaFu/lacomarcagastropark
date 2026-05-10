@@ -30,8 +30,7 @@ html, body {
 }
 
 .product-detail-page {
-    min-height: 100vh;
-    padding: 28px 0 100px 0;
+    padding: 28px 0 20px 0;
 }
 
 /* ═══ CONTAINER ═══ */
@@ -459,7 +458,7 @@ html, body {
 /* ═══ RESPONSIVE - TABLET ═══ */
 @media (max-width: 768px) {
     .product-detail-page {
-        padding: 20px 0 80px 0;
+        padding: 20px 0 20px 0;
     }
 
     .gallery-section {

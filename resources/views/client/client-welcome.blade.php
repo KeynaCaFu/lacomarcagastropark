@@ -509,6 +509,7 @@
                 <button class="user-menu-btn" id="userMenuBtnWelcome" onclick="toggleUserMenu(event)" style="position:relative;">
                     <i class="fas fa-user-circle"></i>
                     {{ $user->full_name }}
+                    <i class="fas fa-chevron-down icon-sm"></i>
                     <span id="notifDotBtn" style="display:none;position:absolute;top:4px;right:4px;width:9px;height:9px;background:#e53e3e;border-radius:50%;border:2px solid #e18018;animation:notif-pulse 2s infinite;"></span>
                 </button>
                 <div class="user-dropdown" id="userDropdown">
