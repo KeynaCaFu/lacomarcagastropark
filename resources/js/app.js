@@ -285,8 +285,11 @@ window.initOrderListener = function(localId) {
 
 function playOrderSound() {
     try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        audioCtx.resume().then(() => {
+        if (!window._notifAudioCtx) {
+            window._notifAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        const audioCtx = window._notifAudioCtx;
+        const doPlay = () => {
             [0, 0.22, 0.44].forEach(offset => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
@@ -299,7 +302,8 @@ function playOrderSound() {
                 osc.start(audioCtx.currentTime + offset);
                 osc.stop(audioCtx.currentTime + offset + 0.18);
             });
-        });
+        };
+        if (audioCtx.state === 'running') { doPlay(); } else { audioCtx.resume().then(doPlay).catch(() => {}); }
     } catch(e) {
         console.log('Audio no disponible:', e);
     }
@@ -398,9 +402,11 @@ function agregarTarjetaOrden(data) {
 
 function playCancelSound() {
     try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        audioCtx.resume().then(() => {
-            // Tono descendente para cancelación
+        if (!window._notifAudioCtx) {
+            window._notifAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        const audioCtx = window._notifAudioCtx;
+        const doPlay = () => {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
@@ -412,7 +418,8 @@ function playCancelSound() {
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
             osc.start(audioCtx.currentTime);
             osc.stop(audioCtx.currentTime + 0.4);
-        });
+        };
+        if (audioCtx.state === 'running') { doPlay(); } else { audioCtx.resume().then(doPlay).catch(() => {}); }
     } catch(e) {
         console.log('Audio no disponible:', e);
     }
@@ -483,8 +490,11 @@ function actualizarTarjetaCancelada(data) {
 
 function mostrarToastReview(data) {
     try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        audioCtx.resume().then(() => {
+        if (!window._notifAudioCtx) {
+            window._notifAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        const audioCtx = window._notifAudioCtx;
+        const doPlay = () => {
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             oscillator.connect(gainNode);
@@ -497,7 +507,8 @@ function mostrarToastReview(data) {
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
             oscillator.start(audioCtx.currentTime);
             oscillator.stop(audioCtx.currentTime + 0.5);
-        });
+        };
+        if (audioCtx.state === 'running') { doPlay(); } else { audioCtx.resume().then(doPlay).catch(() => {}); }
     } catch(e) {
         console.log('Audio no disponible:', e);
     }
@@ -522,21 +533,26 @@ const NOTIF_LABELS = {
 };
 
 function playNotifSound() {
-    const ctx = window._notifAudioCtx;
-    if (!ctx || ctx.state === 'suspended') return; // esperando primer click del usuario
     try {
-        [[0, 880, 0.35], [0.18, 1318, 0.3]].forEach(([t, freq, vol]) => {
-            const osc  = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, ctx.currentTime + t);
-            gain.gain.setValueAtTime(vol, ctx.currentTime + t);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.38);
-            osc.start(ctx.currentTime + t);
-            osc.stop(ctx.currentTime + t + 0.38);
-        });
+        if (!window._notifAudioCtx) {
+            window._notifAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        const ctx = window._notifAudioCtx;
+        const doPlay = () => {
+            [[0, 880, 0.35], [0.18, 1318, 0.3]].forEach(([t, freq, vol]) => {
+                const osc  = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + t);
+                gain.gain.setValueAtTime(vol, ctx.currentTime + t);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.38);
+                osc.start(ctx.currentTime + t);
+                osc.stop(ctx.currentTime + t + 0.38);
+            });
+        };
+        if (ctx.state === 'running') { doPlay(); } else { ctx.resume().then(doPlay).catch(() => {}); }
     } catch(e) {}
 }
 
