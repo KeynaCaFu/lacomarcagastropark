@@ -148,6 +148,18 @@
             background: #e18018 !important;
             color: white !important;
         }
+
+        /* Animación para el feedback toast de confirmación/cancelación */
+        @keyframes slideInFromLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
         
         /* Responsive design */
         @media (max-width: 992px) {
@@ -748,18 +760,58 @@
                     panel.remove();
                 };
 
+                // Función interna para mostrar feedback visual estilo panel horizontal
+                const showFeedbackToast = (msg, isCancel = false) => {
+                    const feedback = document.createElement('div');
+                    feedback.style.background = '#ffffff';
+                    feedback.style.color = '#374151';
+                    feedback.style.border = '2px solid #e18018';
+                    feedback.style.borderRadius = '12px';
+                    feedback.style.boxShadow = '0 10px 24px rgba(0,0,0,0.1)';
+                    feedback.style.padding = '12px 16px';
+                    feedback.style.marginBottom = '8px';
+                    feedback.style.display = 'flex';
+                    feedback.style.alignItems = 'center';
+                    feedback.style.gap = '12px';
+                    feedback.style.minWidth = '280px';
+                    feedback.style.animation = 'slideInFromLeft 0.3s ease-out';
+                    feedback.style.zIndex = '1070';
+
+                    const icon = document.createElement('i');
+                    // Icono naranja para cancelación, verde para éxito
+                    icon.className = isCancel ? 'fas fa-info-circle' : 'fas fa-check-circle';
+                    icon.style.color = isCancel ? '#e18018' : '#16a34a';
+                    icon.style.fontSize = '20px';
+
+                    const textStr = document.createElement('span');
+                    textStr.textContent = msg;
+                    textStr.style.fontWeight = '700';
+                    textStr.style.fontSize = '14px';
+
+                    feedback.appendChild(icon);
+                    feedback.appendChild(textStr);
+                    container.appendChild(feedback);
+
+                    setTimeout(() => {
+                        feedback.style.opacity = '0';
+                        feedback.style.transform = 'translateX(-20px)';
+                        feedback.style.transition = 'all 0.4s ease';
+                        setTimeout(() => feedback.remove(), 400);
+                    }, 3000);
+                };
+
                 let undone = false;
                 btnUndo.addEventListener('click', () => {
                     undone = true;
                     try { if (typeof onUndo === 'function') onUndo(); } catch(e){}
                     cleanup();
-                    if (window.showNotification) window.showNotification('info', 'Acción cancelada');
+                    showFeedbackToast('Acción cancelada', true);
                 });
 
                 setTimeout(() => {
                     if (!undone) {
                         try { if (typeof onConfirm === 'function') onConfirm(); } catch(e){}
-                        if (window.showNotification) window.showNotification('success', 'Acción completada');
+                        showFeedbackToast('Acción completada');
                     }
                     cleanup();
                 }, remainingMs);
