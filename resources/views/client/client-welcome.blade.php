@@ -506,13 +506,22 @@
                 <img src="{{ asset('images/logo_comarca.png') }}" alt="La Comarca">
             </div>
             <div class="position-relative">
-                <button class="user-menu-btn" onclick="toggleUserMenu(event)">
+                <button class="user-menu-btn" id="userMenuBtnWelcome" onclick="toggleUserMenu(event)" style="position:relative;">
                     <i class="fas fa-user-circle"></i>
                     {{ $user->full_name }}
+                    <span id="notifDotBtn" style="display:none;position:absolute;top:4px;right:4px;width:9px;height:9px;background:#e53e3e;border-radius:50%;border:2px solid #e18018;animation:notif-pulse 2s infinite;"></span>
                 </button>
                 <div class="user-dropdown" id="userDropdown">
-                    <a href="{{ route('client.profile.edit') }}">
+                    <a href="{{ route('client.profile.edit') }}" style="display:flex;align-items:center;gap:8px;">
                         <i class="fas fa-edit"></i> Editar perfil
+                    </a>
+                    <a href="{{ route('client.orders.history') }}" onclick="window.clearNotifDot && window.clearNotifDot('pedidos')" style="display:flex;align-items:center;gap:8px;">
+                        <i class="fas fa-history"></i> Ver mis pedidos
+                        <span id="notifDot_pedidos" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:auto;animation:notif-pulse 2s infinite;"></span>
+                    </a>
+                    <a href="{{ route('client.reviews') }}" onclick="window.clearNotifDot && window.clearNotifDot('resenas')" style="display:flex;align-items:center;gap:8px;">
+                        <i class="fas fa-star"></i> Mis reseñas
+                        <span id="notifDot_resenas" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:auto;animation:notif-pulse 2s infinite;"></span>
                     </a>
                     <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
                         @csrf
@@ -647,6 +656,20 @@
                 dropdown.classList.remove('show');
             }
         });
+
+        // Notificaciones en tiempo real
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.loadNotifDots) window.loadNotifDots();
+            if (window.initUserNotificationListener) {
+                window.initUserNotificationListener({{ auth()->id() }});
+            }
+        });
     </script>
+    <style>
+        @keyframes notif-pulse {
+            0%,100% { transform:scale(1);   opacity:1;   }
+            50%      { transform:scale(1.4); opacity:0.8; }
+        }
+    </style>
 </body>
 </html>

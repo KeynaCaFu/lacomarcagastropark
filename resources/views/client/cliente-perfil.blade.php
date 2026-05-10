@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.0/css/all.min.css">
+    @vite(['resources/js/app.js'])
     <style>
         :root {
             --primary: #D4773A;
@@ -133,6 +134,10 @@
         .password-match-feedback.match { background: rgba(39, 174, 96, 0.1); border: 1px solid #27ae60; color: #27ae60; }
         .password-match-feedback.mismatch { background: rgba(224, 92, 92, 0.1); border: 1px solid #e05c5c; color: #e05c5c; }
         .password-match-feedback i { font-size: 0.85rem; }
+        @keyframes notif-pulse {
+            0%,100% { transform:scale(1);   opacity:1;   }
+            50%      { transform:scale(1.4); opacity:0.8; }
+        }
     </style>
 </head>
 <body>
@@ -148,7 +153,7 @@
                         <i class="fas fa-arrow-left"></i> Volver
                     </button>
                     <div class="user-menu-top">
-                        <button class="user-menu-btn" id="userMenuBtn" onclick="toggleUserMenu(event)">
+                        <button class="user-menu-btn" id="userMenuBtn" onclick="toggleUserMenu(event)" style="position:relative;">
                             @if(auth()->user()->avatar)
                                 <img src="{{ asset(auth()->user()->avatar) }}" alt="" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;">
                             @else
@@ -156,14 +161,20 @@
                             @endif
                             <span>{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
                             <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                            <span id="notifDotBtn" style="display:none;position:absolute;top:4px;right:4px;width:9px;height:9px;background:#e53e3e;border-radius:50%;border:2px solid #0A0908;animation:notif-pulse 2s infinite;"></span>
                         </button>
                         <div class="user-menu-dropdown" id="userMenuDropdown">
                             <div class="dropdown-header">
                                 <div class="dropdown-name">{{ auth()->user()->full_name ?? auth()->user()->name }}</div>
                                 <div class="dropdown-email">{{ auth()->user()->email }}</div>
                             </div>
-                            <a href="{{ route('client.orders.history') }}" class="dropdown-item">
+                            <a href="{{ route('client.orders.history') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('pedidos')">
                                 <i class="fas fa-history text-muted"></i> Ver mis pedidos
+                                <span id="notifDot_pedidos" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:auto;animation:notif-pulse 2s infinite;"></span>
+                            </a>
+                            <a href="{{ route('client.reviews') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('resenas')">
+                                <i class="fas fa-star text-muted"></i> Mis reseñas
+                                <span id="notifDot_resenas" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:auto;animation:notif-pulse 2s infinite;"></span>
                             </a>
                             <form method="POST" action="{{ route('logout') }}" class="m-0">
                                 @csrf
@@ -604,6 +615,14 @@
                 alert('Por favor, pega manualmente la contraseña temporal');
             });
         }
+
+        // Notificaciones en tiempo real
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.loadNotifDots) window.loadNotifDots();
+            if (window.initUserNotificationListener) {
+                window.initUserNotificationListener({{ auth()->id() }});
+            }
+        });
     </script>
 </body>
 </html>
