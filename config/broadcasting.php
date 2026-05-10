@@ -27,6 +27,7 @@ return [
     | each available type of connection are provided inside this array.
     |
     */
+    'default' => env('BROADCAST_CONNECTION', env('BROADCAST_DRIVER', 'null')),
 
     'connections' => [
 
@@ -43,6 +44,14 @@ return [
     'encrypted' => true,
     'useTLS' => env('PUSHER_SCHEME', 'https') === 'https',
 ],
+            'options' => [
+                'cluster' => env('PUSHER_APP_CLUSTER', 'mt1'),
+                'host' => env('PUSHER_HOST') ?: 'api-'.env('PUSHER_APP_CLUSTER', 'mt1').'.pusher.com',
+                'port' => env('PUSHER_PORT', 443),
+                'scheme' => env('PUSHER_SCHEME', 'https'),
+                'encrypted' => true,
+                'useTLS' => env('PUSHER_SCHEME', 'https') === 'https',
+            ],
             'client_options' => [
                 'verify' => false,
             ],

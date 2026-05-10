@@ -21,32 +21,26 @@ document.addEventListener('click', function() {
 // Función para inicializar listeners de horario
 window.initScheduleListener = function(localId) {
     if (!window.Echo) {
-        console.error('✗ Echo no está disponible. Verifica que bootstrap.js se cargó correctamente.');
+        console.error('✗ Echo no está disponible.');
         return false;
     }
-
     try {
         console.log(`✓ Inicializando listener para local ID: ${localId}`);
         const channelName = `establishment-updates.${localId}`;
         console.log(`Conectando a canal: ${channelName}`);
-
         window.Echo.channel(channelName)
             .listen('ScheduleUpdated', (data) => {
                 console.log('✓ Evento ScheduleUpdated recibido:', data);
                 if (data.schedules) {
                     updateScheduleDOM(data.schedules, data.local_id);
                     showScheduleToast();
-                } else {
-                    console.warn('Evento recibido pero sin datos de schedules');
                 }
             })
             .error((error) => {
                 console.error(`✗ Error en el canal ${channelName}:`, error);
             });
-
         console.log('✓ Listener de horarios inicializado exitosamente');
         return true;
-
     } catch (error) {
         console.error('✗ Error al inicializar listener:', error);
         return false;
@@ -54,19 +48,10 @@ window.initScheduleListener = function(localId) {
 };
 
 function updateScheduleDOM(schedules, localId) {
-    console.log('Actualizando DOM con horarios del día actual:', schedules);
-
-    if (!schedules || !Array.isArray(schedules) || schedules.length === 0) {
-        console.error('⚠ Schedules inválido, no es un array, o está vacío');
-        return;
-    }
-
+    if (!schedules || !Array.isArray(schedules) || schedules.length === 0) return;
     document.dispatchEvent(new CustomEvent('schedule-updated', {
         detail: { schedules, local_id: localId }
     }));
-
-    console.log('✓ Evento CustomEvent "schedule-updated" dispatched para Vue');
-    console.log(`✓ Emitiendo cambios para local_id=${localId}, día: ${schedules[0]?.day_of_week}`);
 }
 
 function showScheduleToast() {
@@ -77,7 +62,6 @@ function showScheduleToast() {
         'bg-gray-800 text-white text-sm px-4 py-2 rounded-lg shadow-lg',
         'opacity-0 transition-opacity duration-300',
     ].join(' ');
-
     document.body.appendChild(toast);
     requestAnimationFrame(() => { toast.style.opacity = '1'; });
     setTimeout(() => {
@@ -92,11 +76,9 @@ window.initProductStatusListener = function(localId) {
         console.error('✗ Echo no disponible para ProductStatusListener');
         return false;
     }
-
     try {
         const channelName = `establishment-updates.${localId}`;
         console.log(`Conectando listener de productos al canal: ${channelName}`);
-
         window.Echo.channel(channelName)
             .listen('ProductStatusUpdated', (data) => {
                 console.log('✓ Evento ProductStatusUpdated recibido:', data);
@@ -109,10 +91,8 @@ window.initProductStatusListener = function(localId) {
                     }
                 }));
             });
-
         console.log('✓ Listener de estado de productos inicializado');
         return true;
-
     } catch (error) {
         console.error('✗ Error al inicializar ProductStatusListener:', error);
         return false;
@@ -125,10 +105,8 @@ window.initEventListener = function() {
         console.error('✗ Echo no disponible para EventListener');
         return false;
     }
-
     try {
         console.log('Conectando listener de eventos al canal: public-events');
-
         window.Echo.channel('public-events')
             .listen('EventSynced', (data) => {
                 console.log('✓ EventSynced recibido:', data);
@@ -138,10 +116,8 @@ window.initEventListener = function() {
                     document.dispatchEvent(new CustomEvent('evento-synced', { detail: data }));
                 }
             });
-
         console.log('✓ Listener de eventos inicializado');
         return true;
-
     } catch (error) {
         console.error('✗ Error al inicializar EventListener:', error);
         return false;
@@ -151,7 +127,6 @@ window.initEventListener = function() {
 // ── Listener para la vista index (múltiples locales) ──
 window.initIndexScheduleListeners = function(localIds) {
     if (!window.Echo) return false;
-
     localIds.forEach(localId => {
         window.Echo.channel(`establishment-updates.${localId}`)
             .listen('ScheduleUpdated', (data) => {
@@ -161,7 +136,6 @@ window.initIndexScheduleListeners = function(localIds) {
                 }
             });
     });
-
     return true;
 };
 
@@ -169,24 +143,19 @@ function isLocalCurrentlyOpen(schedules) {
     const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const today = days[new Date().getDay()];
     const todaySchedule = schedules.find(s => s.day_of_week === today && s.status);
-
     if (!todaySchedule || !todaySchedule.opening_time || !todaySchedule.closing_time) return false;
-
     const now = new Date();
     const current = now.getHours() * 60 + now.getMinutes();
     const [oh, om] = todaySchedule.opening_time.split(':').map(Number);
     const [ch, cm] = todaySchedule.closing_time.split(':').map(Number);
-
     return current >= (oh * 60 + om) && current < (ch * 60 + cm);
 }
 
 function updateLocalStatusDot(localId, schedules) {
     const card = document.querySelector(`.local-card-v2[data-local-id="${localId}"]`);
     if (!card) return;
-
     const isOpen = isLocalCurrentlyOpen(schedules);
     const chip = card.querySelector('.meta-chip.nowrap');
-
     if (chip) {
         chip.innerHTML = `<span class="status-dot ${isOpen ? 'status-dot-open' : 'status-dot-closed'}"></span> ${isOpen ? 'Abierto' : 'Cerrado'}`;
     }
@@ -257,6 +226,9 @@ window.initReviewListener = function(localId) {
         const channelName = `local.${localId}`;
         console.log(`⭐ Conectando listener de reseñas al canal: ${channelName}`);
 
+    try {
+        const channelName = `local.${localId}`;
+        console.log(`⭐ Conectando listener de reseñas al canal: ${channelName}`);
         window.Echo.channel(channelName)
             .listen('NewReviewPosted', (data) => {
                 console.log('✓ Evento NewReviewPosted recibido:', data);
@@ -266,6 +238,8 @@ window.initReviewListener = function(localId) {
         console.log('✓ Listener de reseñas inicializado');
         return true;
 
+        console.log('✓ Listener de reseñas inicializado');
+        return true;
     } catch (error) {
         console.error('✗ Error al inicializar ReviewListener:', error);
         return false;
@@ -540,3 +514,84 @@ function mostrarToastReview(data) {
         });
     }
 }
+}
+
+// ── Listener de respuestas a reseñas para el cliente ──
+window.initReviewResponseListener = function(userId) {
+    if (!window.Echo) {
+        console.error('✗ Echo no disponible para ReviewResponseListener');
+        return false;
+    }
+    try {
+        const channelName = `user.${userId}`;
+        console.log(`💬 Conectando listener de respuestas al canal: ${channelName}`);
+        window.Echo.channel(channelName)
+            .listen('ReviewResponded', (data) => {
+                console.log('✓ Evento ReviewResponded recibido:', data);
+                mostrarNotificacionRespuesta(data);
+            });
+        console.log('✓ Listener de respuestas inicializado');
+        return true;
+    } catch (error) {
+        console.error('✗ Error al inicializar ReviewResponseListener:', error);
+        return false;
+    }
+};
+
+window.mostrarNotificacionRespuesta = function(data) {
+    console.log('🔔 Mostrando notificación de respuesta:', data);
+
+    // Sonido
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioCtx.resume().then(() => {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime + 0.15);
+            oscillator.frequency.setValueAtTime(700, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        });
+    } catch(e) {}
+
+    // Toast del sistema
+    if (window.showNotification) {
+        window.showNotification({
+            icon: 'info',
+            title: 'Respondieron tu reseña💬',
+            message: data.message,
+            timer: 7000
+        });
+    }
+
+    // Punto rojo en "Mis reseñas"
+setTimeout(() => {
+    const links = document.querySelectorAll('a');
+    let misResenasLink = null;
+    links.forEach(link => {
+        if (link.href && link.href.includes('mis-resenas')) {
+            misResenasLink = link;
+        }
+    });
+    if (misResenasLink && !document.getElementById('reviews-notif-dot')) {
+        const dot = document.createElement('span');
+        dot.id = 'reviews-notif-dot';
+        dot.style.cssText = `
+            position: absolute; top: 0px; right: -8px;
+            width: 8px; height: 8px;
+            background: #ef4444; border-radius: 50%;
+            display: inline-block;
+        `;
+        misResenasLink.style.position = 'relative';
+        misResenasLink.appendChild(dot);
+    }
+}, 500);
+}
+
+

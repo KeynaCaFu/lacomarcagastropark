@@ -1640,6 +1640,9 @@
             }
         }, 500);
     })();
+                // Listener de respuestas a reseñas para el cliente
+    
+   
 
     // Actualizaciones de horario en tiempo real para todos los locales de la página
     (function initSchedules() {

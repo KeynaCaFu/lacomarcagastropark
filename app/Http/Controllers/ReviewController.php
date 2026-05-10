@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Data\ReviewData;
+use App\Events\ReviewResponded;
 
 class ReviewController extends Controller
 {
@@ -96,14 +97,40 @@ class ReviewController extends Controller
         }
 
         if (!$ok) {
-            return redirect()->route('reviews.index')
-                ->with('error', 'La reseña no pertenece a tu local o a tus productos.');
-        }
+    return redirect()->route('reviews.index')
+        ->with('error', 'La reseña no pertenece a tu local o a tus productos.');
+}
 
-        return redirect()->route('reviews.index')
-            ->with('success', 'Respuesta guardada correctamente.');
+// Disparar notificación al cliente en tiempo real
+$clienteUserId = null;
+$reviewId = null;
+$productName = $local->name ?? 'el local';
+
+if ($request->review_type === 'local') {
+    $localReview = \App\Models\LocalReview::find($id);
+    $clienteUserId = $localReview?->user_id;
+    $reviewId = $localReview?->review_id;
+} else {
+    $productReview = \App\Models\ProductReview::find($id);
+    $clienteUserId = $productReview?->user_id;
+    $reviewId = $productReview?->review_id;
+    $productName = $productReview?->product->name ?? $local->name;
+}
+
+if ($clienteUserId && $reviewId) {
+    broadcast(new ReviewResponded(
+        userId:      $clienteUserId,
+        reviewId:    (int) $reviewId,
+        localName:   $local->name ?? 'el local',
+        productName: $productName
+    ));
+}
+
+return redirect()->route('reviews.index')
+    ->with('success', 'Respuesta guardada correctamente.');
     }
-
+    
+   
     
     public function updateResponse(Request $request, $reviewId)
 {
