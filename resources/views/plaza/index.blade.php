@@ -519,7 +519,6 @@
 
     <!-- ══ CART DRAWER ══ -->
     @include('plaza.carrito._cart_drawer')
-    @include('plaza.carrito._my_orders_drawer')
 
     <!-- ══ EDIT ITEM MODAL ══ -->
     @include('plaza.carrito._add_to_cart_modal')
