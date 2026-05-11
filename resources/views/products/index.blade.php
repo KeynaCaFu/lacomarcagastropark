@@ -225,8 +225,8 @@
                         return;
                     }
 
-                    if (window.swConfirm) {
-                        swConfirm({
+                    if (typeof window.swConfirm === 'function') {
+                        window.swConfirm({
                             title: '¿Cambiar disponibilidad?',
                             text: `El producto "${name}" pasará a estar ${statusLabel}.`,
                             icon: 'question',
@@ -243,31 +243,66 @@
 
             // 2. Manejar Envío de Formularios (Eliminación)
             tableContainer.addEventListener('submit', function(e) {
-                if (e.target.matches('form[action*="products/"]')) {
-                    const methodInput = e.target.querySelector('input[name="_method"][value="DELETE"]');
-                    if (methodInput) {
-                        e.preventDefault();
-                        const form = e.target;
-                        const productName = form.closest('tr')?.querySelector('td:nth-child(2) strong')?.textContent || 'este producto';
-                        
-                        if (window.swConfirm) {
-                            swConfirm({
-                                title: 'Eliminar producto',
-                                text: `¿Desea eliminar "${productName}"?`,
-                                icon: 'warning',
-                                confirmButtonColor: '#dc2626',
-                                confirmButtonText: 'Sí, eliminar'
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    form.submit();
+                const form = e.target.closest('form');
+                if (form && (form.querySelector('input[name="_method"][value="DELETE"]') || form.dataset.method === 'DELETE')) {
+                    e.preventDefault();
+                    const productName = form.closest('tr')?.querySelector('td:nth-child(2) strong')?.textContent || 'este producto';
+                    const actionUrl = form.getAttribute('action');
+                    const row = form.closest('tr');
+
+                    if (typeof window.swConfirm === 'function') {
+                        window.swConfirm({
+                            title: '¿Eliminar producto?',
+                            text: `Se eliminará "${productName}".`,
+                            icon: 'warning',
+                            confirmButtonColor: '#dc2626',
+                            confirmButtonText: 'Sí, eliminar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                if (row) row.style.opacity = '0.3';
+                                
+                                if (typeof window.confirmWithUndo === 'function') {
+                                    window.confirmWithUndo({
+                                        message: `Eliminando "${productName}"`,
+                                        delayMs: 10000,
+                                        onConfirm: () => performAjaxDelete(actionUrl),
+                                        onUndo: () => { if (row) row.style.opacity = '1'; }
+                                    });
+                                } else {
+                                    performAjaxDelete(actionUrl);
                                 }
-                            });
-                        } else if (confirm(`¿Desea eliminar "${productName}"?`)) {
-                            form.submit();
-                        }
+                            }
+                        });
                     }
                 }
             });
+        }
+
+        async function performAjaxDelete(url) {
+            try {
+                const response = await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    // El mensaje de éxito lo maneja automáticamente confirmWithUndo
+                    loadFilteredProducts(); // Recargar la tabla
+                } else {
+                    throw new Error(data.message || 'Error al eliminar');
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+                loadFilteredProducts(); // Restaurar vista
+            }
         }
 
         // Función para actualizar el estado vía AJAX
@@ -290,13 +325,24 @@
 
                 const data = await response.json();
                 if (data.success) {
-                    if (window.swToast) swToast.fire({ icon: 'success', title: data.message });
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: data.message,
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
                     loadFilteredProducts(); // Recargar la tabla para reflejar el cambio
                 } else {
                     throw new Error(data.message || 'Error al actualizar');
                 }
             } catch (error) {
-                if (window.swAlert) swAlert({ icon: 'error', title: 'Error', text: error.message });
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
             }
         }
 

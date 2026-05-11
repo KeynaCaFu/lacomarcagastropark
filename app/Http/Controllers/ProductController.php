@@ -260,13 +260,13 @@ class ProductController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => '✓ Producto creado exitosamente',
+                'message' => 'Producto creado exitosamente',
                 'product' => $product
             ]);
         }
 
         return redirect()->route('products.index')
-            ->with('success', '✓ Producto creado exitosamente');
+            ->with('success', 'Producto creado exitosamente');
     }
 
     /**
@@ -317,7 +317,7 @@ class ProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => '✓ Estado actualizado exitosamente',
+                'message' => 'Estado actualizado exitosamente',
                 'product' => $updatedProduct
             ]);
         }
@@ -458,13 +458,13 @@ class ProductController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => '✓ Producto actualizado exitosamente',
+                'message' => 'Producto actualizado exitosamente',
                 'product' => $updatedProduct
             ]);
         }
 
         return redirect()->route('products.index')
-            ->with('success', '✓ Producto actualizado exitosamente');
+            ->with('success', 'Producto actualizado exitosamente');
     }
 
     /**
@@ -512,12 +512,12 @@ class ProductController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => '✓ Producto eliminado exitosamente'
+                'message' => 'Producto eliminado exitosamente'
             ]);
         }
 
         return redirect()->route('products.index')
-            ->with('success', '✓ Producto eliminado exitosamente');
+            ->with('success', 'Producto eliminado exitosamente');
     }
 
     /**
@@ -565,7 +565,7 @@ class ProductController extends Controller
             }
 
             return redirect()->route('products.gallery', $id)
-                ->with('success', '✓ Imagen agregada exitosamente a la galería');
+                ->with('success', 'Imagen agregada exitosamente a la galería');
         } catch (\Exception $e) {
             return redirect()->route('products.gallery', $id)
                 ->with('error', 'Error al subir la imagen: ' . $e->getMessage());
@@ -596,7 +596,7 @@ class ProductController extends Controller
             }
 
             return redirect()->back()
-                ->with('success', '✓ Imagen eliminada de la galería');
+                ->with('success', 'Imagen eliminada de la galería');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error al eliminar la imagen: ' . $e->getMessage());

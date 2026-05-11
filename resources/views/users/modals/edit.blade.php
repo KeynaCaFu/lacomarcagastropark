@@ -104,7 +104,7 @@
                         </div>
                     </div>
 
-                    <!-- Fila 4: Estado y Foto de Perfil -->
+                    <!-- Fila 4: Estado -->
                     <div class="row g-3" style="margin-bottom: 0; margin-top: 0;">
                         <div class="col-md-6">
                             <label class="form-label">Estado <span class="text-danger">*</span></label>
@@ -113,13 +113,6 @@
                                 <option value="Active" {{ $user->status === 'Active' ? 'selected' : '' }}>Activo</option>
                                 <option value="Inactive" {{ $user->status === 'Inactive' ? 'selected' : '' }}>Inactivo</option>
                             </select>
-                            <div class="invalid-feedback"></div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">Foto de Perfil (Avatar)</label>
-                            <input type="file" id="edit_avatar" name="avatar" class="form-control" accept="image/jpeg,image/png,image/gif,image/jpg">
-                            <small class="text-muted d-block mt-1">JPG, PNG o GIF. Máximo 2MB</small>
                             <div class="invalid-feedback"></div>
                         </div>
                     </div>
