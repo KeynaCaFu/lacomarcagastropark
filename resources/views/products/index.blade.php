@@ -325,14 +325,9 @@
 
                 const data = await response.json();
                 if (data.success) {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'success',
-                        title: data.message,
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
+                    if(window.swToast){
+                        swToast.fire( {icon: 'success',title: data.message} );
+                    }
                     loadFilteredProducts(); // Recargar la tabla para reflejar el cambio
                 } else {
                     throw new Error(data.message || 'Error al actualizar');
