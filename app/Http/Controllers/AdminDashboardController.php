@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminDashboardController extends Controller
 {
@@ -139,7 +140,7 @@ class AdminDashboardController extends Controller
             $percentage = $totalSalesAllStores > 0 ? ($sales / $totalSalesAllStores) * 100 : 0;
 
             // Obtener rating del local - Cargar directamente desde BD
-            $rating = \DB::table('tblocal_review')
+            $rating = DB::table('tblocal_review')
                 ->where('local_id', $local->local_id)
                 ->join('tbreview', 'tblocal_review.review_id', '=', 'tbreview.review_id')
                 ->avg('tbreview.rating');

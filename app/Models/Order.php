@@ -39,6 +39,7 @@ class Order extends Model
     ];
 
     protected $casts = [
+        'local_id' => 'integer',
         'total_amount' => 'decimal:2',
         'date' => 'date',
         'confirmed_at' => 'datetime', // CA5: Timestamp de confirmación

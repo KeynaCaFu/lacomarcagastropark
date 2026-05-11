@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Broadcast;
 
 /*
@@ -19,7 +20,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 
 // Canal privado por orden: solo el cliente dueño puede suscribirse
 Broadcast::channel('order.{orderId}', function ($user, $orderId) {
-    return \DB::table('tbuser_order')
+    return DB::table('tbuser_order')
         ->where('order_id', (int) $orderId)
         ->where('user_id', $user->getKey())
         ->exists();
