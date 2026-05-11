@@ -33,7 +33,10 @@
             overflow-y: auto;
         }
 
-        
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
     </style>
 @endpush
 
@@ -278,8 +281,8 @@ document.addEventListener('DOMContentLoaded', function() {
             tabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
 
-            // Filtrar órdenes
-            orderCards.forEach(card => {
+            // Filtrar órdenes (live query para incluir tarjetas inyectadas en tiempo real)
+            document.querySelectorAll('.order-card-item').forEach(card => {
                 if (card.dataset.status === status) {
                     card.style.display = 'block';
                 } else {
@@ -303,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    function loadOrderDetails(orderId) {
+    window.loadOrderDetails = function loadOrderDetails(orderId) {
         fetch(`{{ url('ordenes') }}/${orderId}`, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -1430,6 +1433,15 @@ document.addEventListener('DOMContentLoaded', function() {
         updateOrderSummary();
     }
 });
+
+// Inicializar listener de órdenes en tiempo real
+@if(isset($localId) && $localId)
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof window.initOrderListener === 'function') {
+        window.initOrderListener({{ $localId }});
+    }
+});
+@endif
 </script>
 @endpush
 @endsection

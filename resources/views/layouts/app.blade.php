@@ -459,15 +459,17 @@
                                 </div>
                                 
                                 <!-- Contenedor de reseñas -->
-                                <div id="reviewsList" class="notif-content" data-content="reviews" style="max-height: 400px; overflow-y: auto; display: none;">
-                                    <div style="padding: 40px 16px; text-align: center;">
-                                        <div style="color: #9ca3af; font-size: 14px; margin-bottom: 8px;">
-                                            <i class="fas fa-star" style="font-size: 32px; margin-bottom: 12px; display: block; color: #bfdbfe;"></i>
-                                            Aún no hay notificaciones de reseñas
-                                        </div>
-                                        <p style="color: #d1d5db; font-size: 12px;">Esta funcionalidad estará disponible próximamente</p>
-                                    </div>
-                                </div>
+                                <!-- Contenedor de reseñas -->
+                    <div id="reviewsList" class="notif-content" data-content="reviews" style="max-height: 400px; overflow-y: auto; display: none;">
+                     <div id="reviewsNotifEmpty" style="padding: 40px 16px; text-align: center;">
+                       <div style="color: #9ca3af; font-size: 14px; margin-bottom: 8px;">
+                              <i class="fas fa-star" style="font-size: 32px; margin-bottom: 12px; display: block; color: #bfdbfe;"></i>
+                                  Aún no hay notificaciones de reseñas
+                                          </div>
+                          <p style="color: #d1d5db; font-size: 12px;">Las nuevas reseñas aparecerán aquí en tiempo real</p>
+                         </div>
+                                <div id="reviewsNotifList"></div>
+</div>
                                 
                                 <!-- Footer (solo para órdenes) -->
                                 <div id="notifFooter" style="padding: 12px 16px; border-top: 1px solid #f3f4f6; text-align: center;">
@@ -1250,15 +1252,8 @@
                                  onmouseout="this.style.background='#fafafa'">
                                 <div style="font-weight: 600; color: #111827; font-size: 13px; margin-bottom: 6px;">Orden #${order.order_number}</div>
                                 <div style="color: #6b7280; font-size: 11px; margin-bottom: 8px;">Hace ${order.created_at}</div>
-                                <div style="display: flex; gap: 12px; align-items: flex-start;">
-                                    <div style="color: #6b7280; font-size: 12px; max-height: 50px; overflow-y: auto; flex: 1;">
-                                        ${(order.items || []).map(item => `<div>• ${item.product_name} (${item.quantity}x)</div>`).join('')}
-                                    </div>
-                                    <select onchange="if(this.value) changeOrderStatusFromNotif(${order.order_id}, this.value); this.value='';" style="padding: 5px 8px; background: #fff7ed; color: #e18018; border: 1px solid #e18018; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0; white-space: nowrap; margin-top: -53px;">
-                                        <option value=""> PENDIENTE </option>
-                                        <option value="Preparing">Preparar</option>
-                                        <option value="Cancelled">Cancelar</option>
-                                    </select>
+                                <div style="color: #6b7280; font-size: 12px; max-height: 50px; overflow-y: auto;">
+                                    ${(order.items || []).map(item => `<div>• ${item.product_name} (${item.quantity}x)</div>`).join('')}
                                 </div>
                             </div>
                         `).join('');
@@ -1336,5 +1331,108 @@
     </script>
     
     @stack('scripts')
+
+
+    @if(auth()->check() && !auth()->user()->isAdminGlobal())
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    @php
+        $localDelGerente = auth()->user()->locals()->first();
+    @endphp
+
+    @if(isset($localDelGerente) && $localDelGerente)
+        const localId = {{ $localDelGerente->local_id }};
+        let reviewsNoLeidas = 0;
+
+        // Esperar a que Echo esté listo
+        function initReviewNotifications() {
+            if (!window.Echo) {
+                setTimeout(initReviewNotifications, 300);
+                return;
+            }
+
+            console.log('⭐ Escuchando reseñas del local:', localId);
+
+            window.Echo.channel(`local.${localId}`)
+                .listen('NewReviewPosted', (data) => {
+                    console.log('✓ Nueva reseña recibida:', data);
+                    agregarReviewNotif(data);
+                });
+        }
+
+        function agregarReviewNotif(data) {
+            // Ocultar el empty state
+            const empty = document.getElementById('reviewsNotifEmpty');
+            if (empty) empty.style.display = 'none';
+
+            // Crear item de notificación
+            const lista = document.getElementById('reviewsNotifList');
+            const estrellas = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating);
+
+            const item = document.createElement('div');
+            item.style.cssText = `
+                padding: 12px 16px;
+                border-bottom: 1px solid #f3f4f6;
+                cursor: pointer;
+                transition: background 0.2s;
+                background: #fffbeb;
+            `;
+            item.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="background:#fef3c7; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="fas fa-star" style="color:#e18018; font-size:16px;"></i>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-weight:600; font-size:13px; color:#111827;">Nueva reseña de ${data.client_name}</div>
+                        <div style="font-size:12px; color:#6b7280; margin-top:2px;">${data.product_name} — ${estrellas}</div>
+                        <div style="font-size:11px; color:#9ca3af; margin-top:2px;">Ahora</div>
+                    </div>
+                </div>
+            `;
+
+            // CA4 y CA5: Al hacer clic va al detalle
+            item.addEventListener('click', () => {
+                window.location.href = '{{ route("reviews.index") }}';
+            });
+
+            item.addEventListener('mouseover', () => item.style.background = '#fef9ee');
+            item.addEventListener('mouseout',  () => item.style.background = '#fffbeb');
+
+            lista.prepend(item);
+
+            // Actualizar badge de la campana
+            reviewsNoLeidas++;
+            actualizarBadge();
+
+            // Toast visual adicional
+            mostrarToastReview(data);
+        }
+
+        function actualizarBadge() {
+            const badge = document.getElementById('pendingCountBadge');
+            if (!badge) return;
+            badge.style.display = 'flex';
+            const actual = parseInt(badge.textContent) || 0;
+            badge.textContent = actual + 1;
+        }
+
+        function mostrarToastReview(data) {
+            if (window.swToast) {
+                window.swToast.fire({
+                    icon: 'info',
+                    title: '⭐ Nueva reseña',
+                    text: `${data.client_name} dejó una reseña en ${data.product_name}`,
+                    timer: 6000,
+                });
+            }
+        }
+
+        initReviewNotifications();
+    @else
+        console.warn('⚠ Gerente sin local asignado, no se inicia listener de reseñas.');
+    @endif
+});
+</script>
+@endif
 </body>
 </html>

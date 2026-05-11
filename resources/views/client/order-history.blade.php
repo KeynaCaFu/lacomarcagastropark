@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="{{ asset('css/carrito.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/order-history.css') }}">
+    @vite(['resources/js/app.js'])
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <style>
@@ -211,16 +212,20 @@
             @if($orders->count() > 0)
                 <div class="orders-list">
                     @foreach($orders as $order)
-                        <div class="order-card" v-show="shouldShowOrder('{{ $order->status }}')" data-status="{{ $order->status }}">
+                        <div class="order-card"
+                             data-order-id="{{ $order->order_id }}"
+                             v-show="shouldShowOrder(realtimeOrderStatuses[{{ $order->order_id }}] || '{{ $order->status }}')"
+                             :data-status="realtimeOrderStatuses[{{ $order->order_id }}] || '{{ $order->status }}'">
                             <!-- ACCORDION HEADER (ALWAYS VISIBLE) -->
                             <div class="order-card-header">
                                 <div class="order-card-header-left">
                                     <div class="order-number">
                                         Pedido #{{ $order->order_number }}
                                     </div>
-                                    <div class="order-status status-{{ strtolower(str_replace(' ', '_', $order->status)) }}">
+                                    <div class="order-status status-{{ strtolower(str_replace(' ', '_', $order->status)) }}"
+                                         data-order-status-badge="{{ $order->order_id }}">
                                         <i class="fas fa-{{ $order->status == 'Delivered' ? 'check-circle' : ($order->status == 'Cancelled' ? 'times-circle' : ($order->status == 'Ready' ? 'check' : 'clock')) }}"></i>
-                                        {{ $order->status == 'Delivered' ? 'Entregado' : ($order->status == 'In Progress' ? 'En Preparación' : ($order->status == 'Ready' ? 'Listo' : ($order->status == 'Pending' ? 'Pendiente' : $order->status))) }}
+                                        {{ $order->status == 'Delivered' ? 'Entregado' : ($order->status == 'Preparing' ? 'En Preparación' : ($order->status == 'Ready' ? 'Listo' : ($order->status == 'Pending' ? 'Pendiente' : $order->status))) }}
                                     </div>
                                 </div>
                                 <div class="order-card-header-right">
@@ -516,6 +521,8 @@
                 isLoading: false,
                 activeTab: 'actuales',
                 hasVisibleOrders: true,
+                // Estado en tiempo real por order_id (Echo)
+                realtimeOrderStatuses: {},
                 // Órdenes pendientes (header)
                 myOrders: [],
                 showMyOrdersDrawer: false,
@@ -857,6 +864,94 @@
                 }
             },
 
+            // ── TIEMPO REAL: listeners de estado de orden ──
+            initOrderListeners() {
+                const activeStatuses = ['Pending', 'Preparing', 'Ready'];
+
+                document.querySelectorAll('.order-card[data-order-id]').forEach(card => {
+                    const orderId = card.getAttribute('data-order-id');
+                    const status  = card.getAttribute('data-status');
+
+                    if (orderId && activeStatuses.includes(status) && window.initOrderStatusListener) {
+                        window.initOrderStatusListener(parseInt(orderId));
+                    }
+                });
+
+                document.addEventListener('order-status-updated', (e) => {
+                    this.handleOrderStatusUpdate(e.detail);
+                });
+            },
+
+            handleOrderStatusUpdate(data) {
+                const orderId   = data.order_id;
+                const newStatus = data.status;
+
+                // Reactivo: Vue re-evalúa v-show automáticamente
+                this.realtimeOrderStatuses = { ...this.realtimeOrderStatuses, [orderId]: newStatus };
+
+                // Actualizar badge de estado en el DOM
+                const badge = document.querySelector(`[data-order-status-badge="${orderId}"]`);
+                if (badge) {
+                    const statusInfo = {
+                        Pending:   { label: 'Pendiente',       icon: 'fa-clock',        css: 'status-pending'   },
+                        Preparing: { label: 'En Preparación',  icon: 'fa-fire',         css: 'status-preparing' },
+                        Ready:     { label: 'Listo',           icon: 'fa-check',        css: 'status-ready'     },
+                        Delivered: { label: 'Entregado',       icon: 'fa-check-circle', css: 'status-delivered' },
+                        Cancelled: { label: 'Cancelado',       icon: 'fa-times-circle', css: 'status-cancelled' },
+                    };
+                    const info = statusInfo[newStatus];
+                    if (info) {
+                        badge.className = `order-status ${info.css}`;
+                        badge.innerHTML = `<i class="fas ${info.icon}"></i> ${info.label}`;
+                    }
+                }
+
+                this.$nextTick(() => this.updateVisibilityFlag());
+
+                if (newStatus === 'Ready') {
+                    this.showReadyNotification();
+                    this.playReadySound();
+                }
+            },
+
+            showReadyNotification() {
+                if (window.Swal) {
+                    Swal.fire({
+                        title: '¡Tu pedido está listo!',
+                        html: '<p style="font-size:1.05rem;">Puedes pasar a recogerlo. ¡Buen provecho!</p>',
+                        icon: 'success',
+                        position: 'center',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#d4773a',
+                        timer: 12000,
+                        timerProgressBar: true,
+                    });
+                }
+            },
+
+            playReadySound() {
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    ctx.resume().then(() => {
+                        [[523, 0], [659, 0.25], [784, 0.5]].forEach(([freq, when]) => {
+                            const osc  = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.connect(gain);
+                            gain.connect(ctx.destination);
+                            osc.type = 'sine';
+                            osc.frequency.value = freq;
+                            gain.gain.setValueAtTime(0.4, ctx.currentTime + when);
+                            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + when + 0.2);
+                            osc.start(ctx.currentTime + when);
+                            osc.stop(ctx.currentTime + when + 0.25);
+                        });
+                    });
+                } catch (e) {
+                    console.log('Audio no disponible:', e);
+                }
+            },
+
             // ── ÓRDENES PENDIENTES METHODS ──
             async loadMyOrders() {
                 try {
@@ -891,6 +986,8 @@
             this.loadMyOrders();
             // Verificar visibilidad inicial
             this.updateVisibilityFlag();
+            // Inicializar listeners de estado en tiempo real (Echo)
+            this.$nextTick(() => this.initOrderListeners());
         }
     }).mount('#order-history-app');
 
