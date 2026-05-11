@@ -4,20 +4,26 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Data\OrderData;
+use App\Events\OrderStatusUpdated;
+use App\Events\UserNotification;
+use App\Models\Event;
 use App\Models\Order;
 use App\Models\Receipt;
 use App\Http\Controllers\ReceiptController;
 use App\Services\OrderTokenService;
+use App\Services\LocationService;
 
 class OrderController extends Controller
 {
     protected $orderData;
     protected OrderTokenService $tokenService;
+    protected LocationService $locationService;
 
-    public function __construct(OrderData $orderData, OrderTokenService $tokenService)
+    public function __construct(OrderData $orderData, OrderTokenService $tokenService, LocationService $locationService)
     {
         $this->orderData = $orderData;
         $this->tokenService = $tokenService;
+        $this->locationService = $locationService;
     }
 
     /**
@@ -48,8 +54,9 @@ class OrderController extends Controller
         $orders = $this->orderData->all($filters);
         $statuses = Order::getStatuses();
         $counts = $this->orderData->getCountsByStatus($filters['local_id'] ?? null);
+        $localId = $filters['local_id'] ?? null;
 
-        return view('orders.index', compact('orders', 'statuses', 'counts'));
+        return view('orders.index', compact('orders', 'statuses', 'counts', 'localId'));
     }
 
     /**
@@ -70,7 +77,7 @@ class OrderController extends Controller
         $user = auth()->user();
         if ($user->isAdminLocal()) {
             $local = $user->locals()->first();
-            if (!$local || $order->local_id !== $local->local_id) {
+            if (!$local || (int) $order->local_id !== (int) $local->local_id) {
                 return response()->json(['error' => 'No autorizado'], 403);
             }
         }
@@ -97,7 +104,7 @@ class OrderController extends Controller
         $user = auth()->user();
         if ($user->isAdminLocal()) {
             $local = $user->locals()->first();
-            if (!$local || $order->local_id !== $local->local_id) {
+            if (!$local || (int) $order->local_id !== (int) $local->local_id) {
                 return response()->json(['success' => false, 'error' => 'No autorizado'], 403);
             }
         }
@@ -165,6 +172,8 @@ class OrderController extends Controller
 
                 // Cambiar estado primero
                 $this->orderData->changeStatus($orderId, $newStatus);
+                broadcast(new OrderStatusUpdated((int) $orderId, $newStatus, now()->toIso8601String()));
+                $this->notifyOrderClient($order, $newStatus);
 
                 // Verificar si debe saltar la generación de comprobante (para Gerentes)
                 $skipReceiptGeneration = $request->input('skip_receipt_generation', false);
@@ -217,6 +226,8 @@ class OrderController extends Controller
             }
 
             $this->orderData->changeStatus($orderId, $newStatus);
+            broadcast(new OrderStatusUpdated((int) $orderId, $newStatus, now()->toIso8601String()));
+            $this->notifyOrderClient($order, $newStatus);
 
             return response()->json([
                 'success' => true,
@@ -351,13 +362,41 @@ class OrderController extends Controller
         try {
             $validated = $request->validate([
                 'user_id' => 'nullable|exists:tbuser,user_id',
+                'event_id' => 'nullable|exists:tbevents,event_id',
                 'items' => 'required|array|min:1',
                 'items.*.product_id' => 'required|exists:tbproduct,product_id',
                 'items.*.quantity' => 'required|integer|min:1',
                 'items.*.customization' => 'nullable|string|max:500',
                 'preparation_time' => 'required|integer|min:1',
                 'additional_notes' => 'nullable|string|max:500',
+                'latitude' => 'nullable|numeric',
+                'longitude' => 'nullable|numeric',
             ]);
+
+            if (!empty($validated['event_id'])) {
+                $eventExists = Event::active()->where('event_id', $validated['event_id'])->exists();
+                if (!$eventExists) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'El evento ya no está disponible.',
+                    ], 422);
+                }
+            }
+
+            // Validar ubicación solo si se proporcionan coordenadas (Geofencing)
+            if ($request->has('latitude') && $request->has('longitude')) {
+                $isWithin = $this->locationService->isWithinPlaza(
+                    $validated['latitude'], 
+                    $validated['longitude']
+                );
+
+                if (!$isWithin) {
+                    return response()->json([
+                        'success' => false, 
+                        'error' => 'Debes estar en el restaurante para realizar un pedido.'
+                    ], 403);
+                }
+            }
 
             // ═════════════════════════════════════════════════════════════════
             // CA2: Generar token único de verificación (LCGP-XXXX)
@@ -478,5 +517,31 @@ class OrderController extends Controller
             ->get();
 
         return response()->json(['customers' => $customers]);
+    }
+
+    private function notifyOrderClient(Order $order, string $status): void
+    {
+        $statusLabels = [
+            Order::STATUS_PENDING      => 'Pendiente',
+            Order::STATUS_PREPARATION  => 'En preparación',
+            Order::STATUS_READY        => '¡Tu pedido está listo!',
+            Order::STATUS_DELIVERED    => 'Entregado',
+            Order::STATUS_CANCELLED    => 'Cancelado',
+        ];
+
+        $clientUser = $order->user()->first();
+        if (!$clientUser) return;
+
+        $label   = $statusLabels[$status] ?? $status;
+        $message = $status === Order::STATUS_READY
+            ? "¡Tu pedido #{$order->order_number} está listo para recoger!"
+            : "Tu pedido #{$order->order_number} cambió a: {$label}";
+
+        broadcast(new UserNotification(
+            (int) $clientUser->user_id,
+            'order_update',
+            $message,
+            'pedidos'
+        ));
     }
 }

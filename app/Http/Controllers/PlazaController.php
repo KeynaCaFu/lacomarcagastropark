@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Order;
+use App\Events\NewReviewPosted;
 use App\Models\OrderItem;
 class PlazaController extends Controller
 {
@@ -64,6 +65,15 @@ class PlazaController extends Controller
                 $local->isOpenNow = Schedule::isCurrentlyOpen($local->local_id);
                 return $local;
             });
+
+        // Horarios de hoy para todos los locales (una sola query) — usados por el timer JS
+        $horariosPorLocal = Schedule::todayForLocals($locales->pluck('local_id')->toArray())
+            ->get()
+            ->keyBy('local_id')
+            ->map(fn($s) => [
+                'opening_time' => $s->opening_time?->format('H:i'),
+                'closing_time' => $s->closing_time?->format('H:i'),
+            ]);
 
         $productosAleatorios = collect();
         foreach ($locales as $local) {
@@ -124,13 +134,14 @@ class PlazaController extends Controller
             ->get();
 
         return view('plaza.index', [
-            'locales' => $locales,
-            'productos' => $productosAleatorios,
-            'categorias' => $categorias,
-            'stats' => $stats,
+            'locales'          => $locales,
+            'productos'        => $productosAleatorios,
+            'categorias'       => $categorias,
+            'stats'            => $stats,
             'categoria_actual' => $request->categoria ?? 'todos',
-            'eventosHoy' => $eventosHoy,
-            'eventosProximos' => $eventosProximos,
+            'eventosHoy'       => $eventosHoy,
+            'eventosProximos'  => $eventosProximos,
+            'horariosPorLocal' => $horariosPorLocal,
         ]);
     }
 
@@ -144,7 +155,6 @@ class PlazaController extends Controller
         $productos = Product::whereHas('locals', function ($query) use ($id) {
             $query->where('tblocal_product.local_id', $id);
         })
-            ->where('status', 'Available')
             ->with([
                 'gallery',
                 'productReviews.review' => function ($query) {
@@ -153,7 +163,17 @@ class PlazaController extends Controller
             ])
             ->get();
 
-        $categorias = $productos->pluck('category')
+        // IDs de productos actualmente inactivos (para pre-inicializar disabledProductIds en Vue)
+        $productosInactivosIds = $productos
+            ->where('status', 'Unavailable')
+            ->pluck('product_id')
+            ->map(fn($id) => (int) $id)
+            ->values();
+
+        // Categorías solo de productos disponibles (para no mostrar categorías vacías)
+        $categorias = $productos
+            ->where('status', 'Available')
+            ->pluck('category')
             ->unique()
             ->filter()
             ->map(function ($category) {
@@ -162,10 +182,11 @@ class PlazaController extends Controller
                     'slug' => Str::slug($category),
                     'icono' => $this->getCategoryIcon($category),
                 ];
-            });
+            })
+            ->values();
 
         $now = now();
-        $dayOfWeek = $now->translatedFormat('l');
+        $dayOfWeek = $now->format('l');
 
         $dayTranslation = [
             'Monday'    => 'Lunes',
@@ -244,6 +265,7 @@ class PlazaController extends Controller
         return view('plaza.show', [
             'local' => $local,
             'productos' => $productos,
+            'productosInactivosIds' => $productosInactivosIds,
             'categorias' => $categorias,
             'horarioHoy' => $horarioHoy,
             'diaActual' => $dayInSpanish,
@@ -288,13 +310,12 @@ class PlazaController extends Controller
 
                 return [
                     'product_review_id' => $productReview->product_review_id,
+                    'user_id'           => $productReview->user_id,
                     'reviewer_name'     => $user->full_name ?? $user->name ?? 'Cliente',
                     'rating'            => $review->rating ?? 0,
                     'comment'           => $review->comment ?? '',
+                    'response'          => $review->response ?? null,
                     'created_at'        => $review->created_at ?? $review->date ?? $productReview->created_at,
-                    'can_edit'          => auth()->check()
-                        && auth()->id() === $productReview->user_id
-                        && $productReview->created_at->diffInSeconds(now()) <= 900,
                 ];
             })
             ->values();
@@ -344,54 +365,62 @@ class PlazaController extends Controller
             // Buscar local
             $local = Local::where('local_id', $id)->firstOrFail();
 
-            // Obtener productos del local
-            $productos = Product::whereHas('locals', function ($query) use ($id) {
+            // Obtener TODOS los productos del local (activos e inactivos)
+            $todosProductos = Product::whereHas('locals', function ($query) use ($id) {
                 $query->where('tblocal_product.local_id', $id);
             })
-                ->where('status', 'Available')
                 ->with([
                     'gallery',
                     'productReviews.review' => function ($query) {
                         $query->select('review_id', 'rating');
                     }
                 ])
-                ->get()
-                ->map(function ($product) {
-                    return [
-                        'product_id' => $product->product_id,
-                        'local_id' => $product->pivot->local_id ?? null,
-                        'name' => $product->name,
-                        'description' => $product->description,
-                        'category' => $product->category,
-                        'photo_url' => $product->photo_url ? asset($product->photo_url) : null,
-                        'price' => $product->price,
-                        'average_rating' => $product->average_rating,
-                        'gallery' => $product->gallery ? $product->gallery->map(fn($img) => [
-                            'image_url' => $img->image_url ? asset($img->image_url) : null
-                        ])->toArray() : []
-                    ];
-                })
+                ->get();
+
+            // IDs de productos inactivos para pre-inicializar disabledProductIds en Vue
+            // Cast to int to avoid JS strict-equality mismatch (PDO returns strings).
+            $productosInactivosIds = $todosProductos
+                ->where('status', 'Unavailable')
+                ->pluck('product_id')
+                ->map(fn($id) => (int) $id)
+                ->values()
                 ->toArray();
 
-            // Obtener categorías - extraer las únicas de los productos mapeados
+            $productos = $todosProductos->map(function ($product) {
+                return [
+                    'product_id'     => $product->product_id,
+                    'local_id'       => $product->pivot->local_id ?? null,
+                    'name'           => $product->name,
+                    'description'    => $product->description,
+                    'category'       => $product->category,
+                    'status'         => $product->status,
+                    'photo_url'      => $product->photo_url ? asset($product->photo_url) : null,
+                    'price'          => $product->price,
+                    'average_rating' => $product->average_rating,
+                    'gallery'        => $product->gallery ? $product->gallery->map(fn($img) => [
+                        'image_url' => $img->image_url ? asset($img->image_url) : null
+                    ])->toArray() : []
+                ];
+            })->toArray();
+
+            // Categorías solo de productos disponibles
             $categoriasArray = [];
-            $categoriasNames = array_column($categoriasArray, 'nombre');
-            
-            foreach ($productos as $product) {
-                if ($product['category'] && !in_array($product['category'], $categoriasNames)) {
+            $categoriasNames = [];
+            foreach ($todosProductos->where('status', 'Available') as $product) {
+                if ($product->category && !in_array($product->category, $categoriasNames)) {
                     $categoriasArray[] = [
-                        'nombre' => $product['category'],
-                        'slug' => Str::slug($product['category']),
-                        'icono' => $this->getCategoryIcon($product['category']),
+                        'nombre' => $product->category,
+                        'slug'   => Str::slug($product->category),
+                        'icono'  => $this->getCategoryIcon($product->category),
                     ];
-                    $categoriasNames[] = $product['category'];
+                    $categoriasNames[] = $product->category;
                 }
             }
             $categorias = $categoriasArray;
 
             // Obtener horario del día actual
             $now = now();
-            $dayOfWeek = $now->translatedFormat('l');
+            $dayOfWeek = $now->format('l');
 
             $dayTranslation = [
                 'Monday'    => 'Lunes',
@@ -415,22 +444,23 @@ class PlazaController extends Controller
             }
 
             return response()->json([
-                'success' => true,
+                'success'              => true,
                 'local' => [
-                    'local_id' => $local->local_id,
-                    'name' => $local->name,
+                    'local_id'    => $local->local_id,
+                    'name'        => $local->name,
                     'description' => $local->description,
-                    'logo_url' => $local->image_logo ? asset($local->image_logo) : null,
+                    'logo_url'    => $local->image_logo ? asset($local->image_logo) : null,
                 ],
                 'horarioHoy' => $horarioHoy ? [
                     'opening_time' => $horarioHoy->opening_time ? \Carbon\Carbon::parse($horarioHoy->opening_time)->format('H:i') : null,
                     'closing_time' => $horarioHoy->closing_time ? \Carbon\Carbon::parse($horarioHoy->closing_time)->format('H:i') : null,
-                    'status' => $horarioHoy->status,
+                    'status'       => $horarioHoy->status,
                 ] : null,
-                'diaActual' => $dayInSpanish,
-                'estaAbierto' => $estaAbierto,
-                'categorias' => $categorias,
-                'productos' => $productos,
+                'diaActual'            => $dayInSpanish,
+                'estaAbierto'          => $estaAbierto,
+                'categorias'           => $categorias,
+                'productos'            => $productos,
+                'productosInactivosIds' => $productosInactivosIds,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -539,11 +569,13 @@ public function storeLocalReview(Request $request, $localId)
         }
 
         // CA-3: Solo puede reseñar si tiene un pedido previo en ese local
-        $tienePedido = Order::where('user_id', $userId)
-            ->where('local_id', $localId)
-            ->whereIn('status', [
-                Order::STATUS_DELIVERED,  // solo pedidos completados
-            ])
+        $tienePedido = Order::where('local_id', $localId)
+            ->whereIn('status', [Order::STATUS_DELIVERED])
+            ->whereIn('order_id', function ($query) use ($userId) {
+                $query->select('order_id')
+                    ->from('tbuser_order')
+                    ->where('user_id', $userId);
+            })
             ->exists();
 
         if (!$tienePedido) {
@@ -565,6 +597,14 @@ public function storeLocalReview(Request $request, $localId)
             'local_id'  => $localId,
             'user_id'   => $userId,
         ]);
+        // Disparar notificación al gerente en tiempo real
+        broadcast(new NewReviewPosted(
+          localId:     (int) $localId,
+             reviewId:    $review->review_id,
+             clientName:  Auth::user()->full_name ?? Auth::user()->name ?? 'Cliente',
+             productName: 'el local',
+             rating:      $request->rating
+        ))->toOthers();
 
         // Devolver la nueva reseña completa para renderizarla sin recargar
         $user = Auth::user();
@@ -579,11 +619,13 @@ public function storeLocalReview(Request $request, $localId)
             'success' => true,
             'message' => 'Reseña guardada correctamente.',
             'review'  => [
-                'nombre'    => $nombre,
-                'iniciales' => $iniciales ?: 'CL',
-                'rating'    => $request->rating,
-                'comment'   => $request->comment,
-                'date'      => now()->toISOString(),
+                'local_review_id' => $localReview->local_review_id,
+                'local_id'        => (int) $localId,
+                'nombre'          => $nombre,
+                'iniciales'       => $iniciales ?: 'CL',
+                'rating'          => $request->rating,
+                'comment'         => $request->comment,
+                'date'            => now()->toISOString(),
             ],
         ], 200);
 
@@ -652,19 +694,113 @@ public function storeProductReview(Request $request, $productId)
         'user_id' => $userId,
         'responded_by' => null,
     ]);
+    // Obtener el local_id del producto para notificar al gerente correcto
+$product = Product::find($productId);
+$localDelProducto = $product?->locals()->first();
 
+if ($localDelProducto) {
+    broadcast(new NewReviewPosted(
+        localId:     (int) $localDelProducto->local_id,
+        reviewId:    $review->review_id,
+        clientName:  Auth::user()->full_name ?? Auth::user()->name ?? 'Cliente',
+        productName: $product->name,
+        rating:      $request->rating
+    ));
+}
     $user = Auth::user();
 
     return response()->json([
         'success' => true,
         'review' => [
             'product_review_id' => $productReview->product_review_id,
+            'user_id'=> $userId,
             'nombre' => $user->full_name ?? $user->name ?? 'Cliente',
             'rating' => $review->rating,
             'comment' => $review->comment,
             'date' => $review->created_at ?? now(),
         ]
     ], 201);
+}
+
+    public function getAllSchedules()
+    {
+        $locales = Local::where('status', 'Active')->get();
+        $schedules = [];
+
+        foreach ($locales as $local) {
+            $schedules[$local->local_id] = Schedule::where('local_id', $local->local_id)
+                ->get()
+                ->map(fn($s) => [
+                    'day_of_week' => $s->day_of_week,
+                    'opening_time' => $s->opening_time?->format('H:i'),
+                    'closing_time' => $s->closing_time?->format('H:i'),
+                    'status' => (bool) $s->status,
+                ])
+                ->toArray();
+        }
+
+        return response()->json([
+            'success' => true,
+            'schedules' => $schedules
+        ]);
+    }
+
+    public function deleteProductReview($productReviewId)
+    {
+        $review = ProductReview::where('product_review_id', $productReviewId)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $review->review()->delete(); // elimina la review padre
+        $review->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function deleteLocalReview($localId, $localReviewId)
+    {
+        $review = LocalReview::where('local_review_id', $localReviewId)
+            ->where('local_id', $localId)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $review->review()->delete();
+        $review->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+
+    public function misResenas()
+{
+    $userId = Auth::id();
+
+    $resenasLocales = LocalReview::with(['review', 'local'])
+        ->where('user_id', $userId)
+        ->whereHas('review')
+        ->orderByDesc('created_at')
+        ->get();
+
+    $resenasProductos = ProductReview::with(['review', 'product.locals'])
+        ->where('user_id', $userId)
+        ->whereHas('review')
+        ->orderByDesc('created_at')
+        ->get();
+
+        
+    $user   = Auth::user();
+    $nombre = $user->full_name ?? $user->name ?? 'Cliente';
+    $partes = explode(' ', trim($nombre));
+    $iniciales = strtoupper(substr($partes[0], 0, 1) . (isset($partes[1]) ? substr($partes[1], 0, 1) : ''));
+
+
+
+
+    return view('plaza.mis-resenas', [
+    'resenasLocales'   => $resenasLocales,
+    'resenasProductos' => $resenasProductos,
+    'iniciales'        => $iniciales,
+]);
 }
 
 }

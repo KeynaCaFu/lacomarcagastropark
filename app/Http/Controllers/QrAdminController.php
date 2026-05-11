@@ -88,7 +88,7 @@ class QrAdminController extends Controller
             ]);
 
             return redirect()->route('admin.qr.index')
-                ->with('success', '✓ QR generado exitosamente. Clave: ' . $newKey);
+                ->with('success', 'QR generado exitosamente. Clave: ' . $newKey);
         } catch (\Exception $e) {
             return redirect()->route('admin.qr.index')
                 ->with('error', 'Error al generar el QR: ' . $e->getMessage());

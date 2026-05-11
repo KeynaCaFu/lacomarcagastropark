@@ -1180,13 +1180,74 @@
     }
 }
 
-/* ── SWAL2 Z-INDEX FIX ──*/
+/* ── SWAL2 THEME ──*/
 .swal2-container {
     z-index: 99999 !important;
 }
 
 .swal2-modal {
     z-index: 99999 !important;
+    background: linear-gradient(135deg, #0A0908 0%, #111009 100%) !important;
+    border: 1px solid #252018 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 50px rgba(212, 119, 58, 0.1) !important;
+}
+
+.swal2-title {
+    color: #F5F0E8 !important;
+    font-family: 'Cormorant Garamond', serif !important;
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+}
+
+.swal2-html-container,
+.swal2-content {
+    color: rgba(245, 240, 232, 0.85) !important;
+    font-family: 'DM Sans', sans-serif !important;
+}
+
+.swal2-input {
+    background: #1a1612 !important;
+    border: 1px solid #3a3228 !important;
+    color: #F5F0E8 !important;
+    border-radius: 8px !important;
+}
+
+.swal2-input:focus {
+    border-color: #D4773A !important;
+    box-shadow: 0 0 0 3px rgba(212, 119, 58, 0.2) !important;
+}
+
+.swal2-icon.swal2-success {
+    border-color: #10b981 !important;
+    color: #10b981 !important;
+}
+
+.swal2-icon.swal2-success [class^='swal2-success-line'] {
+    background-color: #10b981 !important;
+}
+
+.swal2-icon.swal2-success .swal2-success-ring {
+    border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+.swal2-icon.swal2-error {
+    border-color: #ef4444 !important;
+    color: #ef4444 !important;
+}
+
+.swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
+    background-color: #ef4444 !important;
+}
+
+.swal2-icon.swal2-warning {
+    border-color: #D4773A !important;
+    color: #D4773A !important;
+}
+
+.swal2-icon.swal2-info {
+    border-color: #3b82f6 !important;
+    color: #3b82f6 !important;
 }
 
 /* ══════════════════════════════════════
