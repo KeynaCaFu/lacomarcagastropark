@@ -7,6 +7,7 @@ use App\Data\ReviewData;
 use App\Events\UserNotification;
 use App\Models\LocalReview;
 use App\Models\ProductReview;
+use App\Events\ReviewResponded;
 
 class ReviewController extends Controller
 {
@@ -99,9 +100,9 @@ class ReviewController extends Controller
         }
 
         if (!$ok) {
-            return redirect()->route('reviews.index')
-                ->with('error', 'La reseña no pertenece a tu local o a tus productos.');
-        }
+    return redirect()->route('reviews.index')
+        ->with('error', 'La reseña no pertenece a tu local o a tus productos.');
+}
 
         $authorUserId = null;
         if ($request->review_type === 'local') {

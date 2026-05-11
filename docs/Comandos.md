@@ -62,3 +62,6 @@ php artisan test tests/Feature/OrderBroadcastTest.php --verbose
 
 10. PRUEBA QA para validar el cambio estado en una orden 
 php artisan test tests/Feature/OrderStatusUpdatedBroadcastTest.php
+
+11.PRUEBA QA para validar que se envie la notificacion del respuesta de gerente a cliente 
+php artisan test tests/Feature/ReviewRespondedNotificationTest.php

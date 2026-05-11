@@ -243,6 +243,22 @@ window.initReviewListener = function(localId) {
     }
 };
 
+function mostrarToastReview(data) {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioCtx.resume().then(() => {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime + 0.15);
+            oscillator.frequency.setValueAtTime(900, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.5);
 // ── Listener de nuevas órdenes para notificación al gerente ──
 window.initOrderListener = function(localId) {
     if (!window.Echo) {
@@ -307,6 +323,42 @@ function playOrderSound() {
     } catch(e) {
         console.log('Audio no disponible:', e);
     }
+    if (window.swToast) {
+        window.swToast.fire({
+            icon: 'info',
+            title: '⭐ Nueva reseña',
+            text: `${data.client_name} dejó una reseña en ${data.product_name}`,
+            timer: 6000,
+        });
+    }
+}
+
+// ── Listener de respuestas a reseñas para el cliente ──
+window.initReviewResponseListener = function(userId) {
+    if (!window.Echo) {
+        console.error('✗ Echo no disponible para ReviewResponseListener');
+        return false;
+    }
+    try {
+        const channelName = `user.${userId}`;
+        console.log(`💬 Conectando listener de respuestas al canal: ${channelName}`);
+        window.Echo.channel(channelName)
+            .listen('ReviewResponded', (data) => {
+                console.log('✓ Evento ReviewResponded recibido:', data);
+                mostrarNotificacionRespuesta(data);
+            });
+        console.log('✓ Listener de respuestas inicializado');
+        return true;
+    } catch (error) {
+        console.error('✗ Error al inicializar ReviewResponseListener:', error);
+        return false;
+    }
+};
+
+window.mostrarNotificacionRespuesta = function(data) {
+    console.log('🔔 Mostrando notificación de respuesta:', data);
+
+    // Sonido
 }
 
 function mostrarToastOrden(data) {

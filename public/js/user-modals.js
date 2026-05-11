@@ -130,28 +130,18 @@ class UserModals {
                 }
                 
                 // Éxito
-                window.userModals.closeModal('userEditModal');
-                let retries = 0;
-                const checkAndShowSuccess = () => {
-                    if (window.swToast) {
-                        swToast.fire({
-                            icon: 'success',
-                            title: 'Usuario actualizado correctamente',
-                            timer: 2000,
-                            timerProgressBar: true
-                        });
-                        // Recargar después de que se muestre el toast
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 2500);
-                    } else if (retries < 50) {
-                        retries++;
-                        setTimeout(checkAndShowSuccess, 100);
-                    }
-                };
-                setTimeout(checkAndShowSuccess, 100);
+                closeUserModal('userEditModal');
+                if (typeof loadUsers === 'function') {
+                    loadUsers(window.currentUsersPage || 1);
+                }
+                if (window.swToast) {
+                    swToast.fire({
+                        icon: 'success',
+                        title: 'Usuario actualizado correctamente',
+                    });
+                }
             } catch(error){
-                window.userModals.handleValidationErrors(error, form);
+                ensureUserModals().handleValidationErrors(error, form);
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
             }
@@ -282,6 +272,7 @@ let _userModalsInstance = null;
 function ensureUserModals() {
     if (!_userModalsInstance) {
         _userModalsInstance = new UserModals();
+        window.userModals = _userModalsInstance;
     }
     return _userModalsInstance;
 }
