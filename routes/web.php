@@ -320,6 +320,7 @@ Route::delete('/plaza/producto/{productReviewId}/resena', [PlazaController::clas
 Route::delete('/plaza/{localId}/review/{localReviewId}', [PlazaController::class, 'deleteLocalReview'])->middleware('auth');
 
 
+
 // Profile routes (authenticated users)
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -1542,6 +1542,7 @@
             },
         },
         mounted() {
+            this.checkPuedeResenar();
             console.log('Producto cargado:', this.product.name);
             
             // Agregar listener de teclado
