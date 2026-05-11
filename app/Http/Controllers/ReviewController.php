@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Data\ReviewData;
+use App\Events\UserNotification;
+use App\Models\LocalReview;
+use App\Models\ProductReview;
+use App\Events\ReviewResponded;
 
 class ReviewController extends Controller
 {
@@ -96,14 +100,30 @@ class ReviewController extends Controller
         }
 
         if (!$ok) {
-            return redirect()->route('reviews.index')
-                ->with('error', 'La reseña no pertenece a tu local o a tus productos.');
+    return redirect()->route('reviews.index')
+        ->with('error', 'La reseña no pertenece a tu local o a tus productos.');
+}
+
+        $authorUserId = null;
+        if ($request->review_type === 'local') {
+            $authorUserId = LocalReview::where('local_review_id', $id)->value('user_id');
+        } else {
+            $authorUserId = ProductReview::where('product_review_id', $id)->value('user_id');
+        }
+        if ($authorUserId) {
+            broadcast(new UserNotification(
+                (int) $authorUserId,
+                'review_reply',
+                '¡Tu reseña recibió una respuesta del local!',
+                'resenas'
+            ));
         }
 
         return redirect()->route('reviews.index')
             ->with('success', 'Respuesta guardada correctamente.');
     }
-
+    
+   
     
     public function updateResponse(Request $request, $reviewId)
 {
@@ -194,36 +214,5 @@ public function deleteResponse(Request $request, $reviewId)
 
     return redirect()->route('reviews.index')
         ->with('success', 'Respuesta eliminada correctamente.');
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
+} 
 }

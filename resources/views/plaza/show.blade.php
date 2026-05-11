@@ -22,12 +22,20 @@
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.index.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.show.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.reviews.css') }}">
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></link>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    @vite(['resources/js/app.js'])
+    <style>
+        @keyframes notif-pulse {
+            0%,100% { transform:scale(1);   opacity:1;   }
+            50%      { transform:scale(1.4); opacity:0.8; }
+        }
+    </style>
 
 </head>
 <body>
-<div id="plaza-app" v-cloak>
+<div id="plaza-app" v-cloak data-local-id="{{ $local->local_id }}">
 
     <!-- ── HEADER ── -->
     <header class="site-header">
@@ -51,14 +59,16 @@
                     @endauth
                     <div>
                         @auth
-                            <div class="user-menu-top">
-                                <button class="user-menu-btn" id="userMenuBtn">
+                            <div class="user-menu-top" style="position:relative;">
+                                <button class="user-menu-btn" id="userMenuBtn" style="position:relative;">
                                     @if(auth()->user()->avatar)
                                         <img src="{{ asset(auth()->user()->avatar) }}" alt="" class="avatar-img">
                                     @else
                                         <i class="fas fa-user-circle icon-md"></i>
                                     @endif
                                     <span class="text-label">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
+                                    <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                                    <span id="notifDotBtn" style="display:none;position:absolute;top:4px;right:4px;width:9px;height:9px;background:#e53e3e;border-radius:50%;border:2px solid #0A0908;animation:notif-pulse 2s infinite;"></span>
                                 </button>
                                 <div class="user-menu-dropdown" id="userMenuDropdown">
                                     <div class="dropdown-header">
@@ -68,8 +78,13 @@
                                     <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
                                         <i class="fas fa-user-edit text-muted"></i> Editar perfil
                                     </a>
-                                    <a href="{{ route('client.orders.history') }}" class="dropdown-item">
+                                    <a href="{{ route('client.orders.history') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('pedidos')">
                                         <i class="fas fa-history text-muted"></i> Ver mis pedidos
+                                        <span id="notifDot_pedidos" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:auto;animation:notif-pulse 2s infinite;"></span>
+                                    </a>
+                                    <a href="{{ route('client.reviews') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('resenas')">
+                                        <i class="fas fa-star text-muted"></i> Mis reseñas
+                                        <span id="notifDot_resenas" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:auto;animation:notif-pulse 2s infinite;"></span>
                                     </a>
                                     <form method="POST" action="{{ route('logout') }}" class="m-0">
                                         @csrf
@@ -107,17 +122,17 @@
                         <h1 class="hero-name">@{{ localActual.name }}</h1>
                         <p class="hero-desc" v-if="localActual.description">@{{ localActual.description }}</p>
                     </div>
-                    <div class="user-info-row" v-if="horarioActual.status">
+                    <div class="user-info-row" v-if="horarioActual.status" :data-schedule-day="diaActual">
                         <div class="time-display">
                             <div class="time-label">@{{ diaActual }}</div>
                             <div class="time-value" v-if="horarioActual.opening_time || horarioActual.closing_time">
-                                @{{ horarioActual.opening_time || 'N/A' }} - @{{ horarioActual.closing_time || 'N/A' }}
+                                <span data-opening-time>@{{ horarioActual.opening_time || 'N/A' }}</span> - <span data-closing-time>@{{ horarioActual.closing_time || 'N/A' }}</span>
                             </div>
                             <div class="status-label">
-                                <span class="status-text-open" v-if="estaAbierto">
+                                <span class="status-text-open" v-if="estaAbierto" data-schedule-status="open">
                                     <i class="fas fa-circle status-open"></i> Abierto
                                 </span>
-                                <span class="status-text-closed" v-else>
+                                <span class="status-text-closed" v-else data-schedule-status="closed">
                                     <i class="fas fa-circle status-closed"></i> Cerrado
                                 </span>
                             </div>
@@ -198,16 +213,18 @@
                 <span class="item-count">@{{ productCount }} Productos</span>
             </div>
 
-            @if($productos->isEmpty())
+            @if($productos->where('status', 'Available')->isEmpty())
                 <div class="empty-wrap">
                     <div class="empty-icon"><i class="fas fa-bowl-food"></i></div>
                     <p class="empty-msg">No hay productos disponibles por el momento</p>
                 </div>
-            @else
+            @endif
+            @if($productos->isNotEmpty())
                 <div class="products-grid">
                     @foreach($productos as $i => $producto)
                     <div class="p-card {{ $i === 0 ? 'featured' : '' }}"
-                         v-show="activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory"
+                         data-product-id="{{ $producto->product_id }}"
+                         v-show="(activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory) && !disabledProductIds.includes({{ $producto->product_id }})"
                          @click="navigateToProduct('{{ route('plaza.product.detail', [$local->local_id, $producto->product_id]) }}')"
                          style="cursor: pointer;">
 
@@ -243,15 +260,17 @@
                                 <span class="p-card-price">
                                     <sup>₡</sup>{{ number_format($producto->price, 2) }}
                                 </span>
-                                <button 
+                                <button
                                     class="btn-add-cart"
+                                    :disabled="disabledProductIds.includes({{ $producto->product_id }})"
                                     @click.stop="openAddToCartModal({
                                         product_id: {{ $producto->product_id }},
                                         local_id: {{ $local->local_id }},
                                         name: '{{ addslashes($producto->name) }}',
                                         description: '{{ addslashes($producto->description ?? '') }}',
-                                        photo_url: '{{ $producto->photo_url ?? asset('images/product-placeholder.png') }}',
-                                        price: {{ $producto->price }},                                    })">
+                                        photo_url: '{{ $producto->photo_url ?? asset("images/product-placeholder.png") }}',
+                                        price: {{ $producto->price }}
+                                    })">
                                     <i class="fas fa-shopping-cart"></i>
                                 </button>
                             </div>
@@ -482,7 +501,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Inicializar swToast si no está ya
         initSwToast();
-        
+
         const menuBtn = document.getElementById('userMenuBtn');
         const menuDropdown = document.getElementById('userMenuDropdown');
 
@@ -495,6 +514,14 @@
                 menuDropdown.classList.remove('open');
             });
         }
+
+        // Notificaciones en tiempo real
+        if (window.loadNotifDots) window.loadNotifDots();
+        @auth
+        if (window.initUserNotificationListener) {
+            window.initUserNotificationListener({{ auth()->id() }});
+        }
+        @endauth
     });
 
     // Vue app
@@ -524,7 +551,9 @@
                 estaAbierto: {{ $estaAbierto ? 'true' : 'false' }},
                 categoriasActuales: {!! json_encode($categorias) !!},
                 productosActuales: {!! json_encode($productos->map(function($p) { return ['product_id' => $p->product_id, 'name' => $p->name, 'category' => $p->category, 'description' => $p->description, 'photo_url' => $p->photo_url ? asset($p->photo_url) : null, 'price' => $p->price, 'average_rating' => $p->average_rating]; })) !!},
-                productCount: {{ $productos->count() }},
+                productCount: {{ $productos->where('status', 'Available')->count() }},
+                disabledProductIds: {!! json_encode($productosInactivosIds) !!},
+                currentListenerLocalId: {{ $local->local_id }},
                 showAddToCartModal: false,
                 showCartDrawer: false,
                 showEventsDrawer: false,
@@ -552,11 +581,31 @@
                 quantity: 1,
                 customization: '',
                 isAddingToCart: false,
+                editingCartItemKey: null,
                 // Datos del cliente
                 customerName: '',
                 customerEmail: '',
                 customerPhone: '',
-                additionalNotes: ''
+                additionalNotes: '',
+
+                // Órdenes del cliente
+                myOrders: [],
+                showMyOrdersDrawer: false,
+                isCancellingOrder: false,
+                selectedOrderToCancel: null,
+                ordersTab: 'current',
+                orderHistory: [],
+                isLoadingHistory: false,
+                historyLoaded: false,
+                cancelReason: '',
+
+                // Product Detail Modal (propiedades para openProductDetailModal)
+                selectedProduct: {},
+                selectedProductGallery: [],
+                selectedGalleryIndex: 0,
+                detailQuantity: 1,
+                detailCustomization: '',
+                showProductDetailModal: false
             }
         },
         methods: {
@@ -594,6 +643,7 @@
             closeAddToCartModal() {
                 document.body.classList.remove('modal-open');
                 this.showAddToCartModal = false;
+                this.editingCartItemKey = null;
                 setTimeout(() => {
                     this.currentProduct = { name: '', description: '', photo_url: '', price: 0, product_id: 0, local_id: 0 };
                     this.quantity = 1;
@@ -603,6 +653,28 @@
                     this.customerPhone = '';
                     this.additionalNotes = '';
                 }, 300);
+            },
+            openEditCartItem(index) {
+                const item = this.drawerCart[index];
+                if (!item) return;
+                this.editingCartItemKey = item.item_key;
+                this.currentProduct = {
+                    name: item.name,
+                    description: item.description || '',
+                    photo_url: item.photo_url || '',
+                    price: parseFloat(item.price),
+                    product_id: item.product_id,
+                    local_id: item.local_id
+                };
+                this.quantity = item.quantity;
+                this.customization = item.customization || '';
+                if (window.authData) {
+                    this.customerName = window.authData.name || '';
+                    this.customerEmail = window.authData.email || '';
+                    this.customerPhone = window.authData.phone || '';
+                }
+                this.showAddToCartModal = true;
+                document.body.classList.add('modal-open');
             },
             showAuthNotification() {
                 // Crear contenedor si no existe
@@ -657,6 +729,9 @@
             async proceedAddToCart() {
                 if (this.isAddingToCart) return;
 
+                const isEditing = !!this.editingCartItemKey;
+                const editingKey = this.editingCartItemKey;
+
                 // Sincronizar notas: ambos campos lleven lo mismo
                 this.additionalNotes = this.customization;
 
@@ -678,6 +753,19 @@
                 this.isAddingToCart = true;
 
                 try {
+                    // Si estamos editando, eliminar el item antiguo primero
+                    if (isEditing) {
+                        await fetch('{{ route("plaza.cart.remove") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ item_key: editingKey })
+                        });
+                    }
+
                     const response = await fetch('{{ route("plaza.add.cart") }}', {
                         method: 'POST',
                         headers: {
@@ -698,27 +786,23 @@
                     });
 
                     const data = await response.json();
-                    console.log('Add to cart response:', data);
 
                     if (response.ok && data.success) {
-                        // Mostrar toast de �xito
                         showToast({
                             icon: 'success',
-                            title: '¡Producto agregado!',
-                            message: this.currentProduct.name + ' se agregó al carrito correctamente',
+                            title: isEditing ? '¡Item actualizado!' : '¡Producto agregado!',
+                            message: isEditing
+                                ? this.currentProduct.name + ' se actualizó correctamente'
+                                : this.currentProduct.name + ' se agregó al carrito correctamente',
                             timer: 5500
                         });
-
-                        // Cargar carrito actualizado para que Vue reaccione
                         this.loadCartDrawer();
-
-                        // Cerrar modal
                         this.closeAddToCartModal();
                     } else {
                         showToast({
                             icon: 'error',
                             title: 'Oops, algo salió mal',
-                            message: data.message || 'No pudimos agregar el producto al carrito',
+                            message: data.message || 'No pudimos procesar el carrito',
                             timer: 5500
                         });
                     }
@@ -726,7 +810,7 @@
                     console.error('Error:', error);
                     showToast({
                         icon: 'error',
-                        title: 'Error al agregar al carrito'
+                        title: isEditing ? 'Error al actualizar item' : 'Error al agregar al carrito'
                     });
                 } finally {
                     this.isAddingToCart = false;
@@ -902,32 +986,402 @@
             cancelConfirmOrder() {
                 this.showConfirmOrder = false;
             },
-            processCheckout() {
+            async processCheckout() {
                 this.isCheckingOut = true;
-                fetch('{{ route("plaza.order.create") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ items: this.drawerCart })
-                })
-                .then(response => response.json())
-                .then(data => {
+
+                try {
+                    // PASO 1: Solicitar QR key
+                    const qrKey = await this.solicitarQRKey();
+                    if (!qrKey) {
+                        this.isCheckingOut = false;
+                        return; // Usuario canceló
+                    }
+
+                    // PASO 2: Solicitar permisos GPS
+                    const coords = await this.obtenerUbicacion();
+                    if (!coords) {
+                        this.isCheckingOut = false;
+                        return; // Usuario denegó o hubo error
+                    }
+
+                    // PASO 3: Enviar orden con QR y GPS
+                    const response = await fetch('{{ route("plaza.order.confirm") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ 
+                            qr_key: qrKey,
+                            latitude: coords.latitude,
+                            longitude: coords.longitude
+                        })
+                    });
+
+                    const data = await response.json();
+
                     if (data.success) {
-                        this.showConfirmOrder = false;
-                        showToast({ icon: 'success', title: '¡Orden confirmada!', message: 'Tu orden se ha procesado correctamente', timer: 6000 });
+                        showToast({ icon: 'success', title: '¡Órdenes confirmadas!', message: data.message, timer: 6000 });
                         this.drawerCart = [];
+                        this.showConfirmOrder = false;
                         this.closeCartDrawer();
+                        if (data.orders && data.orders.length > 0) {
+                            const tokensMsg = data.orders.map(o => `${o.order_number}: ${o.token}`).join('\n');
+                            console.log('Tokens de verificación:\n' + tokensMsg);
+                        }
+                        // Cargar órdenes después de un tiempo
+                        setTimeout(() => {
+                            this.loadMyOrders();
+                        }, 1000);
                     } else {
                         showToast({ icon: 'error', title: 'No se pudo procesar', message: data.message || 'Hubo un problema', timer: 5500 });
                     }
-                })
-                .catch(error => {
-                    showToast({ icon: 'error', title: 'Oops', message: 'Problema de conexión', timer: 5500 });
-                })
-                .finally(() => { this.isCheckingOut = false; });
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast({ icon: 'error', title: 'Error', message: error.message || 'Hubo un problema de conexión', timer: 5500 });
+                } finally {
+                    this.isCheckingOut = false;
+                }
+            },
+
+            // Solicitar QR key al usuario (escanear o ingresar manualmente)
+            solicitarQRKey() {
+                return new Promise((resolve) => {
+                    let stream = null;
+                    let scanInterval = null;
+                    let resolved = false;
+
+                    function stopCamera() {
+                        if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+                        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+                    }
+
+                    function doResolve(value) {
+                        if (!resolved) {
+                            resolved = true;
+                            stopCamera();
+                            Swal.close();
+                            resolve(value);
+                        }
+                    }
+
+                    const html = `
+                        <div style="text-align:center;">
+                            <p style="color:#555;margin-bottom:14px;font-size:14px;">¿Cómo deseas ingresar el código de tu mesa?</p>
+                            <div id="qr-options" style="display:flex;gap:10px;margin-bottom:4px;">
+                                <button id="btn-scan-qr" type="button"
+                                    style="flex:1;padding:14px 8px;background:#10b981;color:white;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">
+                                    <div><i class="fas fa-qrcode" style="font-size:24px;margin-bottom:5px;"></i></div>
+                                    Escanear QR
+                                </button>
+                                <button id="btn-manual-code" type="button"
+                                    style="flex:1;padding:14px 8px;background:#3b82f6;color:white;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">
+                                    <div><i class="fas fa-keyboard" style="font-size:24px;margin-bottom:5px;"></i></div>
+                                    Ingresar código
+                                </button>
+                            </div>
+
+                            <div id="qr-scanner-section" style="display:none;">
+                                <div style="position:relative;display:inline-block;width:100%;max-width:280px;">
+                                    <video id="qr-video" style="width:100%;border-radius:12px;background:#000;display:block;" autoplay playsinline muted></video>
+                                    <canvas id="qr-canvas" style="display:none;"></canvas>
+                                    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:170px;height:170px;border:3px solid #10b981;border-radius:10px;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,0.45);"></div>
+                                </div>
+                                <p id="scan-status" style="color:#10b981;font-size:13px;margin:8px 0 2px;font-weight:500;">Iniciando cámara...</p>
+                                <button id="btn-back-scan" type="button" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;padding:4px 8px;">
+                                    <i class="fas fa-arrow-left"></i> Volver
+                                </button>
+                            </div>
+
+                            <div id="qr-manual-section" style="display:none;">
+                                <input id="qr-code-input" type="text"
+                                    placeholder="Ingresa el código QR"
+                                    style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:16px;box-sizing:border-box;text-align:center;letter-spacing:1px;margin-bottom:6px;"
+                                    autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+                                <p style="color:#888;font-size:12px;margin:0 0 6px;">Ingresa el código que aparece en el QR de tu mesa</p>
+                                <button id="btn-back-manual" type="button" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;padding:4px 8px;">
+                                    <i class="fas fa-arrow-left"></i> Volver
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    Swal.fire({
+                        title: '<i class="fas fa-qrcode" style="margin-right:8px;"></i>Verificación de Mesa',
+                        html: html,
+                        showCancelButton: true,
+                        showConfirmButton: false,
+                        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+                        confirmButtonText: '<i class="fas fa-check"></i> Continuar',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            const optionsDiv  = document.getElementById('qr-options');
+                            const scanSection = document.getElementById('qr-scanner-section');
+                            const manualSection = document.getElementById('qr-manual-section');
+
+                            function showOptions() {
+                                stopCamera();
+                                optionsDiv.style.display    = 'flex';
+                                scanSection.style.display   = 'none';
+                                manualSection.style.display = 'none';
+                                const confirmBtn = document.querySelector('.swal2-confirm');
+                                if (confirmBtn) confirmBtn.style.display = 'none';
+                            }
+
+                            document.getElementById('btn-back-scan')?.addEventListener('click', showOptions);
+                            document.getElementById('btn-back-manual')?.addEventListener('click', showOptions);
+
+                            // --- MODO ESCANEAR ---
+                            document.getElementById('btn-scan-qr').addEventListener('click', async () => {
+                                optionsDiv.style.display  = 'none';
+                                scanSection.style.display = 'block';
+                                const statusEl = document.getElementById('scan-status');
+
+                                if (!window.isSecureContext) {
+                                    statusEl.innerHTML = `
+                                        <span style="color:#ef4444;font-weight:600;">Se requiere HTTPS para usar la cámara.</span><br>
+                                        <small style="color:#888;">Estás en HTTP. Usa "Ingresar código" o accede al sitio por HTTPS.</small>`;
+                                    return;
+                                }
+
+                                if (!navigator.mediaDevices?.getUserMedia) {
+                                    statusEl.innerHTML = `
+                                        <span style="color:#ef4444;font-weight:600;">Cámara no disponible en este navegador.</span><br>
+                                        <small style="color:#888;">Usa "Ingresar código" para continuar.</small>`;
+                                    return;
+                                }
+
+                                statusEl.textContent = 'Solicitando permiso de cámara...';
+
+                                try {
+                                    stream = await navigator.mediaDevices.getUserMedia({
+                                        video: { facingMode: { ideal: 'environment' } }
+                                    });
+                                    const video = document.getElementById('qr-video');
+                                    video.srcObject = stream;
+                                    await video.play();
+                                    statusEl.textContent = 'Apunta al código QR de tu mesa...';
+
+                                    const canvas = document.getElementById('qr-canvas');
+                                    const ctx = canvas.getContext('2d');
+
+                                    scanInterval = setInterval(() => {
+                                        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                                            canvas.width  = video.videoWidth;
+                                            canvas.height = video.videoHeight;
+                                            ctx.drawImage(video, 0, 0);
+                                            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                                            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+                                            if (code?.data) {
+                                                // El QR puede contener una URL con ?key=... — extraer solo el key
+                                                let qrValue = code.data;
+                                                try {
+                                                    const url = new URL(qrValue);
+                                                    const keyParam = url.searchParams.get('key');
+                                                    if (keyParam) qrValue = keyParam;
+                                                } catch (e) { /* no es URL, usar tal cual */ }
+                                                statusEl.textContent = '✓ QR detectado!';
+                                                doResolve(qrValue);
+                                            }
+                                        }
+                                    }, 200);
+                                } catch (err) {
+                                    let msg = 'No se pudo acceder a la cámara.';
+                                    let hint = 'Usa "Ingresar código" para continuar.';
+                                    if (err.name === 'NotAllowedError') {
+                                        msg = 'Permiso de cámara denegado.';
+                                        hint = 'Haz clic en el ícono de cámara en la barra de dirección de Chrome y permite el acceso.';
+                                    } else if (err.name === 'NotFoundError') {
+                                        msg = 'No se encontró cámara en este dispositivo.';
+                                    }
+                                    statusEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">${msg}</span><br><small style="color:#888;">${hint}</small>`;
+                                }
+                            });
+
+                            // --- MODO MANUAL ---
+                            document.getElementById('btn-manual-code').addEventListener('click', () => {
+                                optionsDiv.style.display    = 'none';
+                                manualSection.style.display = 'block';
+                                // Mostrar botón Continuar directamente en el DOM (evita re-render de Swal.update)
+                                const confirmBtn = document.querySelector('.swal2-confirm');
+                                if (confirmBtn) {
+                                    confirmBtn.style.display    = 'inline-block';
+                                    confirmBtn.style.visibility = 'visible';
+                                }
+                                document.getElementById('qr-code-input')?.focus();
+                            });
+                        },
+                        preConfirm: () => {
+                            const value = document.getElementById('qr-code-input')?.value?.trim();
+                            if (!value) {
+                                Swal.showValidationMessage('Debes ingresar el código QR');
+                                return false;
+                            }
+                            return value;
+                        },
+                        willClose: () => stopCamera()
+                    }).then((result) => {
+                        if (!resolved) {
+                            resolved = true;
+                            if (result.isConfirmed && result.value) {
+                                resolve(result.value);
+                            } else {
+                                resolve(null);
+                            }
+                        }
+                    });
+                });
+            },
+
+            // Obtener ubicación GPS
+            obtenerUbicacion() {
+                return new Promise((resolve) => {
+                    if (!navigator.geolocation) {
+                        Swal.fire('Error', 'Tu navegador no soporta geolocalización', 'error');
+                        resolve(null);
+                        return;
+                    }
+
+                    Swal.fire({
+                        title: 'Obteniendo ubicación...',
+                        text: 'Verificando que estés en Gastropark',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    // getCurrentPosition fuera del didOpen para que Swal.close() funcione limpio
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            Swal.close();
+                            resolve({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude
+                            });
+                        },
+                        (error) => {
+                            let msg = 'Hubo un error al obtener tu ubicación.';
+                            if (error.code === 1) {
+                                msg = 'Has denegado los permisos de ubicación. Necesitamos saber que estás en Gastropark.';
+                            }
+                            Swal.fire('Ubicación no disponible', msg, 'error');
+                            resolve(null);
+                        },
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    );
+                });
+            },
+
+            // ── ÓRDENES METHODS ──
+            async loadMyOrders() {
+                try {
+                    const response = await fetch('{{ route("plaza.my.orders") }}', {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        this.myOrders = data.orders;
+                        this.showMyOrdersDrawer = true;
+                    } else {
+                        showToast({ icon: 'error', title: 'Error', message: data.message, timer: 4000 });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast({ icon: 'error', title: 'Error', message: 'No se pudieron cargar las órdenes', timer: 4000 });
+                }
+            },
+
+            async loadOrderHistory() {
+                if (this.historyLoaded || this.isLoadingHistory) return;
+                this.isLoadingHistory = true;
+                try {
+                    const response = await fetch('{{ route("client.orders.history") }}', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        this.orderHistory = data.orders;
+                        this.historyLoaded = true;
+                    }
+                } catch (error) {
+                    console.error('Error cargando historial:', error);
+                } finally {
+                    this.isLoadingHistory = false;
+                }
+            },
+
+            switchOrdersTab(tab) {
+                this.ordersTab = tab;
+                if (tab === 'history' && !this.historyLoaded) {
+                    this.loadOrderHistory();
+                }
+            },
+
+            closeMyOrdersDrawer() {
+                this.showMyOrdersDrawer = false;
+                this.selectedOrderToCancel = null;
+                this.cancelReason = '';
+                this.ordersTab = 'current';
+                this.orderHistory = [];
+                this.historyLoaded = false;
+            },
+
+            seleccionarParaCancelar(order) {
+                this.selectedOrderToCancel = order;
+            },
+
+            cancelarSeleccion() {
+                this.selectedOrderToCancel = null;
+                this.cancelReason = '';
+            },
+
+            async confirmarCancelacion() {
+                if (!this.selectedOrderToCancel) return;
+
+                this.isCancellingOrder = true;
+
+                try {
+                    const response = await fetch(`{{ url('/plaza/carrito/api/cancelar') }}/${this.selectedOrderToCancel.order_id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ reason: this.cancelReason })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showToast({ icon: 'success', title: '¡Orden Cancelada!', message: data.message, timer: 5000 });
+                        
+                        // Remover de la lista
+                        this.myOrders = this.myOrders.filter(o => o.order_id !== this.selectedOrderToCancel.order_id);
+                        
+                        // Limpiar selección
+                        this.selectedOrderToCancel = null;
+                        this.cancelReason = '';
+                        
+                        // Cerrar drawer si no quedan órdenes
+                        if (this.myOrders.length === 0) {
+                            this.closeMyOrdersDrawer();
+                        }
+                    } else {
+                        showToast({ icon: 'error', title: 'No se pudo cancelar', message: data.message, timer: 5000 });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast({ icon: 'error', title: 'Error', message: error.message || 'Hubo un problema de conexión', timer: 5000 });
+                } finally {
+                    this.isCancellingOrder = false;
+                }
             },
 
             // ── CUSTOM DROPDOWN SELECT ──
@@ -986,10 +1440,13 @@
                         
                         // Actualizar productos reactivos
                         this.productosActuales = data.productos;
-                        
-                        // Actualizar conteo de productos
-                        this.productCount = data.productos.length;
-                        
+
+                        // Sincronizar disabledProductIds con el nuevo local
+                        this.disabledProductIds = data.productosInactivosIds || [];
+
+                        // Actualizar conteo de productos (solo disponibles)
+                        this.productCount = data.productos.filter(p => !this.disabledProductIds.includes(p.product_id)).length;
+
                         // Limpiar categoría activa
                         this.activeCategory = null;
                         
@@ -1012,9 +1469,18 @@
                             };
                         });
                         
+                        // Cambiar canal Echo al nuevo local si cambió
+                        const newLocalId = data.local.local_id;
+                        if (this.currentListenerLocalId !== newLocalId && window.Echo) {
+                            window.Echo.leave(`establishment-updates.${this.currentListenerLocalId}`);
+                            this.currentListenerLocalId = newLocalId;
+                            if (window.initScheduleListener) window.initScheduleListener(newLocalId);
+                            if (window.initProductStatusListener) window.initProductStatusListener(newLocalId);
+                        }
+
                         // Recrear productos en grid (recargar productos)
                         this.recargarProductosLocal(data.productos);
-                        
+
                         // Mostrar toast de éxito
                         showToast({
                             icon: 'success',
@@ -1053,13 +1519,16 @@
                 // Buscar el contenedor de productos
                 const productsContainer = document.querySelector('.menu-section .container');
                 if (!productsContainer) return;
-                
+
                 // Buscar o crear el grid
                 let grid = productsContainer.querySelector('.products-grid');
                 let emptyWrap = productsContainer.querySelector('.empty-wrap');
-                
-                if (productos.length === 0) {
-                    // Si no hay productos, mostrar mensaje vacío
+
+                // Productos disponibles (para verificar si hay al menos uno activo)
+                const disponibles = productos.filter(p => !this.disabledProductIds.includes(p.product_id));
+
+                if (disponibles.length === 0 && productos.length === 0) {
+                    // Sin productos del local en absoluto
                     if (grid) grid.remove();
                     if (!emptyWrap) {
                         emptyWrap = document.createElement('div');
@@ -1088,7 +1557,11 @@
                 let gridHtml = '';
                 
                 // Construir HTML en un string (más rápido que appendChild repetido)
-                productos.forEach((producto, i) => {
+                // Índice visual solo para productos activos (para el badge "Destacado")
+                let activeIndex = 0;
+                productos.forEach((producto) => {
+                    const isDisabled = this.disabledProductIds.includes(producto.product_id);
+
                     // Calcular estrellas
                     let starsHtml = '';
                     const rating = Math.round(producto.average_rating || 0);
@@ -1096,16 +1569,21 @@
                         const color = j <= rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)';
                         starsHtml += `<i class="fas fa-star text-xs" style="color: ${color};"></i>`;
                     }
-                    
+
+                    const i = activeIndex; // índice visual (solo activos)
                     const descHtml = i === 0 && producto.description ? `<p class="featured-desc">${producto.description}</p>` : '';
                     const featured = i === 0 ? 'featured' : '';
                     const featuredLabel = i === 0 ? '<p class="featured-label"><i class="fas fa-crown"></i> &nbsp;Destacado</p>' : '';
                     const categoryTag = producto.category ? `<span class="p-card-cat">${producto.category}</span>` : '';
-                    
+                    const disabledAttr = isDisabled ? 'data-disabled="true"' : '';
+                    const displayStyle = isDisabled ? 'display:none;' : '';
+
+                    if (!isDisabled) activeIndex++;
+
                     gridHtml += `
-                        <div class="p-card ${featured}" data-product-id="${producto.product_id}" data-local-id="${this.currentLocalId}" style="cursor: pointer;">
+                        <div class="p-card ${featured}" data-product-id="${producto.product_id}" data-local-id="${this.currentLocalId}" ${disabledAttr} style="cursor:pointer;${displayStyle}">
                             <div class="p-card-img">
-                                <img src="${producto.photo_url || '{{ asset("images/product-placeholder.png") }}'}" alt="${producto.name}" loading="${i < 4 ? 'eager' : 'lazy'}">
+                                <img src="${producto.photo_url || '/images/product-placeholder.png'}" alt="${producto.name}" loading="${i < 4 ? 'eager' : 'lazy'}">
                                 <div class="p-card-img-fade"></div>
                                 ${categoryTag}
                             </div>
@@ -1168,19 +1646,34 @@
             aplicarFiltroCategoria() {
                 const grid = document.querySelector('.products-grid');
                 if (!grid) return;
-                
+
                 const cards = grid.querySelectorAll('.p-card');
                 let visibleCount = 0;
-                
+
                 cards.forEach(card => {
+                    // Productos inactivos (dynamic cards con data-disabled)
+                    if (card.dataset.disabled === 'true') {
+                        card.style.display = 'none';
+                        return;
+                    }
+
+                    // Productos inactivos (Blade cards con data-product-id)
+                    // v-show="false" pone display:none, pero este función lo sobreescribiría
+                    // sin esta verificación, revelando productos desactivados.
+                    const productId = parseInt(card.dataset.productId);
+                    if (!isNaN(productId) && this.disabledProductIds.includes(productId)) {
+                        card.style.display = 'none';
+                        return;
+                    }
+
                     // Obtener categoría del producto desde el card
                     const categoryTag = card.querySelector('.p-card-cat');
                     const categorySlug = categoryTag ? categoryTag.textContent.toLowerCase().replace(/\s+/g, '-') : '';
-                    
-                    // Mostrar/ocultar según filtro
+
+                    // Mostrar/ocultar según filtro de categoría
                     const showCard = this.activeCategory === null || categorySlug === this.activeCategory;
                     card.style.display = showCard ? '' : 'none';
-                    
+
                     if (showCard) visibleCount++;
                 });
                 
@@ -1237,36 +1730,6 @@
                 this.showProductDetailModal = true;
                 document.body.classList.add('modal-open');
             },
-
-            openProductDetailModal(productId) {
-                if (!this.isAuthenticated) {
-                    this.showAuthNotification();
-                    return;
-                }
-
-                // Obtener datos del producto desde la variable global
-                const product = window.productsData[productId];
-                if (!product) {
-                    console.error('Producto no encontrado:', productId);
-                    return;
-                }
-
-                this.selectedProduct = product;
-                this.selectedProductGallery = (product.gallery || []).map(item => ({
-                    image_url: item.image_url || item.url
-                }));
-                
-                // Si no hay galería, agregar la foto principal
-                if (this.selectedProductGallery.length === 0 && product.photo_url) {
-                    this.selectedProductGallery.push({ image_url: product.photo_url });
-                }
-
-                this.selectedGalleryIndex = 0;
-                this.detailQuantity = 1;
-                this.detailCustomization = '';
-                this.showProductDetailModal = true;
-                document.body.classList.add('modal-open');
-            },
             // ── EVENTS DRAWER METHODS ──
             openEventsDrawer() {
                 this.showEventsDrawer = true;
@@ -1287,6 +1750,57 @@
                 setTimeout(() => {
                     this.currentEvento = {};
                 }, 300);
+            },
+
+            // Recalcular automáticamente si el local está abierto o cerrado basado en la hora actual
+            recalculateEstadoLocal() {
+                if (!this.horarioActual.opening_time || !this.horarioActual.closing_time) {
+                    this.estaAbierto = false;
+                    return;
+                }
+
+                const isOpen = Boolean(this.horarioActual.status);
+                if (!isOpen) {
+                    this.estaAbierto = false;
+                    return;
+                }
+
+                const now = new Date();
+                const current = now.getHours() * 60 + now.getMinutes();
+                
+                try {
+                    const [oh, om] = this.horarioActual.opening_time.split(':').map(Number);
+                    const [ch, cm] = this.horarioActual.closing_time.split(':').map(Number);
+                    const openMinutes = oh * 60 + om;
+                    const closeMinutes = ch * 60 + cm;
+                    
+                    const wasOpen = this.estaAbierto;
+                    this.estaAbierto = current >= openMinutes && current < closeMinutes;
+                    
+                    // Mostrar notificación cuando cambia de estado
+                    if (wasOpen && !this.estaAbierto) {
+                        console.log('🔴 El local acaba de CERRAR automáticamente');
+                        if (window.swToast) {
+                            window.swToast.fire({
+                                icon: 'warning',
+                                title: 'El local ha cerrado',
+                                timer: 3000
+                            });
+                        }
+                    } else if (!wasOpen && this.estaAbierto) {
+                        console.log('🟢 El local acaba de ABRIR automáticamente');
+                        if (window.swToast) {
+                            window.swToast.fire({
+                                icon: 'success',
+                                title: 'El local ha abierto',
+                                timer: 3000
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error al recalcular estado:', error);
+                    this.estaAbierto = false;
+                }
             }
         },
 
@@ -1301,6 +1815,148 @@
                     this.showLocalDropdown = false;
                 }
             });
+
+            // CA1 & CA2 — Escuchar actualizaciones de horario en tiempo real (desde Echo via CustomEvent)
+            document.addEventListener('schedule-updated', (event) => {
+                const { schedules } = event.detail;
+                console.log('📢 Vue recibió evento schedule-updated:', schedules);
+                
+                const todaySchedule = schedules.find(s => s.day_of_week === this.diaActual);
+                console.log(`🔍 Buscando horario para día: ${this.diaActual}`);
+                console.log(`✓ Horario encontrado:`, todaySchedule);
+                
+                if (!todaySchedule) {
+                    console.warn(`⚠ No se encontró horario para ${this.diaActual}`);
+                    return;
+                }
+
+                // Asegurar que status es boolean
+                const isOpen = Boolean(todaySchedule.status);
+                
+                this.horarioActual = {
+                    opening_time: todaySchedule.opening_time,
+                    closing_time: todaySchedule.closing_time,
+                    status: isOpen,
+                };
+
+                console.log(`📊 horarioActual actualizado:`, this.horarioActual);
+
+                // Recalcular el estado del local basado en la nueva información
+                this.recalculateEstadoLocal();
+            });
+
+            // CA4 — Escuchar cambios de estado de productos en tiempo real
+            document.addEventListener('product-status-updated', (event) => {
+                const { product_id, status, product_name } = event.detail;
+                console.log('📢 Vue recibió evento product-status-updated:', event.detail);
+
+                if (status === 'Unavailable') {
+                    // 1. Ocultar en tarjetas Vue (Blade inicial)
+                    if (!this.disabledProductIds.includes(product_id)) {
+                        this.disabledProductIds.push(product_id);
+                        this.productCount = Math.max(0, this.productCount - 1);
+                    }
+
+                    // 2. Ocultar en tarjetas dinámicas (generadas tras cambio de local)
+                    const dynCard = document.querySelector(`.products-grid .p-card[data-product-id="${product_id}"]`);
+                    if (dynCard) {
+                        dynCard.dataset.disabled = 'true';
+                        dynCard.style.display = 'none';
+                    }
+
+                    // CA4: Si el producto está en el carrito, alertar y removerlo
+                    if (this.isAuthenticated) {
+                        const affectedItems = this.drawerCart.filter(item => item.product_id === product_id);
+
+                        if (affectedItems.length > 0) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Producto no disponible',
+                                    text: `"${product_name}" fue desactivado por el local y se eliminó de tu carrito.`,
+                                    confirmButtonColor: '#c9690f',
+                                    timer: 6000,
+                                    timerProgressBar: true,
+                                });
+                            }
+
+                            affectedItems.forEach(cartItem => {
+                                const idx = this.drawerCart.findIndex(i => i.item_key === cartItem.item_key);
+                                if (idx !== -1) this.drawerCart.splice(idx, 1);
+
+                                fetch('{{ route("plaza.cart.remove") }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                        'Accept': 'application/json',
+                                    },
+                                    body: JSON.stringify({ item_key: cartItem.item_key }),
+                                }).catch(err => console.error('Error al remover del carrito:', err));
+                            });
+                        }
+                    }
+
+                } else if (status === 'Available') {
+                    // 1. Mostrar en tarjetas Vue (Blade inicial)
+                    const vueIdx = this.disabledProductIds.indexOf(product_id);
+                    if (vueIdx !== -1) {
+                        this.disabledProductIds.splice(vueIdx, 1);
+                        this.productCount++;
+                    }
+
+                    // 2. Mostrar en tarjetas dinámicas y re-aplicar filtro de categoría
+                    const dynCard = document.querySelector(`.products-grid .p-card[data-product-id="${product_id}"]`);
+                    if (dynCard) {
+                        delete dynCard.dataset.disabled;
+                        dynCard.style.display = '';
+                        // Si hay un filtro de categoría activo que no corresponde, volver a ocultar
+                        if (this.activeCategory !== null) {
+                            const catTag = dynCard.querySelector('.p-card-cat');
+                            const catSlug = catTag ? catTag.textContent.toLowerCase().replace(/\s+/g, '-') : '';
+                            if (catSlug !== this.activeCategory) dynCard.style.display = 'none';
+                        }
+                        // Actualizar el contador si no lo incrementó el Vue path
+                        if (vueIdx === -1) this.productCount++;
+                    }
+                }
+            });
+
+            // Recalcular el estado del local cada 10 segundos (10000 ms)
+            // Esto permite que el estado cambie automáticamente de "Abierto" a "Cerrado" cuando pasa la hora de cierre
+            setInterval(() => {
+                this.recalculateEstadoLocal();
+            }, 10000);
+
+            window.syncEventoInDrawer = (data) => {
+                if (!data || !data.event_id) return;
+
+                this.eventosHoy = this.eventosHoy.filter(e => e.event_id !== data.event_id);
+                this.eventosProximos = this.eventosProximos.filter(e => e.event_id !== data.event_id);
+
+                if (data.action === 'remove') return;
+
+                const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                if (new Date(data.start_at) < threshold) return;
+
+                const today = new Date().toDateString();
+                new Date(data.start_at).toDateString() === today
+                    ? this.eventosHoy.unshift(data)
+                    : this.eventosProximos.unshift(data);
+            };
+
+            document.addEventListener('evento-synced', (e) => {
+                window.syncEventoInDrawer && window.syncEventoInDrawer(e.detail);
+            });
+
+            // Timer: purgar eventos expirados (start_at > 24h) cada minuto
+            const purgeExpiredEvents = () => {
+                const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                this.eventosHoy = this.eventosHoy.filter(e => new Date(e.start_at) >= threshold);
+                this.eventosProximos = this.eventosProximos.filter(e => new Date(e.start_at) >= threshold);
+            };
+            purgeExpiredEvents();
+            setInterval(purgeExpiredEvents, 60000);
         },
 
         watch: {
@@ -1322,6 +1978,63 @@
             }
         }
     }).mount('#plaza-app');
+
+    // Listener de eventos publicados en tiempo real
+    (function initEvents() {
+        const init = () => window.initEventListener ? window.initEventListener() : false;
+        if (window.Echo && init()) return;
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && init()) {
+                clearInterval(retry);
+            } else if (attempts >= 10) {
+                clearInterval(retry);
+            }
+        }, 500);
+    })();
+
+    // Inicializar listener de horario en tiempo real para la vista show
+    (function() {
+        const localId = {{ $local->local_id }};
+
+        if (window.Echo && window.initScheduleListener) {
+            window.initScheduleListener(localId);
+            return;
+        }
+
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && window.initScheduleListener) {
+                window.initScheduleListener(localId);
+                clearInterval(retry);
+            } else if (attempts >= 10) {
+                clearInterval(retry);
+            }
+        }, 500);
+    })();
+
+    // Inicializar listener de estado de productos en tiempo real
+    (function() {
+        const localId = {{ $local->local_id }};
+
+        if (window.Echo && window.initProductStatusListener) {
+            window.initProductStatusListener(localId);
+            return;
+        }
+
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && window.initProductStatusListener) {
+                window.initProductStatusListener(localId);
+                clearInterval(retry);
+            } else if (attempts >= 10) {
+                clearInterval(retry);
+            }
+        }, 500);
+    })();
 </script>
 
 <script>
@@ -1420,6 +2133,27 @@
         updateDots();
         startAutoPlay();
     }
+
+
+
+    @auth
+    window.addEventListener('load', function() {
+        const userId = {{ auth()->id() }};
+        console.log('💬 Iniciando listener de respuestas para usuario:', userId);
+
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && window.initReviewResponseListener) {
+                window.initReviewResponseListener(userId);
+                clearInterval(retry);
+                console.log('💬 Listener conectado exitosamente');
+            } else if (attempts >= 20) {
+                clearInterval(retry);
+            }
+        }, 300);
+    });
+    @endauth
 })();
 </script>
 </body>

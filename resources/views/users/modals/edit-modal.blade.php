@@ -100,7 +100,7 @@
             </div>
         </div>
 
-        <!-- Fila 4: Estado y Foto de Perfil -->
+        <!-- Fila 4: Estado -->
         <div class="row g-3" style="margin-bottom: 0; margin-top: 0;">
             <div class="col-md-6">
                 <label class="form-label">Estado <span class="text-danger">*</span></label>
@@ -109,13 +109,6 @@
                     <option value="Active" {{ $user->status === 'Active' ? 'selected' : '' }}>Activo</option>
                     <option value="Inactive" {{ $user->status === 'Inactive' ? 'selected' : '' }}>Inactivo</option>
                 </select>
-                <div class="invalid-feedback"></div>
-            </div>
-
-            <div class="col-md-6">
-                <label class="form-label">Foto de Perfil (Avatar)</label>
-                <input type="file" name="avatar" class="form-control" accept="image/jpeg,image/png,image/gif,image/jpg" id="avatarInput">
-                <small class="text-muted d-block mt-1">JPG, PNG o GIF. Máximo 2MB</small>
                 <div class="invalid-feedback"></div>
             </div>
         </div>
@@ -417,28 +410,3 @@
     }
 </style>
 
-<script>
-// Manejar vista previa de avatar
-document.addEventListener('DOMContentLoaded', function(){
-    const avatarInput = document.getElementById('avatarInput');
-    if(avatarInput){
-        avatarInput.addEventListener('change', function(e){
-            if(this.files && this.files[0]){
-                const reader = new FileReader();
-                reader.onload = function(event){
-                    let preview = document.getElementById('avatarPreview');
-                    if(!preview){
-                        const container = avatarInput.closest('.col-md-6');
-                        preview = document.createElement('img');
-                        preview.id = 'avatarPreview';
-                        preview.style.cssText = 'width: 80px; height: 80px; border-radius: 8px; object-fit: cover; border: 2px solid #e5e7eb; margin-top: 10px;';
-                        container.appendChild(preview);
-                    }
-                    preview.src = event.target.result;
-                };
-                reader.readAsDataURL(this.files[0]);
-            }
-        });
-    }
-});
-</script>

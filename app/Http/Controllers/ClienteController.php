@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use App\Mail\TemporaryPasswordMail;
+use App\Models\Event;
 use Carbon\Carbon;
 
 class ClienteController extends Controller
@@ -263,10 +264,31 @@ class ClienteController extends Controller
             ]);
         }
 
+        $today     = Carbon::today();
+        $yesterday = Carbon::yesterday();
+
+        $eventosHoy = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
+            ->active()
+            ->whereDate('start_at', $today)
+            ->orderBy('start_at', 'asc')
+            ->get();
+
+        $eventosProximos = Event::select('event_id', 'title', 'description', 'start_at', 'location', 'image_url')
+            ->active()
+            ->notExpired()
+            ->where(function ($query) use ($today, $yesterday) {
+                $query->whereDate('start_at', '>', $today)
+                      ->orWhereDate('start_at', '=', $yesterday);
+            })
+            ->orderBy('start_at', 'asc')
+            ->get();
+
         return view('client.order-history', [
-            'orders' => $orders,
-            'locales' => $locales,
+            'orders'          => $orders,
+            'locales'         => $locales,
             'selectedLocalId' => $request->input('local_id'),
+            'eventosHoy'      => $eventosHoy,
+            'eventosProximos' => $eventosProximos,
         ]);
     }
 

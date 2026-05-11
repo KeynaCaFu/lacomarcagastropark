@@ -21,6 +21,14 @@
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.index.css') }}">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    @vite(['resources/js/app.js'])
+    <style>
+        @keyframes notif-pulse {
+            0%,100% { transform:scale(1);   opacity:1;   }
+            50%      { transform:scale(1.4); opacity:0.8; }
+        }
+    </style>
 </head>
 <body>
 <div id="plaza-app" v-cloak>
@@ -44,15 +52,16 @@
                             <i class="fas fa-shopping-cart"></i>
                             <span id="cart-count">@{{ totalDrawerQty }}</span>
                         </button>
-                        <div class="user-menu-top">
-                            <button class="user-menu-btn" id="userMenuBtn">
+                        <div class="user-menu-top" style="position:relative;">
+                            <button class="user-menu-btn" id="userMenuBtn" style="position:relative;">
                                 @if(auth()->user()->avatar)
                                     <img src="{{ asset(auth()->user()->avatar) }}" alt="" class="avatar-lg">
                                 @else
                                     <i class="fas fa-user-circle icon-md"></i>
                                 @endif
                                 <span class="text-label">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
-                                <i class="fas fa-chevron-down icon-sm"></i>
+                                <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                                <span id="notifDotBtn" style="display:none;position:absolute;top:4px;right:4px;width:9px;height:9px;background:#e53e3e;border-radius:50%;border:2px solid #0A0908;animation:notif-pulse 2s infinite;"></span>
                             </button>
                             <div class="user-menu-dropdown" id="userMenuDropdown">
                                 <div class="dropdown-header">
@@ -62,8 +71,13 @@
                                 <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
                                     <i class="fas fa-user-edit text-muted"></i> Editar perfil
                                 </a>
-                                <a href="{{ route('client.orders.history') }}" class="dropdown-item">
+                                <a href="{{ route('client.orders.history') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('pedidos')">
                                     <i class="fas fa-history text-muted"></i> Ver mis pedidos
+                                    <span id="notifDot_pedidos" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:auto;animation:notif-pulse 2s infinite;"></span>
+                                </a>
+                                <a href="{{ route('client.reviews') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('resenas')">
+                                    <i class="fas fa-star text-muted"></i> Mis reseñas
+                                    <span id="notifDot_resenas" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:auto;animation:notif-pulse 2s infinite;"></span>
                                 </a>
                                 <form method="POST" action="{{ route('logout') }}" class="m-0">
                                     @csrf
@@ -318,7 +332,11 @@
             @else
                 <div class="grid-locals-v2">
                     @foreach($locales as $local)
-                    <article class="local-card-v2">
+                    @php $schHoy = $horariosPorLocal->get($local->local_id); @endphp
+                    <article class="local-card-v2"
+                             data-local-id="{{ $local->local_id }}"
+                             data-opening="{{ $schHoy['opening_time'] ?? '' }}"
+                             data-closing="{{ $schHoy['closing_time'] ?? '' }}">
                         <div class="local-img-wrap-v2">
                             <img src="{{ $local->image_logo ? asset($local->image_logo) : 'https://via.placeholder.com/400x225/171410/D4773A?text=' . urlencode($local->name) }}"
                                  alt="{{ $local->name }}" class="local-img-v2" loading="lazy">
@@ -502,6 +520,9 @@
     <!-- ══ CART DRAWER ══ -->
     @include('plaza.carrito._cart_drawer')
 
+    <!-- ══ EDIT ITEM MODAL ══ -->
+    @include('plaza.carrito._add_to_cart_modal')
+
     <!-- ═══ DRAWER: EVENTO DETAIL (PANEL LATERAL) ═══ -->
     <div v-if="showEventoDetail" class="evento-detail-overlay" @click="closeEventoDetail"></div>
     <div class="evento-detail-drawer" :class="{ 'active': showEventoDetail }">
@@ -555,6 +576,18 @@
 @include('plaza.carrito._toast-notifications')
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    // Horarios de hoy por local_id → { opening_time: "HH:MM", closing_time: "HH:MM" }
+    window.localesScheduleData = {!! json_encode($horariosPorLocal) !!};
+
+    // Datos del usuario autenticado (para editar items del carrito)
+    @auth
+    window.authData = {
+        name: '{{ auth()->user()->name ?? explode("@", auth()->user()->email)[0] }}',
+        email: '{{ auth()->user()->email }}',
+        phone: '{{ auth()->user()->phone ?? "" }}'
+    };
+    @endauth
+
     // Función helper para mostrar toasts personalizados
     const showToast = (config) => { if (window.showNotification) { window.showNotification(config); } };
     /* ── User menu ── */
@@ -568,6 +601,14 @@
             });
             document.addEventListener('click', () => menuDrop.classList.remove('open'));
         }
+
+        // Notificaciones en tiempo real
+        if (window.loadNotifDots) window.loadNotifDots();
+        @auth
+        if (window.initUserNotificationListener) {
+            window.initUserNotificationListener({{ auth()->id() }});
+        }
+        @endauth
     });
 
     /* ── Vue App ── */
@@ -583,6 +624,7 @@
                 categoriaSelectNombre: 'Todos',
                 productosFiltrados: [],
                 cargandoProductos: false,
+                disabledProductIds: [],
                 // Eventos
                 eventosTab: 'hoy',
                 eventosHoy: {!! json_encode($eventosHoy) !!},
@@ -597,7 +639,24 @@
                 showConfirmRemove: false,
                 itemToRemoveIndex: null,
                 drawerCart: [],
-                isCheckingOut: false
+                isCheckingOut: false,
+                // Modal editar item del carrito
+                showAddToCartModal: false,
+                editingCartItemKey: null,
+                currentProduct: { name: '', description: '', photo_url: '', price: 0, product_id: 0, local_id: 0 },
+                quantity: 1,
+                customization: '',
+                isAddingToCart: false,
+                customerName: '',
+                customerEmail: '',
+                customerPhone: '',
+                additionalNotes: '',
+                // Órdenes pendientes
+                myOrders: [],
+                showMyOrdersDrawer: false,
+                isCancellingOrder: false,
+                selectedOrderToCancel: null,
+                cancelReason: ''
             }
         },
 
@@ -606,6 +665,124 @@
             document.addEventListener('mousemove', this.onMouseMove);
             window.addEventListener('scroll', this.onScroll, { passive: true });
             this.loadCartDrawer();
+
+            // Timer: recalcula estado abierto/cerrado cada 10 segundos
+            // Permite que se actualice automáticamente cuando pase la hora de cierre/apertura
+            const recalculateAllLocalStatuses = () => {
+                const now = new Date();
+                const current = now.getHours() * 60 + now.getMinutes();
+
+                document.querySelectorAll('.local-card-v2[data-local-id]').forEach(card => {
+                    const openTime = card.dataset.opening;
+                    const closeTime = card.dataset.closing;
+                    if (!openTime || !closeTime) return;
+
+                    const chip = card.querySelector('.meta-chip.nowrap');
+                    if (!chip) return;
+
+                    try {
+                        const [oh, om] = openTime.split(':').map(Number);
+                        const [ch, cm] = closeTime.split(':').map(Number);
+                        const openMinutes = oh * 60 + om;
+                        const closeMinutes = ch * 60 + cm;
+                        const isOpen = current >= openMinutes && current < closeMinutes;
+                        
+                        // Obtener el estado visual actual
+                        const statusDot = chip.querySelector('.status-dot');
+                        const wasOpen = statusDot && statusDot.classList.contains('status-dot-open');
+
+                        // Solo actualizar si cambió el estado
+                        if (isOpen !== wasOpen) {
+                            chip.innerHTML = `<span class="status-dot ${isOpen ? 'status-dot-open' : 'status-dot-closed'}"></span> ${isOpen ? 'Abierto' : 'Cerrado'}`;
+                            console.log(`⏰ Timer: Local ${card.dataset.localId} cambió → ${isOpen ? '🟢 ABIERTO' : '🔴 CERRADO'}`);
+                        }
+                    } catch (e) {
+                        console.error(`Error procesando local ${card.dataset.localId}:`, e);
+                    }
+                });
+            };
+
+            // Recalcular al cargar (por si la página viene de caché)
+            recalculateAllLocalStatuses();
+            // Recalcular cada 10 segundos (permite que cambie de estado cuando pasa la hora)
+            setInterval(recalculateAllLocalStatuses, 10000);
+
+            // Escuchar actualizaciones de horario en tiempo real (desde Echo via CustomEvent)
+            document.addEventListener('schedule-updated', (event) => {
+                const { schedules, local_id } = event.detail;
+                console.log('📢 Vue Index recibió evento schedule-updated:', { local_id, schedules });
+
+                if (!schedules || schedules.length === 0 || !local_id) {
+                    console.warn('⚠ Evento incompleto (sin schedules o local_id)');
+                    return;
+                }
+
+                // Actualizar inmediatamente cuando llega el evento
+                this.updateLocalStatus(schedules, local_id);
+            });
+
+            // Sincronización en tiempo real del drawer de eventos.
+            // Definido en mounted() (script inline) para estar disponible antes de que app.js
+            // (módulo ES, diferido) cargue y suscriba el canal Echo.
+            window.syncEventoInDrawer = (data) => {
+                if (!data || !data.event_id) return;
+
+                // Eliminar de ambas listas (limpia cambios de fecha o desactivaciones)
+                this.eventosHoy = this.eventosHoy.filter(e => e.event_id !== data.event_id);
+                this.eventosProximos = this.eventosProximos.filter(e => e.event_id !== data.event_id);
+
+                if (data.action === 'remove') return;
+
+                // 'upsert': agregar al lugar correcto si el evento no está expirado
+                const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                if (new Date(data.start_at) < threshold) return;
+
+                const today = new Date().toDateString();
+                new Date(data.start_at).toDateString() === today
+                    ? this.eventosHoy.unshift(data)
+                    : this.eventosProximos.unshift(data);
+            };
+
+            document.addEventListener('evento-synced', (e) => {
+                window.syncEventoInDrawer && window.syncEventoInDrawer(e.detail);
+            });
+
+            // Timer: purgar eventos expirados (start_at > 24h atrás) cada minuto
+            const purgeExpiredEvents = () => {
+                const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                const before = this.eventosHoy.length + this.eventosProximos.length;
+
+                this.eventosHoy = this.eventosHoy.filter(
+                    e => new Date(e.start_at) >= threshold
+                );
+                this.eventosProximos = this.eventosProximos.filter(
+                    e => new Date(e.start_at) >= threshold
+                );
+
+                const removed = before - (this.eventosHoy.length + this.eventosProximos.length);
+                if (removed > 0) {
+                    console.log(`⏰ Expiración: ${removed} evento(s) eliminado(s) del drawer`);
+                }
+            };
+            purgeExpiredEvents();
+            setInterval(purgeExpiredEvents, 60000);
+
+            // Escuchar cambios de estado de productos en tiempo real
+            document.addEventListener('product-status-updated', (event) => {
+                const { product_id, status, product_name } = event.detail;
+                console.log('📢 Vue Index recibió evento product-status-updated:', event.detail);
+
+                if (status === 'Unavailable') {
+                    if (!this.disabledProductIds.includes(product_id)) {
+                        this.disabledProductIds.push(product_id);
+                    }
+                } else if (status === 'Available') {
+                    const idx = this.disabledProductIds.indexOf(product_id);
+                    if (idx !== -1) {
+                        this.disabledProductIds.splice(idx, 1);
+                    }
+                }
+            });
         },
 
         beforeUnmount() {
@@ -658,6 +835,95 @@
                 const scrollY = window.scrollY;
                 const bg = document.getElementById('heroBgImg');
                 if (bg) bg.style.transform = `scale(1.06) translateY(${scrollY * 0.14}px)`;
+            },
+
+            updateLocalStatus(schedules, localId) {
+                if (!localId || !schedules || schedules.length === 0) return;
+
+                const card = document.querySelector(`.local-card-v2[data-local-id="${localId}"]`);
+                if (!card) return;
+
+                const chip = card.querySelector('.meta-chip.nowrap');
+                if (!chip) return;
+
+                // Buscar el horario del día de hoy
+                const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+                const today = days[new Date().getDay()];
+                const todaySchedule = schedules.find(s => s.day_of_week === today);
+
+                if (!todaySchedule) {
+                    console.log(`ℹ El evento es para un día distinto al actual (${today}), sin cambio visual`);
+                    return;
+                }
+
+                // Actualizar los data-attributes del card
+                if (todaySchedule.opening_time) {
+                    card.dataset.opening = todaySchedule.opening_time;
+                }
+                if (todaySchedule.closing_time) {
+                    card.dataset.closing = todaySchedule.closing_time;
+                }
+
+                // Recalcular el estado del local basado en la hora actual (igual a show.blade.php)
+                const isOpen = this.isLocalOpen(todaySchedule);
+                
+                // Actualizar el visual
+                chip.innerHTML = `<span class="status-dot ${isOpen ? 'status-dot-open' : 'status-dot-closed'}"></span> ${isOpen ? 'Abierto' : 'Cerrado'}`;
+                
+                console.log(`✓ Local ${localId} actualizado por evento en tiempo real: ${isOpen ? '🟢 ABIERTO' : '🔴 CERRADO'}`);
+            },
+
+            isLocalOpen(schedule) {
+                // Validar que el horario tiene los campos requeridos
+                if (!schedule) {
+                    return false;
+                }
+
+                let openTime = schedule.opening_time;
+                let closeTime = schedule.closing_time;
+
+                // Si no hay horarios configurados, no está abierto
+                if (!openTime || !closeTime) {
+                    return false;
+                }
+
+                // Si status es explícitamente false, está cerrado
+                if (schedule.status === false || schedule.status === 0 || schedule.status === '0') {
+                    return false;
+                }
+
+                const now = new Date();
+                const current = now.getHours() * 60 + now.getMinutes();
+                
+                try {
+                    // Normalizar tiempos si vienen como objetos
+                    if (typeof openTime === 'object' && openTime.time) {
+                        openTime = openTime.time;
+                    }
+                    if (typeof closeTime === 'object' && closeTime.time) {
+                        closeTime = closeTime.time;
+                    }
+
+                    // Asegurar que son strings
+                    openTime = String(openTime).trim();
+                    closeTime = String(closeTime).trim();
+
+                    // Parsear los horarios
+                    if (openTime.includes(':') && closeTime.includes(':')) {
+                        const [oh, om] = openTime.split(':').map(Number);
+                        const [ch, cm] = closeTime.split(':').map(Number);
+                        
+                        const openMinutes = oh * 60 + om;
+                        const closeMinutes = ch * 60 + cm;
+                        
+                        return current >= openMinutes && current < closeMinutes;
+                    }
+
+                    return false;
+                } catch (error) {
+                    console.error('Error al calcular si local está abierto:', error, schedule);
+                    return false;
+                }
             },
 
             filtrarPorCategoria(slug) {
@@ -718,6 +984,119 @@
             closeCartDrawer() {
                 this.showCartDrawer = false;
                 document.body.classList.remove('cart-drawer-open');
+            },
+            // ── EDIT CART ITEM MODAL ──
+            openEditCartItem(index) {
+                const item = this.drawerCart[index];
+                if (!item) return;
+                this.editingCartItemKey = item.item_key;
+                this.currentProduct = {
+                    name: item.name,
+                    description: item.description || '',
+                    photo_url: item.photo_url || '',
+                    price: parseFloat(item.price),
+                    product_id: item.product_id,
+                    local_id: item.local_id
+                };
+                this.quantity = item.quantity;
+                this.customization = item.customization || '';
+                if (window.authData) {
+                    this.customerName = window.authData.name || '';
+                    this.customerEmail = window.authData.email || '';
+                    this.customerPhone = window.authData.phone || '';
+                }
+                this.showAddToCartModal = true;
+                document.body.classList.add('modal-open');
+            },
+            closeAddToCartModal() {
+                document.body.classList.remove('modal-open');
+                this.showAddToCartModal = false;
+                this.editingCartItemKey = null;
+                setTimeout(() => {
+                    this.currentProduct = { name: '', description: '', photo_url: '', price: 0, product_id: 0, local_id: 0 };
+                    this.quantity = 1;
+                    this.customization = '';
+                    this.customerName = '';
+                    this.customerEmail = '';
+                    this.customerPhone = '';
+                    this.additionalNotes = '';
+                }, 300);
+            },
+            increaseQuantity() { this.quantity++; },
+            decreaseQuantity() { if (this.quantity > 1) this.quantity--; },
+            validateQuantity() {
+                if (this.quantity < 1) this.quantity = 1;
+                else if (!Number.isInteger(this.quantity)) this.quantity = Math.floor(this.quantity);
+            },
+            validateCustomization() {
+                if (this.customization.length > 500) this.customization = this.customization.substring(0, 500);
+            },
+            async proceedAddToCart() {
+                if (this.isAddingToCart) return;
+                const isEditing = !!this.editingCartItemKey;
+                const editingKey = this.editingCartItemKey;
+                this.additionalNotes = this.customization;
+                if (window.authData) {
+                    this.customerName = window.authData.name || this.customerName;
+                    this.customerEmail = window.authData.email || this.customerEmail;
+                    this.customerPhone = window.authData.phone || this.customerPhone;
+                }
+                if (!this.customerName || !this.customerEmail) {
+                    alert('Error: Nombre y email son requeridos. Por favor, recarga la página.');
+                    return;
+                }
+                this.isAddingToCart = true;
+                try {
+                    if (isEditing) {
+                        await fetch('{{ route("plaza.cart.remove") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ item_key: editingKey })
+                        });
+                    }
+                    const response = await fetch('{{ route("plaza.add.cart") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            product_id: this.currentProduct.product_id,
+                            local_id: this.currentProduct.local_id,
+                            quantity: this.quantity,
+                            customization: this.customization.trim(),
+                            customer_name: this.customerName,
+                            customer_email: this.customerEmail,
+                            customer_phone: this.customerPhone,
+                            additional_notes: this.additionalNotes.trim()
+                        })
+                    });
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        showToast({
+                            icon: 'success',
+                            title: isEditing ? '¡Item actualizado!' : '¡Agregado!',
+                            message: isEditing
+                                ? this.currentProduct.name + ' se actualizó correctamente'
+                                : this.currentProduct.name + ' se agregó al carrito',
+                            timer: 5500
+                        });
+                        this.loadCartDrawer();
+                        this.closeAddToCartModal();
+                    } else {
+                        showToast({ icon: 'error', title: 'Oops', message: data.message || 'No pudimos procesar el carrito', timer: 5500 });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast({ icon: 'error', title: isEditing ? 'Error al actualizar' : 'Error al agregar' });
+                } finally {
+                    this.isAddingToCart = false;
+                }
             },
             loadCartDrawer() {
                 fetch('{{ route("plaza.cart.get") }}', {
@@ -868,31 +1247,368 @@
                 this.isCheckingOut = true;
 
                 try {
-                    const response = await fetch('{{ route("plaza.order.create") }}', {
+                    // PASO 1: Solicitar QR key
+                    const qrKey = await this.solicitarQRKey();
+                    if (!qrKey) {
+                        this.isCheckingOut = false;
+                        return; // Usuario canceló
+                    }
+
+                    // PASO 2: Solicitar permisos GPS
+                    const coords = await this.obtenerUbicacion();
+                    if (!coords) {
+                        this.isCheckingOut = false;
+                        return; // Usuario denegó o hubo error
+                    }
+
+                    // PASO 3: Enviar orden con QR y GPS
+                    const response = await fetch('{{ route("plaza.order.confirm") }}', {
                         method: 'POST',
                         headers: {
                             'Accept': 'application/json',
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
-                        body: JSON.stringify({ items: this.drawerCart })
+                        body: JSON.stringify({ 
+                            qr_key: qrKey,
+                            latitude: coords.latitude,
+                            longitude: coords.longitude
+                        })
                     });
 
                     const data = await response.json();
 
                     if (data.success) {
-                        showToast({ icon: 'success', title: '¡Orden confirmada!', message: 'Tu orden se ha procesado correctamente', timer: 6000 });
+                        showToast({ icon: 'success', title: '¡Órdenes confirmadas!', message: data.message, timer: 6000 });
                         this.drawerCart = [];
                         this.showConfirmOrder = false;
                         this.showCartDrawer = false;
+                        
+                        // Cargar y mostrar órdenes pendientes del cliente
+                        setTimeout(() => {
+                            this.loadMyOrders();
+                        }, 1000);
+                        
+                        // Mostrar tokens al usuario para que los guarde
+                        if (data.orders && data.orders.length > 0) {
+                            const tokensMsg = data.orders.map(o => `${o.order_number}: ${o.token}`).join('\n');
+                            console.log('Tokens de verificación:\n' + tokensMsg);
+                        }
                     } else {
-                        showToast({ icon: 'error', title: 'No se pudo procesar', message: data.message || 'Hubo un problema al confirmar tu orden', timer: 5500 });
+                        showToast({ icon: 'error', title: 'No se pudo procesar', message: data.message || 'Hubo un problema', timer: 5500 });
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    showToast({ icon: 'error', title: 'Oops, algo salió mal', message: 'Hubo un problema de conexión. Intenta de nuevo', timer: 5500 });
+                    showToast({ icon: 'error', title: 'Error', message: error.message || 'Hubo un problema de conexión', timer: 5500 });
                 } finally {
                     this.isCheckingOut = false;
+                }
+            },
+
+            // Solicitar QR key al usuario (escanear o ingresar manualmente)
+            solicitarQRKey() {
+                return new Promise((resolve) => {
+                    let stream = null;
+                    let scanInterval = null;
+                    let resolved = false;
+
+                    function stopCamera() {
+                        if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+                        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+                    }
+
+                    function doResolve(value) {
+                        if (!resolved) {
+                            resolved = true;
+                            stopCamera();
+                            Swal.close();
+                            resolve(value);
+                        }
+                    }
+
+                    const html = `
+                        <div style="text-align:center;">
+                            <p style="color:#555;margin-bottom:14px;font-size:14px;">¿Cómo deseas ingresar el código de tu mesa?</p>
+                            <div id="qr-options" style="display:flex;gap:10px;margin-bottom:4px;">
+                                <button id="btn-scan-qr" type="button"
+                                    style="flex:1;padding:14px 8px;background:#10b981;color:white;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">
+                                    <div><i class="fas fa-qrcode" style="font-size:24px;margin-bottom:5px;"></i></div>
+                                    Escanear QR
+                                </button>
+                                <button id="btn-manual-code" type="button"
+                                    style="flex:1;padding:14px 8px;background:#3b82f6;color:white;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">
+                                    <div><i class="fas fa-keyboard" style="font-size:24px;margin-bottom:5px;"></i></div>
+                                    Ingresar código
+                                </button>
+                            </div>
+
+                            <div id="qr-scanner-section" style="display:none;">
+                                <div style="position:relative;display:inline-block;width:100%;max-width:280px;">
+                                    <video id="qr-video" style="width:100%;border-radius:12px;background:#000;display:block;" autoplay playsinline muted></video>
+                                    <canvas id="qr-canvas" style="display:none;"></canvas>
+                                    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:170px;height:170px;border:3px solid #10b981;border-radius:10px;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,0.45);"></div>
+                                </div>
+                                <p id="scan-status" style="color:#10b981;font-size:13px;margin:8px 0 2px;font-weight:500;">Iniciando cámara...</p>
+                                <button id="btn-back-scan" type="button" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;padding:4px 8px;">
+                                    <i class="fas fa-arrow-left"></i> Volver
+                                </button>
+                            </div>
+
+                            <div id="qr-manual-section" style="display:none;">
+                                <input id="qr-code-input" type="text"
+                                    placeholder="Ingresa el código QR"
+                                    style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:16px;box-sizing:border-box;text-align:center;letter-spacing:1px;margin-bottom:6px;"
+                                    autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+                                <p style="color:#888;font-size:12px;margin:0 0 6px;">Ingresa el código que aparece en el QR de tu mesa</p>
+                                <button id="btn-back-manual" type="button" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;padding:4px 8px;">
+                                    <i class="fas fa-arrow-left"></i> Volver
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    Swal.fire({
+                        title: '<i class="fas fa-qrcode" style="margin-right:8px;"></i>Verificación de Mesa',
+                        html: html,
+                        showCancelButton: true,
+                        showConfirmButton: false,
+                        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+                        confirmButtonText: '<i class="fas fa-check"></i> Continuar',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            const optionsDiv  = document.getElementById('qr-options');
+                            const scanSection = document.getElementById('qr-scanner-section');
+                            const manualSection = document.getElementById('qr-manual-section');
+
+                            function showOptions() {
+                                stopCamera();
+                                optionsDiv.style.display    = 'flex';
+                                scanSection.style.display   = 'none';
+                                manualSection.style.display = 'none';
+                                const confirmBtn = document.querySelector('.swal2-confirm');
+                                if (confirmBtn) confirmBtn.style.display = 'none';
+                            }
+
+                            document.getElementById('btn-back-scan')?.addEventListener('click', showOptions);
+                            document.getElementById('btn-back-manual')?.addEventListener('click', showOptions);
+
+                            // --- MODO ESCANEAR ---
+                            document.getElementById('btn-scan-qr').addEventListener('click', async () => {
+                                optionsDiv.style.display  = 'none';
+                                scanSection.style.display = 'block';
+                                const statusEl = document.getElementById('scan-status');
+
+                                if (!window.isSecureContext) {
+                                    statusEl.innerHTML = `
+                                        <span style="color:#ef4444;font-weight:600;">Se requiere HTTPS para usar la cámara.</span><br>
+                                        <small style="color:#888;">Estás en HTTP. Usa "Ingresar código" o accede al sitio por HTTPS.</small>`;
+                                    return;
+                                }
+
+                                if (!navigator.mediaDevices?.getUserMedia) {
+                                    statusEl.innerHTML = `
+                                        <span style="color:#ef4444;font-weight:600;">Cámara no disponible en este navegador.</span><br>
+                                        <small style="color:#888;">Usa "Ingresar código" para continuar.</small>`;
+                                    return;
+                                }
+
+                                statusEl.textContent = 'Solicitando permiso de cámara...';
+
+                                try {
+                                    stream = await navigator.mediaDevices.getUserMedia({
+                                        video: { facingMode: { ideal: 'environment' } }
+                                    });
+                                    const video = document.getElementById('qr-video');
+                                    video.srcObject = stream;
+                                    await video.play();
+                                    statusEl.textContent = 'Apunta al código QR de tu mesa...';
+
+                                    const canvas = document.getElementById('qr-canvas');
+                                    const ctx = canvas.getContext('2d');
+
+                                    scanInterval = setInterval(() => {
+                                        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                                            canvas.width  = video.videoWidth;
+                                            canvas.height = video.videoHeight;
+                                            ctx.drawImage(video, 0, 0);
+                                            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                                            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+                                            if (code?.data) {
+                                                let qrValue = code.data;
+                                                try {
+                                                    const url = new URL(qrValue);
+                                                    const keyParam = url.searchParams.get('key');
+                                                    if (keyParam) qrValue = keyParam;
+                                                } catch (e) { /* no es URL, usar tal cual */ }
+                                                statusEl.textContent = '✓ QR detectado!';
+                                                doResolve(qrValue);
+                                            }
+                                        }
+                                    }, 200);
+                                } catch (err) {
+                                    let msg = 'No se pudo acceder a la cámara.';
+                                    let hint = 'Usa "Ingresar código" para continuar.';
+                                    if (err.name === 'NotAllowedError') {
+                                        msg = 'Permiso de cámara denegado.';
+                                        hint = 'Haz clic en el ícono de cámara en la barra de dirección de Chrome y permite el acceso.';
+                                    } else if (err.name === 'NotFoundError') {
+                                        msg = 'No se encontró cámara en este dispositivo.';
+                                    }
+                                    statusEl.innerHTML = `<span style="color:#ef4444;font-weight:600;">${msg}</span><br><small style="color:#888;">${hint}</small>`;
+                                }
+                            });
+
+                            // --- MODO MANUAL ---
+                            document.getElementById('btn-manual-code').addEventListener('click', () => {
+                                optionsDiv.style.display    = 'none';
+                                manualSection.style.display = 'block';
+                                const confirmBtn = document.querySelector('.swal2-confirm');
+                                if (confirmBtn) {
+                                    confirmBtn.style.display    = 'inline-block';
+                                    confirmBtn.style.visibility = 'visible';
+                                }
+                                document.getElementById('qr-code-input')?.focus();
+                            });
+                        },
+                        preConfirm: () => {
+                            const value = document.getElementById('qr-code-input')?.value?.trim();
+                            if (!value) {
+                                Swal.showValidationMessage('Debes ingresar el código QR');
+                                return false;
+                            }
+                            return value;
+                        },
+                        willClose: () => stopCamera()
+                    }).then((result) => {
+                        if (!resolved) {
+                            resolved = true;
+                            if (result.isConfirmed && result.value) {
+                                resolve(result.value);
+                            } else {
+                                resolve(null);
+                            }
+                        }
+                    });
+                });
+            },
+
+            // Obtener Ubicación GPS
+            obtenerUbicacion() {
+                return new Promise((resolve) => {
+                    if (!navigator.geolocation) {
+                        Swal.fire('Error', 'Tu navegador no soporta geolocalización', 'error');
+                        resolve(null);
+                        return;
+                    }
+
+                    Swal.fire({
+                        title: 'Obteniendo ubicación...',
+                        text: 'Verificando que estés en Gastropark',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    // getCurrentPosition fuera del didOpen para que Swal.close() funcione limpio
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            Swal.close();
+                            resolve({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude
+                            });
+                        },
+                        (error) => {
+                            let msg = 'Hubo un error al obtener tu ubicación.';
+                            if (error.code === 1) {
+                                msg = 'Has denegado los permisos de ubicación. Necesitamos saber que estás en Gastropark.';
+                            }
+                            Swal.fire('Ubicación no disponible', msg, 'error');
+                            resolve(null);
+                        },
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    );
+                });
+            },
+
+            // ══════════════════════════════════════
+            // MÉTODOS PARA ÓRDENES PENDIENTES
+            // ══════════════════════════════════════
+
+            async loadMyOrders() {
+                try {
+                    const response = await fetch('{{ route("plaza.my.orders") }}', {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        this.myOrders = data.orders;
+                        this.showMyOrdersDrawer = true;
+                    } else {
+                        showToast({ icon: 'error', title: 'Error', message: data.message, timer: 4000 });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast({ icon: 'error', title: 'Error', message: 'No se pudieron cargar las órdenes', timer: 4000 });
+                }
+            },
+
+            closeMyOrdersDrawer() {
+                this.showMyOrdersDrawer = false;
+                this.selectedOrderToCancel = null;
+                this.cancelReason = '';
+            },
+
+            seleccionarParaCancelar(order) {
+                this.selectedOrderToCancel = order;
+            },
+
+            cancelarSeleccion() {
+                this.selectedOrderToCancel = null;
+                this.cancelReason = '';
+            },
+
+            async confirmarCancelacion() {
+                if (!this.selectedOrderToCancel) return;
+
+                this.isCancellingOrder = true;
+
+                try {
+                    const response = await fetch(`{{ url('/plaza/carrito/api/cancelar') }}/${this.selectedOrderToCancel.order_id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ reason: this.cancelReason })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showToast({ icon: 'success', title: '¡Orden Cancelada!', message: data.message, timer: 5000 });
+                        
+                        // Remover de la lista
+                        this.myOrders = this.myOrders.filter(o => o.order_id !== this.selectedOrderToCancel.order_id);
+                        
+                        // Limpiar selección
+                        this.selectedOrderToCancel = null;
+                        this.cancelReason = '';
+                        
+                        // Cerrar drawer si no quedan órdenes
+                        if (this.myOrders.length === 0) {
+                            this.closeMyOrdersDrawer();
+                        }
+                    } else {
+                        showToast({ icon: 'error', title: 'No se pudo cancelar', message: data.message, timer: 5000 });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast({ icon: 'error', title: 'Error', message: 'Error al cancelar la orden', timer: 4000 });
+                } finally {
+                    this.isCancellingOrder = false;
                 }
             },
 
@@ -924,6 +1640,63 @@
             }
         }
     }).mount('#plaza-app');
+
+    // Listener de nuevos eventos publicados en tiempo real
+    (function initEvents() {
+        const init = () => window.initEventListener ? window.initEventListener() : false;
+
+        if (window.Echo && init()) return;
+
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && init()) {
+                clearInterval(retry);
+            } else if (attempts >= 10) {
+                clearInterval(retry);
+            }
+        }, 500);
+    })();
+                // Listener de respuestas a reseñas para el cliente
+    
+   
+
+    // Actualizaciones de horario en tiempo real para todos los locales de la página
+    (function initSchedules() {
+        const localIds = {!! json_encode($locales->pluck('local_id')->toArray()) !!};
+        if (!localIds.length) return;
+
+        // Inicializar listener para cada local
+        const initListeners = () => {
+            let successCount = 0;
+            localIds.forEach(localId => {
+                if (window.initScheduleListener) {
+                    window.initScheduleListener(localId);
+                    if (window.initProductStatusListener) {
+                        window.initProductStatusListener(localId);
+                    }
+                    successCount++;
+                }
+            });
+            return successCount === localIds.length;
+        };
+
+        if (window.Echo && initListeners()) {
+            return;
+        }
+
+        // Reintentar hasta que Echo esté listo (máx 5 s)
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && initListeners()) {
+                clearInterval(retry);
+            } else if (attempts >= 10) {
+                clearInterval(retry);
+            }
+        }, 500);
+    })();
+
 </script>
 
 </body>

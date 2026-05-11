@@ -144,6 +144,9 @@
                             <button @click="updateItemQty(index, item.quantity + 1)" class="btn-qty" title="Aumentar">
                                 <i class="fas fa-plus"></i>
                             </button>
+                            <button @click="openEditCartItem(index)" class="btn-edit-item" title="Editar item">
+                                <i class="fas fa-pen"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
