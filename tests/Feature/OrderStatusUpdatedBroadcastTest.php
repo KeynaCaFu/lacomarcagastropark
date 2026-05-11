@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\Factory as BroadcastFactory;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
@@ -344,7 +345,7 @@ class OrderStatusUpdatedBroadcastTest extends TestCase
      */
     public function test_broadcast_dispatched_when_status_changes_to_ready()
     {
-        $broadcastSpy = $this->spy(BroadcastFactory::class);
+        Event::fake([OrderStatusUpdated::class]);
 
         $this->order->update(['status' => Order::STATUS_PREPARATION]);
 
@@ -355,13 +356,12 @@ class OrderStatusUpdatedBroadcastTest extends TestCase
 
         $response->assertStatus(200);
 
-        $broadcastSpy->shouldHaveReceived('event')
-            ->once()
-            ->with(\Mockery::on(function ($event) {
-                return $event instanceof OrderStatusUpdated
-                    && $event->orderId === $this->order->order_id
-                    && $event->status  === Order::STATUS_READY;
-            }));
+        Event::assertDispatched(OrderStatusUpdated::class, function ($event) {
+            return $event->orderId === $this->order->order_id
+                && $event->status  === Order::STATUS_READY;
+        });
+
+        Event::assertDispatchedTimes(OrderStatusUpdated::class, 1);
     }
 
     /**
@@ -396,7 +396,7 @@ class OrderStatusUpdatedBroadcastTest extends TestCase
      */
     public function test_broadcast_dispatched_on_pending_to_preparing_change()
     {
-        $broadcastSpy = $this->spy(BroadcastFactory::class);
+        Event::fake([OrderStatusUpdated::class]);
 
         $response = $this->actingAs($this->manager)
             ->postJson("/ordenes/{$this->order->order_id}/cambiar-estado", [
@@ -405,13 +405,12 @@ class OrderStatusUpdatedBroadcastTest extends TestCase
 
         $response->assertStatus(200);
 
-        $broadcastSpy->shouldHaveReceived('event')
-            ->once()
-            ->with(\Mockery::on(function ($event) {
-                return $event instanceof OrderStatusUpdated
-                    && $event->orderId === $this->order->order_id
-                    && $event->status  === Order::STATUS_PREPARATION;
-            }));
+        Event::assertDispatched(OrderStatusUpdated::class, function ($event) {
+            return $event->orderId === $this->order->order_id
+                && $event->status  === Order::STATUS_PREPARATION;
+        });
+
+        Event::assertDispatchedTimes(OrderStatusUpdated::class, 1);
     }
 
     /**
