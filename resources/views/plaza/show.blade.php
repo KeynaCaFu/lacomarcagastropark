@@ -25,10 +25,17 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    @vite(['resources/js/app.js'])
+    <style>
+        @keyframes notif-pulse {
+            0%,100% { transform:scale(1);   opacity:1;   }
+            50%      { transform:scale(1.4); opacity:0.8; }
+        }
+    </style>
 
 </head>
 <body>
-<div id="plaza-app" v-cloak>
+<div id="plaza-app" v-cloak data-local-id="{{ $local->local_id }}">
 
     <!-- ── HEADER ── -->
     <header class="site-header">
@@ -52,14 +59,16 @@
                     @endauth
                     <div>
                         @auth
-                            <div class="user-menu-top">
-                                <button class="user-menu-btn" id="userMenuBtn">
+                            <div class="user-menu-top" style="position:relative;">
+                                <button class="user-menu-btn" id="userMenuBtn" style="position:relative;">
                                     @if(auth()->user()->avatar)
                                         <img src="{{ asset(auth()->user()->avatar) }}" alt="" class="avatar-img">
                                     @else
                                         <i class="fas fa-user-circle icon-md"></i>
                                     @endif
                                     <span class="text-label">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
+                                    <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                                    <span id="notifDotBtn" style="display:none;position:absolute;top:4px;right:4px;width:9px;height:9px;background:#e53e3e;border-radius:50%;border:2px solid #0A0908;animation:notif-pulse 2s infinite;"></span>
                                 </button>
                                 <div class="user-menu-dropdown" id="userMenuDropdown">
                                     <div class="dropdown-header">
@@ -69,8 +78,13 @@
                                     <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
                                         <i class="fas fa-user-edit text-muted"></i> Editar perfil
                                     </a>
-                                    <a href="{{ route('client.orders.history') }}" class="dropdown-item">
+                                    <a href="{{ route('client.orders.history') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('pedidos')">
                                         <i class="fas fa-history text-muted"></i> Ver mis pedidos
+                                        <span id="notifDot_pedidos" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:auto;animation:notif-pulse 2s infinite;"></span>
+                                    </a>
+                                    <a href="{{ route('client.reviews') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('resenas')">
+                                        <i class="fas fa-star text-muted"></i> Mis reseñas
+                                        <span id="notifDot_resenas" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:auto;animation:notif-pulse 2s infinite;"></span>
                                     </a>
                                     <form method="POST" action="{{ route('logout') }}" class="m-0">
                                         @csrf
@@ -108,17 +122,17 @@
                         <h1 class="hero-name">@{{ localActual.name }}</h1>
                         <p class="hero-desc" v-if="localActual.description">@{{ localActual.description }}</p>
                     </div>
-                    <div class="user-info-row" v-if="horarioActual.status">
+                    <div class="user-info-row" v-if="horarioActual.status" :data-schedule-day="diaActual">
                         <div class="time-display">
                             <div class="time-label">@{{ diaActual }}</div>
                             <div class="time-value" v-if="horarioActual.opening_time || horarioActual.closing_time">
-                                @{{ horarioActual.opening_time || 'N/A' }} - @{{ horarioActual.closing_time || 'N/A' }}
+                                <span data-opening-time>@{{ horarioActual.opening_time || 'N/A' }}</span> - <span data-closing-time>@{{ horarioActual.closing_time || 'N/A' }}</span>
                             </div>
                             <div class="status-label">
-                                <span class="status-text-open" v-if="estaAbierto">
+                                <span class="status-text-open" v-if="estaAbierto" data-schedule-status="open">
                                     <i class="fas fa-circle status-open"></i> Abierto
                                 </span>
-                                <span class="status-text-closed" v-else>
+                                <span class="status-text-closed" v-else data-schedule-status="closed">
                                     <i class="fas fa-circle status-closed"></i> Cerrado
                                 </span>
                             </div>
@@ -199,16 +213,18 @@
                 <span class="item-count">@{{ productCount }} Productos</span>
             </div>
 
-            @if($productos->isEmpty())
+            @if($productos->where('status', 'Available')->isEmpty())
                 <div class="empty-wrap">
                     <div class="empty-icon"><i class="fas fa-bowl-food"></i></div>
                     <p class="empty-msg">No hay productos disponibles por el momento</p>
                 </div>
-            @else
+            @endif
+            @if($productos->isNotEmpty())
                 <div class="products-grid">
                     @foreach($productos as $i => $producto)
                     <div class="p-card {{ $i === 0 ? 'featured' : '' }}"
-                         v-show="activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory"
+                         data-product-id="{{ $producto->product_id }}"
+                         v-show="(activeCategory === null || '{{ Str::slug($producto->category) }}' === activeCategory) && !disabledProductIds.includes({{ $producto->product_id }})"
                          @click="navigateToProduct('{{ route('plaza.product.detail', [$local->local_id, $producto->product_id]) }}')"
                          style="cursor: pointer;">
 
@@ -244,8 +260,9 @@
                                 <span class="p-card-price">
                                     <sup>₡</sup>{{ number_format($producto->price, 2) }}
                                 </span>
-                                <button 
+                                <button
                                     class="btn-add-cart"
+                                    :disabled="disabledProductIds.includes({{ $producto->product_id }})"
                                     @click.stop="openAddToCartModal({
                                         product_id: {{ $producto->product_id }},
                                         local_id: {{ $local->local_id }},
@@ -485,7 +502,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Inicializar swToast si no está ya
         initSwToast();
-        
+
         const menuBtn = document.getElementById('userMenuBtn');
         const menuDropdown = document.getElementById('userMenuDropdown');
 
@@ -498,6 +515,14 @@
                 menuDropdown.classList.remove('open');
             });
         }
+
+        // Notificaciones en tiempo real
+        if (window.loadNotifDots) window.loadNotifDots();
+        @auth
+        if (window.initUserNotificationListener) {
+            window.initUserNotificationListener({{ auth()->id() }});
+        }
+        @endauth
     });
 
     // Vue app
@@ -527,7 +552,9 @@
                 estaAbierto: {{ $estaAbierto ? 'true' : 'false' }},
                 categoriasActuales: {!! json_encode($categorias) !!},
                 productosActuales: {!! json_encode($productos->map(function($p) { return ['product_id' => $p->product_id, 'name' => $p->name, 'category' => $p->category, 'description' => $p->description, 'photo_url' => $p->photo_url ? asset($p->photo_url) : null, 'price' => $p->price, 'average_rating' => $p->average_rating]; })) !!},
-                productCount: {{ $productos->count() }},
+                productCount: {{ $productos->where('status', 'Available')->count() }},
+                disabledProductIds: {!! json_encode($productosInactivosIds) !!},
+                currentListenerLocalId: {{ $local->local_id }},
                 showAddToCartModal: false,
                 showCartDrawer: false,
                 showEventsDrawer: false,
@@ -555,6 +582,7 @@
                 quantity: 1,
                 customization: '',
                 isAddingToCart: false,
+                editingCartItemKey: null,
                 // Datos del cliente
                 customerName: '',
                 customerEmail: '',
@@ -616,6 +644,7 @@
             closeAddToCartModal() {
                 document.body.classList.remove('modal-open');
                 this.showAddToCartModal = false;
+                this.editingCartItemKey = null;
                 setTimeout(() => {
                     this.currentProduct = { name: '', description: '', photo_url: '', price: 0, product_id: 0, local_id: 0 };
                     this.quantity = 1;
@@ -625,6 +654,28 @@
                     this.customerPhone = '';
                     this.additionalNotes = '';
                 }, 300);
+            },
+            openEditCartItem(index) {
+                const item = this.drawerCart[index];
+                if (!item) return;
+                this.editingCartItemKey = item.item_key;
+                this.currentProduct = {
+                    name: item.name,
+                    description: item.description || '',
+                    photo_url: item.photo_url || '',
+                    price: parseFloat(item.price),
+                    product_id: item.product_id,
+                    local_id: item.local_id
+                };
+                this.quantity = item.quantity;
+                this.customization = item.customization || '';
+                if (window.authData) {
+                    this.customerName = window.authData.name || '';
+                    this.customerEmail = window.authData.email || '';
+                    this.customerPhone = window.authData.phone || '';
+                }
+                this.showAddToCartModal = true;
+                document.body.classList.add('modal-open');
             },
             showAuthNotification() {
                 // Crear contenedor si no existe
@@ -679,6 +730,9 @@
             async proceedAddToCart() {
                 if (this.isAddingToCart) return;
 
+                const isEditing = !!this.editingCartItemKey;
+                const editingKey = this.editingCartItemKey;
+
                 // Sincronizar notas: ambos campos lleven lo mismo
                 this.additionalNotes = this.customization;
 
@@ -700,6 +754,19 @@
                 this.isAddingToCart = true;
 
                 try {
+                    // Si estamos editando, eliminar el item antiguo primero
+                    if (isEditing) {
+                        await fetch('{{ route("plaza.cart.remove") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ item_key: editingKey })
+                        });
+                    }
+
                     const response = await fetch('{{ route("plaza.add.cart") }}', {
                         method: 'POST',
                         headers: {
@@ -720,27 +787,23 @@
                     });
 
                     const data = await response.json();
-                    console.log('Add to cart response:', data);
 
                     if (response.ok && data.success) {
-                        // Mostrar toast de �xito
                         showToast({
                             icon: 'success',
-                            title: '¡Producto agregado!',
-                            message: this.currentProduct.name + ' se agregó al carrito correctamente',
+                            title: isEditing ? '¡Item actualizado!' : '¡Producto agregado!',
+                            message: isEditing
+                                ? this.currentProduct.name + ' se actualizó correctamente'
+                                : this.currentProduct.name + ' se agregó al carrito correctamente',
                             timer: 5500
                         });
-
-                        // Cargar carrito actualizado para que Vue reaccione
                         this.loadCartDrawer();
-
-                        // Cerrar modal
                         this.closeAddToCartModal();
                     } else {
                         showToast({
                             icon: 'error',
                             title: 'Oops, algo salió mal',
-                            message: data.message || 'No pudimos agregar el producto al carrito',
+                            message: data.message || 'No pudimos procesar el carrito',
                             timer: 5500
                         });
                     }
@@ -748,7 +811,7 @@
                     console.error('Error:', error);
                     showToast({
                         icon: 'error',
-                        title: 'Error al agregar al carrito'
+                        title: isEditing ? 'Error al actualizar item' : 'Error al agregar al carrito'
                     });
                 } finally {
                     this.isAddingToCart = false;
@@ -1060,10 +1123,11 @@
 
                             function showOptions() {
                                 stopCamera();
-                                optionsDiv.style.display   = 'flex';
-                                scanSection.style.display  = 'none';
+                                optionsDiv.style.display    = 'flex';
+                                scanSection.style.display   = 'none';
                                 manualSection.style.display = 'none';
-                                Swal.update({ showConfirmButton: false });
+                                const confirmBtn = document.querySelector('.swal2-confirm');
+                                if (confirmBtn) confirmBtn.style.display = 'none';
                             }
 
                             document.getElementById('btn-back-scan')?.addEventListener('click', showOptions);
@@ -1140,7 +1204,12 @@
                             document.getElementById('btn-manual-code').addEventListener('click', () => {
                                 optionsDiv.style.display    = 'none';
                                 manualSection.style.display = 'block';
-                                Swal.update({ showConfirmButton: true });
+                                // Mostrar botón Continuar directamente en el DOM (evita re-render de Swal.update)
+                                const confirmBtn = document.querySelector('.swal2-confirm');
+                                if (confirmBtn) {
+                                    confirmBtn.style.display    = 'inline-block';
+                                    confirmBtn.style.visibility = 'visible';
+                                }
                                 document.getElementById('qr-code-input')?.focus();
                             });
                         },
@@ -1372,10 +1441,13 @@
                         
                         // Actualizar productos reactivos
                         this.productosActuales = data.productos;
-                        
-                        // Actualizar conteo de productos
-                        this.productCount = data.productos.length;
-                        
+
+                        // Sincronizar disabledProductIds con el nuevo local
+                        this.disabledProductIds = data.productosInactivosIds || [];
+
+                        // Actualizar conteo de productos (solo disponibles)
+                        this.productCount = data.productos.filter(p => !this.disabledProductIds.includes(p.product_id)).length;
+
                         // Limpiar categoría activa
                         this.activeCategory = null;
                         
@@ -1398,9 +1470,18 @@
                             };
                         });
                         
+                        // Cambiar canal Echo al nuevo local si cambió
+                        const newLocalId = data.local.local_id;
+                        if (this.currentListenerLocalId !== newLocalId && window.Echo) {
+                            window.Echo.leave(`establishment-updates.${this.currentListenerLocalId}`);
+                            this.currentListenerLocalId = newLocalId;
+                            if (window.initScheduleListener) window.initScheduleListener(newLocalId);
+                            if (window.initProductStatusListener) window.initProductStatusListener(newLocalId);
+                        }
+
                         // Recrear productos en grid (recargar productos)
                         this.recargarProductosLocal(data.productos);
-                        
+
                         // Mostrar toast de éxito
                         showToast({
                             icon: 'success',
@@ -1439,13 +1520,16 @@
                 // Buscar el contenedor de productos
                 const productsContainer = document.querySelector('.menu-section .container');
                 if (!productsContainer) return;
-                
+
                 // Buscar o crear el grid
                 let grid = productsContainer.querySelector('.products-grid');
                 let emptyWrap = productsContainer.querySelector('.empty-wrap');
-                
-                if (productos.length === 0) {
-                    // Si no hay productos, mostrar mensaje vacío
+
+                // Productos disponibles (para verificar si hay al menos uno activo)
+                const disponibles = productos.filter(p => !this.disabledProductIds.includes(p.product_id));
+
+                if (disponibles.length === 0 && productos.length === 0) {
+                    // Sin productos del local en absoluto
                     if (grid) grid.remove();
                     if (!emptyWrap) {
                         emptyWrap = document.createElement('div');
@@ -1474,7 +1558,11 @@
                 let gridHtml = '';
                 
                 // Construir HTML en un string (más rápido que appendChild repetido)
-                productos.forEach((producto, i) => {
+                // Índice visual solo para productos activos (para el badge "Destacado")
+                let activeIndex = 0;
+                productos.forEach((producto) => {
+                    const isDisabled = this.disabledProductIds.includes(producto.product_id);
+
                     // Calcular estrellas
                     let starsHtml = '';
                     const rating = Math.round(producto.average_rating || 0);
@@ -1482,14 +1570,19 @@
                         const color = j <= rating ? 'var(--primary)' : 'rgba(122,112,96,0.25)';
                         starsHtml += `<i class="fas fa-star text-xs" style="color: ${color};"></i>`;
                     }
-                    
+
+                    const i = activeIndex; // índice visual (solo activos)
                     const descHtml = i === 0 && producto.description ? `<p class="featured-desc">${producto.description}</p>` : '';
                     const featured = i === 0 ? 'featured' : '';
                     const featuredLabel = i === 0 ? '<p class="featured-label"><i class="fas fa-crown"></i> &nbsp;Destacado</p>' : '';
                     const categoryTag = producto.category ? `<span class="p-card-cat">${producto.category}</span>` : '';
-                    
+                    const disabledAttr = isDisabled ? 'data-disabled="true"' : '';
+                    const displayStyle = isDisabled ? 'display:none;' : '';
+
+                    if (!isDisabled) activeIndex++;
+
                     gridHtml += `
-                        <div class="p-card ${featured}" data-product-id="${producto.product_id}" data-local-id="${this.currentLocalId}" style="cursor: pointer;">
+                        <div class="p-card ${featured}" data-product-id="${producto.product_id}" data-local-id="${this.currentLocalId}" ${disabledAttr} style="cursor:pointer;${displayStyle}">
                             <div class="p-card-img">
                                 <img src="${producto.photo_url || '/images/product-placeholder.png'}" alt="${producto.name}" loading="${i < 4 ? 'eager' : 'lazy'}">
                                 <div class="p-card-img-fade"></div>
@@ -1554,19 +1647,34 @@
             aplicarFiltroCategoria() {
                 const grid = document.querySelector('.products-grid');
                 if (!grid) return;
-                
+
                 const cards = grid.querySelectorAll('.p-card');
                 let visibleCount = 0;
-                
+
                 cards.forEach(card => {
+                    // Productos inactivos (dynamic cards con data-disabled)
+                    if (card.dataset.disabled === 'true') {
+                        card.style.display = 'none';
+                        return;
+                    }
+
+                    // Productos inactivos (Blade cards con data-product-id)
+                    // v-show="false" pone display:none, pero este función lo sobreescribiría
+                    // sin esta verificación, revelando productos desactivados.
+                    const productId = parseInt(card.dataset.productId);
+                    if (!isNaN(productId) && this.disabledProductIds.includes(productId)) {
+                        card.style.display = 'none';
+                        return;
+                    }
+
                     // Obtener categoría del producto desde el card
                     const categoryTag = card.querySelector('.p-card-cat');
                     const categorySlug = categoryTag ? categoryTag.textContent.toLowerCase().replace(/\s+/g, '-') : '';
-                    
-                    // Mostrar/ocultar según filtro
+
+                    // Mostrar/ocultar según filtro de categoría
                     const showCard = this.activeCategory === null || categorySlug === this.activeCategory;
                     card.style.display = showCard ? '' : 'none';
-                    
+
                     if (showCard) visibleCount++;
                 });
                 
@@ -1643,6 +1751,57 @@
                 setTimeout(() => {
                     this.currentEvento = {};
                 }, 300);
+            },
+
+            // Recalcular automáticamente si el local está abierto o cerrado basado en la hora actual
+            recalculateEstadoLocal() {
+                if (!this.horarioActual.opening_time || !this.horarioActual.closing_time) {
+                    this.estaAbierto = false;
+                    return;
+                }
+
+                const isOpen = Boolean(this.horarioActual.status);
+                if (!isOpen) {
+                    this.estaAbierto = false;
+                    return;
+                }
+
+                const now = new Date();
+                const current = now.getHours() * 60 + now.getMinutes();
+                
+                try {
+                    const [oh, om] = this.horarioActual.opening_time.split(':').map(Number);
+                    const [ch, cm] = this.horarioActual.closing_time.split(':').map(Number);
+                    const openMinutes = oh * 60 + om;
+                    const closeMinutes = ch * 60 + cm;
+                    
+                    const wasOpen = this.estaAbierto;
+                    this.estaAbierto = current >= openMinutes && current < closeMinutes;
+                    
+                    // Mostrar notificación cuando cambia de estado
+                    if (wasOpen && !this.estaAbierto) {
+                        console.log('🔴 El local acaba de CERRAR automáticamente');
+                        if (window.swToast) {
+                            window.swToast.fire({
+                                icon: 'warning',
+                                title: 'El local ha cerrado',
+                                timer: 3000
+                            });
+                        }
+                    } else if (!wasOpen && this.estaAbierto) {
+                        console.log('🟢 El local acaba de ABRIR automáticamente');
+                        if (window.swToast) {
+                            window.swToast.fire({
+                                icon: 'success',
+                                title: 'El local ha abierto',
+                                timer: 3000
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error al recalcular estado:', error);
+                    this.estaAbierto = false;
+                }
             }
         },
 
@@ -1657,6 +1816,148 @@
                     this.showLocalDropdown = false;
                 }
             });
+
+            // CA1 & CA2 — Escuchar actualizaciones de horario en tiempo real (desde Echo via CustomEvent)
+            document.addEventListener('schedule-updated', (event) => {
+                const { schedules } = event.detail;
+                console.log('📢 Vue recibió evento schedule-updated:', schedules);
+                
+                const todaySchedule = schedules.find(s => s.day_of_week === this.diaActual);
+                console.log(`🔍 Buscando horario para día: ${this.diaActual}`);
+                console.log(`✓ Horario encontrado:`, todaySchedule);
+                
+                if (!todaySchedule) {
+                    console.warn(`⚠ No se encontró horario para ${this.diaActual}`);
+                    return;
+                }
+
+                // Asegurar que status es boolean
+                const isOpen = Boolean(todaySchedule.status);
+                
+                this.horarioActual = {
+                    opening_time: todaySchedule.opening_time,
+                    closing_time: todaySchedule.closing_time,
+                    status: isOpen,
+                };
+
+                console.log(`📊 horarioActual actualizado:`, this.horarioActual);
+
+                // Recalcular el estado del local basado en la nueva información
+                this.recalculateEstadoLocal();
+            });
+
+            // CA4 — Escuchar cambios de estado de productos en tiempo real
+            document.addEventListener('product-status-updated', (event) => {
+                const { product_id, status, product_name } = event.detail;
+                console.log('📢 Vue recibió evento product-status-updated:', event.detail);
+
+                if (status === 'Unavailable') {
+                    // 1. Ocultar en tarjetas Vue (Blade inicial)
+                    if (!this.disabledProductIds.includes(product_id)) {
+                        this.disabledProductIds.push(product_id);
+                        this.productCount = Math.max(0, this.productCount - 1);
+                    }
+
+                    // 2. Ocultar en tarjetas dinámicas (generadas tras cambio de local)
+                    const dynCard = document.querySelector(`.products-grid .p-card[data-product-id="${product_id}"]`);
+                    if (dynCard) {
+                        dynCard.dataset.disabled = 'true';
+                        dynCard.style.display = 'none';
+                    }
+
+                    // CA4: Si el producto está en el carrito, alertar y removerlo
+                    if (this.isAuthenticated) {
+                        const affectedItems = this.drawerCart.filter(item => item.product_id === product_id);
+
+                        if (affectedItems.length > 0) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Producto no disponible',
+                                    text: `"${product_name}" fue desactivado por el local y se eliminó de tu carrito.`,
+                                    confirmButtonColor: '#c9690f',
+                                    timer: 6000,
+                                    timerProgressBar: true,
+                                });
+                            }
+
+                            affectedItems.forEach(cartItem => {
+                                const idx = this.drawerCart.findIndex(i => i.item_key === cartItem.item_key);
+                                if (idx !== -1) this.drawerCart.splice(idx, 1);
+
+                                fetch('{{ route("plaza.cart.remove") }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                        'Accept': 'application/json',
+                                    },
+                                    body: JSON.stringify({ item_key: cartItem.item_key }),
+                                }).catch(err => console.error('Error al remover del carrito:', err));
+                            });
+                        }
+                    }
+
+                } else if (status === 'Available') {
+                    // 1. Mostrar en tarjetas Vue (Blade inicial)
+                    const vueIdx = this.disabledProductIds.indexOf(product_id);
+                    if (vueIdx !== -1) {
+                        this.disabledProductIds.splice(vueIdx, 1);
+                        this.productCount++;
+                    }
+
+                    // 2. Mostrar en tarjetas dinámicas y re-aplicar filtro de categoría
+                    const dynCard = document.querySelector(`.products-grid .p-card[data-product-id="${product_id}"]`);
+                    if (dynCard) {
+                        delete dynCard.dataset.disabled;
+                        dynCard.style.display = '';
+                        // Si hay un filtro de categoría activo que no corresponde, volver a ocultar
+                        if (this.activeCategory !== null) {
+                            const catTag = dynCard.querySelector('.p-card-cat');
+                            const catSlug = catTag ? catTag.textContent.toLowerCase().replace(/\s+/g, '-') : '';
+                            if (catSlug !== this.activeCategory) dynCard.style.display = 'none';
+                        }
+                        // Actualizar el contador si no lo incrementó el Vue path
+                        if (vueIdx === -1) this.productCount++;
+                    }
+                }
+            });
+
+            // Recalcular el estado del local cada 10 segundos (10000 ms)
+            // Esto permite que el estado cambie automáticamente de "Abierto" a "Cerrado" cuando pasa la hora de cierre
+            setInterval(() => {
+                this.recalculateEstadoLocal();
+            }, 10000);
+
+            window.syncEventoInDrawer = (data) => {
+                if (!data || !data.event_id) return;
+
+                this.eventosHoy = this.eventosHoy.filter(e => e.event_id !== data.event_id);
+                this.eventosProximos = this.eventosProximos.filter(e => e.event_id !== data.event_id);
+
+                if (data.action === 'remove') return;
+
+                const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                if (new Date(data.start_at) < threshold) return;
+
+                const today = new Date().toDateString();
+                new Date(data.start_at).toDateString() === today
+                    ? this.eventosHoy.unshift(data)
+                    : this.eventosProximos.unshift(data);
+            };
+
+            document.addEventListener('evento-synced', (e) => {
+                window.syncEventoInDrawer && window.syncEventoInDrawer(e.detail);
+            });
+
+            // Timer: purgar eventos expirados (start_at > 24h) cada minuto
+            const purgeExpiredEvents = () => {
+                const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                this.eventosHoy = this.eventosHoy.filter(e => new Date(e.start_at) >= threshold);
+                this.eventosProximos = this.eventosProximos.filter(e => new Date(e.start_at) >= threshold);
+            };
+            purgeExpiredEvents();
+            setInterval(purgeExpiredEvents, 60000);
         },
 
         watch: {
@@ -1678,6 +1979,63 @@
             }
         }
     }).mount('#plaza-app');
+
+    // Listener de eventos publicados en tiempo real
+    (function initEvents() {
+        const init = () => window.initEventListener ? window.initEventListener() : false;
+        if (window.Echo && init()) return;
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && init()) {
+                clearInterval(retry);
+            } else if (attempts >= 10) {
+                clearInterval(retry);
+            }
+        }, 500);
+    })();
+
+    // Inicializar listener de horario en tiempo real para la vista show
+    (function() {
+        const localId = {{ $local->local_id }};
+
+        if (window.Echo && window.initScheduleListener) {
+            window.initScheduleListener(localId);
+            return;
+        }
+
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && window.initScheduleListener) {
+                window.initScheduleListener(localId);
+                clearInterval(retry);
+            } else if (attempts >= 10) {
+                clearInterval(retry);
+            }
+        }, 500);
+    })();
+
+    // Inicializar listener de estado de productos en tiempo real
+    (function() {
+        const localId = {{ $local->local_id }};
+
+        if (window.Echo && window.initProductStatusListener) {
+            window.initProductStatusListener(localId);
+            return;
+        }
+
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && window.initProductStatusListener) {
+                window.initProductStatusListener(localId);
+                clearInterval(retry);
+            } else if (attempts >= 10) {
+                clearInterval(retry);
+            }
+        }, 500);
+    })();
 </script>
 
 <script>
@@ -1776,6 +2134,27 @@
         updateDots();
         startAutoPlay();
     }
+
+
+
+    @auth
+    window.addEventListener('load', function() {
+        const userId = {{ auth()->id() }};
+        console.log('💬 Iniciando listener de respuestas para usuario:', userId);
+
+        let attempts = 0;
+        const retry = setInterval(() => {
+            attempts++;
+            if (window.Echo && window.initReviewResponseListener) {
+                window.initReviewResponseListener(userId);
+                clearInterval(retry);
+                console.log('💬 Listener conectado exitosamente');
+            } else if (attempts >= 20) {
+                clearInterval(retry);
+            }
+        }, 300);
+    });
+    @endauth
 })();
 </script>
 </body>

@@ -32,7 +32,7 @@
         <div v-if="eventosTab === 'hoy'" class="drawer-eventos-list">
             <div v-if="!eventosHoy || eventosHoy.length === 0" class="drawer-empty">
                 <i class="fas fa-calendar-xmark"></i>
-                <p>No hay eventos hoy</p>
+                <p>No hay eventos disponibles en este momento</p>
             </div>
             <div v-for="evento in eventosHoy" :key="evento.event_id" class="drawer-evento-item">
                 <div class="drawer-evento-img">

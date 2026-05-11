@@ -43,11 +43,13 @@ class Event extends Model
     }
 
     /**
-     * Scope: solo activos
+     * Scope: activos y cuya fecha no superó las 24 horas de antigüedad
      */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query
+            ->where('is_active', true)
+            ->where('start_at', '>=', now()->subHours(24));
     }
 
     /**

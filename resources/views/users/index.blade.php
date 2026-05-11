@@ -613,6 +613,7 @@
 <script src="{{ asset('js/user-modals.js') }}"></script>
 <script>
     let currentPage = 1;
+    window.currentUsersPage = 1;
 
     function loadUsers(page = 1) {
         const urlParams = new URLSearchParams(window.location.search);
@@ -645,7 +646,7 @@
         .then(response => response.text())
         .then(html => {
             document.getElementById('usersTableContainer').innerHTML = html;
-            currentPage = page;
+            window.currentUsersPage = currentPage = page;
             
             // Re-bind pagination links
             bindPaginationLinks();

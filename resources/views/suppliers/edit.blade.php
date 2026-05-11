@@ -6,6 +6,8 @@
     <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
 @endpush
 
+@section('global_errors')@endsection
+
 @section('content')
 <div class="product-page-wrapper">
 

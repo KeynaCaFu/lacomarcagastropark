@@ -268,6 +268,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // Historial de pedidos del cliente
     Route::get('/my-orders', [ClienteController::class, 'showOrderHistory'])->name('client.orders.history');
+   //Reseñas en bandeja 
+    Route::get('/mis-resenas', [PlazaController::class, 'misResenas'])->name('client.reviews');
 
 // Guardar reseña del local por cliente 
     Route::post('/plaza/{localId}/review', [PlazaController::class, 'storeLocalReview'])
@@ -278,10 +280,10 @@ Route::get('/plaza/producto/{productId}/puede-resenar', function ($productId) {
     $userId = Auth::id();
 
     if (!$userId) {
-        return response()->json(['puede' => false]);
+        return response()->json(['puede' => false, 'ya_reseno' => false]);
     }
 
-    $puede = Order::where('status', 'Delivered')
+    $tienePedido = Order::where('status', 'Delivered')
         ->whereIn('order_id', function ($query) use ($userId) {
             $query->select('order_id')
                 ->from('tbuser_order')
@@ -292,16 +294,31 @@ Route::get('/plaza/producto/{productId}/puede-resenar', function ($productId) {
         })
         ->exists();
 
-    return response()->json(['puede' => $puede]);
-})->middleware('auth')->name('plaza.product.can-review');
+    $yaReseno = \App\Models\ProductReview::where('product_id', $productId)
+        ->where('user_id', $userId)
+        ->exists();
 
+    return response()->json([
+        'puede' => $tienePedido,
+        'ya_reseno' => $yaReseno
+    ]);
+})->middleware('auth')->name('plaza.product.can-review');
 // Guardar reseña del producto
 Route::post('/plaza/producto/{productId}/resena', [PlazaController::class, 'storeProductReview'])
     ->middleware('auth')
     ->name('plaza.product.review.store');
+Route::delete('/plaza/producto/{productReviewId}/resena', [PlazaController::class, 'deleteProductReview'])->middleware('auth');
+Route::delete('/plaza/{localId}/review/{localReviewId}', [PlazaController::class, 'deleteLocalReview'])->middleware('auth');
+
+}
+
+);
 
 
-});
+
+Route::delete('/plaza/producto/{productReviewId}/resena', [PlazaController::class, 'deleteProductReview'])->middleware('auth');
+Route::delete('/plaza/{localId}/review/{localReviewId}', [PlazaController::class, 'deleteLocalReview'])->middleware('auth');
+
 
 
 // Profile routes (authenticated users)
@@ -316,6 +333,7 @@ Route::middleware('auth')->group(function () {
 Route::prefix('plaza')->name('plaza.')->middleware(['preserve.admin.session', 'validate.google.session'])->group(function () {
     Route::get('/', [\App\Http\Controllers\PlazaController::class, 'index'])->name('index');
     Route::get('api/productos', [\App\Http\Controllers\PlazaController::class, 'getProductosByCategory'])->name('get.productos');
+    Route::get('api/schedules', [\App\Http\Controllers\PlazaController::class, 'getAllSchedules'])->name('api.schedules');
     Route::get('{id}/data', [\App\Http\Controllers\PlazaController::class, 'getLocalData'])->name('local.data')->where('id', '[0-9]+');
     Route::get('{id}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show')->where('id', '[0-9]+');
     Route::get('{local_id}/producto/{product_id}', [\App\Http\Controllers\PlazaController::class, 'showProduct'])->name('product.detail')->where(['local_id' => '[0-9]+', 'product_id' => '[0-9]+']);
@@ -333,6 +351,11 @@ Route::prefix('plaza')->name('plaza.')->middleware(['preserve.admin.session', 'v
         Route::get('carrito/api/mis-ordenes', [\App\Http\Controllers\CartController::class, 'getMyOrders'])->name('my.orders');
         Route::post('carrito/api/cancelar/{orderId}', [\App\Http\Controllers\CartController::class, 'cancelOrder'])->name('cancel.order');
     });
+    
+    // Confirmación de pedidos (requiere autenticación y validación de horario de negocio)
+    Route::post('carrito/api/confirmar', [\App\Http\Controllers\CartController::class, 'confirmOrder'])
+        ->middleware(['auth', 'business.hours'])
+        ->name('order.confirm');
    
     Route::post('carrito/api/reordenar', [\App\Http\Controllers\CartController::class, 'reorderOrder'])->name('cart.reorder');
 });

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Mi Historial de Pedidos - La Comarca Gastro Park</title>
+    <title>Mis Pedidos - La Comarca Gastro Park</title>
     <link rel="icon" type="image/ico" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
     <link rel="apple-touch-icon" href="{{ asset('images/comarca-favicon.ico') }}?v={{ time() }}">
@@ -15,8 +15,86 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="{{ asset('css/carrito.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/order-history.css') }}">
+    @vite(['resources/js/app.js'])
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <style>
+        @keyframes notif-pulse {
+            0%,100% { transform:scale(1);   opacity:1;   }
+            50%      { transform:scale(1.4); opacity:0.8; }
+        }
+        .orders-nav-tabs {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-light, #e2e8f0);
+            padding-bottom: 2px;
+        }
+        .nav-tab-item {
+            padding: 12px 5px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--muted, #64748b);
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.05rem;
+            user-select: none;
+        }
+        .nav-tab-item i {
+            font-size: 1.15rem;
+        }
+        .nav-tab-item:hover {
+            color: var(--primary, #d4773a);
+        }
+        .nav-tab-item.active {
+            color: var(--primary, #d4773a);
+        }
+        .nav-tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--primary, #d4773a);
+            border-radius: 10px 10px 0 0;
+        }
+        .order-card[v-cloak] {
+            display: none;
+        }
+        .order-status.status-ready {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .order-card-quick-action {
+            padding: 0 16px 14px;
+        }
+        .cancel-order-btn-link {
+            background: linear-gradient(135deg, #d4773a 0%, #c06830 100%);
+            color: #fff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            text-decoration: none;
+        }
+        .cancel-order-btn-link:hover {
+            background: linear-gradient(135deg, #c06830 0%, #a85a28 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(212, 119, 58, 0.35);
+        }
+    </style>
 </head>
 <body>
 <div id="order-history-app" v-cloak>
@@ -46,14 +124,15 @@
                             <span id="cart-count">0</span>
                         </button>
                         <div class="user-menu-top">
-                            <button class="user-menu-btn" id="userMenuBtn">
+                            <button class="user-menu-btn" id="userMenuBtn" style="position:relative;">
                                 @if(auth()->user()->avatar)
                                     <img src="{{ asset(auth()->user()->avatar) }}" alt="" class="avatar-lg">
                                 @else
                                     <i class="fas fa-user-circle icon-md"></i>
                                 @endif
                                 <span class="text-label">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
-                                <i class="fas fa-chevron-down icon-sm"></i>
+                                <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                                <span id="notifDotBtn" style="display:none;position:absolute;top:4px;right:4px;width:9px;height:9px;background:#e53e3e;border-radius:50%;border:2px solid #0A0908;animation:notif-pulse 2s infinite;"></span>
                             </button>
                             <div class="user-menu-dropdown" id="userMenuDropdown">
                                 <div class="dropdown-header">
@@ -63,8 +142,13 @@
                                 <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
                                     <i class="fas fa-user-edit text-muted"></i> Editar perfil
                                 </a>
-                                <a href="{{ route('client.orders.history') }}" class="dropdown-item">
+                                <a href="{{ route('client.orders.history') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('pedidos')">
                                     <i class="fas fa-history text-muted"></i> Ver mis pedidos
+                                    <span id="notifDot_pedidos" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:auto;animation:notif-pulse 2s infinite;"></span>
+                                </a>
+                                <a href="{{ route('client.reviews') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('resenas')">
+                                    <i class="fas fa-star text-muted"></i> Mis reseñas
+                                    <span id="notifDot_resenas" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:auto;animation:notif-pulse 2s infinite;"></span>
                                 </a>
                                 <form method="POST" action="{{ route('logout') }}" class="m-0">
                                     @csrf
@@ -85,8 +169,20 @@
         <div class="container">
             <!-- PAGE HEADER -->
             <div class="page-header">
-                <h1 class="page-title">Mi Historial de Pedidos</h1>
-                <p class="page-subtitle">Revisa todos tus pedidos anteriores</p>
+                <h1 class="page-title">Mis Pedidos</h1>
+                <p class="page-subtitle">Revisa todos tus pedidos</p>
+            </div>
+
+            <!-- TABS NAVIGATION -->
+            <div class="orders-nav-tabs">
+                <div class="nav-tab-item" :class="{ active: activeTab === 'actuales' }" @click="activeTab = 'actuales'">
+                    <i class="fas fa-utensils"></i>
+                    <span>Pedidos Actuales</span>
+                </div>
+                <div class="nav-tab-item" :class="{ active: activeTab === 'historial' }" @click="activeTab = 'historial'">
+                    <i class="fas fa-history"></i>
+                    <span>Historial de Pedidos</span>
+                </div>
             </div>
 
             <!-- FILTERS ACCORDION -->
@@ -126,16 +222,20 @@
             @if($orders->count() > 0)
                 <div class="orders-list">
                     @foreach($orders as $order)
-                        <div class="order-card">
+                        <div class="order-card"
+                             data-order-id="{{ $order->order_id }}"
+                             v-show="shouldShowOrder(realtimeOrderStatuses[{{ $order->order_id }}] || '{{ $order->status }}')"
+                             :data-status="realtimeOrderStatuses[{{ $order->order_id }}] || '{{ $order->status }}'">
                             <!-- ACCORDION HEADER (ALWAYS VISIBLE) -->
                             <div class="order-card-header">
                                 <div class="order-card-header-left">
                                     <div class="order-number">
                                         Pedido #{{ $order->order_number }}
                                     </div>
-                                    <div class="order-status status-{{ strtolower(str_replace(' ', '_', $order->status)) }}">
+                                    <div class="order-status status-{{ strtolower(str_replace(' ', '_', $order->status)) }}"
+                                         data-order-status-badge="{{ $order->order_id }}">
                                         <i class="fas fa-{{ $order->status == 'Delivered' ? 'check-circle' : ($order->status == 'Cancelled' ? 'times-circle' : ($order->status == 'Ready' ? 'check' : 'clock')) }}"></i>
-                                        {{ $order->status == 'Delivered' ? 'Entregado' : ($order->status == 'In Progress' ? 'En Preparación' : ($order->status == 'Ready' ? 'Listo' : ($order->status == 'Pending' ? 'Pendiente' : $order->status))) }}
+                                        {{ $order->status == 'Delivered' ? 'Entregado' : ($order->status == 'Preparing' ? 'En Preparación' : ($order->status == 'Ready' ? 'Listo' : ($order->status == 'Pending' ? 'Pendiente' : $order->status))) }}
                                     </div>
                                 </div>
                                 <div class="order-card-header-right">
@@ -143,6 +243,15 @@
                                     <i class="fas fa-chevron-down"></i>
                                 </div>
                             </div>
+
+                            <!-- CANCELAR - SIEMPRE VISIBLE (solo Pending) -->
+                            @if($order->status === 'Pending')
+                            <div class="order-card-quick-action">
+                                <button class="cancel-order-btn-link" @click="confirmCancellationRequest({{ $order->order_id }}, '{{ $order->order_number }}')">
+                                    <i class="fas fa-times-circle"></i> Cancelar y Editar
+                                </button>
+                            </div>
+                            @endif
 
                             <!-- ACCORDION CONTENT (COLLAPSIBLE) -->
                             <div class="order-card-content" style="display: none;">
@@ -205,19 +314,30 @@
                                                 </small>
                                             @endif
                                         </div>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
                                         <button class="reorder-btn" @click.prevent="reorderOrder({{ $order->order_id }})">
                                             <i class="fas fa-redo"></i> Reordenar
                                         </button>
+                                    </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     @endforeach
+
+                    <!-- Mensaje si no hay órdenes de este tipo en la página actual -->
+                    <div class="empty-state" v-if="!hasVisibleOrders" style="padding: 40px 20px; background: transparent; border: none; box-shadow: none;">
+                        <div class="empty-icon" style="font-size: 2.5rem; opacity: 0.3;">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <p class="empty-text" style="color: var(--muted);">No hay pedidos @{{ activeTab === 'actuales' ? 'actuales' : 'finalizados' }} en esta página.</p>
+                        <p v-if="activeTab === 'actuales'" style="font-size: 0.85rem; color: var(--muted); margin-top: 5px;">Revisa el Historial o las otras páginas de la lista.</p>
+                    </div>
                 </div>
 
                 <!-- PAGINATION -->
                 @if($orders->hasPages())
-                    <div class="pagination-wrapper">
+                    <div class="pagination-wrapper" v-if="activeTab === 'historial'">
                         {{-- Previous Page Link --}}
                         @if($orders->onFirstPage())
                             <span class="pagination-link disabled">
@@ -272,8 +392,14 @@
         </div>
     </main>
 
-    <!-- ═══ DRAWER: ÓRDENES PENDIENTES ═══ -->
-    @include('plaza.carrito._my_orders_drawer')
+    <!-- ══ EVENTS DRAWER ══ -->
+    @include('plaza.evento.drawer')
+
+    <!-- ══ CART DRAWER ══ -->
+    @include('plaza.carrito._cart_drawer')
+
+    <!-- ══ EDIT ITEM MODAL ══ -->
+    @include('plaza.carrito._add_to_cart_modal')
 
      <!-- ══ FOOTER ══ -->
     <footer class="footer-v2">
@@ -365,7 +491,19 @@
     </footer>
 </div>
 
+@include('plaza.carrito._toast-notifications')
+
 <script>
+    @auth
+    window.authData = {
+        name: '{{ auth()->user()->name ?? explode("@", auth()->user()->email)[0] }}',
+        email: '{{ auth()->user()->email }}',
+        phone: '{{ auth()->user()->phone ?? "" }}'
+    };
+    @endauth
+
+    const showToast = (config) => { if (window.showNotification) { window.showNotification(config); } };
+
     // User menu toggle
     document.addEventListener('DOMContentLoaded', function() {
         const menuBtn = document.getElementById('userMenuBtn');
@@ -380,6 +518,14 @@
                 menuDropdown.classList.remove('open');
             });
         }
+
+        // Notificaciones en tiempo real
+        if (window.loadNotifDots) window.loadNotifDots();
+        if (window.initUserNotificationListener) {
+            window.initUserNotificationListener({{ auth()->id() }});
+        }
+        // Esta página es "pedidos" → marcar como vista
+        if (window.clearNotifDot) window.clearNotifDot('pedidos');
     });
 
     // Vue App for order history (solo para filtros y header)
@@ -388,24 +534,193 @@
     createApp({
         data() {
             return {
-                showEventsDrawer: false,
-                showCartDrawer: false,
+                // Tabs y filtros
                 filterAccordionOpen: false,
                 isLoading: false,
-                // Órdenes pendientes
+                activeTab: 'actuales',
+                hasVisibleOrders: true,
+                // Estado en tiempo real por order_id (Echo)
+                realtimeOrderStatuses: {},
+                // Órdenes pendientes (header)
                 myOrders: [],
                 showMyOrdersDrawer: false,
                 isCancellingOrder: false,
-                selectedOrderToCancel: null,
-                cancelReason: ''
+                // Eventos
+                showEventsDrawer: false,
+                eventosTab: 'hoy',
+                eventosHoy: {!! json_encode($eventosHoy) !!},
+                eventosProximos: {!! json_encode($eventosProximos) !!},
+                showEventoDetail: false,
+                currentEvento: {},
+                // Carrito
+                showCartDrawer: false,
+                drawerCart: [],
+                showConfirmOrder: false,
+                showConfirmClear: false,
+                showConfirmRemove: false,
+                itemToRemoveIndex: null,
+                isCheckingOut: false,
+                // Editar item del carrito
+                showAddToCartModal: false,
+                editingCartItemKey: null,
+                currentProduct: { name: '', description: '', photo_url: '', price: 0, product_id: 0, local_id: 0 },
+                quantity: 1,
+                customization: '',
+                isAddingToCart: false,
+                customerName: '',
+                customerEmail: '',
+                customerPhone: '',
+                additionalNotes: '',
             };
         },
-        methods: {
-            openEventsDrawer() {
-                this.showEventsDrawer = !this.showEventsDrawer;
+        computed: {
+            totalDrawerQty() {
+                return this.drawerCart.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
             },
+            totalDrawerPrice() {
+                return this.drawerCart.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0);
+            },
+        },
+        methods: {
+            // ── EVENTOS ──
+            openEventsDrawer() { this.showEventsDrawer = true; },
+            closeEventsDrawer() { this.showEventsDrawer = false; },
+            openEventoDetail(evento) { this.currentEvento = evento; this.showEventoDetail = true; },
+            closeEventoDetail() { this.showEventoDetail = false; setTimeout(() => { this.currentEvento = {}; }, 300); },
+            // ── CARRITO ──
             openCartDrawer() {
-                // Cart is disabled in order history page
+                this.showCartDrawer = true;
+                document.body.classList.add('cart-drawer-open');
+                this.loadCartDrawer();
+            },
+            closeCartDrawer() {
+                this.showCartDrawer = false;
+                document.body.classList.remove('cart-drawer-open');
+            },
+            loadCartDrawer() {
+                fetch('{{ route("plaza.cart.get") }}', {
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    this.drawerCart = (data.cart || []).map(item => ({ ...item, price: parseFloat(item.price), quantity: parseInt(item.quantity) }));
+                });
+            },
+            updateItemQty(index, newQty) {
+                if (newQty < 1) newQty = 1;
+                if (!this.drawerCart[index]) return;
+                this.drawerCart[index].quantity = newQty;
+                fetch('{{ route("plaza.cart.update.qty") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
+                    body: JSON.stringify({ item_index: index, quantity: newQty })
+                }).then(r => r.json()).then(data => { if (!data.success) this.loadCartDrawer(); });
+            },
+            removeFromCart(index) { this.itemToRemoveIndex = index; this.showConfirmRemove = true; },
+            cancelRemoveItem() { this.showConfirmRemove = false; this.itemToRemoveIndex = null; },
+            confirmRemoveItem() {
+                if (this.itemToRemoveIndex === null) return;
+                const index = this.itemToRemoveIndex;
+                const itemKey = this.drawerCart[index].item_key;
+                this.drawerCart.splice(index, 1);
+                this.showConfirmRemove = false;
+                this.itemToRemoveIndex = null;
+                fetch('{{ route("plaza.cart.remove") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
+                    body: JSON.stringify({ item_key: itemKey })
+                }).then(r => r.json()).then(data => { if (!data.success) this.loadCartDrawer(); });
+            },
+            goToClearCart() { this.showConfirmClear = true; },
+            cancelClearCart() { this.showConfirmClear = false; },
+            confirmClearCart() {
+                this.drawerCart = [];
+                this.showConfirmClear = false;
+                fetch('{{ route("plaza.cart.clear") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }
+                }).then(r => r.json()).then(data => { if (!data.success) this.loadCartDrawer(); });
+            },
+            goToCheckout() { this.showConfirmOrder = true; },
+            cancelConfirmOrder() { this.showConfirmOrder = false; },
+            async processCheckout() {
+                window.location.href = '{{ route("plaza.index") }}';
+            },
+            // ── EDITAR ITEM ──
+            openEditCartItem(index) {
+                const item = this.drawerCart[index];
+                if (!item) return;
+                this.editingCartItemKey = item.item_key;
+                this.currentProduct = { name: item.name, description: item.description || '', photo_url: item.photo_url || '', price: parseFloat(item.price), product_id: item.product_id, local_id: item.local_id };
+                this.quantity = item.quantity;
+                this.customization = item.customization || '';
+                if (window.authData) { this.customerName = window.authData.name || ''; this.customerEmail = window.authData.email || ''; this.customerPhone = window.authData.phone || ''; }
+                this.showAddToCartModal = true;
+                document.body.classList.add('modal-open');
+            },
+            closeAddToCartModal() {
+                document.body.classList.remove('modal-open');
+                this.showAddToCartModal = false;
+                this.editingCartItemKey = null;
+                setTimeout(() => { this.currentProduct = { name: '', description: '', photo_url: '', price: 0, product_id: 0, local_id: 0 }; this.quantity = 1; this.customization = ''; }, 300);
+            },
+            increaseQuantity() { this.quantity++; },
+            decreaseQuantity() { if (this.quantity > 1) this.quantity--; },
+            validateQuantity() { if (this.quantity < 1) this.quantity = 1; },
+            validateCustomization() { if (this.customization.length > 500) this.customization = this.customization.substring(0, 500); },
+            async proceedAddToCart() {
+                if (this.isAddingToCart) return;
+                const isEditing = !!this.editingCartItemKey;
+                const editingKey = this.editingCartItemKey;
+                if (window.authData) { this.customerName = window.authData.name || this.customerName; this.customerEmail = window.authData.email || this.customerEmail; this.customerPhone = window.authData.phone || this.customerPhone; }
+                if (!this.customerName || !this.customerEmail) { alert('Error: Nombre y email son requeridos.'); return; }
+                this.isAddingToCart = true;
+                try {
+                    if (isEditing) {
+                        await fetch('{{ route("plaza.cart.remove") }}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }, body: JSON.stringify({ item_key: editingKey }) });
+                    }
+                    const response = await fetch('{{ route("plaza.add.cart") }}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }, body: JSON.stringify({ product_id: this.currentProduct.product_id, local_id: this.currentProduct.local_id, quantity: this.quantity, customization: this.customization.trim(), customer_name: this.customerName, customer_email: this.customerEmail, customer_phone: this.customerPhone, additional_notes: this.customization.trim() }) });
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        showToast({ icon: 'success', title: isEditing ? '¡Item actualizado!' : '¡Agregado!', message: this.currentProduct.name + (isEditing ? ' se actualizó.' : ' se agregó al carrito.'), timer: 4000 });
+                        this.loadCartDrawer();
+                        this.closeAddToCartModal();
+                    } else {
+                        showToast({ icon: 'error', title: 'Error', message: data.message || 'No se pudo procesar.', timer: 4000 });
+                    }
+                } catch (e) {
+                    showToast({ icon: 'error', title: 'Error de conexión' });
+                } finally {
+                    this.isAddingToCart = false;
+                }
+            },
+            /**
+             * Determina si una orden debe mostrarse según la pestaña activa y su estado
+             */
+            shouldShowOrder(status) {
+                // Estados para "Pedidos Actuales"
+                const actuales = ['Pending', 'Preparing', 'In Progress', 'Ready'];
+                // Estados para "Historial"
+                const historial = ['Delivered', 'Cancelled'];
+                
+                if (this.activeTab === 'actuales') {
+                    return actuales.includes(status);
+                }
+                return historial.includes(status);
+            },
+            /**
+             * Verifica si hay órdenes visibles en el DOM para la pestaña activa
+             */
+            updateVisibilityFlag() {
+                const actuales = ['Pending', 'Preparing', 'In Progress', 'Ready'];
+                const historial = ['Delivered', 'Cancelled'];
+                
+                // Escaneamos las tarjetas generadas por Blade en el DOM
+                const cards = Array.from(document.querySelectorAll('.order-card'));
+                this.hasVisibleOrders = cards.some(card => {
+                    const status = card.getAttribute('data-status');
+                    return this.activeTab === 'actuales' ? actuales.includes(status) : historial.includes(status);
+                });
             },
             toggleFilterAccordion() {
                 this.filterAccordionOpen = !this.filterAccordionOpen;
@@ -503,6 +818,157 @@
                     });
                 }
             },
+            /**
+             * Inicia el proceso de cancelación desde la lista de órdenes (Pestaña Actuales)
+             */
+            confirmCancellationRequest(orderId, orderNumber) {
+                Swal.fire({
+                    title: '¿Cancelar Pedido #' + orderNumber + '?',
+                    text: 'La orden se cancelará y los productos volverán a tu carrito para que puedas editarlos o agregar más.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d4423e',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Sí, cancelar y editar',
+                    cancelButtonText: 'No, mantener pedido'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.processOrderCancellation(orderId);
+                    }
+                });
+            },
+
+            /**
+             * Lógica de cancelación llamando al API
+             */
+            async processOrderCancellation(orderId) {
+                this.isLoading = true;
+                try {
+                    const response = await fetch(`{{ url('/plaza/carrito/api/cancelar') }}/${orderId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ reason: 'Cancelado por el cliente para realizar cambios' })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Orden Cancelada',
+                            text: 'Los productos se han devuelto a tu carrito correctamente.',
+                            confirmButtonText: 'Ir al carrito / Plaza',
+                            confirmButtonColor: '#d4773a',
+                            showCancelButton: true,
+                            cancelButtonText: 'Cerrar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '{{ route("plaza.index") }}';
+                            } else {
+                                window.location.reload();
+                            }
+                        });
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'No se pudo cancelar la orden. Inténtalo de nuevo.', 'error');
+                } finally {
+                    this.isLoading = false;
+                }
+            },
+
+            // ── TIEMPO REAL: listeners de estado de orden ──
+            initOrderListeners() {
+                const activeStatuses = ['Pending', 'Preparing', 'Ready'];
+
+                document.querySelectorAll('.order-card[data-order-id]').forEach(card => {
+                    const orderId = card.getAttribute('data-order-id');
+                    const status  = card.getAttribute('data-status');
+
+                    if (orderId && activeStatuses.includes(status) && window.initOrderStatusListener) {
+                        window.initOrderStatusListener(parseInt(orderId));
+                    }
+                });
+
+                document.addEventListener('order-status-updated', (e) => {
+                    this.handleOrderStatusUpdate(e.detail);
+                });
+            },
+
+            handleOrderStatusUpdate(data) {
+                const orderId   = data.order_id;
+                const newStatus = data.status;
+
+                // Reactivo: Vue re-evalúa v-show automáticamente
+                this.realtimeOrderStatuses = { ...this.realtimeOrderStatuses, [orderId]: newStatus };
+
+                // Actualizar badge de estado en el DOM
+                const badge = document.querySelector(`[data-order-status-badge="${orderId}"]`);
+                if (badge) {
+                    const statusInfo = {
+                        Pending:   { label: 'Pendiente',       icon: 'fa-clock',        css: 'status-pending'   },
+                        Preparing: { label: 'En Preparación',  icon: 'fa-fire',         css: 'status-preparing' },
+                        Ready:     { label: 'Listo',           icon: 'fa-check',        css: 'status-ready'     },
+                        Delivered: { label: 'Entregado',       icon: 'fa-check-circle', css: 'status-delivered' },
+                        Cancelled: { label: 'Cancelado',       icon: 'fa-times-circle', css: 'status-cancelled' },
+                    };
+                    const info = statusInfo[newStatus];
+                    if (info) {
+                        badge.className = `order-status ${info.css}`;
+                        badge.innerHTML = `<i class="fas ${info.icon}"></i> ${info.label}`;
+                    }
+                }
+
+                this.$nextTick(() => this.updateVisibilityFlag());
+
+                if (newStatus === 'Ready') {
+                    this.showReadyNotification();
+                    this.playReadySound();
+                }
+            },
+
+            showReadyNotification() {
+                if (window.Swal) {
+                    Swal.fire({
+                        title: '¡Tu pedido está listo!',
+                        html: '<p style="font-size:1.05rem;">Puedes pasar a recogerlo. ¡Buen provecho!</p>',
+                        icon: 'success',
+                        position: 'center',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#d4773a',
+                        timer: 12000,
+                        timerProgressBar: true,
+                    });
+                }
+            },
+
+            playReadySound() {
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    ctx.resume().then(() => {
+                        [[523, 0], [659, 0.25], [784, 0.5]].forEach(([freq, when]) => {
+                            const osc  = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.connect(gain);
+                            gain.connect(ctx.destination);
+                            osc.type = 'sine';
+                            osc.frequency.value = freq;
+                            gain.gain.setValueAtTime(0.4, ctx.currentTime + when);
+                            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + when + 0.2);
+                            osc.start(ctx.currentTime + when);
+                            osc.stop(ctx.currentTime + when + 0.25);
+                        });
+                    });
+                } catch (e) {
+                    console.log('Audio no disponible:', e);
+                }
+            },
 
             // ── ÓRDENES PENDIENTES METHODS ──
             async loadMyOrders() {
@@ -524,82 +990,22 @@
                     console.error('Error:', error);
                 }
             },
-
-            closeMyOrdersDrawer() {
-                this.showMyOrdersDrawer = false;
-                this.selectedOrderToCancel = null;
-                this.cancelReason = '';
-            },
-
-            seleccionarParaCancelar(order) {
-                this.selectedOrderToCancel = order;
-            },
-
-            cancelarSeleccion() {
-                this.selectedOrderToCancel = null;
-                this.cancelReason = '';
-            },
-
-            async confirmarCancelacion() {
-                if (!this.selectedOrderToCancel) return;
-
-                this.isCancellingOrder = true;
-
-                try {
-                    const response = await fetch(`{{ url('/plaza/carrito/api/cancelar') }}/${this.selectedOrderToCancel.order_id}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: JSON.stringify({ reason: this.cancelReason })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: '¡Orden Cancelada!',
-                            text: data.message,
-                            confirmButtonText: 'OK'
-                        });
-                        
-                        // Remover de la lista
-                        this.myOrders = this.myOrders.filter(o => o.order_id !== this.selectedOrderToCancel.order_id);
-                        
-                        // Limpiar selección
-                        this.selectedOrderToCancel = null;
-                        this.cancelReason = '';
-                        
-                        // Cerrar drawer si no quedan órdenes
-                        if (this.myOrders.length === 0) {
-                            this.closeMyOrdersDrawer();
-                        }
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'No se pudo cancelar',
-                            text: data.message,
-                            confirmButtonText: 'OK'
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Hubo un problema de conexión',
-                        confirmButtonText: 'OK'
-                    });
-                } finally {
-                    this.isCancellingOrder = false;
-                }
+        },
+        watch: {
+            // Actualizar la bandera de visibilidad cuando cambie la pestaña
+            activeTab() {
+                this.$nextTick(() => {
+                    this.updateVisibilityFlag();
+                });
             }
         },
         mounted() {
             // Cargar órdenes pendientes al iniciar
             this.loadMyOrders();
+            // Verificar visibilidad inicial
+            this.updateVisibilityFlag();
+            // Inicializar listeners de estado en tiempo real (Echo)
+            this.$nextTick(() => this.initOrderListeners());
         }
     }).mount('#order-history-app');
 
