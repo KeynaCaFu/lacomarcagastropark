@@ -27,6 +27,14 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <!-- Opcionales: cargan de forma diferida -->
     <script defer src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    @vite(['resources/js/app.js'])
+    <style>
+    @keyframes notif-pulse {
+        0%   { box-shadow: 0 0 0 0 rgba(229,62,62,0.7); }
+        70%  { box-shadow: 0 0 0 6px rgba(229,62,62,0); }
+        100% { box-shadow: 0 0 0 0 rgba(229,62,62,0); }
+    }
+    </style>
 </head>
 <body>
 <div id="product-detail-app" v-cloak>
@@ -53,14 +61,16 @@
                     @endauth
                     <div>
                         @auth
-                            <div class="user-menu-top">
-                                <button class="user-menu-btn" id="userMenuBtn">
+                            <div class="user-menu-top" style="position:relative;">
+                                <button class="user-menu-btn" id="userMenuBtn" style="position:relative;">
                                     @if(auth()->user()->avatar)
                                         <img src="{{ asset(auth()->user()->avatar) }}" alt="" class="avatar-img">
                                     @else
                                         <i class="fas fa-user-circle icon-md"></i>
                                     @endif
                                     <span class="text-label">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
+                                    <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                                    <span id="notifDotBtn" style="display:none;position:absolute;top:4px;right:4px;width:9px;height:9px;background:#e53e3e;border-radius:50%;border:2px solid #0A0908;animation:notif-pulse 2s infinite;"></span>
                                 </button>
                                 <div class="user-menu-dropdown" id="userMenuDropdown">
                                     <div class="dropdown-header">
@@ -70,8 +80,13 @@
                                     <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
                                         <i class="fas fa-user-edit text-muted"></i> Editar perfil
                                     </a>
-                                    <a href="{{ route('client.orders.history') }}" class="dropdown-item">
+                                    <a href="{{ route('client.orders.history') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('pedidos')">
                                         <i class="fas fa-history text-muted"></i> Ver mis pedidos
+                                        <span id="notifDot_pedidos" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:6px;vertical-align:middle;"></span>
+                                    </a>
+                                    <a href="{{ route('reviews.index') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('resenas')">
+                                        <i class="fas fa-star text-muted"></i> Mis reseñas
+                                        <span id="notifDot_resenas" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:6px;vertical-align:middle;"></span>
                                     </a>
                                     <form method="POST" action="{{ route('logout') }}" class="m-0">
                                         @csrf
@@ -422,9 +437,11 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- ══ FOOTER ══ -->
-            <footer class="footer-v2">
+    <!-- ══ FOOTER ══ -->
+    <footer class="footer-v2">
                 <!-- Mountains silhouette - separator -->
                 <div class="footer-landscape">
                     <svg viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -510,9 +527,7 @@
                         </div>
                     </div>
                 </div>
-            </footer>
-        </div>
-    </div>
+    </footer>
 </div>
 
 <!-- ═══ SCRIPTS FUERA DEL TEMPLATE DE VUE ═══ -->
@@ -655,13 +670,36 @@
                 menuDropdown.classList.remove('open');
             });
         }
+
+        if (window.loadNotifDots) window.loadNotifDots();
     };
-    
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', setupUserMenu);
     } else {
         setupUserMenu();
     }
+
+    @auth
+    (function initNotif() {
+        if (window.initUserNotificationListener) {
+            if (window.loadNotifDots) window.loadNotifDots();
+            window.initUserNotificationListener({{ auth()->id() }});
+            return;
+        }
+        let n = 0;
+        const t = setInterval(() => {
+            n++;
+            if (window.initUserNotificationListener) {
+                clearInterval(t);
+                if (window.loadNotifDots) window.loadNotifDots();
+                window.initUserNotificationListener({{ auth()->id() }});
+            } else if (n >= 20) {
+                clearInterval(t);
+            }
+        }, 250);
+    })();
+    @endauth
 </script>
 
 <script>

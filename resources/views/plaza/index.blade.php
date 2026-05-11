@@ -23,6 +23,12 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     @vite(['resources/js/app.js'])
+    <style>
+        @keyframes notif-pulse {
+            0%,100% { transform:scale(1);   opacity:1;   }
+            50%      { transform:scale(1.4); opacity:0.8; }
+        }
+    </style>
 </head>
 <body>
 <div id="plaza-app" v-cloak>
@@ -46,15 +52,16 @@
                             <i class="fas fa-shopping-cart"></i>
                             <span id="cart-count">@{{ totalDrawerQty }}</span>
                         </button>
-                        <div class="user-menu-top">
-                            <button class="user-menu-btn" id="userMenuBtn">
+                        <div class="user-menu-top" style="position:relative;">
+                            <button class="user-menu-btn" id="userMenuBtn" style="position:relative;">
                                 @if(auth()->user()->avatar)
                                     <img src="{{ asset(auth()->user()->avatar) }}" alt="" class="avatar-lg">
                                 @else
                                     <i class="fas fa-user-circle icon-md"></i>
                                 @endif
                                 <span class="text-label">{{ auth()->user()->full_name ?? auth()->user()->name }}</span>
-                                <i class="fas fa-chevron-down icon-sm"></i>
+                                <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                                <span id="notifDotBtn" style="display:none;position:absolute;top:4px;right:4px;width:9px;height:9px;background:#e53e3e;border-radius:50%;border:2px solid #0A0908;animation:notif-pulse 2s infinite;"></span>
                             </button>
                             <div class="user-menu-dropdown" id="userMenuDropdown">
                                 <div class="dropdown-header">
@@ -64,11 +71,13 @@
                                 <a href="{{ route('client.profile.edit') }}" class="dropdown-item">
                                     <i class="fas fa-user-edit text-muted"></i> Editar perfil
                                 </a>
-                                <a href="{{ route('client.orders.history') }}" class="dropdown-item">
+                                <a href="{{ route('client.orders.history') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('pedidos')">
                                     <i class="fas fa-history text-muted"></i> Ver mis pedidos
+                                    <span id="notifDot_pedidos" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:auto;animation:notif-pulse 2s infinite;"></span>
                                 </a>
-                                <a href="{{ route('client.reviews') }}" class="dropdown-item">
+                                <a href="{{ route('client.reviews') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('resenas')">
                                     <i class="fas fa-star text-muted"></i> Mis reseñas
+                                    <span id="notifDot_resenas" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:auto;animation:notif-pulse 2s infinite;"></span>
                                 </a>
                                 <form method="POST" action="{{ route('logout') }}" class="m-0">
                                     @csrf
@@ -592,6 +601,14 @@
             });
             document.addEventListener('click', () => menuDrop.classList.remove('open'));
         }
+
+        // Notificaciones en tiempo real
+        if (window.loadNotifDots) window.loadNotifDots();
+        @auth
+        if (window.initUserNotificationListener) {
+            window.initUserNotificationListener({{ auth()->id() }});
+        }
+        @endauth
     });
 
     /* ── Vue App ── */
