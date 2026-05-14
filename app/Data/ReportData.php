@@ -485,7 +485,7 @@ class ReportData
             ->where('tblocal_product.local_id', $localId)
             ->where('tblocal_product.is_available', true)
             ->where('tbproduct.status', 'active')
-            ->select('tbproduct.product_id', 'tbproduct.name', 'tblocal_product.price', 'tblocal_product.is_available')
+            ->select('tbproduct.product_id', 'tbproduct.name', 'tbproduct.price', 'tblocal_product.is_available')
             ->orderBy('tbproduct.name')
             ->get();
     }
