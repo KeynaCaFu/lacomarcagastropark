@@ -1296,12 +1296,17 @@
                     const orders = data.orders || [];
 
                     // Actualizar badge
-                    if (count > 0) {
-                        badge.textContent = count <= 99 ? count : '99+';
-                        badge.style.display = 'flex';
-                    } else {
-                        badge.style.display = 'none';
-                    }
+                    // Actualizar badge sumando órdenes + reseñas no leídas
+const reviewNotifs = JSON.parse(localStorage.getItem('review_notifs') || '[]');
+const reviewsPendientes = reviewNotifs.filter(n => !n.leida).length;
+const total = count + reviewsPendientes;
+
+if (total > 0) {
+    badge.textContent = total <= 99 ? total : '99+';
+    badge.style.display = 'flex';
+} else {
+    badge.style.display = 'none';
+}
 
                     // Actualizar lista
                     if (orders.length > 0) {
@@ -1391,106 +1396,154 @@
     
     @stack('scripts')
 
-
-    @if(auth()->check() && !auth()->user()->isAdminGlobal())
+@if(auth()->check() && !auth()->user()->isAdminGlobal())
 <script>
-document.addEventListener('DOMContentLoaded', function () {
     @php
         $localDelGerente = auth()->user()->locals()->first();
     @endphp
 
-    @if(isset($localDelGerente) && $localDelGerente)
-        const localId = {{ $localDelGerente->local_id }};
-        let reviewsNoLeidas = 0;
-
-        // Esperar a que Echo esté listo
-        function initReviewNotifications() {
-            if (!window.Echo) {
-                setTimeout(initReviewNotifications, 300);
-                return;
-            }
-
-            console.log('⭐ Escuchando reseñas del local:', localId);
-
-            window.Echo.channel(`local.${localId}`)
-                .listen('NewReviewPosted', (data) => {
-                    console.log('✓ Nueva reseña recibida:', data);
-                    agregarReviewNotif(data);
-                });
-        }
-
-        function agregarReviewNotif(data) {
-            // Ocultar el empty state
-            const empty = document.getElementById('reviewsNotifEmpty');
-            if (empty) empty.style.display = 'none';
-
-            // Crear item de notificación
-            const lista = document.getElementById('reviewsNotifList');
-            const estrellas = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating);
-
-            const item = document.createElement('div');
-            item.style.cssText = `
-                padding: 12px 16px;
-                border-bottom: 1px solid #f3f4f6;
-                cursor: pointer;
-                transition: background 0.2s;
-                background: #fffbeb;
-            `;
-            item.innerHTML = `
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="background:#fef3c7; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <i class="fas fa-star" style="color:#e18018; font-size:16px;"></i>
-                    </div>
-                    <div style="flex:1; min-width:0;">
-                        <div style="font-weight:600; font-size:13px; color:#111827;">Nueva reseña de ${data.client_name}</div>
-                        <div style="font-size:12px; color:#6b7280; margin-top:2px;">${data.product_name} — ${estrellas}</div>
-                        <div style="font-size:11px; color:#9ca3af; margin-top:2px;">Ahora</div>
-                    </div>
-                </div>
-            `;
-
-            // CA4 y CA5: Al hacer clic va al detalle
-            item.addEventListener('click', () => {
-                window.location.href = '{{ route("reviews.index") }}';
-            });
-
-            item.addEventListener('mouseover', () => item.style.background = '#fef9ee');
-            item.addEventListener('mouseout',  () => item.style.background = '#fffbeb');
-
-            lista.prepend(item);
-
-            // Actualizar badge de la campana
-            reviewsNoLeidas++;
-            actualizarBadge();
-
-            // Toast visual adicional
-            mostrarToastReview(data);
-        }
-
-        function actualizarBadge() {
-            const badge = document.getElementById('pendingCountBadge');
-            if (!badge) return;
+    // Función global para actualizar badge
+    function actualizarBadge() {
+        const badge = document.getElementById('pendingCountBadge');
+        if (!badge) return;
+        const notifs = JSON.parse(localStorage.getItem('review_notifs') || '[]');
+        const pendientes = notifs.filter(n => !n.leida).length;
+        if (pendientes > 0) {
             badge.style.display = 'flex';
-            const actual = parseInt(badge.textContent) || 0;
-            badge.textContent = actual + 1;
+            badge.textContent = pendientes;
+        } else {
+            badge.style.display = 'none';
         }
+    }
 
-        function mostrarToastReview(data) {
-            if (window.swToast) {
-                window.swToast.fire({
-                    icon: 'info',
-                    title: '⭐ Nueva reseña',
-                    text: `${data.client_name} dejó una reseña en ${data.product_name}`,
-                    timer: 6000,
-                });
+    // Cargar badge al iniciar
+    actualizarBadge();
+
+    @if(isset($localDelGerente) && $localDelGerente)
+        document.addEventListener('DOMContentLoaded', function () {
+            const localId = {{ $localDelGerente->local_id }};
+            // Cargar notificaciones previas del localStorage al abrir la página
+function cargarNotifsGuardadas() {
+    const notifs = JSON.parse(localStorage.getItem('review_notifs') || '[]');
+    const pendientes = notifs.filter(n => !n.leida);
+    
+    if (pendientes.length === 0) return;
+    
+    const empty = document.getElementById('reviewsNotifEmpty');
+    if (empty) empty.style.display = 'none';
+    
+    const lista = document.getElementById('reviewsNotifList');
+    
+    pendientes.forEach(data => {
+        const estrellas = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating);
+        const item = document.createElement('div');
+        item.style.cssText = `
+            padding: 12px 16px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: background 0.2s;
+            background: #fffbeb;
+        `;
+        item.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div style="background:#fef3c7; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fas fa-star" style="color:#e18018; font-size:16px;"></i>
+                </div>
+                <div style="flex:1; min-width:0;">
+                    <div style="font-weight:600; font-size:13px; color:#111827;">Nueva reseña de ${data.client_name}</div>
+                    <div style="font-size:12px; color:#6b7280; margin-top:2px;">${data.product_name} — ${estrellas}</div>
+                    <div style="font-size:11px; color:#9ca3af; margin-top:2px;">Pendiente de revisión</div>
+                </div>
+            </div>
+        `;
+        item.addEventListener('click', () => {
+            const notifs = JSON.parse(localStorage.getItem('review_notifs') || '[]');
+            notifs.forEach(n => n.leida = true);
+            localStorage.setItem('review_notifs', JSON.stringify(notifs));
+            actualizarBadge();
+            window.location.href = '{{ route("reviews.index") }}';
+        });
+        item.addEventListener('mouseover', () => item.style.background = '#fef9ee');
+        item.addEventListener('mouseout',  () => item.style.background = '#fffbeb');
+        lista.appendChild(item);
+    });
+}
+
+cargarNotifsGuardadas();
+            function initReviewNotifications() {
+                if (!window.Echo) {
+                    setTimeout(initReviewNotifications, 300);
+                    return;
+                }
+                console.log('⭐ Escuchando reseñas del local:', localId);
+                window.Echo.channel(`local.${localId}`)
+                    .listen('NewReviewPosted', (data) => {
+                        console.log('✓ Nueva reseña recibida:', data);
+                        agregarReviewNotif(data);
+                    });
             }
-        }
 
-        initReviewNotifications();
+            function agregarReviewNotif(data) {
+                const notifs = JSON.parse(localStorage.getItem('review_notifs') || '[]');
+                notifs.push({ ...data, leida: false });
+                localStorage.setItem('review_notifs', JSON.stringify(notifs));
+
+                const empty = document.getElementById('reviewsNotifEmpty');
+                if (empty) empty.style.display = 'none';
+
+                const lista = document.getElementById('reviewsNotifList');
+                const estrellas = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating);
+
+                const item = document.createElement('div');
+                item.style.cssText = `
+                    padding: 12px 16px;
+                    border-bottom: 1px solid #f3f4f6;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                    background: #fffbeb;
+                `;
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="background:#fef3c7; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <i class="fas fa-star" style="color:#e18018; font-size:16px;"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:600; font-size:13px; color:#111827;">Nueva reseña de ${data.client_name}</div>
+                            <div style="font-size:12px; color:#6b7280; margin-top:2px;">${data.product_name} — ${estrellas}</div>
+                            <div style="font-size:11px; color:#9ca3af; margin-top:2px;">Ahora</div>
+                        </div>
+                    </div>
+                `;
+
+                item.addEventListener('click', () => {
+                    const notifs = JSON.parse(localStorage.getItem('review_notifs') || '[]');
+                    notifs.forEach(n => n.leida = true);
+                    localStorage.setItem('review_notifs', JSON.stringify(notifs));
+                    actualizarBadge();
+                    window.location.href = '{{ route("reviews.index") }}';
+                });
+
+                item.addEventListener('mouseover', () => item.style.background = '#fef9ee');
+                item.addEventListener('mouseout',  () => item.style.background = '#fffbeb');
+
+                lista.prepend(item);
+                actualizarBadge();
+
+                if (window.swToast) {
+                    window.swToast.fire({
+                        icon: 'info',
+                        title: '⭐ Nueva reseña',
+                        text: `${data.client_name} dejó una reseña en ${data.product_name}`,
+                        timer: 6000,
+                    });
+                }
+            }
+
+            initReviewNotifications();
+        });
     @else
-        console.warn('⚠ Gerente sin local asignado, no se inicia listener de reseñas.');
+        console.warn('⚠ Gerente sin local asignado.');
     @endif
-});
 </script>
 @endif
 </body>
