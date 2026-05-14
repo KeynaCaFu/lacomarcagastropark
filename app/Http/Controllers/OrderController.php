@@ -77,7 +77,7 @@ class OrderController extends Controller
         $user = auth()->user();
         if ($user->isAdminLocal()) {
             $local = $user->locals()->first();
-            if (!$local || $order->local_id !== $local->local_id) {
+            if (!$local || (int) $order->local_id !== (int) $local->local_id) {
                 return response()->json(['error' => 'No autorizado'], 403);
             }
         }
@@ -104,7 +104,7 @@ class OrderController extends Controller
         $user = auth()->user();
         if ($user->isAdminLocal()) {
             $local = $user->locals()->first();
-            if (!$local || $order->local_id !== $local->local_id) {
+            if (!$local || (int) $order->local_id !== (int) $local->local_id) {
                 return response()->json(['success' => false, 'error' => 'No autorizado'], 403);
             }
         }
