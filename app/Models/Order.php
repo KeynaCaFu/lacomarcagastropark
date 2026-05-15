@@ -184,7 +184,7 @@ class Order extends Model
         $total = 0;
         foreach ($this->items as $item) {
             $localProduct = $item->product->locals->where('local_id', $this->local_id)->first();
-            $price = $localProduct ? $localProduct->pivot->price : 0;
+            $price = $localProduct ? $localProduct->price : 0;
             $total += $price * $item->quantity;
         }
         return $total;
