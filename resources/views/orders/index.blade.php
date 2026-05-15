@@ -113,7 +113,7 @@
     <!-- Contenedor de órdenes con Tabs -->
     <div class="orders-container-tabs">
         <!-- Tabs de estados -->
-        <div class="orders-tabs-header" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div class="orders-tabs-header">
             <div style="display: flex; gap: 8px; flex-wrap: wrap; flex: 1; min-width: 0;">
                 @foreach($statuses as $key => $label)
                     <button class="order-tab {{ $loop->first ? 'active' : '' }}" data-status="{{ $key }}">
