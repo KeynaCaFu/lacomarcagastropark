@@ -1,382 +1,323 @@
-@extends('layouts.app')
+<!-- Modal para Crear Usuario -->
+<div style="display: flex; flex-direction: column; height: 100%; max-height: calc(100vh - 120px); min-height: 400px;">
+    <div class="modal-header" style="background: #faf9f6; padding: 18px 24px; border-bottom: 3px solid #ff9900; flex-shrink: 0;">
+        <h3 id="createUserTitle" style="margin: 0; font-size: 18px; font-weight: 600; color: #1f2937;">
+            <i class="fas fa-user-plus" style="color: #ff9900; margin-right: 10px;"></i>Crear Nuevo Usuario
+        </h3>
+        <button type="button" class="close" aria-label="Cerrar" onclick="closeUserModal('userCreateModal')" style="position: absolute; right: 20px; top: 18px; font-size: 24px; border: none; background: none; cursor: pointer; color: #999; transition: color 0.2s;" onmouseover="this.style.color='#333'" onmouseout="this.style.color='#999'">&times;</button>
+    </div>
 
-@section('title', 'Crear Nuevo Usuario')
-
-@section('content')
-<div class="page-wrapper">
-<style>
-    .form-container {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        padding: 32px;
-        margin-top: 20px;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .form-title { font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 24px; }
-    .form-group { margin-bottom: 20px; }
-    .form-label { display: block; font-weight: 600; color: #374151; margin-bottom: 8px; font-size: 14px; }
-    .form-input, .form-select {
-        width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb;
-        border-radius: 8px; font-size: 14px;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        font-family: inherit; box-sizing: border-box;
-    }
-    .form-input:focus, .form-select:focus {
-        outline: none; border-color: #16a34a;
-        box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
-    }
-    .error-message { color: #dc2626; font-size: 13px; margin-top: 4px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .form-actions { display: flex; gap: 12px; margin-top: 32px; }
-    .required { color: #dc2626; }
-    .form-input.field-error { border-color: #dc2626; }
-    .inline-error { color: #dc2626; font-size: 12px; margin-top: 4px; display: none; }
-    .inline-error.show { display: block; }
-
-    /* ══════════════════════════════════════════════
-       CAMPO CONTRASEÑA CON OVERLAY
-       El input real es type="text" y está invisible.
-       El overlay muestra los puntos encima.
-       Edge jamás ve un type="password" → no inyecta ojo.
-    ══════════════════════════════════════════════ */
-    .pw-wrapper {
-        position: relative;
-        display: block;
-    }
-
-    /* Input real: transparente, encima del overlay */
-    .pw-real {
-        position: relative;
-        z-index: 2;
-        color: transparent !important;          /* texto invisible */
-        caret-color: #374151;                   /* cursor visible */
-        background: transparent !important;
-        width: 100%;
-        padding: 12px 44px 12px 14px;
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 14px;
-        font-family: inherit;
-        box-sizing: border-box;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-    .pw-real:focus {
-        outline: none;
-        border-color: #16a34a;
-        box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
-    }
-    .pw-real.field-error { border-color: #dc2626; }
-    /* Edge no muestra ojo en campos readonly ni con autocomplete=off */
-    .pw-real[readonly] { cursor: text; }
-
-
-    /* Overlay: muestra los puntos o el texto real */
-    .pw-overlay {
-        position: absolute;
-        top: 0; left: 0; right: 44px; bottom: 0;
-        z-index: 1;
-        padding: 12px 0 12px 14px;
-        font-size: 14px;
-        font-family: inherit;
-        color: #374151;
-        white-space: nowrap;
-        overflow: hidden;
-        pointer-events: none;   /* clics pasan al input real */
-        display: flex;
-        align-items: center;
-        letter-spacing: 0.2em; /* espaciado para puntos */
-    }
-
-    /* Botón ojo: siempre a la derecha, dentro del wrapper */
-    .btn-toggle-password {
-        position: absolute;
-        top: 50%; right: 10px;
-        transform: translateY(-50%);
-        z-index: 3;
-        background: none; border: none;
-        color: #9ca3af; cursor: pointer;
-        font-size: 15px; padding: 0;
-        width: 24px; height: 24px;
-        display: flex; align-items: center; justify-content: center;
-        transition: color 0.2s ease;
-    }
-    .btn-toggle-password:hover { color: #374151; }
-
-    .password-hint {
-        background: #f9fafb; padding: 10px;
-        border-radius: 6px; border-left: 3px solid #16a34a; margin-top: 8px;
-    }
-    .password-strength { display: none; margin-top: 8px; }
-    .password-strength.active { display: block; }
-    .strength-bar { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
-    .strength-fill { height: 100%; width: 0%; border-radius: 3px; transition: width .3s, background-color .3s; }
-    .match-feedback { font-size: 12px; display: none; margin-top: 6px; }
-    .match-feedback.show { display: block; }
-    .match-feedback.success { color: #16a34a; }
-    .match-feedback.error   { color: #dc2626; }
-
-    .btn-submit {
-        flex: 1; padding: 12px 20px;
-        background: linear-gradient(135deg, #485a1a, #0d5e2a);
-        color: white; border: none; border-radius: 8px;
-        font-weight: 600; font-size: 15px; cursor: pointer; transition: all .3s;
-    }
-    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(22,163,74,.25); }
-    .btn-cancel {
-        flex: 1; padding: 12px 20px; background: #e5e7eb; color: #374151;
-        border: none; border-radius: 8px; font-weight: 600; font-size: 15px;
-        cursor: pointer; text-decoration: none; transition: all .3s;
-        display: flex; align-items: center; justify-content: center;
-    }
-    .btn-cancel:hover { background: #d1d5db; }
-
-    @media (max-width: 991.98px) { .form-container { margin-top: 10px; } }
-    @media (max-width: 768px) {
-        .form-container { padding: 20px; max-width: 100%; }
-        .form-row { grid-template-columns: 1fr; }
-        .form-actions { flex-direction: column; }
-        .btn-submit, .btn-cancel { width: 100%; }
-    }
-    @media (max-width: 575.98px) {
-        .form-container { padding: 12px; border-radius: 8px; }
-        .form-title { font-size: 1.2rem; }
-    }
-</style>
-
-<div class="form-container">
-    <h1 class="form-title">Crear Nuevo Usuario</h1>
-
-    <form id="createUserFormPage" method="POST" action="{{ route('users.store') }}" novalidate>
+    <div class="modal-body" style="padding: 24px; background: #ffffff; flex: 1; overflow-y: auto;">
+    <form id="createUserForm" method="POST" action="{{ route('users.store') }}" novalidate enctype="multipart/form-data">
         @csrf
 
-        <!-- Nombre Completo — solo letras -->
-        <div class="form-group">
-            <label class="form-label" for="full_name">Nombre Completo <span class="required">*</span></label>
-            <input type="text" id="full_name" name="full_name"
-                class="form-input {{ $errors->has('full_name') ? 'is-invalid' : '' }}"
-                value="{{ old('full_name') }}" placeholder="Ej: Juan Pérez"
-                autocomplete="off" required />
-            <div class="inline-error" id="full_name_error">Solo se permiten letras y espacios.</div>
-            @error('full_name')<div class="error-message">{{ $message }}</div>@enderror
-        </div>
-
-        <!-- Email -->
-        <div class="form-group">
-            <label class="form-label" for="email">Correo Electrónico <span class="required">*</span></label>
-            <input type="email" id="email" name="email"
-                class="form-input {{ $errors->has('email') ? 'is-invalid' : '' }}"
-                value="{{ old('email') }}" placeholder="ejemplo@gmail.com" required />
-            <div class="inline-error" id="email_error">El correo debe tener el formato ejemplo@gmail.com</div>
-            @error('email')<div class="error-message">{{ $message }}</div>@enderror
-        </div>
-
-        <!-- Teléfono + Rol -->
-        <div class="form-row">
-            <div class="form-group">
-                <label class="form-label" for="phone">Teléfono</label>
-                <input type="tel" id="phone" name="phone"
-                    class="form-input {{ $errors->has('phone') ? 'is-invalid' : '' }}"
-                    value="{{ old('phone') }}" placeholder="Ej: 6700-1100"
-                    inputmode="numeric" maxlength="9" />
-                <div class="inline-error" id="phone_error">El teléfono debe tener el formato 8888-8888.</div>
-                @error('phone')<div class="error-message">{{ $message }}</div>@enderror
+        <!-- Fila 1 -->
+        <div class="row g-3" style="margin-bottom: 8px;">
+            <div class="col-md-6">
+                <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
+                <input type="text" id="createFullName" name="full_name" class="form-control" placeholder="Ej: Juan Pérez" required autocomplete="off">
+                <div class="invalid-feedback" id="createFullNameError"></div>
+                <div class="field-inline-error" id="createFullNameInline" style="color:#dc2626;font-size:12px;margin-top:4px;display:none;">
+                    Solo se permiten letras y espacios.
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label" for="role_id">Rol <span class="required">*</span></label>
-                <select id="role_id" name="role_id"
-                    class="form-select {{ $errors->has('role_id') ? 'is-invalid' : '' }}" required>
+
+            <div class="col-md-6">
+                <label class="form-label">Correo Electrónico <span class="text-danger">*</span></label>
+                <input type="email" id="createEmail" name="email" class="form-control" placeholder="ejemplo@gmail.com" required>
+                <div id="createEmailInline" style="color:#dc2626;font-size:12px;margin-top:4px;display:none;">
+                    El correo debe tener el formato ejemplo@gmail.com
+                </div>
+            </div>
+        </div>
+
+        <!-- Fila 2 -->
+        <div class="row g-3" style="margin-bottom: 8px; margin-top: 0;">
+            <div class="col-md-6">
+                <label class="form-label">Teléfono</label>
+                <input type="tel" id="createPhone" name="phone" class="form-control" placeholder="Ej: 6700-1100" inputmode="numeric" maxlength="9" pattern="\d{4}-\d{4}">
+                <div class="field-inline-error" id="createPhoneInline" style="color:#dc2626;font-size:12px;margin-top:4px;display:none;">
+                    El teléfono debe tener el formato 8888-8888.
+                </div>
+                <div class="invalid-feedback"></div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Rol <span class="text-danger">*</span></label>
+                <select name="role_id" class="form-select" required>
                     <option value="">Selecciona un rol</option>
-                    @foreach ($roles as $role)
-                        <option value="{{ $role->role_id }}" {{ old('role_id') == $role->role_id ? 'selected' : '' }}>
-                            {{ $role->role_name }}
-                        </option>
+                    @foreach($roles as $role)
+                        <option value="{{ $role->role_id }}">{{ $role->role_type }}</option>
                     @endforeach
                 </select>
-                @error('role_id')<div class="error-message">{{ $message }}</div>@enderror
+                <div class="invalid-feedback"></div>
             </div>
         </div>
 
-        <!-- Contraseña con overlay -->
-        <div class="form-row">
-            <div class="form-group">
-                <label class="form-label" for="password">Contraseña <span class="required">*</span></label>
-                <div class="pw-wrapper">
-                    {{-- Input real: type=text, texto invisible, Edge no lo detecta como password --}}
-                    <input type="text" id="password" name="password"
-                        class="pw-real {{ $errors->has('password') ? 'field-error' : '' }}"
-                        placeholder="" autocomplete="off" data-lpignore="true" data-form-type="other" readonly required />
-                    {{-- Overlay: muestra placeholder o puntos/texto --}}
-                    <div class="pw-overlay" id="pw_overlay" data-placeholder="Mínimo 8 caracteres"></div>
-                    <button type="button" class="btn-toggle-password" data-pw="password" data-overlay="pw_overlay" aria-label="Mostrar u ocultar contraseña">
-                        <i class="fas fa-eye"></i>
+        <!-- Fila 3 -->
+        <div class="row g-3" style="margin-bottom: 8px; margin-top: 0;">
+            <div class="col-md-6">
+                <label class="form-label">Contraseña <span class="text-danger">*</span></label>
+                <div class="password-field">
+                    <input type="password" id="createPassword" name="password" class="form-control password-input" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required>
+                    <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('createPassword')">
+                        <i class="fas fa-eye-slash"></i>
                     </button>
                 </div>
-                <div class="password-hint">
-                    <p style="margin:0 0 4px;font-size:12px;color:#666;"><strong>Mínimo 8 caracteres</strong></p>
-                    <p style="margin:0;font-size:12px;color:#666;">💡 Combina mayúsculas, minúsculas y números</p>
+                <div class="password-hint mt-2">
+                    <p style="margin: 0 0 8px; font-size: 12px; color: #666;"><strong>Mínimo 8 caracteres recomendado</strong></p>
+                    <p style="margin: 0; font-size: 12px; color: #666;">💡 Usa contraseñas fuertes con mayúsculas, minúsculas y números</p>
                 </div>
-                <div class="password-strength" id="passwordStrength">
-                    <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
-                    <p id="strengthText" style="margin:4px 0 0;font-size:12px;color:#999;"></p>
+                <div class="password-strength mt-2">
+                    <div class="strength-bar"><div class="strength-fill" id="createStrengthFill"></div></div>
+                    <p id="createStrengthText" style="margin: 4px 0 0; font-size: 12px; color: #999;"></p>
                 </div>
-                @error('password')<div class="error-message">{{ $message }}</div>@enderror
+                <div class="invalid-feedback"></div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label" for="password_confirmation">Confirmar Contraseña <span class="required">*</span></label>
-                <div class="pw-wrapper">
-                    <input type="text" id="password_confirmation" name="password_confirmation"
-                        class="pw-real" placeholder=""
-                        autocomplete="off" data-lpignore="true" data-form-type="other" readonly required />
-                    <div class="pw-overlay" id="pw_conf_overlay" data-placeholder="Repite la contraseña"></div>
-                    <button type="button" class="btn-toggle-password" data-pw="password_confirmation" data-overlay="pw_conf_overlay" aria-label="Mostrar u ocultar contraseña">
-                        <i class="fas fa-eye"></i>
+            <div class="col-md-6">
+                <label class="form-label">Confirmar contraseña <span class="text-danger">*</span></label>
+                <div class="password-field">
+                    <input type="password" id="createPasswordConfirm" name="password_confirmation" class="form-control password-input" placeholder="Repite la contraseña" autocomplete="new-password" required>
+                    <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('createPasswordConfirm')">
+                        <i class="fas fa-eye-slash"></i>
                     </button>
                 </div>
-                <div class="match-feedback" id="matchFeedback"></div>
+                <div class="match-feedback mt-2" id="createMatchFeedback"></div>
+                <div class="invalid-feedback"></div>
             </div>
         </div>
 
-        <!-- Estado -->
-        <div class="form-group">
-            <label class="form-label" for="status">Estado <span class="required">*</span></label>
-            <select id="status" name="status"
-                class="form-select {{ $errors->has('status') ? 'is-invalid' : '' }}" required>
-                <option value="">Selecciona un estado</option>
-                <option value="Active"   {{ old('status','Active') == 'Active'   ? 'selected' : '' }}>Activo</option>
-                <option value="Inactive" {{ old('status')          == 'Inactive' ? 'selected' : '' }}>Inactivo</option>
-            </select>
-            @error('status')<div class="error-message">{{ $message }}</div>@enderror
+        <!-- Fila 4: Estado -->
+        <div class="row g-3" style="margin-bottom: 0; margin-top: 0;">
+            <div class="col-md-6">
+                <label class="form-label">Estado <span class="text-danger">*</span></label>
+                <select name="status" class="form-select" required>
+                    <option value="">Selecciona un estado</option>
+                    <option value="Active" selected>Activo</option>
+                    <option value="Inactive">Inactivo</option>
+                </select>
+                <div class="invalid-feedback"></div>
+            </div>
         </div>
 
-        <div class="form-actions">
-            <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Crear Usuario</button>
-            <a href="{{ route('users.index') }}" class="btn-cancel"><i class="fas fa-times"></i> Cancelar</a>
-        </div>
     </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-actions" style="background: #fafafa; padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; gap: 12px; justify-content: flex-end; flex-shrink: 0;">
+        <button type="button" class="btn btn-secondary" onclick="closeUserModal('userCreateModal')" style="padding: 10px 20px; background: #e5e7eb; color: #374151; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='#e5e7eb'">
+            <i class="fas fa-times" style="margin-right: 6px;"></i> Cancelar
+        </button>
+
+        <button type="submit" form="createUserForm" class="btn btn-primary btn-gradient" style="padding: 10px 24px; background: linear-gradient(135deg, #ff9900, #ff7700); color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(255,153,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow=''">
+            <i class="fas fa-save" style="margin-right: 6px;"></i> Crear Usuario
+        </button>
+    </div>
 </div>
 
+<style>
+@media (max-width: 768px) {
+    .col-md-6 { width: 100% !important; }
+    .modal-body { padding: 16px !important; }
+    .modal-header, .modal-actions { padding: 12px 16px !important; }
+}
+@media (max-width: 480px) {
+    .form-label { font-size: 12px !important; }
+    .form-control, .form-select { padding: 8px 10px !important; font-size: 13px !important; }
+    .password-hint { padding: 10px !important; }
+}
+
+.password-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.password-field .form-control { padding-right: 72px; }
+.password-field .form-control.is-invalid,
+.password-field .form-control.is-valid {
+    padding-right: 72px;
+    background-position: right 44px center;
+}
+.btn-toggle-password {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 5px;
+    transition: color 0.2s ease;
+}
+.btn-toggle-password:hover { color: #ff9900; }
+
+.password-hint {
+    background: #fffaf0;
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 3px solid #ff9900;
+}
+.form-label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 13px;
+    margin-bottom: 6px;
+    display: block;
+}
+.form-control, .form-select {
+    border: 1.5px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+.form-control:focus, .form-select:focus {
+    outline: none;
+    border-color: #ff9900;
+    box-shadow: 0 0 0 3px rgba(255,153,0,0.15);
+}
+.form-control.field-error { border-color: #dc2626 !important; }
+.text-danger { color: #ef4444; }
+
+.password-strength { display: none; }
+.password-strength.active { display: block; }
+.strength-bar { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+.strength-fill { height: 100%; width: 0%; border-radius: 3px; transition: width 0.3s ease, background-color 0.3s ease; }
+
+.match-feedback { font-size: 12px; display: none; }
+.match-feedback.show { display: block; }
+.match-feedback.success { color: #16a34a; }
+.match-feedback.error { color: #dc2626; }
+</style>
+
 <script>
-/* =================================================================
-   SISTEMA DE OVERLAY PARA CONTRASEÑA
-   - El input real es type="text", el texto queda color:transparent
-   - El overlay dibuja puntos (●) o el texto real según el estado
-   ================================================================= */
-(function() {
-    // Carácter punto que usamos como máscara
-    const DOT = '●';
+/* ── Toggle contraseña ── */
+function togglePasswordVisibility(fieldId) {
+    const field = document.getElementById(fieldId);
+    const isPassword = field.type === 'password';
+    field.type = isPassword ? 'text' : 'password';
+    const button = event.target.closest('.btn-toggle-password');
+    const icon = button.querySelector('i');
+    icon.classList.toggle('fa-eye');
+    icon.classList.toggle('fa-eye-slash');
+}
 
-    // Inicializa un par input + overlay
-    function initPwField(inputId, overlayId) {
-        const input   = document.getElementById(inputId);
-        const overlay = document.getElementById(overlayId);
-        if (!input || !overlay) return;
+/* ── Fortaleza de contraseña ── */
+function validatePasswordStrength(password) {
+    let strength = 0;
+    if (password.length >= 8) strength += 25;
+    if (/[a-z]/.test(password)) strength += 25;
+    if (/[A-Z]/.test(password)) strength += 25;
+    if (/[0-9]/.test(password)) strength += 25;
+    if (strength === 0) return { strength: 0, text: '', color: '' };
+    if (strength <= 25) return { strength: 25, text: 'Muy débil', color: '#dc2626' };
+    if (strength <= 50) return { strength: 50, text: 'Débil', color: '#f97316' };
+    if (strength <= 75) return { strength: 75, text: 'Buena', color: '#eab308' };
+    return { strength: 100, text: 'Fuerte', color: '#16a34a' };
+}
 
-        let isVisible = false;
+function setupPasswordValidation(passwordId, confirmId, strengthFillId, strengthTextId, matchFeedbackId) {
+    const passwordField = document.getElementById(passwordId);
+    const confirmField  = document.getElementById(confirmId);
+    const strengthFill  = document.getElementById(strengthFillId);
+    const strengthText  = document.getElementById(strengthTextId);
+    const matchFeedback = document.getElementById(matchFeedbackId);
+    if (!passwordField) return;
 
-        function renderOverlay() {
-            const val = input.value;
-            if (val.length === 0) {
-                overlay.style.color = '#9ca3af';
-                overlay.style.letterSpacing = 'normal';
-                overlay.textContent = overlay.dataset.placeholder;
-            } else if (isVisible) {
-                overlay.style.color = '#374151';
-                overlay.style.letterSpacing = 'normal';
-                overlay.textContent = val;
-            } else {
-                overlay.style.color = '#374151';
-                overlay.style.letterSpacing = '0.2em';
-                overlay.textContent = DOT.repeat(val.length);
-            }
+    passwordField.addEventListener('input', function() {
+        const value  = this.value;
+        const result = validatePasswordStrength(value);
+        const strEl  = this.closest('.col-md-6').querySelector('.password-strength');
+        if (value.length > 0) {
+            strEl.classList.add('active');
+            strengthFill.style.width = result.strength + '%';
+            strengthFill.style.backgroundColor = result.color;
+            strengthText.textContent = result.text;
+            strengthText.style.color = result.color;
+        } else {
+            strEl.classList.remove('active');
         }
-
-        // Quitar readonly al hacer foco: Edge no escanea campos readonly
-        // pero sí necesitamos que se pueda escribir
-        input.addEventListener('focus', function() {
-            this.removeAttribute('readonly');
-        });
-        input.addEventListener('input', renderOverlay);
-        renderOverlay(); // estado inicial (placeholder)
-
-        // Exponer toggle para el botón ojo
-        input._pwToggle = function(btn) {
-            isVisible = !isVisible;
-            renderOverlay();
-            const icon = btn.querySelector('i');
-            if (icon) {
-                icon.classList.toggle('fa-eye',      !isVisible);
-                icon.classList.toggle('fa-eye-slash',  isVisible);
-            }
-        };
-    }
-
-    initPwField('password',              'pw_overlay');
-    initPwField('password_confirmation', 'pw_conf_overlay');
-
-    // Click en cualquier botón ojo
-    document.addEventListener('click', function(e) {
-        const btn = e.target.closest('.btn-toggle-password');
-        if (!btn) return;
-        const input = document.getElementById(btn.dataset.pw);
-        if (input && input._pwToggle) input._pwToggle(btn);
+        if (confirmField && confirmField.value) {
+            validatePasswordMatch(passwordId, confirmId, matchFeedbackId);
+        }
     });
-})();
 
-/* =================================================================
-   NOMBRE — solo letras, acentos y espacios. SIN números.
-   ================================================================= */
+    if (confirmField) {
+        confirmField.addEventListener('input', function() {
+            if (this.value) validatePasswordMatch(passwordId, confirmId, matchFeedbackId);
+            else matchFeedback.classList.remove('show');
+        });
+    }
+}
+
+function validatePasswordMatch(passwordId, confirmId, feedbackId) {
+    const pw  = document.getElementById(passwordId);
+    const conf= document.getElementById(confirmId);
+    const fb  = document.getElementById(feedbackId);
+    if (pw.value === conf.value) {
+        fb.classList.add('show','success'); fb.classList.remove('error');
+        fb.innerHTML = '<i class="fas fa-check-circle"></i> Las contraseñas coinciden';
+    } else {
+        fb.classList.add('show','error'); fb.classList.remove('success');
+        fb.innerHTML = '<i class="fas fa-exclamation-circle"></i> Las contraseñas no coinciden';
+    }
+}
+
+/* ══════════════════════════════════════════
+   NOMBRE — solo letras, acentos y espacios
+   ══════════════════════════════════════════ */
 (function() {
-    const field = document.getElementById('full_name');
-    const err   = document.getElementById('full_name_error');
+    const field = document.getElementById('createFullName');
+    const err   = document.getElementById('createFullNameInline');
     if (!field) return;
 
     field.addEventListener('keydown', function(e) {
         if (e.ctrlKey || e.metaKey || e.altKey) return;
-        if (e.key.length > 1) return; // teclas de control
+        if (e.key.length > 1) return; // Backspace, Tab, flechas…
         if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]$/.test(e.key)) e.preventDefault();
     });
 
     field.addEventListener('input', function() {
+        // Limpia si pegaron texto con números u otros caracteres
         const clean = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '');
         if (this.value !== clean) this.value = clean;
         const bad = this.value.length > 0 && this.value.trim() === '';
-        err.classList.toggle('show', bad);
+        err.style.display = bad ? 'block' : 'none';
         this.classList.toggle('field-error', bad);
     });
 })();
 
-/* =================================================================
+/* ══════════════════════════════════════════
    EMAIL — solo @gmail.com
-   ================================================================= */
+   ══════════════════════════════════════════ */
 (function() {
-    const field = document.getElementById('email');
-    const err   = document.getElementById('email_error');
+    const field = document.getElementById('createEmail');
+    const err   = document.getElementById('createEmailInline');
     if (!field) return;
 
     const regex = /^[a-zA-Z0-9._%+\-]+@gmail\.com$/i;
 
     function validate() {
         const val = field.value.trim();
-        if (!val) { err.classList.remove('show'); field.classList.remove('field-error'); return; }
+        if (!val) { err.style.display = 'none'; field.classList.remove('field-error'); return; }
         const ok = regex.test(val);
-        err.classList.toggle('show', !ok);
+        err.style.display = ok ? 'none' : 'block';
         field.classList.toggle('field-error', !ok);
     }
 
     field.addEventListener('blur', validate);
-    field.addEventListener('input', function() { if (err.classList.contains('show')) validate(); });
+    field.addEventListener('input', function() {
+        if (err.style.display === 'block') validate();
+    });
 })();
 
-/* =================================================================
+/* ══════════════════════════════════════════
    TELÉFONO — solo dígitos, máscara 8888-8888
-   ================================================================= */
+   ══════════════════════════════════════════ */
 (function() {
-    const field = document.getElementById('phone');
-    const err   = document.getElementById('phone_error');
+    const field = document.getElementById('createPhone');
+    const err   = document.getElementById('createPhoneInline');
     if (!field) return;
 
     field.addEventListener('keydown', function(e) {
@@ -390,113 +331,31 @@
         this.value = d.length > 4 ? d.slice(0,4) + '-' + d.slice(4) : d;
         const raw = this.value.replace(/\D/g, '');
         const bad = raw.length > 0 && raw.length < 8;
-        err.classList.toggle('show', bad);
+        err.style.display = bad ? 'block' : 'none';
         this.classList.toggle('field-error', bad);
     });
 
     field.addEventListener('blur', function() {
         const raw = this.value.replace(/\D/g, '');
         const bad = raw.length > 0 && raw.length < 8;
-        err.classList.toggle('show', bad);
+        err.style.display = bad ? 'block' : 'none';
         this.classList.toggle('field-error', bad);
     });
 })();
 
-/* =================================================================
-   FORTALEZA DE CONTRASEÑA
-   ================================================================= */
-(function() {
-    const pw    = document.getElementById('password');
-    const conf  = document.getElementById('password_confirmation');
-    const bar   = document.getElementById('strengthFill');
-    const txt   = document.getElementById('strengthText');
-    const strEl = document.getElementById('passwordStrength');
-    const fb    = document.getElementById('matchFeedback');
-    if (!pw) return;
-
-    function strength(v) {
-        let s = 0;
-        if (v.length >= 8)   s += 25;
-        if (/[a-z]/.test(v)) s += 25;
-        if (/[A-Z]/.test(v)) s += 25;
-        if (/[0-9]/.test(v)) s += 25;
-        return {
-            pct:   s,
-            text:  ['','Muy débil','Débil','Buena','Fuerte'][s/25] || '',
-            color: ['','#dc2626','#f97316','#eab308','#16a34a'][s/25] || ''
-        };
-    }
-
-    function checkMatch() {
-        if (!conf || !conf.value) { fb.classList.remove('show'); return; }
-        const ok = pw.value === conf.value;
-        fb.className = 'match-feedback show ' + (ok ? 'success' : 'error');
-        fb.innerHTML = ok
-            ? '<i class="fas fa-check-circle"></i> Las contraseñas coinciden'
-            : '<i class="fas fa-exclamation-circle"></i> Las contraseñas no coinciden';
-    }
-
-    pw.addEventListener('input', function() {
-        if (this.value.length > 0) {
-            const r = strength(this.value);
-            strEl.classList.add('active');
-            bar.style.width = r.pct + '%';
-            bar.style.backgroundColor = r.color;
-            txt.textContent = r.text;
-            txt.style.color = r.color;
-        } else {
-            strEl.classList.remove('active');
-        }
-        if (conf && conf.value) checkMatch();
-    });
-
-    if (conf) conf.addEventListener('input', checkMatch);
-})();
-
-/* =================================================================
-   SUBMIT
-   ================================================================= */
-(function() {
+/* ── Init ── */
+(function(){
     if (typeof Swal === 'undefined') {
-        const s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
-        document.head.appendChild(s);
+        const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
+        if (!existing) {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js';
+            document.head.appendChild(s);
+        }
     }
 
-    const form = document.getElementById('createUserFormPage');
-    if (!form) return;
+    setupPasswordValidation('createPassword', 'createPasswordConfirm', 'createStrengthFill', 'createStrengthText', 'createMatchFeedback');
 
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const emailField = document.getElementById('email');
-        if (emailField && emailField.value.trim()) {
-            if (!/^[a-zA-Z0-9._%+\-]+@gmail\.com$/i.test(emailField.value.trim())) {
-                document.getElementById('email_error').classList.add('show');
-                emailField.classList.add('field-error');
-                emailField.focus();
-                return;
-            }
-        }
-
-        if (window.swConfirm) {
-            const res = await swConfirm({
-                title: 'Crear usuario',
-                text: '¿Desea crear este nuevo usuario?',
-                icon: 'question',
-                confirmButtonText: 'Sí, crear',
-                cancelButtonText: 'Cancelar'
-            });
-            if (!res.isConfirmed) return;
-        }
-        form.submit();
-    });
-})();
-
-/* =================================================================
-   MENSAJES DE SESIÓN
-   ================================================================= */
-(function() {
     try {
         const successMsg = @json(session('success'));
         const errorMsg   = @json(session('error'));
@@ -517,6 +376,3 @@
     } catch(e) {}
 })();
 </script>
-
-</div>
-@endsection
