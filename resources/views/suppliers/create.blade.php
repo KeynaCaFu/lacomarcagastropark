@@ -6,14 +6,27 @@
     <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
     
     <style>
-        /* Input focus color - Orange instead of Blue */
         .form-control:focus {
             border-color: #e18018 !important;
             box-shadow: 0 0 0 0.2rem rgba(225, 128, 24, 0.25) !important;
         }
-        
+
         .custom-file-input:focus ~ .custom-file-label {
             border-color: #e18018;
+        }
+
+        /* Grid 2 columnas para teléfono + email */
+        .form-grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 576px) {
+            .form-grid-2col {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
         }
     </style>
 @endpush
