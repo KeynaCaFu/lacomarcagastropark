@@ -15,14 +15,20 @@
         <div class="row g-3" style="margin-bottom: 8px;">
             <div class="col-md-6">
                 <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
-                <input type="text" name="full_name" class="form-control" placeholder="Ej: Juan Pérez" required>
-                <div class="invalid-feedback"></div>
+                <input type="text" id="createFullName" name="full_name" class="form-control" placeholder="Ej: Juan Pérez" required autocomplete="off">
+                <div class="invalid-feedback" id="createFullNameError"></div>
+                <div class="field-inline-error" id="createFullNameInline" style="color:#dc2626;font-size:12px;margin-top:4px;display:none;">
+                    Solo se permiten letras y espacios.
+                </div>
             </div>
 
             <div class="col-md-6">
                 <label class="form-label">Correo Electrónico <span class="text-danger">*</span></label>
-                <input type="email" name="email" class="form-control" placeholder="correo@ejemplo.com" required>
-                <div class="invalid-feedback"></div>
+                <input type="email" id="createEmail" name="email" class="form-control" placeholder="ejemplo@gmail.com" required>
+                <div class="invalid-feedback" id="createEmailError"></div>
+                <div class="field-inline-error" id="createEmailInline" style="color:#dc2626;font-size:12px;margin-top:4px;display:none;">
+                    El correo debe tener el formato ejemplo@gmail.com
+                </div>
             </div>
         </div>
 
@@ -31,6 +37,9 @@
             <div class="col-md-6">
                 <label class="form-label">Teléfono</label>
                 <input type="tel" id="createPhone" name="phone" class="form-control" placeholder="Ej: 6700-1100" inputmode="numeric" maxlength="9" pattern="\d{4}-\d{4}">
+                <div class="field-inline-error" id="createPhoneInline" style="color:#dc2626;font-size:12px;margin-top:4px;display:none;">
+                    El teléfono debe tener el formato 8888-8888.
+                </div>
                 <div class="invalid-feedback"></div>
             </div>
 
@@ -109,30 +118,15 @@
 </div>
 
 <style>
-/* Responsive para pantallas pequeñas */
 @media (max-width: 768px) {
-    .col-md-6 {
-        width: 100% !important;
-    }
-    .modal-body {
-        padding: 16px !important;
-    }
-    .modal-header, .modal-actions {
-        padding: 12px 16px !important;
-    }
+    .col-md-6 { width: 100% !important; }
+    .modal-body { padding: 16px !important; }
+    .modal-header, .modal-actions { padding: 12px 16px !important; }
 }
-
 @media (max-width: 480px) {
-    .form-label {
-        font-size: 12px !important;
-    }
-    .form-control, .form-select {
-        padding: 8px 10px !important;
-        font-size: 13px !important;
-    }
-    .password-hint {
-        padding: 10px !important;
-    }
+    .form-label { font-size: 12px !important; }
+    .form-control, .form-select { padding: 8px 10px !important; font-size: 13px !important; }
+    .password-hint { padding: 10px !important; }
 }
 
 .password-field {
@@ -140,18 +134,12 @@
     display: flex;
     align-items: center;
 }
-
-.password-field .form-control {
-    padding-right: 72px;
-}
-
-/* Evita que el icono de validacion se monte sobre el boton de mostrar contrasena */
+.password-field .form-control { padding-right: 72px; }
 .password-field .form-control.is-invalid,
 .password-field .form-control.is-valid {
     padding-right: 72px;
     background-position: right 44px center;
 }
-
 .btn-toggle-password {
     position: absolute;
     right: 12px;
@@ -163,10 +151,7 @@
     padding: 5px;
     transition: color 0.2s ease;
 }
-
-.btn-toggle-password:hover {
-    color: #ff9900;
-}
+.btn-toggle-password:hover { color: #ff9900; }
 
 .password-hint {
     background: #fffaf0;
@@ -174,7 +159,6 @@
     border-radius: 6px;
     border-left: 3px solid #ff9900;
 }
-
 .form-label {
     font-weight: 600;
     color: #374151;
@@ -182,7 +166,6 @@
     margin-bottom: 6px;
     display: block;
 }
-
 .form-control, .form-select {
     border: 1.5px solid #e5e7eb;
     border-radius: 6px;
@@ -190,78 +173,44 @@
     font-size: 14px;
     transition: all 0.2s ease;
 }
-
 .form-control:focus, .form-select:focus {
     outline: none;
     border-color: #ff9900;
     box-shadow: 0 0 0 3px rgba(255,153,0,0.15);
 }
+.form-control.field-error { border-color: #dc2626 !important; }
+.text-danger { color: #ef4444; }
 
-.text-danger {
-    color: #ef4444;
-}
+.password-strength { display: none; }
+.password-strength.active { display: block; }
+.strength-bar { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+.strength-fill { height: 100%; width: 0%; border-radius: 3px; transition: width 0.3s ease, background-color 0.3s ease; }
 
-.password-strength {
-    display: none;
-}
-
-.password-strength.active {
-    display: block;
-}
-
-.strength-bar {
-    height: 6px;
-    background: #e5e7eb;
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.strength-fill {
-    height: 100%;
-    width: 0%;
-    border-radius: 3px;
-    transition: width 0.3s ease, background-color 0.3s ease;
-}
-
-.match-feedback {
-    font-size: 12px;
-    display: none;
-}
-
-.match-feedback.show {
-    display: block;
-}
-
-.match-feedback.success {
-    color: #16a34a;
-}
-
-.match-feedback.error {
-    color: #dc2626;
-}
+.match-feedback { font-size: 12px; display: none; }
+.match-feedback.show { display: block; }
+.match-feedback.success { color: #16a34a; }
+.match-feedback.error { color: #dc2626; }
 </style>
 
 <script>
+/* ── Toggle contraseña ── */
 function togglePasswordVisibility(fieldId) {
     const field = document.getElementById(fieldId);
     const isPassword = field.type === 'password';
     field.type = isPassword ? 'text' : 'password';
-    
     const button = event.target.closest('.btn-toggle-password');
     const icon = button.querySelector('i');
     icon.classList.toggle('fa-eye');
     icon.classList.toggle('fa-eye-slash');
 }
 
+/* ── Fortaleza de contraseña ── */
 function validatePasswordStrength(password) {
     let strength = 0;
-    const feedback = [];
-    
     if (password.length >= 8) strength += 25;
     if (/[a-z]/.test(password)) strength += 25;
     if (/[A-Z]/.test(password)) strength += 25;
     if (/[0-9]/.test(password)) strength += 25;
-    
     if (strength === 0) return { strength: 0, text: '', color: '' };
     if (strength <= 25) return { strength: 25, text: 'Muy débil', color: '#dc2626' };
     if (strength <= 50) return { strength: 50, text: 'Débil', color: '#f97316' };
@@ -271,76 +220,132 @@ function validatePasswordStrength(password) {
 
 function setupPasswordValidation(passwordId, confirmId, strengthFillId, strengthTextId, matchFeedbackId) {
     const passwordField = document.getElementById(passwordId);
-    const confirmField = document.getElementById(confirmId);
-    const strengthFill = document.getElementById(strengthFillId);
-    const strengthText = document.getElementById(strengthTextId);
+    const confirmField  = document.getElementById(confirmId);
+    const strengthFill  = document.getElementById(strengthFillId);
+    const strengthText  = document.getElementById(strengthTextId);
     const matchFeedback = document.getElementById(matchFeedbackId);
-    
     if (!passwordField) return;
-    
+
     passwordField.addEventListener('input', function() {
-        const value = this.value;
+        const value  = this.value;
         const result = validatePasswordStrength(value);
-        
+        const strEl  = this.closest('.col-md-6').querySelector('.password-strength');
         if (value.length > 0) {
-            document.querySelector('#' + passwordId).closest('.col-md-6').querySelector('.password-strength').classList.add('active');
+            strEl.classList.add('active');
             strengthFill.style.width = result.strength + '%';
             strengthFill.style.backgroundColor = result.color;
             strengthText.textContent = result.text;
             strengthText.style.color = result.color;
         } else {
-            document.querySelector('#' + passwordId).closest('.col-md-6').querySelector('.password-strength').classList.remove('active');
+            strEl.classList.remove('active');
         }
-        
-        // Validar coincidencia
         if (confirmField && confirmField.value) {
             validatePasswordMatch(passwordId, confirmId, matchFeedbackId);
         }
     });
-    
+
     if (confirmField) {
         confirmField.addEventListener('input', function() {
-            if (this.value) {
-                validatePasswordMatch(passwordId, confirmId, matchFeedbackId);
-            } else {
-                matchFeedback.classList.remove('show');
-            }
+            if (this.value) validatePasswordMatch(passwordId, confirmId, matchFeedbackId);
+            else matchFeedback.classList.remove('show');
         });
     }
 }
 
 function validatePasswordMatch(passwordId, confirmId, feedbackId) {
-    const passwordField = document.getElementById(passwordId);
-    const confirmField = document.getElementById(confirmId);
-    const feedback = document.getElementById(feedbackId);
-    
-    if (passwordField.value === confirmField.value) {
-        feedback.classList.add('show', 'success');
-        feedback.classList.remove('error');
-        feedback.innerHTML = '<i class="fas fa-check-circle"></i> Las contraseñas coinciden';
+    const pw  = document.getElementById(passwordId);
+    const conf= document.getElementById(confirmId);
+    const fb  = document.getElementById(feedbackId);
+    if (pw.value === conf.value) {
+        fb.classList.add('show','success'); fb.classList.remove('error');
+        fb.innerHTML = '<i class="fas fa-check-circle"></i> Las contraseñas coinciden';
     } else {
-        feedback.classList.add('show', 'error');
-        feedback.classList.remove('success');
-        feedback.innerHTML = '<i class="fas fa-exclamation-circle"></i> Las contraseñas no coinciden';
+        fb.classList.add('show','error'); fb.classList.remove('success');
+        fb.innerHTML = '<i class="fas fa-exclamation-circle"></i> Las contraseñas no coinciden';
     }
 }
 
-function setupPhoneMask(phoneId) {
-    const phoneField = document.getElementById(phoneId);
-    if (!phoneField || phoneField.dataset._phoneMaskBound === 'true') return;
+/* ══════════════════════════════════════════
+   NOMBRE — solo letras, acentos y espacios
+   ══════════════════════════════════════════ */
+(function() {
+    const field = document.getElementById('createFullName');
+    const err   = document.getElementById('createFullNameInline');
+    if (!field) return;
 
-    phoneField.dataset._phoneMaskBound = 'true';
-    phoneField.addEventListener('input', function() {
-        let digits = this.value.replace(/\D/g, '').slice(0, 8);
-        if (digits.length > 4) {
-            digits = digits.slice(0, 4) + '-' + digits.slice(4);
-        }
-        this.value = digits;
+    field.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if (e.key.length > 1) return; // Backspace, Tab, flechas…
+        if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]$/.test(e.key)) e.preventDefault();
     });
-}
 
+    field.addEventListener('input', function() {
+        // Limpia si pegaron texto con números u otros caracteres
+        const clean = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '');
+        if (this.value !== clean) this.value = clean;
+        const bad = this.value.length > 0 && this.value.trim() === '';
+        err.style.display = bad ? 'block' : 'none';
+        this.classList.toggle('field-error', bad);
+    });
+})();
+
+/* ══════════════════════════════════════════
+   EMAIL — solo @gmail.com
+   ══════════════════════════════════════════ */
+(function() {
+    const field = document.getElementById('createEmail');
+    const err   = document.getElementById('createEmailInline');
+    if (!field) return;
+
+    const regex = /^[a-zA-Z0-9._%+\-]+@gmail\.com$/i;
+
+    function validate() {
+        const val = field.value.trim();
+        if (!val) { err.style.display = 'none'; field.classList.remove('field-error'); return; }
+        const ok = regex.test(val);
+        err.style.display = ok ? 'none' : 'block';
+        field.classList.toggle('field-error', !ok);
+    }
+
+    field.addEventListener('blur', validate);
+    field.addEventListener('input', function() {
+        if (err.style.display === 'block') validate();
+    });
+})();
+
+/* ══════════════════════════════════════════
+   TELÉFONO — solo dígitos, máscara 8888-8888
+   ══════════════════════════════════════════ */
+(function() {
+    const field = document.getElementById('createPhone');
+    const err   = document.getElementById('createPhoneInline');
+    if (!field) return;
+
+    field.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if (e.key.length > 1) return;
+        if (!/[0-9]/.test(e.key)) e.preventDefault();
+    });
+
+    field.addEventListener('input', function() {
+        let d = this.value.replace(/\D/g, '').slice(0, 8);
+        this.value = d.length > 4 ? d.slice(0,4) + '-' + d.slice(4) : d;
+        const raw = this.value.replace(/\D/g, '');
+        const bad = raw.length > 0 && raw.length < 8;
+        err.style.display = bad ? 'block' : 'none';
+        this.classList.toggle('field-error', bad);
+    });
+
+    field.addEventListener('blur', function() {
+        const raw = this.value.replace(/\D/g, '');
+        const bad = raw.length > 0 && raw.length < 8;
+        err.style.display = bad ? 'block' : 'none';
+        this.classList.toggle('field-error', bad);
+    });
+})();
+
+/* ── Init ── */
 (function(){
-    // SweetAlert2 CDN guard (partial may be loaded via AJAX)
     if (typeof Swal === 'undefined') {
         const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
         if (!existing) {
@@ -350,68 +355,25 @@ function setupPhoneMask(phoneId) {
         }
     }
 
-    // Setup password validation
     setupPasswordValidation('createPassword', 'createPasswordConfirm', 'createStrengthFill', 'createStrengthText', 'createMatchFeedback');
-    setupPhoneMask('createPhone');
 
-    // Note: submit handler is in users/index.blade.php (AJAX-based)
-    // Do not add duplicate handler here
-
-    // Session success/error and validation SweetAlerts (in case rendered server-side)
     try {
         const successMsg = @json(session('success'));
-        const errorMsg = @json(session('error'));
-        const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
-        
-        // Handle success messages with retry logic
-        if (successMsg) {
-            let retries = 0;
-            const checkAndShowToast = () => {
-                if (window.swToast) {
-                    swToast.fire({ 
-                        icon: 'success', 
-                        title: successMsg
-                    });
-                } else if (retries < 50) {
-                    retries++;
-                    setTimeout(checkAndShowToast, 100);
-                }
-            };
-            setTimeout(checkAndShowToast, 100);
+        const errorMsg   = @json(session('error'));
+        const hasErrors  = {{ $errors->any() ? 'true' : 'false' }};
+
+        function waitFor(key, cb, n=0) {
+            if (window[key]) cb();
+            else if (n < 50) setTimeout(() => waitFor(key, cb, n+1), 100);
         }
-        
-        // Handle error messages with retry logic
-        if (errorMsg) {
-            let retries = 0;
-            const checkAndShowError = () => {
-                if (window.swAlert) {
-                    swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
-                } else if (retries < 50) {
-                    retries++;
-                    setTimeout(checkAndShowError, 100);
-                }
-            };
-            setTimeout(checkAndShowError, 100);
-        }
-        
-        // Handle validation errors with retry logic
-        if (hasErrors) {
-            let retries = 0;
-            const checkAndShowErrors = () => {
-                if (window.swAlert) {
-                    swAlert({
-                        icon: 'error',
-                        title: 'Errores de validación',
-                        html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
-                        confirmButtonColor: '#dc2626'
-                    });
-                } else if (retries < 50) {
-                    retries++;
-                    setTimeout(checkAndShowErrors, 100);
-                }
-            };
-            setTimeout(checkAndShowErrors, 100);
-        }
-    } catch(e) { /* noop */ }
+
+        if (successMsg) waitFor('swToast', () => swToast.fire({ icon:'success', title: successMsg }));
+        if (errorMsg)   waitFor('swAlert',  () => swAlert({ icon:'error', title:'Error', text: errorMsg, confirmButtonColor:'#dc2626' }));
+        if (hasErrors)  waitFor('swAlert',  () => swAlert({
+            icon: 'error', title: 'Errores de validación',
+            html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+            confirmButtonColor: '#dc2626'
+        }));
+    } catch(e) {}
 })();
 </script>

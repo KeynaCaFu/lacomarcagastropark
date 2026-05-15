@@ -4,6 +4,21 @@
 
 @push('styles')
     <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
+    <style>
+        .field-error {
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .field-error i { font-size: 11px; }
+        input.input-error, select.input-error, textarea.input-error {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 2px rgba(220,38,38,0.12) !important;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -35,7 +50,7 @@
                 </h5>
             </div>
             <div class="card-body" style="padding:24px;">
-                <form action="{{ route('products.update', $product->product_id) }}" method="POST" id="productForm" enctype="multipart/form-data">
+                <form action="{{ route('products.update', $product->product_id) }}" method="POST" id="productForm" enctype="multipart/form-data" novalidate>
                     @csrf
                     @method('PUT')
 
@@ -58,8 +73,11 @@
                                        required
                                        maxlength="255"
                                        placeholder="Nombre del producto">
+                                <span class="field-error" id="error-nombre" style="display:none;">
+                                    <i class="fas fa-exclamation-circle"></i> <span></span>
+                                </span>
                                 @error('nombre')
-                                    <span class="invalid-feedback">{{ $message }}</span>
+                                    <span class="field-error"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span>
                                 @enderror
                             </div>
 
@@ -68,34 +86,42 @@
                                 <div>
                                     <div class="form-group mb-3">
                                         <label for="categoria" class="form-label">
-                                            <strong>Categoría</strong>
+                                            <strong>Categoría *</strong>
                                         </label>
                                         <input type="text" 
                                                class="form-control @error('categoria') is-invalid @enderror" 
                                                id="categoria" 
                                                name="categoria" 
                                                value="{{ old('categoria', $product->category) }}"
+                                               required
                                                maxlength="100"
                                                placeholder="ej: Bebidas, Comidas">
+                                        <span class="field-error" id="error-categoria" style="display:none;">
+                                            <i class="fas fa-exclamation-circle"></i> <span></span>
+                                        </span>
                                         @error('categoria')
-                                            <span class="invalid-feedback">{{ $message }}</span>
+                                            <span class="field-error"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
                                 <div>
                                     <div class="form-group mb-3">
                                         <label for="tipo_producto" class="form-label">
-                                            <strong>Tipo de Producto</strong>
+                                            <strong>Tipo de Producto *</strong>
                                         </label>
                                         <input type="text" 
                                                class="form-control @error('tipo_producto') is-invalid @enderror" 
                                                id="tipo_producto" 
                                                name="tipo_producto" 
                                                value="{{ old('tipo_producto', $product->product_type) }}"
+                                               required
                                                maxlength="50"
                                                placeholder="ej: Bebida, Entrada">
+                                        <span class="field-error" id="error-tipo_producto" style="display:none;">
+                                            <i class="fas fa-exclamation-circle"></i> <span></span>
+                                        </span>
                                         @error('tipo_producto')
-                                            <span class="invalid-feedback">{{ $message }}</span>
+                                            <span class="field-error"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
@@ -120,28 +146,35 @@
                                                    value="{{ old('precio', $product->price) }}"
                                                    required
                                                    step="0.01" 
-                                                   min="0"
+                                                   min="0.01"
                                                    placeholder="0.00">
                                         </div>
+                                        <span class="field-error" id="error-precio" style="display:none;">
+                                            <i class="fas fa-exclamation-circle"></i> <span></span>
+                                        </span>
                                         @error('precio')
-                                            <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
+                                            <span class="field-error" style="display: block;"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
                                 <div>
                                     <div class="form-group mb-3">
                                         <label for="etiqueta" class="form-label">
-                                            <strong>Etiqueta</strong>
+                                            <strong>Etiqueta *</strong>
                                         </label>
                                         <input type="text" 
                                                class="form-control @error('etiqueta') is-invalid @enderror" 
                                                id="etiqueta" 
                                                name="etiqueta" 
                                                value="{{ old('etiqueta', $product->tag) }}"
+                                               required
                                                maxlength="100"
                                                placeholder="ej: Especial, Descuento">
+                                        <span class="field-error" id="error-etiqueta" style="display:none;">
+                                            <i class="fas fa-exclamation-circle"></i> <span></span>
+                                        </span>
                                         @error('etiqueta')
-                                            <span class="invalid-feedback">{{ $message }}</span>
+                                            <span class="field-error"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
@@ -150,16 +183,20 @@
                             <!-- Descripción -->
                             <div class="form-group mb-3">
                                 <label for="descripcion" class="form-label">
-                                    <strong>Descripción</strong>
+                                    <strong>Descripción *</strong>
                                 </label>
                                 <textarea class="form-control @error('descripcion') is-invalid @enderror" 
                                           id="descripcion" 
                                           name="descripcion" 
                                           rows="4"
+                                          required
                                           style="resize: vertical;"
                                           placeholder="Descripción detallada del producto">{{ old('descripcion', $product->description) }}</textarea>
+                                <span class="field-error" id="error-descripcion" style="display:none;">
+                                    <i class="fas fa-exclamation-circle"></i> <span></span>
+                                </span>
                                 @error('descripcion')
-                                    <span class="invalid-feedback">{{ $message }}</span>
+                                    <span class="field-error"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span>
                                 @enderror
                             </div>
                         </div>
@@ -181,10 +218,10 @@
                                 </div>
                                 <small class="form-text text-muted d-block mt-2">Formatos: JPG, PNG, GIF. Máx: 2MB</small>
                                 @error('foto')
-                                    <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
+                                    <span class="field-error" style="display: block;"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span>
                                 @enderror
 
-                                <!-- Preview de imagen (muestra foto actual o nueva selección) -->
+                                <!-- Preview de imagen -->
                                 <div id="imagePreviewContainer" style="margin-top: 12px; border: 2px {{ $product->photo_url ? 'solid' : 'dashed' }} #e5e7eb; border-radius: 10px; overflow: hidden; background: {{ $product->photo_url ? '#fff' : '#fafafa' }}; display: flex; align-items: center; justify-content: center; min-height: 180px; transition: all 0.3s ease;">
                                     @if($product->photo_url)
                                         <img id="imagePreview" src="{{ $product->photo_url }}" alt="{{ $product->name }}" style="width: 100%; max-height: 220px; object-fit: cover;">
@@ -222,8 +259,11 @@
                                         ✗ No disponible
                                     </option>
                                 </select>
+                                <span class="field-error" id="error-estado" style="display:none;">
+                                    <i class="fas fa-exclamation-circle"></i> <span></span>
+                                </span>
                                 @error('estado')
-                                    <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
+                                    <span class="field-error" style="display: block;"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span>
                                 @enderror
                             </div>
 
@@ -296,7 +336,6 @@
 
 @push('scripts')
 <script>
-    // SweetAlert2 CDN
     (function(){
         const existing = document.querySelector('script[src*="cdn.jsdelivr.net/npm/sweetalert2"]');
         if (!existing) {
@@ -305,12 +344,67 @@
             document.head.appendChild(s);
         }
     })();
-    // Mostrar nombre del archivo seleccionado y vista previa
+
+    // ── Mostrar error inline ──────────────────────────────────────────────
+    function showError(fieldId, msg) {
+        const wrap = document.getElementById('error-' + fieldId);
+        const input = document.getElementById(fieldId);
+        if (wrap) { wrap.querySelector('span').textContent = msg; wrap.style.display = 'flex'; }
+        if (input) input.classList.add('input-error');
+    }
+    function clearError(fieldId) {
+        const wrap = document.getElementById('error-' + fieldId);
+        const input = document.getElementById(fieldId);
+        if (wrap) { wrap.style.display = 'none'; }
+        if (input) input.classList.remove('input-error');
+    }
+
+    // ── Limpiar error de nombre al escribir ──────────────────────────────
+    document.getElementById('nombre').addEventListener('input', function() {
+        if (this.value.trim()) clearError('nombre');
+    });
+
+    // ── Restricción: solo letras en Categoría, Tipo y Etiqueta ───────────
+    ['categoria', 'tipo_producto', 'etiqueta'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('keypress', function(e) {
+            const char = String.fromCharCode(e.which);
+            if (!/[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/.test(char)) {
+                e.preventDefault();
+            }
+        });
+        el.addEventListener('input', function() {
+            this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '');
+            if (this.value.trim()) clearError(id);
+        });
+    });
+
+    // ── Restricción: solo números en Precio ──────────────────────────────
+    const precioInput = document.getElementById('precio');
+    precioInput.addEventListener('keypress', function(e) {
+        const char = String.fromCharCode(e.which);
+        if (!/[0-9.]/.test(char)) {
+            e.preventDefault();
+        }
+    });
+    precioInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9.]/g, '');
+        if (this.value) clearError('precio');
+    });
+
+    // ── Limpiar errores al escribir (descripcion y estado) ───────────────
+    document.getElementById('descripcion').addEventListener('input', function() {
+        if (this.value.trim()) clearError('descripcion');
+    });
+    document.getElementById('estado').addEventListener('change', function() {
+        if (this.value) clearError('estado');
+    });
+
+    // ── Preview de imagen ─────────────────────────────────────────────────
     document.getElementById('foto').addEventListener('change', function() {
         const fileName = this.files[0] ? this.files[0].name : 'Seleccionar archivo...';
         this.nextElementSibling.textContent = fileName;
-
-        // Vista previa de imagen
         const preview = document.getElementById('imagePreview');
         const placeholder = document.getElementById('imagePreviewPlaceholder');
         const container = document.getElementById('imagePreviewContainer');
@@ -334,36 +428,36 @@
         }
     });
 
-    // Validación del formulario en el cliente
+    // ── Validación antes de enviar ────────────────────────────────────────
     document.getElementById('productForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        let valid = true;
+
         const nombre = document.getElementById('nombre').value.trim();
+        const categoria = document.getElementById('categoria').value.trim();
+        const tipo = document.getElementById('tipo_producto').value.trim();
         const precio = parseFloat(document.getElementById('precio').value);
+        const etiqueta = document.getElementById('etiqueta').value.trim();
+        const descripcion = document.getElementById('descripcion').value.trim();
         const estado = document.getElementById('estado').value;
 
+        ['nombre','categoria','tipo_producto','precio','etiqueta','descripcion','estado'].forEach(clearError);
+
         if (!nombre) {
-            e.preventDefault();
-            alert('El nombre del producto es obligatorio');
-            document.getElementById('nombre').focus();
-            return false;
+            showError('nombre', 'El nombre del producto es obligatorio.'); valid = false;
         }
-
-        if (!precio || precio < 0) {
-            e.preventDefault();
-            alert('El precio debe ser un número mayor o igual a 0');
-            document.getElementById('precio').focus();
-            return false;
+        if (!categoria) { showError('categoria', 'La categoría es obligatoria.'); valid = false; }
+        if (!tipo) { showError('tipo_producto', 'El tipo de producto es obligatorio.'); valid = false; }
+        if (!document.getElementById('precio').value || isNaN(precio) || precio <= 0) {
+            showError('precio', 'El precio debe ser un número mayor a 0.'); valid = false;
         }
+        if (!etiqueta) { showError('etiqueta', 'La etiqueta es obligatoria.'); valid = false; }
+        if (!descripcion) { showError('descripcion', 'La descripción es obligatoria.'); valid = false; }
+        if (!estado) { showError('estado', 'Debe seleccionar un estado.'); valid = false; }
 
-        if (!estado) {
-            e.preventDefault();
-            alert('Debe seleccionar un estado');
-            document.getElementById('estado').focus();
-            return false;
-        }
+        if (!valid) return false;
 
-        // Confirmación con SweetAlert antes de enviar
         if (window.swConfirm) {
-            e.preventDefault();
             swConfirm({
                 title: 'Actualizar producto',
                 text: '¿Desea guardar los cambios de este producto?',
@@ -371,39 +465,28 @@
                 confirmButtonText: 'Sí, actualizar',
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
-                if (result.isConfirmed) {
-                    this.submit();
-                }
+                if (result.isConfirmed) { this.submit(); }
             });
+        } else {
+            this.submit();
         }
     });
 
-    // Mostrar alertas de éxito desde sesión (si existen)
+    // ── Alertas de sesión ─────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function(){
         const successMsg = @json(session('success'));
         if (successMsg) {
-            // Esperar a que swToast esté disponible
             let retries = 0;
-            const checkAndShowToast = () => {
-                if (window.swToast) {
-                    swToast.fire({ 
-                        icon: 'success', 
-                        title: successMsg
-                    });
-                } else if (retries < 50) {
-                    retries++;
-                    setTimeout(checkAndShowToast, 100);
-                }
+            const check = () => {
+                if (window.swToast) { swToast.fire({ icon: 'success', title: successMsg }); }
+                else if (retries++ < 50) setTimeout(check, 100);
             };
-            setTimeout(checkAndShowToast, 100);
+            setTimeout(check, 100);
         }
-
         const errorMsg = @json(session('error'));
         if (errorMsg && window.swAlert) {
             swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
         }
-
-        // Mostrar errores de validación (si existen)
         @if ($errors->any())
         if (window.swAlert) {
             swAlert({
@@ -416,58 +499,36 @@
         @endif
     });
 
-    // Abrir modal de ayuda
     function openEditProductHelpModal() {
         const modal = document.getElementById('editProductHelpModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
+        if (modal) { modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
     }
-
-    // Cerrar modal de ayuda
     function closeEditProductHelpModal() {
         const modal = document.getElementById('editProductHelpModal');
-        if (modal) {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
+        if (modal) { modal.style.display = 'none'; document.body.style.overflow = 'auto'; }
     }
-
-    // Cerrar modal al hacer clic fuera
     window.addEventListener('click', function(e) {
         const modal = document.getElementById('editProductHelpModal');
-        if (e.target === modal) {
-            closeEditProductHelpModal();
-        }
+        if (e.target === modal) closeEditProductHelpModal();
     });
-
-    // Mover botón de ayuda al header
     document.addEventListener('DOMContentLoaded', function() {
         const helpContainer = document.getElementById('topHelpContainer');
         const helpButtonContainer = document.getElementById('helpButtonContainerEdit');
         const helpButton = document.getElementById('helpButtonEdit');
-        
         if (helpContainer && helpButtonContainer && helpButton) {
             helpContainer.appendChild(helpButton);
             helpButtonContainer.style.display = 'none';
         }
-
     });
 </script>
 @endpush
 
-
-<!-- Botón de Ayuda para Editar Producto -->
 <div id="helpButtonContainerEdit" style="display: none;">
     <button id="helpButtonEdit" type="button" class="btn-help" onclick="openEditProductHelpModal()">
         <i class="fas fa-question-circle"></i> Ayuda
     </button>
 </div>
 
-
-
-<!-- Modal de Ayuda para Editar Producto -->
 <div id="editProductHelpModal" class="custom-modal" style="display:none;">
     <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
         <div class="modal-header">
@@ -477,50 +538,26 @@
         <div class="modal-body">
             <div class="detail-section">
                 <h5><i class="fas fa-heading"></i> Cambios Rápidos</h5>
-                <p>
-                    Puedes cambiar cualquier campo y guardar los cambios inmediatamente.<br>
-                    <small class="text-muted">Los cambios se aplicarán en la tienda de inmediato.</small>
-                </p>
+                <p>Puedes cambiar cualquier campo y guardar los cambios inmediatamente.<br>
+                <small class="text-muted">Los cambios se aplicarán en la tienda de inmediato.</small></p>
             </div>
-
             <div class="detail-section">
                 <h5><i class="fas fa-money-bill"></i> Precio</h5>
-                <p>
-                    Si cambias el precio, se actualizará para todos los clientes.<br>
-                    <small class="text-muted">Ingresa el precio en colones con decimales (ej: 1500.50).</small>
-                </p>
+                <p>Si cambias el precio, se actualizará para todos los clientes.<br>
+                <small class="text-muted">Solo números. Usa punto para decimales (ej: 1500.50).</small></p>
             </div>
-
             <div class="detail-section">
                 <h5><i class="fas fa-check"></i> Disponibilidad</h5>
-                <p>
-                    Marca como "No disponible" si temporalmente no tienes stock.<br>
-                    <small class="text-muted">Puedes cambiar esto cuando vuelva a estar disponible.</small>
-                </p>
+                <p>Marca como "No disponible" si temporalmente no tienes stock.</p>
             </div>
-
             <div class="detail-section">
                 <h5><i class="fas fa-images"></i> Galería</h5>
-                <p>
-                    Ve a "Ver Detalles" para agregar más imágenes a la galería del producto.<br>
-                    <small class="text-muted">Desde aquí también puedes ver todas las imágenes subidas.</small>
-                </p>
+                <p>Ve a "Ver Detalles" para agregar más imágenes a la galería del producto.</p>
             </div>
-
-            <div class="detail-section">
-                <h5><i class="fas fa-history"></i> Historial</h5>
-                <p>
-                    Puedes ver cuándo fue creado y modificado el producto al final del formulario.<br>
-                    <small class="text-muted">Esto te ayuda a llevar un control de los cambios.</small>
-                </p>
-            </div>
-
             <div class="detail-section">
                 <h5><i class="fas fa-image"></i> Cambiar Foto Principal</h5>
-                <p>
-                    Selecciona una nueva imagen para reemplazar la foto principal del producto.<br>
-                    <small class="text-muted">Formatos: JPG, PNG, GIF. Tamaño máximo: 2MB. Verás una vista previa de la imagen actual.</small>
-                </p>
+                <p>Selecciona una nueva imagen para reemplazar la foto principal.<br>
+                <small class="text-muted">Formatos: JPG, PNG, GIF. Máx: 2MB.</small></p>
             </div>
         </div>
         <div class="modal-actions">
