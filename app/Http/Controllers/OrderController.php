@@ -336,7 +336,7 @@ class OrderController extends Controller
                 'product_id' => $product->product_id,
                 'name' => $product->name,
                 'photo' => $product->photo_url,
-                'price' => $product->pivot->price ?? 0,
+                'price' => $product->price,
                 'category' => $product->category ?? 'Sin categoría',
             ]);
 
@@ -427,7 +427,7 @@ class OrderController extends Controller
                     ], 422);
                 }
 
-                $price = $localProduct->pivot->price ?? 0;
+                $price = $localProduct->price;
                 $totalAmount += $price * $item['quantity'];
                 $quantity += $item['quantity'];
             }
