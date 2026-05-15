@@ -125,6 +125,77 @@
 }
 
 /* ==========================================
+   FORM GRID 2 COLUMNAS (create/edit forms)
+   ========================================== */
+
+.form-grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 575.98px) {
+    .form-grid-2col {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}
+
+/* ==========================================
+   PÁGINA: DETALLE PRODUCTO (show.blade.php)
+   ========================================== */
+
+.product-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 991.98px) {
+    .product-detail-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .product-detail-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .product-detail-grid .card-body img.img-fluid {
+        max-height: 200px !important;
+    }
+}
+
+/* ==========================================
+   PÁGINA: GALERÍA PRODUCTO (gallery.blade.php)
+   ========================================== */
+
+.gallery-layout-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 991.98px) {
+    .gallery-layout-grid {
+        grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .gallery-layout-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+/* ==========================================
    PÁGINA: EDITAR PRODUCTO (edit.blade.php)
    ========================================== */
 
@@ -225,7 +296,7 @@
 /* Estadísticas Grid */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -701,12 +772,6 @@ tr:hover {
 /* ========================================
    PRODUCT SHOW PAGE - RESPONSIVE
    ======================================== */
-
-@media (max-width: 767.98px) {
-    .product-detail-grid .card-body img.img-fluid {
-        max-height: 200px !important;
-    }
-}
 
 /* ========================================
    GALLERY PAGE - RESPONSIVE
