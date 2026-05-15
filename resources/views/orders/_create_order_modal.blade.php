@@ -23,7 +23,7 @@
                 <div style="position: relative;">
                     <div style="position: relative; display: flex; align-items: center;">
                         <input type="text" id="customerSearch" placeholder="Selecciona o escribe para buscar..." style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; padding-right: 70px;">
-                        <i class="fas fa-chevron-down" style="position: absolute; right: 35px; color: #999; pointer-events: none; font-size: 12px;"></i>
+                        <i class="fas fa-chevron-down" id="chevronCustomer" style="position: absolute; right: 35px; color: #999; font-size: 12px; cursor: pointer; transition: transform 0.2s;"></i>
                         <button type="button" id="toggleCustomerDropdown" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #e18018; cursor: pointer; font-size: 14px; padding: 5px 8px; display: none;">
                             <i class="fas fa-times"></i>
                         </button>
@@ -83,14 +83,6 @@
                     <span style="font-weight: 600; color: #111;">Total:</span>
                     <span style="color: #e18018; font-weight: 700; font-size: 15px;">₡<span id="orderTotal">0.00</span></span>
                 </div>
-            </div>
-
-            <!-- Tiempo de Preparación -->
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #111;">
-                    Tiempo de Preparación (minutos) <span style="color: #ef4444;">*</span>
-                </label>
-                <input type="number" name="preparation_time" id="preparationTime" min="1" value="30" required style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
             </div>
 
             <!-- Notas -->
@@ -317,25 +309,6 @@
         font-size: 14px;
         font-weight: 700;
         color: #e18018;
-    }
-
-    .product-quantity-input {
-        position: absolute;
-        bottom: 8px;
-        right: 8px;
-        width: 40px;
-        height: 28px;
-        padding: 0;
-        text-align: center;
-        border: 1px solid #e5e7eb;
-        border-radius: 4px;
-        font-weight: 600;
-        color: #111;
-        display: none;
-    }
-
-    .product-card.selected .product-quantity-input {
-        display: block;
     }
 
     /* ---- Responsive del modal ---- */
