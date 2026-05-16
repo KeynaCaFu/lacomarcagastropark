@@ -125,7 +125,7 @@
                         <td>{{ $item->product->name }}</td>
                         <td style="text-align: center;">{{ $item->quantity }}</td>
                         <td style="text-align: right;">
-                            ₡{{ number_format($item->product->locals->where('local_id', $order->local_id)->first()?->pivot->price ?? 0, 2) }}
+                            ₡{{ number_format($item->product->locals->where('local_id', $order->local_id)->first()?->price ?? 0, 2) }}
                         </td>
                     </tr>
                 @endforeach

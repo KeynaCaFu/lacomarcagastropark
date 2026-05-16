@@ -147,7 +147,7 @@
             @foreach($order->items as $item)
                 @php
                     $localProduct = $item->product->locals->where('local_id', $order->local_id)->first();
-                    $price = $localProduct ? $localProduct->pivot->price : 0;
+                    $price = $localProduct ? $localProduct->price : 0;
                     $subtotal = $price * $item->quantity;
                 @endphp
                 <tr>

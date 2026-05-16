@@ -441,8 +441,10 @@ class ReportData
     public function validateProductCost($productId, $localId)
     {
         $localProduct = DB::table('tblocal_product')
-            ->where('product_id', $productId)
-            ->where('local_id', $localId)
+            ->join('tbproduct', 'tblocal_product.product_id', '=', 'tbproduct.product_id')
+            ->where('tblocal_product.product_id', $productId)
+            ->where('tblocal_product.local_id', $localId)
+            ->select('tbproduct.price')
             ->first();
 
         if (!$localProduct) {
@@ -454,7 +456,7 @@ class ReportData
             ];
         }
 
-        if (!$localProduct->price || $localProduct->price <= 0) {
+        if (!$localProduct->precio || $localProduct->precio <= 0) {
             return [
                 'valid' => false,
                 'message' => 'Producto sin costo registrado en el inventario',
@@ -467,7 +469,7 @@ class ReportData
             'valid' => true,
             'product_id' => $productId,
             'local_id' => $localId,
-            'price' => $localProduct->price
+            'price' => $localProduct->precio
         ];
     }
 
@@ -485,7 +487,7 @@ class ReportData
             ->where('tblocal_product.local_id', $localId)
             ->where('tblocal_product.is_available', true)
             ->where('tbproduct.status', 'active')
-            ->select('tbproduct.product_id', 'tbproduct.name', 'tblocal_product.price', 'tblocal_product.is_available')
+            ->select('tbproduct.product_id', 'tbproduct.name', 'tbproduct.price', 'tblocal_product.is_available')
             ->orderBy('tbproduct.name')
             ->get();
     }
