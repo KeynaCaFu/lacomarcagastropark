@@ -10,7 +10,7 @@
                     style="background:none;border:none;cursor:pointer;font-size:20px;color:#6b7280;line-height:1;">&times;</button>
         </div>
 
-        <form id="formEditarLocal" method="POST" action="#" style="padding:20px;">
+        <form id="formEditarLocal" method="POST" action="#" style="padding:20px;" novalidate>
             @csrf
             @method('PUT')
 
@@ -18,22 +18,24 @@
                 <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">
                     Nombre del local <span style="color:#dc2626;">*</span>
                 </label>
-                <input id="edit_local_name" type="text" name="name" required maxlength="255"
+                <input id="edit_local_name" type="text" name="name" maxlength="255"
                        placeholder="Ej: Restaurante El Sabor"
                        style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;color:#111827;outline:none;box-sizing:border-box;">
+                <div class="field-error" id="edit_local_nameError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
             </div>
 
             <div style="margin-bottom:24px;">
                 <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">
                     Gerente asignado <span style="color:#dc2626;">*</span>
                 </label>
-                <select id="edit_manager_id" name="manager_id" required
+                <select id="edit_manager_id" name="manager_id"
                         style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;color:#111827;background:#fff;outline:none;box-sizing:border-box;">
                     <option value="">-- Seleccionar gerente --</option>
                     @foreach($gerentes as $gerente)
                         <option value="{{ $gerente->user_id }}">{{ $gerente->full_name }}</option>
                     @endforeach
                 </select>
+                <div class="field-error" id="edit_manager_idError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
             </div>
 
             <div style="display:flex;gap:10px;justify-content:flex-end;">

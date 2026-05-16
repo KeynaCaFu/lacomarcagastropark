@@ -76,8 +76,20 @@ class UserController extends Controller
         }
 
         $validated = $request->validate([
-            'full_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:tbuser,email',
+            'full_name' => [
+                'required',
+                'string',
+                'max:255',
+                // Solo letras (incluyendo acentos y ñ) y espacios
+                'regex:/^[\pL\s]+$/u',
+            ],
+            'email' => [
+                'required',
+                'email',
+                'unique:tbuser,email',
+                // Solo se permite @gmail.com
+                'regex:/^[a-zA-Z0-9._%+\-]+@gmail\.com$/i',
+            ],
             'password' => 'required|min:8|confirmed',
             'password_confirmation' => 'required',
             'role_id' => 'required|exists:tbrole,role_id',
@@ -85,45 +97,35 @@ class UserController extends Controller
             'status' => 'required|in:Active,Inactive',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ], [
-            'full_name.required' => 'El campo nombre completo es obligatorio.',
-            'full_name.max' => 'El nombre completo no puede superar los 255 caracteres.',
-            'email.required' => 'El campo correo electronico es obligatorio.',
-            'email.email' => 'Debes ingresar un correo electronico valido.',
-            'email.unique' => 'Este correo electronico ya esta registrado.',
-            'password.required' => 'El campo contrasena es obligatorio.',
-            'password.min' => 'La contrasena debe tener al menos 8 caracteres.',
-            'password.confirmed' => 'La confirmacion de la contrasena no coincide.',
+            'full_name.required'    => 'El campo nombre completo es obligatorio.',
+            'full_name.max'         => 'El nombre completo no puede superar los 255 caracteres.',
+            'full_name.regex'       => 'El nombre solo puede contener letras y espacios.',
+            'email.required'        => 'El campo correo electronico es obligatorio.',
+            'email.email'           => 'Debes ingresar un correo electronico valido.',
+            'email.unique'          => 'Este correo electronico ya esta registrado.',
+            'email.regex'           => 'El correo debe tener el formato ejemplo@gmail.com',
+            'password.required'     => 'El campo contrasena es obligatorio.',
+            'password.min'          => 'La contrasena debe tener al menos 8 caracteres.',
+            'password.confirmed'    => 'La confirmacion de la contrasena no coincide.',
             'password_confirmation.required' => 'Debes confirmar la contrasena.',
-            'role_id.required' => 'El campo rol es obligatorio.',
-            'role_id.exists' => 'El rol seleccionado no es valido.',
-            'phone.regex' => 'El telefono debe tener el formato 8888-8888.',
-            'status.required' => 'El campo estado es obligatorio.',
-            'status.in' => 'El estado seleccionado no es valido.',
-            'avatar.image' => 'El archivo de avatar debe ser una imagen.',
-            'avatar.mimes' => 'El avatar debe ser de tipo: jpeg, png, jpg o gif.',
-            'avatar.max' => 'El avatar no puede ser mayor a 2MB.',
-        ], [
-            'full_name' => 'nombre completo',
-            'email' => 'correo electronico',
-            'password' => 'contrasena',
-            'password_confirmation' => 'confirmacion de contrasena',
-            'role_id' => 'rol',
-            'phone' => 'telefono',
-            'status' => 'estado',
-            'avatar' => 'avatar',
+            'role_id.required'      => 'El campo rol es obligatorio.',
+            'role_id.exists'        => 'El rol seleccionado no es valido.',
+            'phone.regex'           => 'El telefono debe tener el formato 8888-8888.',
+            'status.required'       => 'El campo estado es obligatorio.',
+            'status.in'             => 'El estado seleccionado no es valido.',
+            'avatar.image'          => 'El archivo de avatar debe ser una imagen.',
+            'avatar.mimes'          => 'El avatar debe ser de tipo: jpeg, png, jpg o gif.',
+            'avatar.max'            => 'El avatar no puede ser mayor a 2MB.',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
 
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
-            // Crear directorio si no existe
             $avatarDir = public_path('images/avatars');
             if (!File::isDirectory($avatarDir)) {
                 File::makeDirectory($avatarDir, 0755, true, true);
             }
-
-            // Generar nombre único para el avatar
             $filename = 'avatar_' . time() . '_' . rand(1000, 9999) . '.' . $request->file('avatar')->getClientOriginalExtension();
             $request->file('avatar')->move($avatarDir, $filename);
             $validated['avatar'] = 'images/avatars/' . $filename;
@@ -132,7 +134,6 @@ class UserController extends Controller
         $user = User::create($validated);
 
         if ($request->expectsJson()) {
-            // Nunca devolver la contraseña en respuestas JSON por seguridad
             $userData = $user->toArray();
             unset($userData['password']);
             return response()->json(['message' => 'Usuario creado exitosamente', 'user' => $userData], 201);
@@ -148,7 +149,6 @@ class UserController extends Controller
     public function show(User $user)
     {
         if (request()->expectsJson()) {
-            // Nunca devolver la contraseña en respuestas JSON por seguridad
             $userData = $user->toArray();
             unset($userData['password']);
             return response()->json($userData);
@@ -178,7 +178,6 @@ class UserController extends Controller
             $user->update($validated);
 
             if ($request->expectsJson()) {
-                // Nunca devolver la contraseña en respuestas JSON por seguridad
                 $userData = $user->fresh()->toArray();
                 unset($userData['password']);
                 return response()->json(['message' => 'Estado actualizado exitosamente', 'user' => $userData]);
@@ -188,15 +187,44 @@ class UserController extends Controller
                             ->with('success', 'Estado actualizado exitosamente.');
         }
 
-        // Actualización completa del usuario (desde el formulario de edición)
+        // Actualización completa del usuario
         $validated = $request->validate([
-            'full_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:tbuser,email,' . $user->user_id . ',user_id',
-            'password' => 'nullable|min:8|confirmed',
-            'role_id' => 'required|exists:tbrole,role_id',
-            'phone' => 'nullable|string|max:20',
-            'status' => 'required|in:Active,Inactive',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'full_name' => [
+                'required',
+                'string',
+                'max:255',
+                // Solo letras (incluyendo acentos y ñ) y espacios
+                'regex:/^[\pL\s]+$/u',
+            ],
+            'email' => [
+                'required',
+                'email',
+                'unique:tbuser,email,' . $user->user_id . ',user_id',
+                // Solo se permite @gmail.com
+                'regex:/^[a-zA-Z0-9._%+\-]+@gmail\.com$/i',
+            ],
+            'password'  => 'nullable|min:8|confirmed',
+            'role_id'   => 'required|exists:tbrole,role_id',
+            'phone'     => 'nullable|string|max:20',
+            'status'    => 'required|in:Active,Inactive',
+            'avatar'    => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ], [
+            'full_name.required' => 'El campo nombre completo es obligatorio.',
+            'full_name.max'      => 'El nombre completo no puede superar los 255 caracteres.',
+            'full_name.regex'    => 'El nombre solo puede contener letras y espacios.',
+            'email.required'     => 'El campo correo electronico es obligatorio.',
+            'email.email'        => 'Debes ingresar un correo electronico valido.',
+            'email.unique'       => 'Este correo electronico ya esta registrado.',
+            'email.regex'        => 'El correo debe tener el formato ejemplo@gmail.com',
+            'password.min'       => 'La contrasena debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'La confirmacion de la contrasena no coincide.',
+            'role_id.required'   => 'El campo rol es obligatorio.',
+            'role_id.exists'     => 'El rol seleccionado no es valido.',
+            'status.required'    => 'El campo estado es obligatorio.',
+            'status.in'          => 'El estado seleccionado no es valido.',
+            'avatar.image'       => 'El archivo de avatar debe ser una imagen.',
+            'avatar.mimes'       => 'El avatar debe ser de tipo: jpeg, png, jpg o gif.',
+            'avatar.max'         => 'El avatar no puede ser mayor a 2MB.',
         ]);
 
         // Solo actualizar la contraseña si se proporciona
@@ -208,21 +236,16 @@ class UserController extends Controller
 
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
-            // Eliminar avatar anterior si existe
             if ($user->avatar) {
                 $oldPath = public_path(str_replace('public/', '', $user->avatar));
                 if (File::exists($oldPath)) {
                     File::delete($oldPath);
                 }
             }
-
-            // Crear directorio si no existe
             $avatarDir = public_path('images/avatars');
             if (!File::isDirectory($avatarDir)) {
                 File::makeDirectory($avatarDir, 0755, true, true);
             }
-
-            // Generar nombre único para el avatar
             $filename = 'avatar_' . $user->user_id . '_' . time() . '.' . $request->file('avatar')->getClientOriginalExtension();
             $request->file('avatar')->move($avatarDir, $filename);
             $validated['avatar'] = 'public/images/avatars/' . $filename;
@@ -231,7 +254,6 @@ class UserController extends Controller
         $user->update($validated);
 
         if ($request->expectsJson()) {
-            // Nunca devolver la contraseña en respuestas JSON por seguridad
             $userData = $user->fresh()->toArray();
             unset($userData['password']);
             return response()->json(['message' => 'Usuario actualizado exitosamente', 'user' => $userData]);
@@ -248,31 +270,23 @@ class UserController extends Controller
     {
         $currentUser = auth()->user();
 
-        // Prevenir que se elimine el usuario actual
         if ($currentUser && $currentUser->user_id === $user->user_id) {
             if (request()->expectsJson()) {
-                return response()->json([
-                    'message' => 'No puedes eliminar tu propia cuenta.'
-                ], 422);
+                return response()->json(['message' => 'No puedes eliminar tu propia cuenta.'], 422);
             }
-
-            return redirect()->route('users.index')
-                            ->with('error', 'No puedes eliminar tu propia cuenta.');
+            return redirect()->route('users.index')->with('error', 'No puedes eliminar tu propia cuenta.');
         }
 
         try {
             DB::transaction(function () use ($user) {
-                // Evita fallos de FK en relaciones N:M (por ejemplo tbuser_local)
                 $user->locals()->detach();
                 $user->delete();
             });
         } catch (QueryException $e) {
             $message = 'No se puede eliminar el usuario porque tiene registros relacionados.';
-
             if (request()->expectsJson()) {
                 return response()->json(['message' => $message], 422);
             }
-
             return redirect()->route('users.index')->with('error', $message);
         }
 
@@ -280,8 +294,7 @@ class UserController extends Controller
             return response()->json(['message' => 'Usuario eliminado exitosamente']);
         }
 
-        return redirect()->route('users.index')
-                        ->with('success', 'Usuario eliminado exitosamente.');
+        return redirect()->route('users.index')->with('success', 'Usuario eliminado exitosamente.');
     }
 
     /**

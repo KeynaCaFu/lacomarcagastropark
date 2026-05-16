@@ -300,24 +300,39 @@
                 padding: 12px;
                 border-radius: 8px;
             }
-            
+
             .header-left h1 {
                 font-size: 22px;
             }
-            
+
             .stats-summary {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 10px;
             }
-            
+
             .locales-grid {
                 grid-template-columns: 1fr;
                 gap: 12px;
             }
-            
+
             .local-card-header {
                 height: 120px;
             }
+        }
+
+        /* Validación inline modales de locales */
+        .field-error {
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .field-error i { font-size: 11px; }
+        input.input-error, select.input-error {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 2px rgba(220,38,38,0.12) !important;
         }
     </style>
 @endpush
@@ -476,13 +491,45 @@ document.getElementById('modalCrearLocal').addEventListener('click', function(e)
     if (e.target === this) this.style.display = 'none';
 });
 
+// Helpers de validación para modales de locales
+function localShowError(fieldId, msg) {
+    const field = document.getElementById(fieldId);
+    const errDiv = document.getElementById(fieldId + 'Error');
+    if (field && errDiv) {
+        field.classList.add('input-error');
+        errDiv.style.display = 'flex';
+        const span = errDiv.querySelector('span');
+        if (span) span.textContent = msg;
+    }
+}
+function localClearError(fieldId) {
+    const field = document.getElementById(fieldId);
+    const errDiv = document.getElementById(fieldId + 'Error');
+    if (field && errDiv) {
+        field.classList.remove('input-error');
+        errDiv.style.display = 'none';
+    }
+}
+
 // Confirmar antes de crear local
 (function(){
-    const formCrearLocal = document.querySelector('#modalCrearLocal form');
+    const formCrearLocal = document.getElementById('formCrearLocal');
     if (formCrearLocal && !formCrearLocal.dataset._createBound) {
         formCrearLocal.dataset._createBound = 'true';
         formCrearLocal.addEventListener('submit', async function(e) {
             e.preventDefault();
+
+            ['create_local_name','create_manager_id'].forEach(localClearError);
+
+            let isValid = true;
+            const nameVal    = (document.getElementById('create_local_name')  || {}).value || '';
+            const managerVal = (document.getElementById('create_manager_id') || {}).value || '';
+
+            if (!nameVal.trim()) { localShowError('create_local_name', 'El nombre del local es obligatorio'); isValid = false; }
+            if (!managerVal)     { localShowError('create_manager_id', 'Debe seleccionar un gerente'); isValid = false; }
+
+            if (!isValid) return;
+
             if (window.swConfirm) {
                 const res = await swConfirm({
                     title: 'Crear local',
@@ -495,6 +542,10 @@ document.getElementById('modalCrearLocal').addEventListener('click', function(e)
             }
             this.submit();
         });
+
+        // Limpiar errores en tiempo real
+        document.getElementById('create_local_name')  && document.getElementById('create_local_name').addEventListener('input', function(){ if(this.value.trim()) localClearError('create_local_name'); });
+        document.getElementById('create_manager_id') && document.getElementById('create_manager_id').addEventListener('change', function(){ if(this.value) localClearError('create_manager_id'); });
     }
 })();
 
@@ -530,14 +581,23 @@ modalEditarLocal.addEventListener('click', function(e){
 // Confirmar antes de guardar cambios del local
 formEditarLocal.addEventListener('submit', async function(e) {
     e.preventDefault();
-    if (window.Swal) {
-        const res = await Swal.fire({
+
+    ['edit_local_name','edit_manager_id'].forEach(localClearError);
+
+    let isValid = true;
+    const nameVal    = (document.getElementById('edit_local_name')  || {}).value || '';
+    const managerVal = (document.getElementById('edit_manager_id') || {}).value || '';
+
+    if (!nameVal.trim()) { localShowError('edit_local_name', 'El nombre del local es obligatorio'); isValid = false; }
+    if (!managerVal)     { localShowError('edit_manager_id', 'Debe seleccionar un gerente'); isValid = false; }
+
+    if (!isValid) return;
+
+    if (window.swConfirm) {
+        const res = await swConfirm({
             title: 'Editar local',
             text: '¿Desea guardar los cambios de este local?',
             icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#16a34a',
-            cancelButtonColor: '#6b7280',
             confirmButtonText: 'Sí, actualizar',
             cancelButtonText: 'Cancelar'
         });

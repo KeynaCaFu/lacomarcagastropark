@@ -3,37 +3,58 @@
   <button type="button" class="close" aria-label="Cerrar" onclick="closeModal('editModal')">&times;</button>
 </div>
 
+<style>
+  .field-error-edit {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .field-error-edit i { font-size: 11px; }
+  .form-control.input-error, .form-select.input-error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 2px rgba(220,38,38,0.12) !important;
+  }
+</style>
+
 <div class="modal-body">
-  <form id="editForm" action="{{ route('eventos.actualizar', ['evento' => $event->event_id]) }}" method="POST" enctype="multipart/form-data">
+  <form id="editForm" action="{{ route('eventos.actualizar', ['evento' => $event->event_id]) }}" method="POST" enctype="multipart/form-data" novalidate>
     @csrf
     @method('PUT')
 
     <div class="row">
       <div class="col-lg-8">
         <div class="mb-3">
-          <label class="form-label">Nombre del Evento *</label>
-          <input type="text" name="title" class="form-control" value="{{ $event->title }}" required maxlength="255">
+          <label class="form-label">Nombre del Evento <span style="color:#dc2626;">*</span></label>
+          <input type="text" id="editTitle" name="title" class="form-control" value="{{ $event->title }}" maxlength="255">
+          <div class="field-error-edit" id="editTitleError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
         </div>
 
         <div class="row">
           <div class="col-md-6 mb-3">
-            <label class="form-label">Fecha *</label>
-            <input type="date" name="date" class="form-control" value="{{ optional($event->start_at)->format('Y-m-d') }}" required min="{{ date('Y-m-d') }}">
+            <label class="form-label">Fecha <span style="color:#dc2626;">*</span></label>
+            <input type="date" id="editDate" name="date" class="form-control" value="{{ optional($event->start_at)->format('Y-m-d') }}" min="{{ date('Y-m-d') }}">
+            <div class="field-error-edit" id="editDateError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
           </div>
           <div class="col-md-6 mb-3">
-            <label class="form-label">Hora *</label>
-            <input type="time" name="time" class="form-control" value="{{ optional($event->start_at)->format('H:i') }}" required>
+            <label class="form-label">Hora <span style="color:#dc2626;">*</span></label>
+            <input type="time" id="editTime" name="time" class="form-control" value="{{ optional($event->start_at)->format('H:i') }}">
+            <div class="field-error-edit" id="editTimeError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
           </div>
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Ubicación (opcional)</label>
-          <input type="text" name="location" class="form-control" value="{{ $event->location }}" maxlength="255" placeholder="Ej. Plaza central">
+          <label class="form-label">Ubicación <span style="color:#ef4444;">*</span></label>
+          <input type="text" id="editLocation" name="location" class="form-control" value="{{ $event->location }}" maxlength="255" placeholder="Ej. Plaza central">
+          <div class="field-error-edit" id="editLocationError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Descripción *</label>
-          <textarea name="description" class="form-control" rows="5" required>{{ $event->description }}</textarea>
+          <label class="form-label">Descripción <span style="color:#dc2626;">*</span></label>
+          <textarea id="editDescription" name="description" class="form-control" rows="5">{{ $event->description }}</textarea>
+          <div class="field-error-edit" id="editDescriptionError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
         </div>
       </div>
 
@@ -56,11 +77,13 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Estado *</label>
-          <select name="status" class="form-select" required>
+          <label class="form-label">Estado <span style="color:#dc2626;">*</span></label>
+          <select id="editStatus" name="status" class="form-select">
+            <option value="">Seleccione un estado</option>
             <option value="activo" {{ $event->is_active ? 'selected' : '' }}>Activo</option>
             <option value="inactivo" {{ !$event->is_active ? 'selected' : '' }}>Inactivo</option>
           </select>
+          <div class="field-error-edit" id="editStatusError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
         </div>
 
       </div>
@@ -122,6 +145,73 @@ document.addEventListener('DOMContentLoaded', function(){
   formEdit.addEventListener('submit', async function(e){
     e.preventDefault();
     
+    // Helper functions
+    function showFieldError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const errorSpan = document.getElementById(fieldId + 'Error');
+        if (field && errorSpan) {
+            field.classList.add('input-error');
+            errorSpan.style.display = 'flex';
+            const span = errorSpan.querySelector('span');
+            if (span) span.textContent = message;
+        }
+    }
+
+    function clearFieldError(fieldId) {
+        const field = document.getElementById(fieldId);
+        const errorSpan = document.getElementById(fieldId + 'Error');
+        if (field && errorSpan) {
+            field.classList.remove('input-error');
+            errorSpan.style.display = 'none';
+        }
+    }
+
+    // Validate required fields
+    const titleField = document.getElementById('editTitle');
+    const dateField = document.getElementById('editDate');
+    const timeField = document.getElementById('editTime');
+    const descriptionField = document.getElementById('editDescription');
+    const statusField = document.getElementById('editStatus');
+
+    let isValid = true;
+
+    if (!titleField.value.trim()) {
+        showFieldError('editTitle', 'El nombre del evento es obligatorio');
+        isValid = false;
+    } else {
+        clearFieldError('editTitle');
+    }
+
+    if (!dateField.value) {
+        showFieldError('editDate', 'La fecha es obligatoria');
+        isValid = false;
+    } else {
+        clearFieldError('editDate');
+    }
+
+    if (!timeField.value) {
+        showFieldError('editTime', 'La hora es obligatoria');
+        isValid = false;
+    } else {
+        clearFieldError('editTime');
+    }
+
+    if (!descriptionField.value.trim()) {
+        showFieldError('editDescription', 'La descripción es obligatoria');
+        isValid = false;
+    } else {
+        clearFieldError('editDescription');
+    }
+
+    if (!statusField.value) {
+        showFieldError('editStatus', 'Debe seleccionar un estado');
+        isValid = false;
+    } else {
+        clearFieldError('editStatus');
+    }
+
+    if (!isValid) return;
+    
     // Retry logic para esperar a que swConfirm esté disponible
     let maxRetries = 50;
     while (typeof window.swConfirm === 'undefined' && maxRetries > 0) {
@@ -146,6 +236,22 @@ document.addEventListener('DOMContentLoaded', function(){
     } catch (err){ ok = confirm('¿Estás seguro de actualizar el evento?'); }
 
     if (ok === true) formEdit.submit();
+  });
+
+  // Real-time validation
+  ['editTitle', 'editDate', 'editTime', 'editDescription', 'editStatus'].forEach(fieldId => {
+      const field = document.getElementById(fieldId);
+      if (field) {
+          field.addEventListener('input', function() {
+              if (this.value.trim()) {
+                  const errorSpan = document.getElementById(fieldId + 'Error');
+                  if (errorSpan) {
+                      this.classList.remove('input-error');
+                      errorSpan.style.display = 'none';
+                  }
+              }
+          });
+      }
   });
 })();
 </script>
