@@ -18,6 +18,10 @@
             border-color: #dc2626 !important;
             box-shadow: 0 0 0 2px rgba(220,38,38,0.12) !important;
         }
+        /* Ocultar alerta global de errores en esta página */
+        .alert-danger {
+            display: none !important;
+        }
     </style>
 @endpush
 
@@ -204,17 +208,18 @@
                             <!-- Foto Principal -->
                             <div class="form-group mb-3">
                                 <label for="foto" class="form-label">
-                                    <strong>Foto Principal</strong>
+                                    <strong>Foto Principal *</strong>
                                 </label>
                                 <div class="custom-file">
                                     <input type="file" 
                                            class="custom-file-input @error('foto') is-invalid @enderror" 
                                            id="foto" 
                                            name="foto"
-                                           accept="image/*">
+                                           accept="image/*"
+                                           required>
                                     <label class="custom-file-label" for="foto">Seleccionar archivo...</label>
                                 </div>
-                                <small class="form-text text-muted d-block mt-2">Formatos: JPG, PNG, GIF. Máx: 2MB</small>
+                                <small class="form-text text-muted d-block mt-2">Formatos: JPG, PNG, GIF. Máx: 4MB</small>
                                 @error('foto')
                                     <span class="field-error" style="display: block;"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span>
                                 @enderror
@@ -434,16 +439,6 @@
         if (errorMsg && window.swAlert) {
             swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
         }
-        @if ($errors->any())
-        if (window.swAlert) {
-            swAlert({
-                icon: 'error',
-                title: 'Errores de validación',
-                html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
-                confirmButtonColor: '#dc2626'
-            });
-        }
-        @endif
     });
 
     function openCreateProductHelpModal() {
@@ -516,7 +511,7 @@
             </div>
             <div class="detail-section">
                 <h5><i class="fas fa-image"></i> Foto Principal</h5>
-                <p>Usa imágenes de buena calidad (JPG, PNG, GIF). Máx: 2MB<br>
+                <p>Usa imágenes de buena calidad (JPG, PNG, GIF). Máx: 4MB<br>
                 <small class="text-muted">Recomendado: 800x600px o mayor.</small></p>
             </div>
             <div class="detail-section">

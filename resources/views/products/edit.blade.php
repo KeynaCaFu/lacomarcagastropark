@@ -18,6 +18,10 @@
             border-color: #dc2626 !important;
             box-shadow: 0 0 0 2px rgba(220,38,38,0.12) !important;
         }
+        /* Ocultar alerta global de errores en esta página */
+        .alert-danger {
+            display: none !important;
+        }
     </style>
 @endpush
 
@@ -216,7 +220,7 @@
                                            accept="image/*">
                                     <label class="custom-file-label" for="foto">Seleccionar archivo...</label>
                                 </div>
-                                <small class="form-text text-muted d-block mt-2">Formatos: JPG, PNG, GIF. Máx: 2MB</small>
+                                <small class="form-text text-muted d-block mt-2">Formatos: JPG, PNG, GIF. Máx: 4MB</small>
                                 @error('foto')
                                     <span class="field-error" style="display: block;"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span>
                                 @enderror
@@ -487,16 +491,6 @@
         if (errorMsg && window.swAlert) {
             swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
         }
-        @if ($errors->any())
-        if (window.swAlert) {
-            swAlert({
-                icon: 'error',
-                title: 'Errores de validación',
-                html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
-                confirmButtonColor: '#dc2626'
-            });
-        }
-        @endif
     });
 
     function openEditProductHelpModal() {
@@ -557,7 +551,7 @@
             <div class="detail-section">
                 <h5><i class="fas fa-image"></i> Cambiar Foto Principal</h5>
                 <p>Selecciona una nueva imagen para reemplazar la foto principal.<br>
-                <small class="text-muted">Formatos: JPG, PNG, GIF. Máx: 2MB.</small></p>
+                <small class="text-muted">Formatos: JPG, PNG, GIF. Máx: 4MB.</small></p>
             </div>
         </div>
         <div class="modal-actions">

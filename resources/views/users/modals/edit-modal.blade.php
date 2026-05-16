@@ -21,8 +21,8 @@
         <div class="row g-3" style="margin-bottom: 8px;">
             <div class="col-md-6">
                 <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
-                <input type="text" id="editFullName" name="full_name" class="form-control" value="{{ $user->full_name }}" required autocomplete="off">
-                <div class="invalid-feedback"></div>
+                <input type="text" id="editFullName" name="full_name" class="form-control" value="{{ $user->full_name }}" autocomplete="off">
+                <div class="field-error" id="editFullNameError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                 <div id="editFullNameInline" style="color:#dc2626;font-size:12px;margin-top:4px;display:none;">
                     Solo se permiten letras y espacios.
                 </div>
@@ -30,8 +30,8 @@
 
             <div class="col-md-6">
                 <label class="form-label">Correo Electrónico <span class="text-danger">*</span></label>
-                <input type="email" id="editEmail" name="email" class="form-control" value="{{ $user->email }}" required>
-                <div class="invalid-feedback"></div>
+                <input type="email" id="editEmail" name="email" class="form-control" value="{{ $user->email }}">
+                <div class="field-error" id="editEmailError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                 <div id="editEmailInline" style="color:#dc2626;font-size:12px;margin-top:4px;display:none;">
                     El correo debe tener el formato ejemplo@gmail.com
                 </div>
@@ -50,7 +50,7 @@
 
             <div class="col-md-6">
                 <label class="form-label">Rol <span class="text-danger">*</span></label>
-                <select name="role_id" class="form-select" required>
+                <select name="role_id" class="form-select" id="editRoleId">
                     <option value="">Selecciona un rol</option>
                     @foreach($roles as $role)
                         <option value="{{ $role->role_id }}" {{ $user->role_id == $role->role_id ? 'selected' : '' }}>
@@ -58,7 +58,7 @@
                         </option>
                     @endforeach
                 </select>
-                <div class="invalid-feedback"></div>
+                <div class="field-error" id="editRoleIdError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
             </div>
         </div>
 
@@ -83,7 +83,7 @@
                     <div class="strength-bar"><div class="strength-fill" id="editModalStrengthFill"></div></div>
                     <p id="editModalStrengthText" style="margin: 4px 0 0; font-size: 12px; color: #999;"></p>
                 </div>
-                <div class="invalid-feedback"></div>
+                <div class="field-error" id="editPasswordError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
             </div>
 
             <div class="col-md-6">
@@ -98,6 +98,7 @@
                     </button>
                 </div>
                 <div class="match-feedback mt-2" id="editModalMatchFeedback"></div>
+                <div class="field-error" id="editPasswordConfirmationError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
             </div>
         </div>
 
@@ -105,12 +106,12 @@
         <div class="row g-3" style="margin-bottom: 0; margin-top: 0;">
             <div class="col-md-6">
                 <label class="form-label">Estado <span class="text-danger">*</span></label>
-                <select name="status" class="form-select" required>
+                <select name="status" class="form-select" id="editStatus">
                     <option value="">Selecciona un estado</option>
                     <option value="Active" {{ $user->status === 'Active' ? 'selected' : '' }}>Activo</option>
                     <option value="Inactive" {{ $user->status === 'Inactive' ? 'selected' : '' }}>Inactivo</option>
                 </select>
-                <div class="invalid-feedback"></div>
+                <div class="field-error" id="editStatusError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
             </div>
         </div>
 
@@ -163,7 +164,13 @@
     box-shadow: 0 0 0 3px rgba(255,153,0,0.15);
 }
 .form-control.field-error { border-color: #dc2626 !important; }
+.field-error { display:flex;align-items:center;gap:4px;color:#dc2626;font-size:12px;margin-top:4px; }
 .text-danger { color: #ef4444; }
+input.input-error, select.input-error, textarea.input-error,
+.form-control.input-error, .form-select.input-error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 2px rgba(220,38,38,0.12) !important;
+}
 
 .password-strength { display: none; }
 .password-strength.active { display: block; }
@@ -338,11 +345,112 @@ function togglePasswordVisibility(fieldId) {
 
         if (successMsg) waitFor('swToast', () => swToast.fire({ icon:'success', title: successMsg }));
         if (errorMsg)   waitFor('swAlert',  () => swAlert({ icon:'error', title:'Error', text: errorMsg, confirmButtonColor:'#dc2626' }));
-        if (hasErrors)  waitFor('swAlert',  () => swAlert({
-            icon: 'error', title: 'Errores de validación',
-            html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
-            confirmButtonColor: '#dc2626'
-        }));
     } catch(e) {}
+
+    // Validación en submit del formulario
+    const editUserForm = document.getElementById('editUserForm');
+    if (editUserForm) {
+        editUserForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevenir envío por defecto
+
+            const fullName = document.getElementById('editFullName');
+            const email = document.getElementById('editEmail');
+            const roleId = document.getElementById('editRoleId');
+            const status = document.getElementById('editStatus');
+
+            let isValid = true;
+
+            // Validar nombre
+            if (!fullName.value.trim()) {
+                showFieldError('editFullName', 'El nombre es obligatorio');
+                isValid = false;
+            } else {
+                clearFieldError('editFullName');
+            }
+
+            // Validar email
+            if (!email.value.trim()) {
+                showFieldError('editEmail', 'El correo es obligatorio');
+                isValid = false;
+            } else {
+                clearFieldError('editEmail');
+            }
+
+            // Validar rol
+            if (!roleId.value) {
+                showFieldError('editRoleId', 'Debe seleccionar un rol');
+                isValid = false;
+            } else {
+                clearFieldError('editRoleId');
+            }
+
+            // Validar estado
+            if (!status.value) {
+                showFieldError('editStatus', 'Debe seleccionar un estado');
+                isValid = false;
+            } else {
+                clearFieldError('editStatus');
+            }
+
+            // Si hay errores, no mostrar SweetAlert
+            if (!isValid) {
+                return;
+            }
+
+            // Si pasó validación, mostrar confirmación
+            function showConfirm() {
+                if (typeof window.swConfirm === 'undefined') {
+                    setTimeout(showConfirm, 100);
+                    return;
+                }
+
+                swConfirm({
+                    title: '¿Guardar cambios?',
+                    text: 'Se actualizarán los datos del usuario',
+                    icon: 'question',
+                    confirmButtonText: 'Sí, guardar',
+                    cancelButtonText: 'Cancelar'
+                }).then(r => {
+                    if (r.isConfirmed) editUserForm.submit();
+                });
+            }
+
+            showConfirm();
+        });
+    }
+
+    // Helper functions
+    function showFieldError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const errorSpan = document.getElementById(fieldId + 'Error');
+        if (field && errorSpan) {
+            field.classList.add('input-error');
+            errorSpan.style.display = 'flex';
+            const span = errorSpan.querySelector('span');
+            if (span) span.textContent = message;
+        }
+    }
+
+    function clearFieldError(fieldId) {
+        const field = document.getElementById(fieldId);
+        const errorSpan = document.getElementById(fieldId + 'Error');
+        if (field && errorSpan) {
+            field.classList.remove('input-error');
+            errorSpan.style.display = 'none';
+        }
+    }
+
+    // Real-time validation
+    ['editFullName', 'editEmail', 'editRoleId', 'editStatus'].forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', function() {
+                if (this.value.trim()) clearFieldError(fieldId);
+            });
+            field.addEventListener('blur', function() {
+                if (!this.value.trim()) showFieldError(fieldId, 'Este campo es obligatorio');
+            });
+        }
+    });
 })();
 </script>

@@ -15,8 +15,8 @@
         <div class="row g-3" style="margin-bottom: 8px;">
             <div class="col-md-6">
                 <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
-                <input type="text" id="createFullName" name="full_name" class="form-control" placeholder="Ej: Juan Pérez" required autocomplete="off">
-                <div class="invalid-feedback" id="createFullNameError"></div>
+                <input type="text" id="createFullName" name="full_name" class="form-control" placeholder="Ej: Juan Pérez" autocomplete="off">
+                <div class="field-error" id="createFullNameError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                 <div class="field-inline-error" id="createFullNameInline" style="color:#dc2626;font-size:12px;margin-top:4px;display:none;">
                     Solo se permiten letras y espacios.
                 </div>
@@ -24,8 +24,8 @@
 
             <div class="col-md-6">
                 <label class="form-label">Correo Electrónico <span class="text-danger">*</span></label>
-                <input type="email" id="createEmail" name="email" class="form-control" placeholder="ejemplo@gmail.com" required>
-                <div class="invalid-feedback" id="createEmailError"></div>
+                <input type="email" id="createEmail" name="email" class="form-control" placeholder="ejemplo@gmail.com">
+                <div class="field-error" id="createEmailError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                 <div class="field-inline-error" id="createEmailInline" style="color:#dc2626;font-size:12px;margin-top:4px;display:none;">
                     El correo debe tener el formato ejemplo@gmail.com
                 </div>
@@ -45,13 +45,13 @@
 
             <div class="col-md-6">
                 <label class="form-label">Rol <span class="text-danger">*</span></label>
-                <select name="role_id" class="form-select" required>
+                <select name="role_id" class="form-select" id="createRoleId">
                     <option value="">Selecciona un rol</option>
                     @foreach($roles as $role)
                         <option value="{{ $role->role_id }}">{{ $role->role_type }}</option>
                     @endforeach
                 </select>
-                <div class="invalid-feedback"></div>
+                <div class="field-error" id="createRoleError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
             </div>
         </div>
 
@@ -60,7 +60,7 @@
             <div class="col-md-6">
                 <label class="form-label">Contraseña <span class="text-danger">*</span></label>
                 <div class="password-field">
-                    <input type="password" id="createPassword" name="password" class="form-control password-input" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required>
+                    <input type="password" id="createPassword" name="password" class="form-control password-input" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
                     <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('createPassword')">
                         <i class="fas fa-eye-slash"></i>
                     </button>
@@ -73,19 +73,19 @@
                     <div class="strength-bar"><div class="strength-fill" id="createStrengthFill"></div></div>
                     <p id="createStrengthText" style="margin: 4px 0 0; font-size: 12px; color: #999;"></p>
                 </div>
-                <div class="invalid-feedback"></div>
+                <div class="field-error" id="createPasswordError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
             </div>
 
             <div class="col-md-6">
                 <label class="form-label">Confirmar contraseña <span class="text-danger">*</span></label>
                 <div class="password-field">
-                    <input type="password" id="createPasswordConfirm" name="password_confirmation" class="form-control password-input" placeholder="Repite la contraseña" autocomplete="new-password" required>
+                    <input type="password" id="createPasswordConfirm" name="password_confirmation" class="form-control password-input" placeholder="Repite la contraseña" autocomplete="new-password">
                     <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('createPasswordConfirm')">
                         <i class="fas fa-eye-slash"></i>
                     </button>
                 </div>
                 <div class="match-feedback mt-2" id="createMatchFeedback"></div>
-                <div class="invalid-feedback"></div>
+                <div class="field-error" id="createPasswordConfirmError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
             </div>
         </div>
 
@@ -93,12 +93,12 @@
         <div class="row g-3" style="margin-bottom: 0; margin-top: 0;">
             <div class="col-md-6">
                 <label class="form-label">Estado <span class="text-danger">*</span></label>
-                <select name="status" class="form-select" required>
+                <select name="status" class="form-select" id="createStatus">
                     <option value="">Selecciona un estado</option>
                     <option value="Active" selected>Activo</option>
                     <option value="Inactive">Inactivo</option>
                 </select>
-                <div class="invalid-feedback"></div>
+                <div class="field-error" id="createStatusError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
             </div>
         </div>
 
@@ -180,6 +180,22 @@
 }
 .form-control.field-error { border-color: #dc2626 !important; }
 .text-danger { color: #ef4444; }
+
+/* Sistema de validación inline (field-error) */
+.field-error {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.field-error i { font-size: 11px; }
+input.input-error, select.input-error, textarea.input-error,
+.form-control.input-error, .form-select.input-error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 2px rgba(220,38,38,0.12) !important;
+}
 
 .password-strength { display: none; }
 .password-strength.active { display: block; }
@@ -369,11 +385,39 @@ function validatePasswordMatch(passwordId, confirmId, feedbackId) {
 
         if (successMsg) waitFor('swToast', () => swToast.fire({ icon:'success', title: successMsg }));
         if (errorMsg)   waitFor('swAlert',  () => swAlert({ icon:'error', title:'Error', text: errorMsg, confirmButtonColor:'#dc2626' }));
-        if (hasErrors)  waitFor('swAlert',  () => swAlert({
-            icon: 'error', title: 'Errores de validación',
-            html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
-            confirmButtonColor: '#dc2626'
-        }));
     } catch(e) {}
+
+    // Real-time validation
+    ['createFullName', 'createEmail', 'createRoleId', 'createPassword', 'createPasswordConfirm', 'createStatus'].forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', function() {
+                if (this.value.trim()) createUserClearError(fieldId);
+            });
+            field.addEventListener('blur', function() {
+                if (!this.value.trim()) createUserShowError(fieldId, 'Este campo es obligatorio');
+            });
+        }
+    });
 })();
+
+/* ── Helpers globales para validación del formulario de crear usuario ── */
+function createUserShowError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const errorSpan = document.getElementById(fieldId + 'Error');
+    if (field && errorSpan) {
+        field.classList.add('input-error');
+        errorSpan.style.display = 'flex';
+        const span = errorSpan.querySelector('span');
+        if (span) span.textContent = message;
+    }
+}
+function createUserClearError(fieldId) {
+    const field = document.getElementById(fieldId);
+    const errorSpan = document.getElementById(fieldId + 'Error');
+    if (field && errorSpan) {
+        field.classList.remove('input-error');
+        errorSpan.style.display = 'none';
+    }
+}
 </script>

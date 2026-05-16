@@ -37,7 +37,7 @@
               <div>
                 <label class="label">Imagen (archivo opcional)</label>
                 <input type="file" class="field" name="photo" id="photoInput" accept="image/*">
-                <div style="color:#6f7a71; font-size:14px; margin-top:6px;">Formatos: JPG, PNG. Máx: 2MB</div>
+                <div style="color:#6f7a71; font-size:14px; margin-top:6px;">Formatos: JPG, PNG. Máx: 4MB</div>
 
                 <div style="margin-top:10px; border:1px solid #d8d8d8; border-radius:10px; overflow:hidden;">
                   <img id="previewEdit"
