@@ -111,7 +111,7 @@
                 @endif
                 <div>
                     <label for="period">Período</label>
-                    <select name="period" id="period" onchange="handlePeriodChange()">
+                    <select name="period" id="period" onchange="handlePeriodChange(this.value)">
                         <option value="today"  {{ $period==='today'  ? 'selected' : '' }}>Hoy</option>
                         <option value="week"   {{ $period==='week'   ? 'selected' : '' }}>Esta Semana</option>
                         <option value="month"  {{ $period==='month'  ? 'selected' : '' }}>Este Mes</option>
@@ -127,7 +127,7 @@
                     <label for="end_date">Hasta</label>
                     <input type="date" name="end_date" id="end_date" value="{{ $endDate }}">
                 </div>
-                <div>
+                <div id="filterBtnDiv" style="display:{{ $period==='custom' ? 'block' : 'none' }};">
                     <label style="visibility:hidden;">–</label>
                     <button type="submit" class="rp-btn rp-btn--green rp-btn--full">Filtrar</button>
                 </div>
@@ -140,13 +140,14 @@
         <div style="padding:16px 20px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
             <h2 style="margin:0; font-size:15px;">
                 Órdenes
-                <span style="background:#e18018; color:white; padding:2px 9px; border-radius:12px; font-size:12px; margin-left:6px;">
+                <span id="oh-count-badge" style="background:#e18018; color:white; padding:2px 9px; border-radius:12px; font-size:12px; margin-left:6px;">
                     {{ $orders->total() }}
                 </span>
             </h2>
             <input type="text" id="ohSearch" placeholder="Buscar orden o cliente..." style="padding:7px 12px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px; width:220px;">
         </div>
 
+        <div id="oh-table-wrapper">
         @if($orders->isEmpty())
             <div class="oh-empty">
                 <i class="fas fa-inbox"></i>
@@ -238,6 +239,7 @@
             Mostrando <strong>{{ $orders->firstItem() }}</strong> a <strong>{{ $orders->lastItem() }}</strong> de <strong>{{ $orders->total() }}</strong> órdenes
         </div>
         @endif
+        </div>{{-- #oh-table-wrapper --}}
     </div>
 
 </div>
@@ -284,12 +286,43 @@
 <script>
 let ohPending = { action: null, orderId: null };
 
-// Búsqueda en tabla
+// Búsqueda en tabla (página actual)
 document.getElementById('ohSearch').addEventListener('input', function() {
     const term = this.value.toLowerCase().trim();
     document.querySelectorAll('#ohTableBody tr').forEach(row => {
         row.style.display = (!term || row.dataset.search.includes(term)) ? '' : 'none';
     });
+});
+
+// Paginación AJAX — reemplaza solo #oh-table-wrapper
+document.addEventListener('click', function(e) {
+    const link = e.target.closest('#oh-table-wrapper .pagination a');
+    if (!link) return;
+    e.preventDefault();
+
+    const wrapper = document.getElementById('oh-table-wrapper');
+    wrapper.style.opacity = '0.5';
+    wrapper.style.pointerEvents = 'none';
+
+    fetch(link.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.text())
+        .then(html => {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+
+            const newWrapper = doc.getElementById('oh-table-wrapper');
+            if (newWrapper) wrapper.innerHTML = newWrapper.innerHTML;
+
+            const newBadge = doc.getElementById('oh-count-badge');
+            const badge = document.getElementById('oh-count-badge');
+            if (newBadge && badge) badge.textContent = newBadge.textContent;
+
+            history.pushState(null, '', link.href);
+        })
+        .catch(() => { window.location.href = link.href; })
+        .finally(() => {
+            wrapper.style.opacity = '';
+            wrapper.style.pointerEvents = '';
+        });
 });
 
 // Modal cliente
@@ -437,12 +470,14 @@ function proceedResend(orderId, email, name) {
     .catch(() => Swal.fire('Error', 'No se pudo reenviar el comprobante', 'error'));
 }
 
-function handlePeriodChange() {
-    const v = document.getElementById('period').value;
-    document.getElementById('startDateDiv').style.display = v === 'custom' ? 'block' : 'none';
-    document.getElementById('endDateDiv').style.display   = v === 'custom' ? 'block' : 'none';
+function handlePeriodChange(v, submit = true) {
+    const isCustom = v === 'custom';
+    document.getElementById('startDateDiv').style.display  = isCustom ? 'block' : 'none';
+    document.getElementById('endDateDiv').style.display    = isCustom ? 'block' : 'none';
+    document.getElementById('filterBtnDiv').style.display  = isCustom ? 'block' : 'none';
+    if (!isCustom && submit) document.getElementById('filterForm').submit();
 }
-handlePeriodChange();
+handlePeriodChange(document.getElementById('period').value, false);
 </script>
 @endpush
 

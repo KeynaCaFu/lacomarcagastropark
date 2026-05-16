@@ -34,9 +34,9 @@
                 <div>
                     <label for="period">Período</label>
                     <select name="period" id="period" onchange="handlePeriodChange()">
-                        <option value="today">Hoy</option>
+                        <option value="today" selected>Hoy</option>
                         <option value="week">Esta Semana</option>
-                        <option value="month" selected>Este Mes</option>
+                        <option value="month">Este Mes</option>
                         <option value="year">Este Año</option>
                         <option value="custom">Personalizado</option>
                     </select>
@@ -49,7 +49,7 @@
                     <label for="end_date">Hasta</label>
                     <input type="date" name="end_date" id="end_date" value="{{ $endDate }}">
                 </div>
-                <div>
+                <div id="filterBtnDiv" style="display:none;">
                     <label style="visibility:hidden;">–</label>
                     <button type="button" class="rp-btn rp-btn--green rp-btn--full" onclick="loadProductData()">Filtrar</button>
                 </div>
@@ -215,6 +215,8 @@
         const period = document.getElementById('period').value;
         const startDiv = document.getElementById('startDateDiv');
         const endDiv = document.getElementById('endDateDiv');
+        const isCustom = period === 'custom';
+        document.getElementById('filterBtnDiv').style.display = isCustom ? 'block' : 'none';
 
         if (period === 'custom') {
             startDiv.style.display = 'block';

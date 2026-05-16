@@ -45,7 +45,7 @@
                 @endif
                 <div>
                     <label for="period">Período</label>
-                    <select name="period" id="period" onchange="handlePeriodChange()">
+                    <select name="period" id="period" onchange="handlePeriodChange(this.value)">
                         <option value="today"  {{ $period==='today'  ? 'selected' : '' }}>Hoy</option>
                         <option value="week"   {{ $period==='week'   ? 'selected' : '' }}>Esta Semana</option>
                         <option value="month"  {{ $period==='month'  ? 'selected' : '' }}>Este Mes</option>
@@ -61,7 +61,7 @@
                     <label for="end_date">Hasta</label>
                     <input type="date" name="end_date" id="end_date" value="{{ $endDate }}">
                 </div>
-                <div>
+                <div id="filterBtnDiv" style="display:{{ $period==='custom' ? 'block' : 'none' }};">
                     <label style="visibility:hidden;">–</label>
                     <button type="submit" class="rp-btn rp-btn--green rp-btn--full">Filtrar</button>
                 </div>
@@ -436,12 +436,14 @@
     });
 
     /* ── Period toggle ── */
-    function handlePeriodChange() {
-        const v = document.getElementById('period').value;
-        document.getElementById('startDateDiv').style.display = v === 'custom' ? 'block' : 'none';
-        document.getElementById('endDateDiv').style.display   = v === 'custom' ? 'block' : 'none';
+    function handlePeriodChange(v, submit = true) {
+        const isCustom = v === 'custom';
+        document.getElementById('startDateDiv').style.display  = isCustom ? 'block' : 'none';
+        document.getElementById('endDateDiv').style.display    = isCustom ? 'block' : 'none';
+        document.getElementById('filterBtnDiv').style.display  = isCustom ? 'block' : 'none';
+        if (!isCustom && submit) document.getElementById('filterForm').submit();
     }
-    handlePeriodChange();
+    handlePeriodChange(document.getElementById('period').value, false);
 </script>
 
 @endsection

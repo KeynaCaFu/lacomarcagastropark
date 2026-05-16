@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 use App\Data\ReportData;
 use App\Models\Order;
 use Carbon\Carbon;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -22,7 +22,7 @@ class ReportController extends Controller
 
     /**
      * Mostrar vista principal de reportes
-     * se puede filtrar por producto específico y por rango de fechas
+     * se puede filtrar por producto especÃ­fico y por rango de fechas
      */
     public function index(Request $request)
     {
@@ -39,8 +39,8 @@ class ReportController extends Controller
         $localId = $request->get('local_id', $userLocals->first()->local_id);
         $local = $userLocals->firstWhere('local_id', $localId) ?? $userLocals->first();
 
-        // Obtener período predefinido o personalizado
-        $period = $request->get('period', 'month');
+        // Obtener perÃ­odo predefinido o personalizado
+        $period = $request->get('period', 'today');
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
 
@@ -85,7 +85,7 @@ class ReportController extends Controller
                 $hasData = $orderStats['total'] > 0;
                 
                 // Obtener datos del producto
-                $products = $this->reportData->getLocalProducts($local->local_id);
+                $products = collect($this->reportData->getLocalProducts($local->local_id));
                 $selectedProduct = $products->firstWhere('product_id', $productId);
             }
         } else {
@@ -100,7 +100,7 @@ class ReportController extends Controller
         }
 
         // Obtener lista de productos disponibles para el filtro
-        $availableProducts = $this->reportData->getLocalProducts($local->local_id);
+        $availableProducts = collect($this->reportData->getLocalProducts($local->local_id));
 
         // Datos para la vista
         $data = [
@@ -169,7 +169,7 @@ class ReportController extends Controller
 
     /**
      * Mostrar vista de reportes por producto
-     * Permite análisis detallado de un producto específico
+     * Permite anÃ¡lisis detallado de un producto especÃ­fico
      */
     public function products(Request $request)
     {
@@ -186,8 +186,8 @@ class ReportController extends Controller
         $localId = $request->get('local_id', $userLocals->first()->local_id);
         $local = $userLocals->firstWhere('local_id', $localId) ?? $userLocals->first();
 
-        // Obtener período predefinido o personalizado
-        $period = $request->get('period', 'month');
+        // Obtener perÃ­odo predefinido o personalizado
+        $period = $request->get('period', 'today');
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
 
@@ -271,7 +271,7 @@ class ReportController extends Controller
         $localId = $request->get('local_id', $userLocals->first()->local_id);
         $local = $userLocals->firstWhere('local_id', $localId) ?? $userLocals->first();
 
-        $period = $request->get('period', 'month');
+        $period = $request->get('period', 'today');
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
         $productId = $request->get('product_id');
@@ -318,7 +318,7 @@ class ReportController extends Controller
     }
 
     /**
-     * API: Obtener datos completos para vista de productos con gráficas
+     * API: Obtener datos completos para vista de productos con grÃ¡ficas
      */
     public function getProductItems(Request $request)
     {
@@ -332,7 +332,7 @@ class ReportController extends Controller
         $localId = $request->get('local_id', $userLocals->first()->local_id);
         $local = $userLocals->firstWhere('local_id', $localId) ?? $userLocals->first();
 
-        $period = $request->get('period', 'month');
+        $period = $request->get('period', 'today');
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
 
@@ -376,7 +376,7 @@ class ReportController extends Controller
     }
 
     /**
-     * API: Obtener datos completos para un producto específico (AJAX para productos-report)
+     * API: Obtener datos completos para un producto especÃ­fico (AJAX para productos-report)
      */
     public function getProductData(Request $request)
     {
@@ -392,7 +392,7 @@ class ReportController extends Controller
 
         $productId = $request->get('product_id');
         
-        $period = $request->get('period', 'month');
+        $period = $request->get('period', 'today');
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
 
@@ -409,7 +409,7 @@ class ReportController extends Controller
             $end = $periodData['end'];
         }
 
-        // Obtener datos según si hay producto seleccionado o no
+        // Obtener datos segÃºn si hay producto seleccionado o no
         if ($productId) {
             // Validar que el producto tenga costo
             $costValidation = $this->reportData->validateProductCost($productId, $local->local_id);
@@ -435,7 +435,7 @@ class ReportController extends Controller
         $items = [
             [
                 'type' => 'web',
-                'name' => 'En Línea',
+                'name' => 'En LÃ­nea',
                 'total_quantity' => $orderStats['web']['count'],
                 'order_count' => $orderStats['web']['count'],
                 'revenue' => $revenueStats['web']['revenue']
@@ -449,7 +449,7 @@ class ReportController extends Controller
             ]
         ];
 
-        // Obtener productos más vendidos
+        // Obtener productos mÃ¡s vendidos
         $topItems = $this->reportData->getTopSellingItems($local->local_id, $start, $end);
         $topItemsFormatted = $topItems->map(function ($item) {
             return [
@@ -486,7 +486,7 @@ class ReportController extends Controller
         $localId = $request->get('local_id', $userLocals->first()->local_id);
         $local = $userLocals->firstWhere('local_id', $localId) ?? $userLocals->first();
 
-        $period = $request->get('period', 'month');
+        $period = $request->get('period', 'today');
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
         $productId = $request->get('product_id');
@@ -553,7 +553,7 @@ class ReportController extends Controller
         $localId = $request->get('local_id', $userLocals->first()->local_id);
         $local = $userLocals->firstWhere('local_id', $localId) ?? $userLocals->first();
 
-        $period = $request->get('period', 'month');
+        $period = $request->get('period', 'today');
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
         $productId = $request->get('product_id');
@@ -624,7 +624,7 @@ class ReportController extends Controller
         $localId = $request->get('local_id', $userLocals->first()->local_id);
         $local = $userLocals->firstWhere('local_id', $localId) ?? $userLocals->first();
 
-        $period = $request->get('period', 'month');
+        $period = $request->get('period', 'today');
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
         $productId = $request->get('product_id');
@@ -665,7 +665,7 @@ class ReportController extends Controller
         // Encabezados
         $sheet->setCellValue('A1', 'REPORTE DE PEDIDOS');
         $sheet->setCellValue('A2', $local->name);
-        $sheet->setCellValue('A3', 'Período: ' . $start->format('d/m/Y') . ' - ' . $end->format('d/m/Y'));
+        $sheet->setCellValue('A3', 'PerÃ­odo: ' . $start->format('d/m/Y') . ' - ' . $end->format('d/m/Y'));
         
         // Hacer encabezados negrita
         $sheet->getStyle('A1:A3')->getFont()->setBold(true);
@@ -677,8 +677,8 @@ class ReportController extends Controller
         $sheet->setCellValue('A6', 'Tipo');
         $sheet->setCellValue('B6', 'Cantidad');
         $sheet->setCellValue('C6', 'Porcentaje');
-        $sheet->setCellValue('D6', 'Ingresos (₡)');
-        $sheet->setCellValue('E6', 'Promedio (₡)');
+        $sheet->setCellValue('D6', 'Ingresos (â‚¡)');
+        $sheet->setCellValue('E6', 'Promedio (â‚¡)');
         $sheet->getStyle('A6:E6')->getFont()->setBold(true);
         
         // Datos de resumen
@@ -692,7 +692,7 @@ class ReportController extends Controller
             ? $revenueStats['total'] / $orderStats['total'] 
             : 0;
         
-        $sheet->setCellValue('A7', 'En Línea');
+        $sheet->setCellValue('A7', 'En LÃ­nea');
         $sheet->setCellValue('B7', $orderStats['web']['count']);
         $sheet->setCellValue('C7', $orderStats['web']['percentage'] . '%');
         $sheet->setCellValue('D7', $revenueStats['web']['revenue']);
@@ -711,8 +711,8 @@ class ReportController extends Controller
         $sheet->setCellValue('E9', round($totalAvg, 2));
         $sheet->getStyle('A9:E9')->getFont()->setBold(true);
         
-        // Productos más vendidos
-        $sheet->setCellValue('A11', 'PRODUCTOS MÁS VENDIDOS');
+        // Productos mÃ¡s vendidos
+        $sheet->setCellValue('A11', 'PRODUCTOS MÃS VENDIDOS');
         $sheet->getStyle('A11')->getFont()->setBold(true);
         
         $sheet->setCellValue('A12', 'Producto');
