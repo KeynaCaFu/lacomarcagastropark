@@ -125,6 +125,48 @@ class ReportController extends Controller
         return view('reports.orders-report', $data);
     }
 
+    public function orderHistory(Request $request)
+    {
+        $user = $request->user();
+        $userLocals = $user->locals;
+
+        if ($userLocals->isEmpty()) {
+            return redirect()->route('dashboard')->with('error', 'No tienes un local asignado');
+        }
+
+        $localId = $request->get('local_id', $userLocals->first()->local_id);
+        $local = $userLocals->firstWhere('local_id', $localId) ?? $userLocals->first();
+
+        $period    = $request->get('period', 'today');
+        $startDate = $request->get('start_date');
+        $endDate   = $request->get('end_date');
+
+        if ($period === 'custom' && $startDate && $endDate) {
+            $validation = $this->reportData->validateDateRange($startDate, $endDate);
+            if (!$validation['valid']) {
+                return back()->with('error', $validation['message']);
+            }
+            $start = $validation['start'];
+            $end   = $validation['end'];
+        } else {
+            $periodData = $this->reportData->getPeriodDates($period);
+            $start = $periodData['start'];
+            $end   = $periodData['end'];
+        }
+
+        $orders = $this->reportData->getAllOrdersByLocal($local->local_id, $start, $end)
+            ->appends($request->query());
+
+        return view('reports.order-history', [
+            'local'      => $local,
+            'userLocals' => $userLocals,
+            'orders'     => $orders,
+            'period'     => $period,
+            'startDate'  => $startDate ?? $start->format('Y-m-d'),
+            'endDate'    => $endDate ?? $end->format('Y-m-d'),
+        ]);
+    }
+
     /**
      * Mostrar vista de reportes por producto
      * Permite análisis detallado de un producto específico

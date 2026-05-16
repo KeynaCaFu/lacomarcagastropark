@@ -22,6 +22,9 @@
         <a href="{{ route('reports.products') }}?local_id={{ $local->local_id }}" class="rp-view-btn">
             <i class="fas fa-box"></i> Reportes por Producto
         </a>
+        <a href="{{ route('reports.order-history') }}?local_id={{ $local->local_id }}" class="rp-view-btn">
+            <i class="fas fa-history"></i> Historial de Órdenes
+        </a>
     </div>
 
     {{-- Filters --}}

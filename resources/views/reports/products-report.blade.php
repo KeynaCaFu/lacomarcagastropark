@@ -22,6 +22,9 @@
         <span class="rp-view-btn active" style="cursor: default; pointer-events: none;">
             <i class="fas fa-box"></i> Reportes por Producto
         </span>
+        <a href="{{ route('reports.order-history') }}?local_id={{ $local->local_id }}" class="rp-view-btn">
+            <i class="fas fa-history"></i> Historial de Órdenes
+        </a>
     </div>
 
     {{-- Filters --}}
