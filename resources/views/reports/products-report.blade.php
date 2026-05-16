@@ -28,7 +28,7 @@
     </div>
 
     {{-- Filters --}}
-    <div class="rp-card">
+    <div class="rp-card" style="display:inline-block; min-width: 388px; width:auto;">
         <form id="filterForm" method="GET" onsubmit="event.preventDefault(); loadProductData();">
             <div class="rp-filters">
                 <div>
