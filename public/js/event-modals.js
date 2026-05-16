@@ -191,14 +191,55 @@ class EventoModals {
 
         form.addEventListener('submit', async function(e){
             e.preventDefault();
-            
+
+            // Helpers de validación
+            function showErr(fieldId, msg) {
+                const field = container.querySelector('#' + fieldId);
+                const errDiv = container.querySelector('#' + fieldId + 'Error');
+                if (field && errDiv) {
+                    field.classList.add('input-error');
+                    errDiv.style.display = 'flex';
+                    const span = errDiv.querySelector('span');
+                    if (span) span.textContent = msg;
+                }
+            }
+            function clearErr(fieldId) {
+                const field = container.querySelector('#' + fieldId);
+                const errDiv = container.querySelector('#' + fieldId + 'Error');
+                if (field && errDiv) {
+                    field.classList.remove('input-error');
+                    errDiv.style.display = 'none';
+                }
+            }
+
+            // Limpiar errores previos
+            ['editTitle','editDate','editTime','editLocation','editDescription','editStatus'].forEach(clearErr);
+
+            // Validar campos requeridos
+            let isValid = true;
+            const titleVal    = (container.querySelector('#editTitle')       || {}).value || '';
+            const dateVal     = (container.querySelector('#editDate')        || {}).value || '';
+            const timeVal     = (container.querySelector('#editTime')        || {}).value || '';
+            const locationVal = (container.querySelector('#editLocation')    || {}).value || '';
+            const descVal     = (container.querySelector('#editDescription') || {}).value || '';
+            const statVal     = (container.querySelector('#editStatus')      || {}).value || '';
+
+            if (!titleVal.trim())    { showErr('editTitle',       'El nombre del evento es obligatorio'); isValid = false; }
+            if (!dateVal)            { showErr('editDate',         'La fecha es obligatoria'); isValid = false; }
+            if (!timeVal)            { showErr('editTime',         'La hora es obligatoria'); isValid = false; }
+            if (!locationVal.trim()) { showErr('editLocation',     'La ubicación es obligatoria'); isValid = false; }
+            if (!descVal.trim())     { showErr('editDescription',  'La descripción es obligatoria'); isValid = false; }
+            if (!statVal)            { showErr('editStatus',       'Debe seleccionar un estado'); isValid = false; }
+
+            if (!isValid) return;
+
             // Retry logic para esperar a que swConfirm esté disponible
             let maxRetries = 50;
             while (typeof window.swConfirm === 'undefined' && maxRetries > 0) {
                 await new Promise(resolve => setTimeout(resolve, 100));
                 maxRetries--;
             }
-            
+
             let ok = false;
             try{
                 if (typeof window.swConfirm !== 'undefined'){
@@ -214,13 +255,27 @@ class EventoModals {
                     ok = confirm('¿Estás seguro de actualizar el evento?');
                 }
             } catch(err){
-                console.error('[editForm submit] Error en confirmación:', err);
                 ok = confirm('¿Estás seguro de actualizar el evento?');
             }
 
             if(ok === true) {
                 form.submit();
             }
+        });
+
+        // Real-time: limpiar error cuando el usuario corrige el campo
+        ['editTitle','editDate','editTime','editLocation','editDescription','editStatus'].forEach(fieldId => {
+            const field = container.querySelector('#' + fieldId);
+            if (!field) return;
+            const errDiv = container.querySelector('#' + fieldId + 'Error');
+            const clear = () => {
+                if (field.value.trim()) {
+                    field.classList.remove('input-error');
+                    if (errDiv) errDiv.style.display = 'none';
+                }
+            };
+            field.addEventListener('input', clear);
+            field.addEventListener('change', clear);
         });
     }
 

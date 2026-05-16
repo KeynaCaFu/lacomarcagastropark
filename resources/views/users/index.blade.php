@@ -935,6 +935,32 @@
             
             createForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
+
+                // Validar campos requeridos
+                const show = (id, msg) => { if (window.createUserShowError) window.createUserShowError(id, msg); };
+                const clear = (id) => { if (window.createUserClearError) window.createUserClearError(id); };
+
+                ['createFullName','createEmail','createRoleId','createPassword','createPasswordConfirm','createStatus'].forEach(clear);
+
+                let isValid = true;
+                const fullName = document.getElementById('createFullName');
+                const email    = document.getElementById('createEmail');
+                const roleId   = document.getElementById('createRoleId');
+                const password = document.getElementById('createPassword');
+                const pwConf   = document.getElementById('createPasswordConfirm');
+                const status   = document.getElementById('createStatus');
+
+                if (!fullName.value.trim()) { show('createFullName', 'El nombre es obligatorio'); isValid = false; }
+                if (!email.value.trim())    { show('createEmail', 'El correo es obligatorio'); isValid = false; }
+                if (!roleId.value)          { show('createRoleId', 'Debe seleccionar un rol'); isValid = false; }
+                if (!password.value)        { show('createPassword', 'La contraseña es obligatoria'); isValid = false; }
+                else if (password.value.length < 8) { show('createPassword', 'Mínimo 8 caracteres'); isValid = false; }
+                if (!pwConf.value)          { show('createPasswordConfirm', 'Debe confirmar la contraseña'); isValid = false; }
+                else if (password.value !== pwConf.value) { show('createPasswordConfirm', 'Las contraseñas no coinciden'); isValid = false; }
+                if (!status.value)          { show('createStatus', 'Debe seleccionar un estado'); isValid = false; }
+
+                if (!isValid) return;
+
                 // Confirm before submit
                 if (window.Swal) {
                     const res = await swConfirm({
@@ -1011,15 +1037,57 @@
                 editForm.dataset._editBound = 'true';
                 editForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
+
+                    // Helpers de validación
+                    function showErr(fieldId, msg, errorDivId) {
+                        const field  = document.getElementById(fieldId);
+                        const errDiv = document.getElementById(errorDivId || fieldId + 'Error');
+                        if (field)  field.classList.add('input-error');
+                        if (errDiv) { errDiv.style.display = 'flex'; const sp = errDiv.querySelector('span'); if (sp) sp.textContent = msg; }
+                    }
+                    function clearErr(fieldId, errorDivId) {
+                        const field  = document.getElementById(fieldId);
+                        const errDiv = document.getElementById(errorDivId || fieldId + 'Error');
+                        if (field)  field.classList.remove('input-error');
+                        if (errDiv) errDiv.style.display = 'none';
+                    }
+
+                    // Limpiar errores previos
+                    ['editFullName','editEmail','editRoleId','editStatus'].forEach(id => clearErr(id));
+                    clearErr('edit_modal_password', 'editPasswordError');
+                    clearErr('edit_modal_password_confirmation', 'editPasswordConfirmationError');
+
+                    // Validar campos requeridos
+                    let isValid = true;
+                    const fullName = document.getElementById('editFullName');
+                    const email    = document.getElementById('editEmail');
+                    const roleId   = document.getElementById('editRoleId');
+                    const status   = document.getElementById('editStatus');
+                    const password = document.getElementById('edit_modal_password');
+                    const pwConf   = document.getElementById('edit_modal_password_confirmation');
+
+                    if (!fullName || !fullName.value.trim()) { showErr('editFullName', 'El nombre es obligatorio'); isValid = false; }
+                    if (!email    || !email.value.trim())    { showErr('editEmail',    'El correo es obligatorio'); isValid = false; }
+                    if (!roleId   || !roleId.value)          { showErr('editRoleId',   'Debe seleccionar un rol'); isValid = false; }
+                    if (!status   || !status.value)          { showErr('editStatus',   'Debe seleccionar un estado'); isValid = false; }
+
+                    // Contraseña: solo validar si se ingresó algo
+                    if (password && password.value) {
+                        if (password.value.length < 8) {
+                            showErr('edit_modal_password', 'Mínimo 8 caracteres', 'editPasswordError'); isValid = false;
+                        } else if (!pwConf || pwConf.value !== password.value) {
+                            showErr('edit_modal_password_confirmation', 'Las contraseñas no coinciden', 'editPasswordConfirmationError'); isValid = false;
+                        }
+                    }
+
+                    if (!isValid) return;
+
                     // Confirm before submit
-                    if (window.Swal) {
-                        const res = await Swal.fire({
+                    if (window.swConfirm) {
+                        const res = await swConfirm({
                             title: 'Editar usuario',
                             text: '¿Desea guardar los cambios de este usuario?',
                             icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonColor: '#16a34a',
-                            cancelButtonColor: '#6b7280',
                             confirmButtonText: 'Sí, actualizar',
                             cancelButtonText: 'Cancelar'
                         });
@@ -1077,6 +1145,16 @@
                             const msg = (error && error.message) ? error.message : 'No se pudo actualizar el usuario';
                             swAlert({ icon: 'error', title: 'Error', text: msg, confirmButtonColor: '#dc2626' });
                         }
+                    }
+                });
+
+                // Limpieza de errores en tiempo real (los scripts inline del parcial no ejecutan via innerHTML)
+                const rtFields = ['editFullName','editEmail','editRoleId','editStatus'];
+                rtFields.forEach(fieldId => {
+                    const el = document.getElementById(fieldId);
+                    if (el) {
+                        el.addEventListener('input',  function() { if (this.value.trim()) { this.classList.remove('input-error'); const d=document.getElementById(fieldId+'Error'); if(d) d.style.display='none'; } });
+                        el.addEventListener('change', function() { if (this.value)        { this.classList.remove('input-error'); const d=document.getElementById(fieldId+'Error'); if(d) d.style.display='none'; } });
                     }
                 });
             }
