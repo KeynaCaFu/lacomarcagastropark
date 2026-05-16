@@ -94,7 +94,7 @@
     </div>
 
     {{-- Filtros --}}
-    <div class="rp-card">
+    <div class="rp-card" style="display:inline-block; min-width: 388px; width:auto;">
         <form id="filterForm" method="GET" action="{{ route('reports.order-history') }}">
             <div class="rp-filters">
                 @if($userLocals->count() > 1)
@@ -198,7 +198,7 @@
                         </td>
                         <td style="color:#666;">{{ $order->date }}</td>
                         <td style="color:#666;">{{ \Carbon\Carbon::parse($order->time)->format('H:i') }}</td>
-                        <td style="font-weight:700; color:#e18018;">₡{{ number_format($order->total_amount, 2) }}</td>
+                        <td style="">₡{{ number_format($order->total_amount, 2) }}</td>
                         <td>
                             <span id="oh-pdf-{{ $order->order_id }}" class="oh-pdf-badge {{ $hasPdf ? 'oh-pdf--yes' : 'oh-pdf--no' }}">
                                 <i class="fas {{ $hasPdf ? 'fa-file-pdf' : 'fa-exclamation-circle' }}"></i>

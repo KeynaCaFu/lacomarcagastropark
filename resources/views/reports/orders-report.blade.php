@@ -28,7 +28,7 @@
     </div>
 
     {{-- Filters --}}
-    <div class="rp-card">
+    <div class="rp-card" style="display:inline-block; min-width: 388px; width:auto;">
         <form id="filterForm" method="GET" action="{{ route('reports.orders') }}">
             <div class="rp-filters">
                 @if($userLocals->count() > 1)

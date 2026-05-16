@@ -182,8 +182,7 @@
                             <td class="item-quantity" style="text-align: center;">{{ $item->quantity }}</td>
                             <td style="text-align: right; color: #666;">
                                 @php
-                                    $localProduct = $item->product->locals->where('local_id', $order->local_id)->first();
-                                    $price = $localProduct ? $localProduct->price : 0;
+                                    $price = $item->product->price ?? 0;
                                 @endphp
                                 ₡{{ number_format($price, 2) }}
                             </td>
@@ -220,9 +219,7 @@
                 @php
                     $calculatedTotal = 0;
                     foreach($order->items as $item) {
-                        $localProduct = $item->product->locals->where('local_id', $order->local_id)->first();
-                        $price = $localProduct ? $localProduct->price : 0;
-                        $calculatedTotal += $price * $item->quantity;
+                        $calculatedTotal += ($item->product->price ?? 0) * $item->quantity;
                     }
                 @endphp
                 ₡{{ number_format($calculatedTotal, 2) }}
