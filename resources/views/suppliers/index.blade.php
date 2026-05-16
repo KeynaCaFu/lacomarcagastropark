@@ -113,36 +113,36 @@
     }
 
     .date-input-wrapper {
-    position: relative;
-    display: inline-block;
-}
+        position: relative;
+        display: inline-block;
+    }
 
-.date-input-wrapper input[type="date"] {
-    padding-right: 35px !important;
-}
+    .date-input-wrapper input[type="date"] {
+        padding-right: 35px !important;
+    }
 
-.clear-date-icon {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 18px;
-    color: #9ca3af;
-    cursor: pointer;
-    display: none;
-    line-height: 1;
-}
+    .clear-date-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 18px;
+        color: #9ca3af;
+        cursor: pointer;
+        display: none;
+        line-height: 1;
+    }
 
-.clear-date-icon:hover {
-    color: #ef4444;
-}
+    .clear-date-icon:hover {
+        color: #ef4444;
+    }
 </style>
 @endpush
 
 @section('content')
 <div class="product-page-wrapper">
     <div class="products-container">
-        
+
         <nav aria-label="breadcrumb" style="margin-bottom: 24px;">
             <ol class="breadcrumb" style="padding: 0; background: none;">
                 <li class="breadcrumb-item active">Proveedores</li>
@@ -177,37 +177,29 @@
             </button>
 
             <div id="filtrosBody" class="search-filter-group closed">
-                <form id="filtrosFormSuppliers" style="display:flex; gap:12px; flex-wrap:wrap; width:100%;">
-                    
+                <form id="filtrosFormSuppliers" style="display:flex; gap:12px; flex-wrap:wrap; width:100%; align-items:flex-end;">
+
                     <div class="single-date-filter">
-    <label for="fecha">Fecha de registro</label>
-
-    <div class="date-input-wrapper">
-        <input
-            type="date"
-            id="fecha"
-            name="fecha"
-            class="filter-select"
-            value="{{ request('fecha') }}"
-            title="Día/Mes/Año">
-
-        <span id="clearDateIcon" class="clear-date-icon">&times;</span>
-    </div>
-</div>
-
-<div style="display:flex; align-items:flex-end; gap:12px;">
-    <button type="button" id="searchDateBtnSuppliers" class="btn-action">
-        <i class="fas fa-search"></i> Buscar
-    </button>
-
-    
-</div>
-
-                    <div style="display:flex; align-items:flex-end;">
-                        <button type="button" id="clearBtnSuppliers" class="btn-action" style="display:none;">
-                            <i class="fas fa-eraser"></i> Limpiar
-                        </button>
+                        <label for="fecha">Fecha de registro</label>
+                        <div class="date-input-wrapper">
+                            <input
+                                type="date"
+                                id="fecha"
+                                name="fecha"
+                                class="filter-select"
+                                value="{{ request('fecha') }}"
+                                title="Día/Mes/Año">
+                            <span id="clearDateIcon" class="clear-date-icon">&times;</span>
+                        </div>
                     </div>
+
+                    <div style="display:flex; align-items:flex-end; gap:12px;">
+                        {{-- Solo aparece cuando hay un filtro activo, igual que en productos --}}
+                        <a href="javascript:void(0);" id="clearBtnSuppliers" class="btn-action" style="display:none; background:#e5e7eb; color:#374151; padding:10px 20px;">
+                            <i class="fas fa-redo"></i> Limpiar
+                        </a>
+                    </div>
+
                 </form>
             </div>
         </div>
@@ -224,23 +216,21 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const filtersToggle = document.getElementById('filtersToggle');
-    const filtersBody = document.getElementById('filtrosBody');
-
-    const searchDateBtn = document.getElementById('searchDateBtnSuppliers');
-    const clearDateIcon = document.getElementById('clearDateIcon');
-    const fecha = document.getElementById('fecha');
-
-    const topSearchInput = document.getElementById('topSearchInput');
-    const searchBtn = document.getElementById('searchBtn');
-    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const filtersToggle       = document.getElementById('filtersToggle');
+    const filtersBody         = document.getElementById('filtrosBody');
+    const clearBtnSuppliers   = document.getElementById('clearBtnSuppliers');
+    const clearDateIcon       = document.getElementById('clearDateIcon');
+    const fecha               = document.getElementById('fecha');
+    const topSearchInput      = document.getElementById('topSearchInput');
+    const searchBtn           = document.getElementById('searchBtn');
+    const clearSearchBtn      = document.getElementById('clearSearchBtn');
 
     const isSuppliersPage = window.location.pathname.includes('/proveedores');
 
+    // ── Toggle acordeón ───────────────────────────────────────────────────
     if (filtersToggle && filtersBody) {
         filtersToggle.addEventListener('click', function () {
             const isClosed = filtersBody.classList.contains('closed');
-
             if (isClosed) {
                 filtersBody.classList.remove('closed');
                 filtersToggle.classList.add('open');
@@ -253,34 +243,131 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    const updateClearIcon = () => {
-        if (!clearDateIcon || !fecha) return;
-        clearDateIcon.style.display = fecha.value ? 'block' : 'none';
+    // ── Mostrar/ocultar botón Limpiar según filtros activos ───────────────
+    const updateClearButton = () => {
+        const hayFecha  = fecha && fecha.value !== '';
+        const hayBuscar = topSearchInput && topSearchInput.value.trim() !== '';
+
+        // Ícono × dentro del input de fecha
+        if (clearDateIcon) {
+            clearDateIcon.style.display = hayFecha ? 'block' : 'none';
+        }
+
+        // Botón Limpiar: solo visible si hay algún filtro activo
+        if (clearBtnSuppliers) {
+            clearBtnSuppliers.style.display = (hayFecha || hayBuscar) ? 'inline-flex' : 'none';
+        }
     };
 
-    const attachDeleteEvents = () => {
-        document.querySelectorAll('form').forEach(function(form) {
-            const deleteMethod = form.querySelector('input[name="_method"][value="DELETE"]');
+    // ── Acción del botón Limpiar ──────────────────────────────────────────
+    if (clearBtnSuppliers) {
+        clearBtnSuppliers.addEventListener('click', function () {
+            if (fecha) fecha.value = '';
+            if (topSearchInput) topSearchInput.value = '';
+            if (clearSearchBtn) clearSearchBtn.style.display = 'none';
+            updateClearButton();
+            loadFilteredSuppliers();
+        });
+    }
 
+    // ── Ícono × para limpiar solo la fecha ───────────────────────────────
+    if (clearDateIcon) {
+        clearDateIcon.addEventListener('click', function () {
+            if (fecha) fecha.value = '';
+            updateClearButton();
+            loadFilteredSuppliers();
+        });
+    }
+
+    // ── Al cambiar la fecha se filtra automáticamente ────────────────────
+    if (fecha) {
+        fecha.addEventListener('change', function () {
+            updateClearButton();
+            loadFilteredSuppliers();
+        });
+    }
+
+    const loadFilteredSuppliers = async () => {
+        try {
+            const params = new URLSearchParams();
+
+            if (topSearchInput && topSearchInput.value.trim() !== '') {
+                params.append('buscar', topSearchInput.value.trim());
+            }
+            if (fecha && fecha.value !== '') {
+                params.append('fecha', fecha.value);
+            }
+
+            const url = `{{ route('suppliers.index') }}${params.toString() ? '?' + params.toString() : ''}`;
+
+            const response = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            if (!response.ok) return;
+
+            const html = await response.text();
+            const currentTable = document.getElementById('suppliersTableContainer');
+            if (currentTable) {
+                currentTable.innerHTML = html;
+                attachDeleteEvents();
+            }
+        } catch (error) {
+            console.error('Error al filtrar proveedores:', error);
+        }
+    };
+
+    // ── Barra de búsqueda superior ────────────────────────────────────────
+    if (isSuppliersPage && topSearchInput) {
+        topSearchInput.addEventListener('input', function () {
+            if (clearSearchBtn) {
+                clearSearchBtn.style.display = this.value.trim() ? 'inline-block' : 'none';
+            }
+            updateClearButton();
+        });
+
+        topSearchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                loadFilteredSuppliers();
+            }
+        });
+    }
+
+    if (isSuppliersPage && searchBtn) {
+        searchBtn.onclick = function (e) {
+            e.preventDefault();
+            loadFilteredSuppliers();
+        };
+    }
+
+    if (isSuppliersPage && clearSearchBtn) {
+        clearSearchBtn.onclick = function (e) {
+            e.preventDefault();
+            if (topSearchInput) topSearchInput.value = '';
+            clearSearchBtn.style.display = 'none';
+            updateClearButton();
+            loadFilteredSuppliers();
+        };
+    }
+
+    // ── Eventos de eliminación ────────────────────────────────────────────
+    const attachDeleteEvents = () => {
+        document.querySelectorAll('form').forEach(function (form) {
+            const deleteMethod = form.querySelector('input[name="_method"][value="DELETE"]');
             if (deleteMethod && !form.dataset.deleteBound) {
                 form.dataset.deleteBound = 'true';
-
-                form.addEventListener('submit', function(e) {
+                form.addEventListener('submit', function (e) {
                     e.preventDefault();
-
                     const ejecutarEliminacion = () => {
                         if (window.confirmWithUndo) {
                             confirmWithUndo({
                                 message: 'El proveedor se eliminará',
                                 delayMs: 8000,
-                                onConfirm: () => {
-                                    form.dataset.deleteBound = 'done';
-                                    form.submit();
-                                }
+                                onConfirm: () => { form.dataset.deleteBound = 'done'; form.submit(); }
                             });
                         } else {
-                            form.dataset.deleteBound = 'done';
-                            form.submit();
+                            form.dataset.deleteBound = 'done'; form.submit();
                         }
                     };
 
@@ -291,107 +378,17 @@ document.addEventListener('DOMContentLoaded', function () {
                             icon: 'warning',
                             confirmButtonColor: '#dc2626',
                             confirmButtonText: 'Sí, eliminar'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                ejecutarEliminacion();
-                            }
-                        });
+                        }).then((result) => { if (result.isConfirmed) ejecutarEliminacion(); });
                     } else {
-                        if (confirm('¿Está seguro de eliminar este proveedor?')) {
-                            ejecutarEliminacion();
-                        }
+                        if (confirm('¿Está seguro de eliminar este proveedor?')) ejecutarEliminacion();
                     }
                 });
             }
         });
     };
 
-    const loadFilteredSuppliers = async () => {
-        try {
-            const params = new URLSearchParams();
-
-            if (topSearchInput && topSearchInput.value.trim() !== '') {
-                params.append('buscar', topSearchInput.value.trim());
-            }
-
-            if (fecha && fecha.value !== '') {
-                params.append('fecha', fecha.value);
-            }
-
-            const url = `{{ route('suppliers.index') }}${params.toString() ? '?' + params.toString() : ''}`;
-
-            const response = await fetch(url, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-
-            if (!response.ok) return;
-
-            const html = await response.text();
-            const currentTable = document.getElementById('suppliersTableContainer');
-
-                if (currentTable) {
-                    currentTable.innerHTML = html;
-                     attachDeleteEvents();
-                    }
-        } catch (error) {
-            console.error('Error al filtrar proveedores:', error);
-        }
-    };
-
-    if (fecha) {
-        fecha.addEventListener('change', function () {
-            updateClearIcon();
-        });
-    }
-
-    if (clearDateIcon) {
-    clearDateIcon.addEventListener('click', function () {
-        if (fecha) fecha.value = '';
-        updateClearIcon();
-        loadFilteredSuppliers();
-    });
-}
-
-    if (searchDateBtn) {
-        searchDateBtn.addEventListener('click', function () {
-            loadFilteredSuppliers();
-        });
-    }
-
-    if (isSuppliersPage && topSearchInput) {
-        topSearchInput.addEventListener('input', function () {
-            if (clearSearchBtn) {
-                clearSearchBtn.style.display = this.value.trim() ? 'inline-block' : 'none';
-            }
-        });
-
-        topSearchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                loadFilteredSuppliers();
-            }
-        });
-    }
-
-    if (isSuppliersPage && searchBtn) {
-        searchBtn.onclick = function(e) {
-            e.preventDefault();
-            loadFilteredSuppliers();
-        };
-    }
-
-    if (isSuppliersPage && clearSearchBtn) {
-        clearSearchBtn.onclick = function(e) {
-            e.preventDefault();
-            if (topSearchInput) topSearchInput.value = '';
-            clearSearchBtn.style.display = 'none';
-            loadFilteredSuppliers();
-        };
-    }
-
-    updateClearIcon();
+    // Estado inicial
+    updateClearButton();
     attachDeleteEvents();
 });
 </script>

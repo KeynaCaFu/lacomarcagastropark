@@ -86,8 +86,74 @@ class UserModals {
         // Inicializar validación de contraseña para modal
         this.initPasswordValidation(container);
 
+        // Real-time: limpiar error cuando el usuario corrige el campo
+        ['editFullName','editEmail','editRoleId','editStatus'].forEach(fieldId => {
+            const field = container.querySelector('#' + fieldId);
+            if (field) {
+                field.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        this.classList.remove('input-error');
+                        const errDiv = container.querySelector('#' + fieldId + 'Error');
+                        if (errDiv) errDiv.style.display = 'none';
+                    }
+                });
+                field.addEventListener('change', function() {
+                    if (this.value) {
+                        this.classList.remove('input-error');
+                        const errDiv = container.querySelector('#' + fieldId + 'Error');
+                        if (errDiv) errDiv.style.display = 'none';
+                    }
+                });
+            }
+        });
+
         form.addEventListener('submit', async function(e){
             e.preventDefault();
+
+            // Helpers de validación inline
+            function showErr(fieldId, msg, errorDivId) {
+                const field  = container.querySelector('#' + fieldId);
+                const errDiv = container.querySelector('#' + (errorDivId || fieldId + 'Error'));
+                if (field)  field.classList.add('input-error');
+                if (errDiv) { errDiv.style.display = 'flex'; const sp = errDiv.querySelector('span'); if (sp) sp.textContent = msg; }
+            }
+            function clearErr(fieldId, errorDivId) {
+                const field  = container.querySelector('#' + fieldId);
+                const errDiv = container.querySelector('#' + (errorDivId || fieldId + 'Error'));
+                if (field)  field.classList.remove('input-error');
+                if (errDiv) errDiv.style.display = 'none';
+            }
+
+            // Limpiar errores previos
+            ['editFullName','editEmail','editRoleId','editStatus'].forEach(id => clearErr(id));
+            clearErr('edit_modal_password', 'editPasswordError');
+            clearErr('edit_modal_password_confirmation', 'editPasswordConfirmationError');
+
+            // Validar campos requeridos
+            let isValid = true;
+            const fullName = container.querySelector('#editFullName');
+            const email    = container.querySelector('#editEmail');
+            const roleId   = container.querySelector('#editRoleId');
+            const status   = container.querySelector('#editStatus');
+            const password = container.querySelector('#edit_modal_password');
+            const pwConf   = container.querySelector('#edit_modal_password_confirmation');
+
+            if (!fullName || !fullName.value.trim()) { showErr('editFullName', 'El nombre es obligatorio'); isValid = false; }
+            if (!email    || !email.value.trim())    { showErr('editEmail',    'El correo es obligatorio'); isValid = false; }
+            if (!roleId   || !roleId.value)          { showErr('editRoleId',   'Debe seleccionar un rol'); isValid = false; }
+            if (!status   || !status.value)          { showErr('editStatus',   'Debe seleccionar un estado'); isValid = false; }
+            if (password && password.value) {
+                if (password.value.length < 8) {
+                    showErr('edit_modal_password', 'Mínimo 8 caracteres', 'editPasswordError');
+                    isValid = false;
+                } else if (!pwConf || pwConf.value !== password.value) {
+                    showErr('edit_modal_password_confirmation', 'Las contraseñas no coinciden', 'editPasswordConfirmationError');
+                    isValid = false;
+                }
+            }
+
+            if (!isValid) return;
+
             // Confirmación SweetAlert consistente
             if (window.swConfirm) {
                 const res = await swConfirm({

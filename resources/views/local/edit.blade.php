@@ -2,6 +2,29 @@
 
 @section('title', 'Editar Local - '. ($local->name ?? 'La comarca'))
 
+@push('styles')
+    <style>
+        /* Sistema de validación inline (field-error) */
+        .field-error {
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .field-error i { font-size: 11px; }
+        input.input-error, select.input-error, textarea.input-error {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 2px rgba(220,38,38,0.12) !important;
+        }
+        /* Ocultar alerta global de errores en esta página */
+        .alert-danger {
+            display: none !important;
+        }
+    </style>
+@endpush
+
 @section('content')
 
 <div class="container-fluid py-4">
@@ -21,7 +44,7 @@
 
             <!-- Formulario Principal -->
             <div class="card border-0" style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; margin-top: 19px;">
-                <form action="{{ route('local.update') }}" method="POST" enctype="multipart/form-data" id="localForm">
+                <form action="{{ route('local.update') }}" method="POST" enctype="multipart/form-data" id="localForm" novalidate>
                     @csrf
                     @method('PUT')
 
@@ -50,11 +73,12 @@
                                     <input type="file" 
                                            name="image_logo" 
                                            id="image_logo"
-                                           class="form-control @error('image_logo') is-invalid @enderror"
+                                           class="form-control @error('image_logo') input-error @enderror"
                                            accept="image/*"
                                            style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                                    <div class="field-error" id="imageLogo Error" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                                     @error('image_logo')
-                                        <div class="invalid-feedback d-block" style="font-size: 13px;">{{ $message }}</div>
+                                        <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
                                     @enderror
                                     <small class="text-muted d-block mt-2" style="font-size: 13px;">
                                         JPEG, PNG, JPG, GIF. Máximo: 2 MB
@@ -74,13 +98,13 @@
                         <input type="text" 
                                id="name"
                                name="name" 
-                               class="form-control @error('name') is-invalid @enderror" 
+                               class="form-control @error('name') input-error @enderror" 
                                value="{{ old('name', $local->name ?? '') }}"
                                placeholder="Ej: La Comarca - Centro"
-                               style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;"
-                               required>
+                               style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                        <div class="field-error" id="nameError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         @error('name')
-                            <div class="invalid-feedback d-block" style="font-size: 13px;">{{ $message }}</div>
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
                         @enderror
                     </div>
 
@@ -92,12 +116,13 @@
                         <textarea id="description"
                                   name="description" 
                                   rows="3"
-                                  class="form-control @error('description') is-invalid @enderror"
+                                  class="form-control @error('description') input-error @enderror"
                                   placeholder="Describe tu local, ubicación, ambiente..."
                                   maxlength="600"
                                   style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; resize: vertical;">{{ old('description', $local->description ?? '') }}</textarea>
+                        <div class="field-error" id="descriptionError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         @error('description')
-                            <div class="invalid-feedback d-block" style="font-size: 13px;">{{ $message }}</div>
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
                         @enderror
                         <div class="d-flex justify-content-between align-items-center" style="margin-top: 8px;">
                             <small class="text-muted" style="font-size: 13px;">Máximo 600 caracteres</small>
@@ -114,13 +139,14 @@
                             <input type="text" 
                                    id="contact"
                                    name="contact" 
-                                   class="form-control @error('contact') is-invalid @enderror" 
+                                   class="form-control @error('contact') input-error @enderror" 
                                    value="{{ old('contact', $local->contact ?? '') }}"
                                    placeholder="0000-0000"
                                    pattern="\d{4}-\d{4}"
                                    style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                            <div class="field-error" id="contactError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                             @error('contact')
-                                <div class="invalid-feedback d-block" style="font-size: 13px;">{{ $message }}</div>
+                                <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
                             @enderror
                             <small class="text-muted d-block mt-2" style="font-size: 13px;">
                                 Formato: 0000-0000
@@ -133,9 +159,8 @@
                             </label>
                             <select id="status"
                                     name="status" 
-                                    class="form-control @error('status') is-invalid @enderror"
-                                    style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;"
-                                    required>
+                                    class="form-control @error('status') input-error @enderror"
+                                    style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
                                 <option value="">-- Selecciona un estado --</option>
                                 <option value="Active" {{ old('status', $local->status ?? '') === 'Active' ? 'selected' : '' }}>
                                     Activo
@@ -144,8 +169,9 @@
                                     Inactivo
                                 </option>
                             </select>
+                            <div class="field-error" id="statusError" style="display:none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                             @error('status')
-                                <div class="invalid-feedback d-block" style="font-size: 13px;">{{ $message }}</div>
+                                <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
                             @enderror
                         </div>
                     </div>
@@ -191,33 +217,81 @@ document.addEventListener('DOMContentLoaded', function() {
         checkAndShowToast();
     }
 
-    // Mostrar mensajes de error con SweetAlert
+    // Mostrar mensajes de error con SweetAlert (solo para errores de sesión NO de validación)
     const errorMsg = @json(session('error'));
-    if (errorMsg && window.swAlert) {
-        swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+    if (errorMsg) {
+        let retries = 0;
+        const checkAndShowAlert = () => {
+            if (window.swAlert) {
+                swAlert({ icon: 'error', title: 'Error', text: errorMsg, confirmButtonColor: '#dc2626' });
+            } else if (retries < 50) {
+                retries++;
+                setTimeout(checkAndShowAlert, 100);
+            }
+        };
+        checkAndShowAlert();
     }
-    @if ($errors->any())
-    if (window.swAlert) {
-        swAlert({
-            icon: 'error',
-            title: 'Errores de validación',
-            html: `<ul style="text-align:left;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
-            confirmButtonColor: '#dc2626'
-        });
-    }
-    @endif
 
-    // Validación del formulario
+    // Helper functions for field-error validation
+    function showFieldError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const errorSpan = document.getElementById(fieldId + 'Error');
+        if (field && errorSpan) {
+            field.classList.add('input-error');
+            errorSpan.style.display = 'flex';
+            const span = errorSpan.querySelector('span');
+            if (span) span.textContent = message;
+        }
+    }
+
+    function clearFieldError(fieldId) {
+        const field = document.getElementById(fieldId);
+        const errorSpan = document.getElementById(fieldId + 'Error');
+        if (field && errorSpan) {
+            field.classList.remove('input-error');
+            errorSpan.style.display = 'none';
+        }
+    }
+
+    // Form submission validation
     const form = document.getElementById('localForm');
-    
-    form.addEventListener('submit', function(e) {
-        if (!form.checkValidity()) {
-            e.preventDefault();
-            e.stopPropagation();
-        } else if (e.target === form) {
-            // Si el formulario es válido y se va a enviar, pedimos confirmación
-            if (window.swConfirm) {
-                e.preventDefault();
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevenir envío por defecto
+
+            const nameField = document.getElementById('name');
+            const statusField = document.getElementById('status');
+
+            let isValid = true;
+
+            // Validate name
+            if (!nameField.value.trim()) {
+                showFieldError('name', 'El nombre del local es obligatorio');
+                isValid = false;
+            } else {
+                clearFieldError('name');
+            }
+
+            // Validate status
+            if (!statusField.value) {
+                showFieldError('status', 'Debe seleccionar un estado');
+                isValid = false;
+            } else {
+                clearFieldError('status');
+            }
+
+            // Si hay errores, no mostrar SweetAlert
+            if (!isValid) {
+                return;
+            }
+
+            // Si pasó validación, mostrar confirmación
+            function showConfirm() {
+                if (typeof window.swConfirm === 'undefined') {
+                    setTimeout(showConfirm, 100);
+                    return;
+                }
+
                 swConfirm({
                     title: 'Guardar cambios',
                     text: '¿Desea guardar los cambios del local?',
@@ -230,9 +304,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             }
-        }
-        form.classList.add('was-validated');
-    });
+
+            showConfirm();
+        });
+    }
 
     // Preview de imagen
     const imageInput = document.getElementById('image_logo');
@@ -265,9 +340,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 const reader = new FileReader();
-                reader.onload = function(event) {
-                    console.log('Imagen seleccionada:', file.name);
-                };
+                reader.onload = function(event) {};
                 reader.readAsDataURL(file);
             }
         });
@@ -319,6 +392,19 @@ document.addEventListener('DOMContentLoaded', function() {
             charCountDisplay.innerHTML = `<span id="charCount">${currentLength}</span>/600`;
         }
     }
+
+    // Real-time validation
+    ['name', 'status'].forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', function() {
+                if (this.value.trim()) clearFieldError(fieldId);
+            });
+            field.addEventListener('blur', function() {
+                if (!this.value.trim()) showFieldError(fieldId, 'Este campo es obligatorio');
+            });
+        }
+    });
 });
 </script>
 

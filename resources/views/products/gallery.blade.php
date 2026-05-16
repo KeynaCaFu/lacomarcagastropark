@@ -65,7 +65,7 @@
                                     <input type="file" class="custom-file-input @error('image') is-invalid @enderror" id="image" name="image" accept="image/*" required>
                                     <label class="custom-file-label" for="image">Seleccionar archivo...</label>
                                 </div>
-                                <small class="form-text text-muted d-block mt-2">Formatos: JPG, PNG, GIF • Máximo: 2MB</small>
+                                <small class="form-text text-muted d-block mt-2">Formatos: JPG, PNG, GIF • Máximo: 4MB</small>
                                 @error('image')
                                     <span class="invalid-feedback" style="display: block;">{{ $message }}</span>
                                 @enderror
@@ -203,10 +203,10 @@
                 return false;
             }
             const file = fileInput.files[0];
-            const maxSize = 2 * 1024 * 1024; // 2MB
+            const maxSize = 4 * 1024 * 1024; // 4MB
             if (file.size > maxSize) {
                 e.preventDefault();
-                alert('La imagen no puede ser mayor a 2MB');
+                alert('La imagen no puede ser mayor a 4MB');
                 return false;
             }
             const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
@@ -312,7 +312,7 @@
                 </div>
                 <div class="detail-section">
                     <h5><i class="fas fa-ruler"></i> Tamaño Recomendado</h5>
-                    <p>Tamaño recomendado: 800x600px o mayor. Máximo 2MB.<br><small class="text-muted">Las imágenes muy pequeñas se verán pixeladas, y las muy grandes ralentizarán la carga.</small></p>
+                    <p>Tamaño recomendado: 800x600px o mayor. Máximo 4MB.<br><small class="text-muted">Las imágenes muy pequeñas se verán pixeladas, y las muy grandes ralentizarán la carga.</small></p>
                 </div>
                 <div class="detail-section">
                     <h5><i class="fas fa-upload"></i> Formatos Aceptados</h5>

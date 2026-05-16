@@ -47,8 +47,8 @@ class EventController extends Controller
             'time'        => 'required|date_format:H:i',
             'status'      => 'required|in:activo,inactivo',
             'description' => 'required|string',
-            'location'    => 'nullable|string|max:255',
-            'photo'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'location'    => 'required|string|max:255',
+            'photo'       => 'required|image|mimes:jpg,jpeg,png|max:4096',
         ]);
 
         $startAt = Carbon::parse($validated['date'].' '.$validated['time']);
@@ -123,8 +123,8 @@ class EventController extends Controller
             'time'        => 'required|date_format:H:i',
             'status'      => 'required|in:activo,inactivo',
             'description' => 'required|string',
-            'location'    => 'nullable|string|max:255',
-            'photo'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'location'    => 'required|string|max:255',
+            'photo'       => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
         ]);
 
         $startAt = Carbon::parse($validated['date'].' '.$validated['time']);
