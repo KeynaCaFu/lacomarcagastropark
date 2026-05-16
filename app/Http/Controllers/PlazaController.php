@@ -603,7 +603,8 @@ public function storeLocalReview(Request $request, $localId)
              reviewId:    $review->review_id,
              clientName:  Auth::user()->full_name ?? Auth::user()->name ?? 'Cliente',
              productName: 'el local',
-             rating:      $request->rating
+             rating:      $request->rating,
+             comment:     $request->comment  
         ))->toOthers();
 
         // Devolver la nueva reseña completa para renderizarla sin recargar
@@ -670,17 +671,6 @@ public function storeProductReview(Request $request, $productId)
         ], 403);
     }
 
-    // BLOQUEO DE DOBLE RESEÑA
-    $yaExiste = ProductReview::where('product_id', $productId)
-        ->where('user_id', $userId)
-        ->exists();
-
-    if ($yaExiste) {
-        return response()->json([
-            'success' => false,
-            'error' => 'Ya habías publicado una reseña para este producto.'
-        ], 409);
-    }
 
     $review = Review::create([
         'rating' => $request->rating,
@@ -704,7 +694,8 @@ if ($localDelProducto) {
         reviewId:    $review->review_id,
         clientName:  Auth::user()->full_name ?? Auth::user()->name ?? 'Cliente',
         productName: $product->name,
-        rating:      $request->rating
+        rating:      $request->rating,
+        comment:     $request->comment
     ));
 }
     $user = Auth::user();
@@ -804,6 +795,34 @@ if ($localDelProducto) {
     'resenasProductos' => $resenasProductos,
     'iniciales'        => $iniciales,
 ]);
+}
+
+
+public function getResenasHtml($localId)
+{
+    $local = Local::where('local_id', $localId)->firstOrFail();
+
+    $reviews = LocalReview::with(['review', 'user'])
+        ->where('local_id', $localId)
+        ->whereHas('review')
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    $allRatings = LocalReview::with('review')
+        ->where('local_id', $localId)
+        ->whereHas('review')
+        ->get()
+        ->pluck('review.rating')
+        ->filter();
+
+    $localStats = [
+        'average' => $allRatings->count() ? round($allRatings->avg(), 1) : 0,
+        'total'   => $allRatings->count(),
+    ];
+
+    $html = view('plaza.reviews', compact('local', 'reviews', 'localStats'))->render();
+
+    return response()->json(['html' => $html]);
 }
 
 }

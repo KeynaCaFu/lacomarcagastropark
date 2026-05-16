@@ -937,6 +937,149 @@
             });
         });
         @endif
+
+        // Escuchar nuevas reseñas en tiempo real
+        function esperarEcho() {
+            if (!window.Echo) {
+                setTimeout(esperarEcho, 300);
+                return;
+            }
+            
+            const localId = {{ auth()->user()->locals()->first()?->local_id ?? 'null' }};
+            if (!localId) return;
+
+            window.Echo.channel(`local.${localId}`)
+                .listen('NewReviewPosted', (data) => {
+                    console.log('✓ Nueva reseña recibida en panel:', data);
+                    agregarReseñaAlGrid(data);
+                });
+        }
+
+        {{-- 
+    REEMPLAZAR SOLO la función agregarReseñaAlGrid en el archivo resenas/index.blade.php
+    Busque: function agregarReseñaAlGrid(data) {
+    y reemplace todo el bloque hasta el último } de esa función
+--}}
+
+        function agregarReseñaAlGrid(data) {
+            const grid = document.getElementById('grid-locales');
+            if (!grid) return;
+
+            // Determinar tipo según rating
+            let tipoTexto, tipoClase;
+            if (data.rating >= 4)      { tipoTexto = 'Positiva'; tipoClase = 'positive'; }
+            else if (data.rating == 3) { tipoTexto = 'Neutra';   tipoClase = 'neutral';  }
+            else                       { tipoTexto = 'Negativa'; tipoClase = 'negative'; }
+
+            // Estrellas
+            const estrellas = Array.from({length: 5}, (_, i) =>
+                `<span class="star ${i < data.rating ? 'filled' : ''}">★</span>`
+            ).join('');
+
+            // Iniciales del nombre
+            const nombre   = data.client_name || 'Cliente';
+            const iniciales = nombre.split(' ').slice(0, 2).map(p => p[0]?.toUpperCase() || '').join('') || 'CL';
+
+            // Fecha formateada
+            const hoy = new Date();
+            const fechaRaw = hoy.toISOString().split('T')[0]; // yyyy-mm-dd
+            const fechaDisplay = hoy.toLocaleDateString('es-CR'); // dd/mm/yyyy
+
+            // Comentario
+            const comentario = data.message && data.message.trim() ? data.message : 'Sin comentario.';
+
+            // ID único temporal para la card (para evitar colisiones)
+            const tempId = 'realtime-' + Date.now();
+
+            const card = document.createElement('div');
+            card.className = 'review-card review-card-clickable';
+            card.setAttribute('data-modal-nombre',     nombre);
+            card.setAttribute('data-modal-iniciales',  iniciales);
+            card.setAttribute('data-modal-fecha',      fechaDisplay);
+            card.setAttribute('data-modal-fecha-raw',  fechaRaw);
+            card.setAttribute('data-modal-rating',     data.rating);
+            card.setAttribute('data-modal-comentario', comentario);
+            card.setAttribute('data-modal-tipo-texto', tipoTexto);
+            card.setAttribute('data-modal-tipo-clase', tipoClase);
+            card.setAttribute('data-modal-respuesta',  '');
+            card.setAttribute('data-modal-producto',   '');
+            card.setAttribute('onclick', 'openReviewModal(this, event)');
+
+            card.innerHTML = `
+                <div class="review-card-header">
+                    <div class="review-user-box">
+                        <div class="review-avatar">${iniciales}</div>
+                        <div>
+                            <div class="review-user-name">${nombre}</div>
+                            <div class="review-date">${fechaDisplay}</div>
+                        </div>
+                    </div>
+                    <span class="review-badge ${tipoClase}">${tipoTexto}</span>
+                </div>
+
+                <div class="review-stars">${estrellas}</div>
+
+                <div class="review-comment">${comentario}</div>
+
+                <div class="review-action-area">
+                    <button class="reply-btn respond-toggle-btn" type="button"
+                            onclick="toggleReplyBox(this)">
+                        Responder
+                    </button>
+                    <div class="reply-box hidden respond-form" style="display:none;">
+                        <div class="textarea-wrap">
+                            <span class="char-counter" id="counter-${tempId}">0/1000</span>
+                            <textarea name="response"
+                                      placeholder="Escribir respuesta..."
+                                      required
+                                      maxlength="1000"
+                                      data-counter="counter-${tempId}"
+                                      oninput="updateCounter(this, 'counter-${tempId}')"></textarea>
+                        </div>
+                        <div class="reply-actions">
+                            <button class="reply-save-btn" type="button"
+                                    onclick="confirmSaveResponse(this)">Guardar respuesta</button>
+                            <button class="reply-btn" type="button"
+                                    onclick="cancelNewResponse(this)">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Insertar al inicio del grid
+            grid.prepend(card);
+
+            // Si había mensaje de "sin reseñas", ocultarlo
+            const emptyState = document.querySelector('#tab-locales .reviews-empty-state');
+            if (emptyState) emptyState.style.display = 'none';
+
+            // Actualizar contador de reseñas este mes en las stats
+            const statMes = document.querySelector('#tab-locales .review-stat-text');
+            if (statMes && statMes.textContent.includes('Este mes:')) {
+                const match = statMes.textContent.match(/Este mes: (\d+)/);
+                if (match) {
+                    statMes.textContent = `Este mes: ${parseInt(match[1]) + 1}`;
+                }
+            }
+
+            // Actualizar total de reseñas
+            const statTotal = document.querySelector('#tab-locales .review-stat-value');
+            if (statTotal) {
+                const current = parseInt(statTotal.textContent) || 0;
+                statTotal.textContent = current + 1;
+            }
+
+            // Animación suave de entrada
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(-10px)';
+            card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            requestAnimationFrame(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            });
+        }
+
+        esperarEcho();
     });
 
     function waitForSwal(cb) {

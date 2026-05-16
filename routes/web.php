@@ -300,7 +300,7 @@ Route::get('/plaza/producto/{productId}/puede-resenar', function ($productId) {
 
     return response()->json([
         'puede' => $tienePedido,
-        'ya_reseno' => $yaReseno
+        'ya_reseno' => false
     ]);
 })->middleware('auth')->name('plaza.product.can-review');
 // Guardar reseña del producto
@@ -335,6 +335,7 @@ Route::prefix('plaza')->name('plaza.')->middleware(['preserve.admin.session', 'v
     Route::get('api/productos', [\App\Http\Controllers\PlazaController::class, 'getProductosByCategory'])->name('get.productos');
     Route::get('api/schedules', [\App\Http\Controllers\PlazaController::class, 'getAllSchedules'])->name('api.schedules');
     Route::get('{id}/data', [\App\Http\Controllers\PlazaController::class, 'getLocalData'])->name('local.data')->where('id', '[0-9]+');
+    Route::get('{id}/resenas-html', [\App\Http\Controllers\PlazaController::class, 'getResenasHtml'])->name('local.resenas-html')->where('id', '[0-9]+'); // 
     Route::get('{id}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show')->where('id', '[0-9]+');
     Route::get('{local_id}/producto/{product_id}', [\App\Http\Controllers\PlazaController::class, 'showProduct'])->name('product.detail')->where(['local_id' => '[0-9]+', 'product_id' => '[0-9]+']);
     

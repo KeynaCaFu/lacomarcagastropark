@@ -1480,7 +1480,8 @@
 
                         // Recrear productos en grid (recargar productos)
                         this.recargarProductosLocal(data.productos);
-
+                        // Actualizar reseñas del nuevo local
+                        this.actualizarResenasLocal(this.currentLocalId);
                         // Mostrar toast de éxito
                         showToast({
                             icon: 'success',
@@ -1642,7 +1643,24 @@
                 // Aplicar filtro de categoría después de recargar productos
                 this.aplicarFiltroCategoria();
             },
-
+                async actualizarResenasLocal(localId) {
+    try {
+        const res  = await fetch(`/plaza/${localId}/resenas-html`, {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+        });
+        const data = await res.json();
+       if (data.html) {
+    const seccion = document.getElementById('resenas');
+    if (seccion) seccion.outerHTML = data.html;
+    // Reiniciar carrusel con delay para que el DOM se actualice primero
+    setTimeout(() => {
+        if (typeof window.reiniciarCarrusel === 'function') window.reiniciarCarrusel();
+    }, 100);
+}
+    } catch(e) {
+        console.error('Error al cargar reseñas:', e);
+    }
+},
             aplicarFiltroCategoria() {
                 const grid = document.querySelector('.products-grid');
                 if (!grid) return;

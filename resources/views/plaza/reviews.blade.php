@@ -206,19 +206,19 @@ function seleccionarEstrella(val) {
 
 async function enviarResena() {
     const rating  = parseInt(document.getElementById('resenaRating').value);
-    const comment = document.getElementById('resenaComment').value.trim();
+     const comment = document.getElementById('resenaComment').value.trim();
     const errEl   = document.getElementById('resenaError');
     const btn     = document.getElementById('btnEnviarResena');
 
     errEl.style.display = 'none';
-
+     errEl.textContent   = '';
     if (rating < 1) {
         errEl.textContent = 'Selecciona una calificación de estrellas.';
         errEl.style.display = 'block';
         return;
     }
-    if (comment.length < 10) {
-        errEl.textContent = 'El comentario debe tener al menos 10 caracteres.';
+     if (comment.length < 10) {
+        errEl.textContent   = '⚠ El comentario debe tener al menos 10 caracteres.';
         errEl.style.display = 'block';
         return;
     }

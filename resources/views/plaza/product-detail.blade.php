@@ -369,6 +369,11 @@
                         rows="4"
                         placeholder="Describe tu experiencia con este producto..."
                         style="width:100%; box-sizing:border-box; background:#0f0d0b; color:#fff; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; resize:vertical;"></textarea>
+                        {{-- AGREGAR ESTO --}}
+<div v-if="newReview.comment.trim().length > 0 && newReview.comment.trim().length < 10"
+     style="color:#e74c3c; font-size:13px; margin-top:6px;">
+    El comentario debe tener al menos 10 caracteres.
+</div>
 
                     <button
                         @click="submitProductReview"
@@ -1407,7 +1412,7 @@
                     });
 
                     const data = await res.json();
-                    this.puedeResenar = data.puede ?? false;
+                    this.puedeResenar = data.puede;
                     this.yaReseno = data.ya_reseno ?? false;
                     if (this.yaReseno) {
                         this.puedeResenar = true;
