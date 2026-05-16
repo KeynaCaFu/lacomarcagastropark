@@ -33,20 +33,8 @@ class OrderData
             $query->byLocal($filters['local_id']);
         }
 
-        // Filtro por fecha (solo aplica si se proporciona explícitamente)
-        if (!empty($filters['date'])) {
-            $query->byDate($filters['date']);
-        }
-
-        // VALIDACIÓN CRÍTICA: Excluir órdenes Entregadas y Canceladas que NO sean del día actual
-        // Esto se aplica SIEMPRE, sin importar los filtros
-        $query->where(function($q) {
-            $q->whereNotIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
-              ->orWhere(function($subQuery) {
-                  $subQuery->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
-                           ->whereDate('date', now()->toDateString());
-              });
-        });
+        // Filtrar siempre por fecha del día actual (todas las órdenes mostradas son del día)
+        $query->byDate($filters['date'] ?? now()->toDateString());
 
         // Ordenar por más recientes primero
         $query->orderByDesc('created_at');
@@ -184,24 +172,18 @@ class OrderData
         $counts = [];
 
         foreach (array_keys($statuses) as $status) {
-            $query = Order::query();
-            
+            $query = Order::query()->byDate(now()->toDateString());
+
             if ($localId) {
                 $query->byLocal($localId);
             }
-            
+
             $query->byStatus($status);
-            
-            // Validación especial para órdenes Entregadas y Canceladas: solo contar del día actual
-            if ($status === Order::STATUS_DELIVERED || $status === Order::STATUS_CANCELLED) {
-                $query->byDate(now()->toDateString());
-            }
-            
             $counts[$status] = $query->count();
         }
 
-        // Total count
-        $totalQuery = Order::query();
+        // Total count: solo del día actual
+        $totalQuery = Order::query()->byDate(now()->toDateString());
         if ($localId) {
             $totalQuery->byLocal($localId);
         }

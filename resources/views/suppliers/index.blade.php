@@ -109,7 +109,12 @@
     }
 
     .single-date-filter input[type="date"] {
-        min-width: 220px;
+        min-width: 180px;
+    }
+
+    /* Stats grid compacto en tablets */
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     }
 
     .date-input-wrapper {

@@ -1,5 +1,5 @@
 @if($suppliers && count($suppliers) > 0)
-    <table>
+    <table class="suppliers-table">
         <thead>
             <tr>
                 <th style="border-bottom: none !important;">Nombre</th>
