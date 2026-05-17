@@ -240,9 +240,20 @@ class ReportData
             ->get();
     }
 
+    public function getAllOrdersByLocal($localId, $startDate, $endDate, $perPage = 5)
+    {
+        return Order::where('local_id', $localId)
+            ->whereDate('date', '>=', $startDate->toDateString())
+            ->whereDate('date', '<=', $endDate->toDateString())
+            ->with(['items', 'local', 'user', 'receipts'])
+            ->orderBy('date', 'desc')
+            ->orderBy('time', 'desc')
+            ->paginate($perPage);
+    }
+
     /**
      * Obtener productos más vendidos
-     * 
+     *
      * @param int $localId
      * @param Carbon $startDate
      * @param Carbon $endDate

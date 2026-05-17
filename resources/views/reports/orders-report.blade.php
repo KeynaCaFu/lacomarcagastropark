@@ -1,398 +1,9 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 
 @push('styles')
-<style>
-    :root {
-        --dark:     #181818;
-        --green:    #485a1a;
-        --green-2:  #5a6e20;
-        --orange:   #b3621b;
-        --orange-2: #9a5214;
-        --primary:  #181818;
-        --secondary:#ff9900;
-        --light:    #f7f7f7;
-        --gray:     #b0b0b0;
-    }
-
-    /* ── Layout ── */
-    .rp-container {
-        max-width: 100%;
-        width: 100%;
-        margin: 0;
-        padding: 2rem 1.5rem;
-        font-family: system-ui, sans-serif;
-        color: var(--dark);
-        box-sizing: border-box;
-        overflow-x: hidden;
-    }
-
-    /* ── Header ── */
-    .rp-header h1 {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--dark);
-        margin: 0 0 .25rem;
-    }
-    .rp-header p {
-        color: #555;
-        margin: 0;
-        font-size: .95rem;
-    }
-
-    /* ── Card base ── */
-    .rp-card {
-        background: #fff;
-        border: 1px solid #e0ddd6;
-        border-radius: 10px;
-        padding: 1.75rem;
-        margin-bottom: 2rem;
-        box-sizing: border-box;
-        width: 100%;
-        overflow: hidden;
-    }
-    .rp-card h2 {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--dark);
-        margin: 0 0 1rem;
-    }
-
-    /* ── Accent top borders ── */
-    .rp-card--green  { border-top: 4px solid var(--green); }
-    .rp-card--orange { border-top: 4px solid var(--orange); }
-    .rp-card--dark   { border-top: 4px solid var(--dark); }
-
-    /* ── Filter form ── */
-    .rp-filters {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 1.2rem;
-        align-items: end;
-    }
-    @media (max-width: 768px) {
-        .rp-filters { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 480px) {
-        .rp-filters { grid-template-columns: 1fr; }
-    }
-    .rp-filters label {
-        display: block;
-        font-size: .8rem;
-        font-weight: 600;
-        color: #444;
-        margin-bottom: .35rem;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-    }
-    .rp-filters select,
-    .rp-filters input[type="date"] {
-        width: 100%;
-        padding: .5rem .75rem;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        font-size: .9rem;
-        background: #fafafa;
-        color: var(--dark);
-    }
-    .rp-filters select:focus,
-    .rp-filters input:focus {
-        outline: 2px solid var(--green);
-        outline-offset: 1px;
-    }
-    .rp-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: .4rem;
-        padding: .55rem 1.25rem;
-        border: none;
-        border-radius: 6px;
-        font-size: .9rem;
-        font-weight: 700;
-        cursor: pointer;
-        text-decoration: none;
-        transition: background .2s;
-    }
-    .rp-btn--green  { background: var(--green);  color: #fff; }
-    .rp-btn--green:hover  { background: var(--green-2); }
-    .rp-btn--orange { background: var(--orange); color: #fff; }
-    .rp-btn--orange:hover { background: var(--orange-2); }
-    .rp-btn--dark   { background: var(--dark);   color: #fff; }
-    .rp-btn--dark:hover   { background: #2d2d2d; }
-    .rp-btn--full { width: 100%; justify-content: center; }
-
-    /* ── Stat cards grid ── */
-    .rp-stats {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1.2rem;
-        margin-bottom: 2rem;
-    }
-    @media (max-width: 1200px) {
-        .rp-stats { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 640px) {
-        .rp-stats { grid-template-columns: 1fr; }
-    }
-    .rp-stat {
-        background: #fff;
-        border: 1px solid #e0ddd6;
-        border-radius: 10px;
-        padding: 1.25rem 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-    }
-    .rp-stat__label {
-        font-size: .8rem;
-        font-weight: 600;
-        color: #666;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-        margin-bottom: .25rem;
-    }
-    .rp-stat__value {
-        font-size: 1.75rem;
-        font-weight: 800;
-        line-height: 1;
-    }
-    .rp-stat__sub {
-        font-size: .75rem;
-        color: #888;
-        margin-top: .2rem;
-    }
-    .rp-stat__icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-    .rp-stat__icon svg { width: 20px; height: 20px; }
-
-    /* icon color variants */
-    .rp-stat__icon--dark   { background: #e8e8e8; color: var(--dark); }
-    .rp-stat__icon--green  { background: #e8edda; color: var(--green); }
-    .rp-stat__icon--orange { background: #f5e8db; color: var(--orange); }
-    .rp-stat__icon--gold   { background: #fef3cd; color: #8a6200; }
-
-    /* value colors */
-    .rp-color--dark   { color: var(--dark); }
-    .rp-color--green  { color: var(--green); }
-    .rp-color--orange { color: var(--orange); }
-    .rp-color--gold   { color: #8a6200; }
-
-    /* ── Charts grid ── */
-    .rp-charts {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    @media (max-width: 1024px) {
-        .rp-charts { grid-template-columns: 1fr; }
-    }
-    .rp-chart-canvas-wrap {
-        position: relative;
-        height: 340px;
-        margin-bottom: 1rem;
-        width: 100%;
-        box-sizing: border-box;
-        overflow: hidden;
-    }
-
-    /* ── Chart legend pills ── */
-    .rp-legend {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: .75rem;
-    }
-    .rp-legend__item {
-        display: flex;
-        align-items: center;
-        gap: .5rem;
-        padding: .5rem .75rem;
-        border-radius: 6px;
-        font-size: .85rem;
-        font-weight: 600;
-        color: var(--dark);
-    }
-    .rp-legend__item--green  { background: #e8edda; }
-    .rp-legend__item--orange { background: #f5e8db; }
-    .rp-legend__dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        flex-shrink: 0;
-    }
-    .rp-legend__dot--green  { background: var(--green); }
-    .rp-legend__dot--orange { background: var(--orange); }
-
-    /* revenue legend (taller) */
-    .rp-rev-legend {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: .75rem;
-    }
-    .rp-rev-legend__item {
-        padding: .75rem 1rem;
-        border-radius: 6px;
-        border-left: 4px solid;
-    }
-    .rp-rev-legend__item--green  { background: #e8edda; border-color: var(--green); }
-    .rp-rev-legend__item--orange { background: #f5e8db; border-color: var(--orange); }
-    .rp-rev-legend__label {
-        font-size: .7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .05em;
-        color: #666;
-    }
-    .rp-rev-legend__value { font-size: 1.05rem; font-weight: 800; margin: .2rem 0 .1rem; }
-    .rp-rev-legend__pct   { font-size: .75rem; color: #888; }
-
-    /* ── Info note ── */
-    .rp-note {
-        background: #f0f4e8;
-        border-left: 4px solid var(--green);
-        padding: .75rem 1rem;
-        border-radius: 0 6px 6px 0;
-        font-size: .82rem;
-        color: #333;
-        margin-top: 1rem;
-    }
-
-    /* ── Summary table ── */
-    .rp-table { width: 100%; border-collapse: collapse; }
-    .rp-table thead tr {
-        background: #f5f3ee;
-        border-bottom: 2px solid #ddd;
-    }
-    .rp-table th {
-        padding: .75rem 1rem;
-        text-align: center;
-        font-size: .8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-        color: #555;
-    }
-    .rp-table td {
-        padding: .75rem 1rem;
-        font-size: .9rem;
-        border-bottom: 1px solid #eee;
-        color: var(--dark);
-        text-align: center;
-    }
-    .rp-table tr.rp-table__total {
-        background: #f5f3ee;
-        font-weight: 800;
-    }
-    .rp-table tr:hover:not(.rp-table__total) { background: #fafaf7; }
-    .rp-dot-label {
-        display: inline-flex;
-        align-items: center;
-        gap: .4rem;
-    }
-    .rp-dot {
-        width: 10px; height: 10px;
-        border-radius: 50%;
-        display: inline-block;
-    }
-    .rp-dot--green  { background: var(--green); }
-    .rp-dot--orange { background: var(--orange); }
-    .rp-badge {
-        display: inline-block;
-        padding: .2rem .6rem;
-        border-radius: 4px;
-        font-size: .8rem;
-        font-weight: 700;
-    }
-    .rp-badge--green  { background: #e8edda; color: var(--green); }
-    .rp-badge--orange { background: #f5e8db; color: #7a3f0e; }
-    .rp-badge--dark   { background: #e8e8e8; color: var(--dark); }
-
-    /* ── Action buttons row ── */
-    .rp-actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: flex-end;
-        margin-bottom: 2rem;
-        flex-wrap: wrap;
-    }
-
-    /* ── Responsive ── */
-    @media (max-width: 1200px) {
-        .rp-stat { padding: 1rem 1.25rem; }
-        .rp-stat__value { font-size: 1.5rem; }
-    }
-
-    @media (max-width: 768px) {
-        .rp-container { padding: 1.5rem 1rem; }
-        .rp-card { padding: 1.25rem; }
-        .rp-stat { padding: .9rem 1rem; }
-        .rp-stat__value { font-size: 1.2rem; }
-        .rp-stat__icon { width: 38px; height: 38px; }
-        .rp-chart-canvas-wrap { height: 280px; }
-        .rp-table { font-size: 0.75rem; }
-        .rp-table th, .rp-table td { padding: 0.5rem 0.75rem; }
-        .rp-actions { justify-content: stretch; }
-        .rp-actions .rp-btn { flex: 1; justify-content: center; }
-    }
-
-    @media (max-width: 480px) {
-        .rp-container { padding: 1rem; }
-        .rp-card { padding: 1rem; margin-bottom: 1.5rem; }
-        .rp-header h1 { font-size: 1.5rem; }
-        .rp-stat { flex-direction: column; text-align: center; }
-        .rp-stat__value { font-size: 1.1rem; }
-        .rp-charts { grid-template-columns: 1fr; gap: 1rem; }
-        .rp-chart-canvas-wrap { height: 250px; }
-        .rp-legend { grid-template-columns: 1fr; }
-        .rp-rev-legend { grid-template-columns: 1fr; }
-    }
-
-    /* ── View Toggle ── */
-    .rp-view-toggle {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 2rem;
-        border-bottom: 2px solid #e0ddd6;
-        padding-bottom: 1rem;
-    }
-    .rp-view-btn {
-        padding: 0.75rem 1.5rem;
-        border: none;
-        background: transparent;
-        cursor: pointer;
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #999;
-        border-bottom: 3px solid transparent;
-        transition: all 0.2s;
-        position: relative;
-        bottom: -2px;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    .rp-view-btn.active {
-        color: var(--green);
-        border-bottom-color: var(--green);
-    }
-    .rp-view-btn:hover {
-        color: var(--dark);
-    }
-
-
-</style>
+<link rel="stylesheet" href="{{ asset('css/reports.css') }}">
 @endpush
 
 <div class="rp-container">
@@ -411,10 +22,13 @@
         <a href="{{ route('reports.products') }}?local_id={{ $local->local_id }}" class="rp-view-btn">
             <i class="fas fa-box"></i> Reportes por Producto
         </a>
+        <a href="{{ route('reports.order-history') }}?local_id={{ $local->local_id }}" class="rp-view-btn">
+            <i class="fas fa-history"></i> Historial de Órdenes
+        </a>
     </div>
 
     {{-- Filters --}}
-    <div class="rp-card">
+    <div class="rp-card" style="display:inline-block; min-width: 388px; width:auto;">
         <form id="filterForm" method="GET" action="{{ route('reports.orders') }}">
             <div class="rp-filters">
                 @if($userLocals->count() > 1)
@@ -431,7 +45,7 @@
                 @endif
                 <div>
                     <label for="period">Período</label>
-                    <select name="period" id="period" onchange="handlePeriodChange()">
+                    <select name="period" id="period" onchange="handlePeriodChange(this.value)">
                         <option value="today"  {{ $period==='today'  ? 'selected' : '' }}>Hoy</option>
                         <option value="week"   {{ $period==='week'   ? 'selected' : '' }}>Esta Semana</option>
                         <option value="month"  {{ $period==='month'  ? 'selected' : '' }}>Este Mes</option>
@@ -447,7 +61,7 @@
                     <label for="end_date">Hasta</label>
                     <input type="date" name="end_date" id="end_date" value="{{ $endDate }}">
                 </div>
-                <div>
+                <div id="filterBtnDiv" style="display:{{ $period==='custom' ? 'block' : 'none' }};">
                     <label style="visibility:hidden;">–</label>
                     <button type="submit" class="rp-btn rp-btn--green rp-btn--full">Filtrar</button>
                 </div>
@@ -822,12 +436,14 @@
     });
 
     /* ── Period toggle ── */
-    function handlePeriodChange() {
-        const v = document.getElementById('period').value;
-        document.getElementById('startDateDiv').style.display = v === 'custom' ? 'block' : 'none';
-        document.getElementById('endDateDiv').style.display   = v === 'custom' ? 'block' : 'none';
+    function handlePeriodChange(v, submit = true) {
+        const isCustom = v === 'custom';
+        document.getElementById('startDateDiv').style.display  = isCustom ? 'block' : 'none';
+        document.getElementById('endDateDiv').style.display    = isCustom ? 'block' : 'none';
+        document.getElementById('filterBtnDiv').style.display  = isCustom ? 'block' : 'none';
+        if (!isCustom && submit) document.getElementById('filterForm').submit();
     }
-    handlePeriodChange();
+    handlePeriodChange(document.getElementById('period').value, false);
 </script>
 
 @endsection

@@ -23,7 +23,7 @@
                 <div style="position: relative;">
                     <div style="position: relative; display: flex; align-items: center;">
                         <input type="text" id="customerSearch" placeholder="Selecciona o escribe para buscar..." style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; padding-right: 70px;">
-                        <i class="fas fa-chevron-down" style="position: absolute; right: 35px; color: #999; pointer-events: none; font-size: 12px;"></i>
+                        <i class="fas fa-chevron-down" id="chevronCustomer" style="position: absolute; right: 35px; color: #999; font-size: 12px; cursor: pointer; transition: transform 0.2s;"></i>
                         <button type="button" id="toggleCustomerDropdown" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #e18018; cursor: pointer; font-size: 14px; padding: 5px 8px; display: none;">
                             <i class="fas fa-times"></i>
                         </button>
@@ -85,14 +85,6 @@
                 </div>
             </div>
 
-            <!-- Tiempo de Preparación -->
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #111;">
-                    Tiempo de Preparación (minutos) <span style="color: #ef4444;">*</span>
-                </label>
-                <input type="number" name="preparation_time" id="preparationTime" min="1" value="30" required style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
-            </div>
-
             <!-- Notas -->
             <div style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #111;">Notas Especiales</label>
@@ -100,7 +92,7 @@
             </div>
 
             <!-- Botones -->
-            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <div class="form-footer-btns" style="display: flex; gap: 12px; justify-content: flex-end;">
                 <button type="button" id="cancelOrderBtn" style="padding: 10px 20px; border: 2px solid #e5e7eb; background: white; color: #666; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
                     Cancelar
                 </button>
@@ -319,22 +311,82 @@
         color: #e18018;
     }
 
-    .product-quantity-input {
-        position: absolute;
-        bottom: 8px;
-        right: 8px;
-        width: 40px;
-        height: 28px;
-        padding: 0;
-        text-align: center;
-        border: 1px solid #e5e7eb;
-        border-radius: 4px;
-        font-weight: 600;
-        color: #111;
-        display: none;
+    /* ---- Responsive del modal ---- */
+    @media (max-width: 1100px) {
+        #createOrderModal > div {
+            width: 94%;
+            max-width: 680px;
+        }
     }
 
-    .product-card.selected .product-quantity-input {
-        display: block;
+    @media (max-width: 768px) {
+        #createOrderModal > div {
+            width: 96%;
+            max-height: 92vh;
+            border-radius: 10px;
+        }
+
+        #createOrderModal > div form {
+            padding: 16px;
+        }
+
+        /* Productos: 2 columnas fijas en tablet vertical */
+        #productsContainer {
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+            max-height: 280px;
+            gap: 8px;
+        }
+
+        .product-card img {
+            height: 65px;
+        }
+
+        .product-card {
+            padding: 10px;
+        }
+
+        .product-card-name {
+            font-size: 11px;
+        }
+
+        .product-card-price {
+            font-size: 13px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        #createOrderModal > div {
+            width: 100%;
+            max-height: 95vh;
+            border-radius: 12px 12px 0 0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            margin: 0;
+        }
+
+        #createOrderModal {
+            align-items: flex-end !important;
+        }
+
+        #createOrderModal > div form {
+            padding: 14px;
+        }
+
+        #productsContainer {
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+            max-height: 230px;
+            gap: 8px;
+        }
+
+        /* Botones a ancho completo en móvil */
+        #createOrderModal .form-footer-btns {
+            flex-direction: column-reverse;
+        }
+
+        #createOrderModal .form-footer-btns button {
+            width: 100%;
+            justify-content: center;
+        }
     }
 </style>
