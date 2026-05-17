@@ -70,7 +70,7 @@
             color: #166534;
         }
         .order-card-quick-action {
-            padding: 0 16px 14px;
+            padding: 0 16px 24px;
         }
         .cancel-order-btn-link {
             background: linear-gradient(135deg, #d4773a 0%, #c06830 100%);
@@ -93,6 +93,13 @@
             background: linear-gradient(135deg, #c06830 0%, #a85a28 100%);
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(212, 119, 58, 0.35);
+        }
+        .order-items {
+            margin-bottom: 48px !important;
+        }
+        .order-footer {
+            padding-top: 40px !important;
+            margin-top: 24px !important;
         }
     </style>
 </head>
