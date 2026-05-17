@@ -137,12 +137,11 @@
     }
 
     .qr-header {
-    background: linear-gradient(135deg, #D47744 0%, #915016 100%);
-    color: white;
+    color: #0a0606;
     border-radius: 12px;
-    padding: 30px 40px;
     margin-bottom: 30px;
-    box-shadow: 0 4px 15px rgba(212, 119, 68, 0.3);
+    margin-left: -2px;
+    margin-top: 18px;
 }
 
 .qr-header-content {
@@ -188,18 +187,18 @@
         </div>
     </div>
 
-    {{-- <!-- Header -->
+    <!-- Header -->
     <div class="qr-header">
         <div class="qr-header-content">
             <div class="qr-title-group">
                 <h1 class="qr-title">
-                    <i class="fas fa-qrcode"></i>
+                    <i class="fas fa-qrcode" style="color: #d07c10;"></i>
                     Gestión de Perímetro GPS 
                 </h1>
                 <p class="qr-subtitle">Administra el perimetro de seguridad de la Comarca</p>
             </div>
         </div>
-    </div> --}}
+    </div>
 
     <!-- Layout horizontal: izquierda como container plano, derecha mapa -->
     <div class="row g-4">
