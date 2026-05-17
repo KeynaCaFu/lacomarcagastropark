@@ -5,25 +5,18 @@
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-    /* Estilos para que se vea como container, no como card */
     .perimeter-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
         width: 100%;
         padding: 1.5rem;
     }
-    
+
     .info-panel {
         background: white;
         border-radius: 16px;
-        padding: 1.2rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        padding: 1.4rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         border: 1px solid #e9ecef;
         height: 100%;
-        margin-right: 253px;
-        margin-left: -599px;
-        margin-top: 42px;
     }
     
     /* Encabezado plano */
@@ -116,11 +109,8 @@
         border-radius: 16px;
         overflow: hidden;
         border: 1px solid #e9ecef;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        height: 99%;
-        margin-right: -1px;
-        margin-left: -240px;
-        margin-top: 42px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        height: 100%;
     }
     .map-header {
         padding: 0.8rem 1rem;
@@ -140,15 +130,52 @@
         background: #e9ecef;
     }
     
-    @media (max-width: 768px) {
-        .metric-value { font-size: 1rem; }
+    @media (max-width: 991px) {
+        .info-panel { margin-bottom: 1rem; }
         #map-preview { height: 350px; }
+        .metric-value { font-size: 1rem; }
     }
+
+    .qr-header {
+    background: linear-gradient(135deg, #D47744 0%, #915016 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 30px 40px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(212, 119, 68, 0.3);
+}
+
+.qr-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+}
+
+.qr-title-group {
+    flex: 1;
+}
+
+.qr-title-group h1 {
+    margin: 0 0 10px;
+    font-size: 32px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.qr-subtitle {
+    margin: 0;
+    opacity: 0.95;
+    font-size: 14px;
+}
+
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid px-4 py-4 perimeter-container">
+<div class="perimeter-container px-4 py-4 ">
     <!-- Breadcrumb -->
     <div class="row mb-4">
         <div class="col-12">
@@ -161,10 +188,23 @@
         </div>
     </div>
 
+    {{-- <!-- Header -->
+    <div class="qr-header">
+        <div class="qr-header-content">
+            <div class="qr-title-group">
+                <h1 class="qr-title">
+                    <i class="fas fa-qrcode"></i>
+                    Gestión de Perímetro GPS 
+                </h1>
+                <p class="qr-subtitle">Administra el perimetro de seguridad de la Comarca</p>
+            </div>
+        </div>
+    </div> --}}
+
     <!-- Layout horizontal: izquierda como container plano, derecha mapa -->
     <div class="row g-4">
-        <!-- Columna Izquierda - estilo container (sin card, mas plano) -->
-        <div class="col-lg-4 col-md-12">
+        <!-- Columna Izquierda -->
+        <div class="col-xl-4 col-lg-5 col-12">
             <div class="info-panel">
                 <div class="panel-header">
                     <h3>
@@ -208,7 +248,7 @@
         </div>
 
         <!-- Columna Derecha - Mapa -->
-        <div class="col-lg-8 col-md-12">
+        <div class="col-xl-8 col-lg-7 col-12">
             <div class="map-wrapper">
                 <div class="map-header">
                     <h4><i class="fas fa-map-marked-alt me-2 text-warning"></i> Visualización del Área | Círculo de Seguridad</h4>
