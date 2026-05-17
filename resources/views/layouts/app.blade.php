@@ -334,13 +334,22 @@
     </style>
     
     @stack('styles')
+    <style>
+        /* Suprimir transiciones del sidebar durante la carga inicial */
+        html.sidebar-no-transition .drawer,
+        html.sidebar-no-transition .main-content,
+        html.sidebar-no-transition .top-navbar {
+            transition: none !important;
+        }
+    </style>
+    <script>document.documentElement.classList.add('sidebar-no-transition');</script>
 </head>
-<body class="{{ (auth()->check() && !auth()->user()->isAdminGlobal()) ? 'gerente-mode' : '' }}">
+<body class="{{ (auth()->check() && !auth()->user()->isAdminGlobal()) ? 'gerente-mode' : '' }} sidebar-collapsed">
     <!-- Container principal con diseño La Comarca -->
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar (colapsable/ocultable) -->
-            <nav class="sidebar drawer" id="appSidebar">
+            <nav class="sidebar drawer collapsed" id="appSidebar">
                 <div class="sidebar-header">
                     <a href="{{ (auth()->check() && auth()->user()->isAdminGlobal()) ? route('admin.dashboard') : route('dashboard') }}" class="brand text-decoration-none" title="La Comarca">
                         <img src="{{ asset('images/iconoblanco.png') }}" alt="La Comarca" class="brand-logo">
@@ -960,20 +969,43 @@
                 if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
             };
 
-            const applyLayoutByWidth = () => {
+            // Exponer globalmente para que el MutationObserver y otros scripts puedan usarlo
+            window.closeAppSidebar = () => {
                 if (window.innerWidth >= 576) {
-                    // Modo desktop/tablet: sidebar fijo, sin overlay
-                    sidebar.classList.remove('open');
-                    body.classList.remove('sidebar-open');
+                    // Tablet/Desktop: colapsar
+                    sidebar.classList.add('collapsed');
+                    body.classList.add('sidebar-collapsed');
+                    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
                 } else {
-                    // Modo phone: sidebar como drawer cerrado por defecto
+                    // Móvil: cerrar drawer
+                    closeSidebar();
+                }
+            };
+
+            const applyLayoutByWidth = () => {
+                // Siempre cerrado al cargar o al cambiar tamaño
+                sidebar.classList.remove('open');
+                body.classList.remove('sidebar-open');
+                if (window.innerWidth >= 576) {
+                    // Tablet/Desktop: colapsar sidebar
+                    sidebar.classList.add('collapsed');
+                    body.classList.add('sidebar-collapsed');
+                    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+                } else {
+                    // Móvil: quitar clases de escritorio, el drawer ya queda cerrado
                     sidebar.classList.remove('collapsed');
                     body.classList.remove('sidebar-collapsed');
+                    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
                 }
             };
 
             applyLayoutByWidth();
             window.addEventListener('resize', applyLayoutByWidth);
+
+            // Re-habilitar transiciones después de que el layout inicial esté listo
+            requestAnimationFrame(() => {
+                document.documentElement.classList.remove('sidebar-no-transition');
+            });
 
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', (e) => {
@@ -990,9 +1022,64 @@
                     closeSidebar();
                 }
             });
+
+            // Tooltips en touch (tablet/móvil) para sidebar colapsado
+            let activeTooltipLink = null;
+            sidebar.addEventListener('touchstart', (e) => {
+                if (!sidebar.classList.contains('collapsed')) return;
+                const link = e.target.closest('.sidebar-menu a[data-tooltip]');
+                if (!link) return;
+
+                if (activeTooltipLink && activeTooltipLink !== link) {
+                    activeTooltipLink.classList.remove('tooltip-visible');
+                }
+                link.classList.add('tooltip-visible');
+                activeTooltipLink = link;
+            }, { passive: true });
+
+            document.addEventListener('touchstart', (e) => {
+                if (!activeTooltipLink) return;
+                if (!e.target.closest('#appSidebar')) {
+                    activeTooltipLink.classList.remove('tooltip-visible');
+                    activeTooltipLink = null;
+                }
+            }, { passive: true });
         });
     </script>
-    
+
+    <script>
+        // Cerrar sidebar automáticamente cuando se abre cualquier modal
+        (function() {
+            function isModalVisible(el) {
+                try {
+                    const s = window.getComputedStyle(el);
+                    return s.position === 'fixed' && parseInt(s.zIndex || '0') >= 1000;
+                } catch (e) { return false; }
+            }
+
+            const mo = new MutationObserver(function(mutations) {
+                for (const mutation of mutations) {
+                    if (mutation.type !== 'attributes') continue;
+                    const el = mutation.target;
+                    const display = el.style.display;
+                    if (!display || display === 'none') continue;
+                    if (isModalVisible(el)) {
+                        window.closeAppSidebar && window.closeAppSidebar();
+                        break;
+                    }
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', function() {
+                mo.observe(document.body, {
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['style']
+                });
+            });
+        })();
+    </script>
+
     <!-- Top Navbar Functionality -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {

@@ -33,7 +33,7 @@
         letter-spacing: .5px;
         color: #666;
         border-bottom: 2px solid #e5e7eb;
-        background: #c8cdd2;
+        background: #a3aa996b;
     }
     .oh-table tbody tr { border-bottom: 1px solid #f0f0f0; transition: background .15s; }
     .oh-table tbody tr:hover { background: #fafafa; }
