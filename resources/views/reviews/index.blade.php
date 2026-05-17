@@ -962,7 +962,9 @@
 --}}
 
         function agregarReseñaAlGrid(data) {
-            const grid = document.getElementById('grid-locales');
+            const reviewType = data.review_type || 'local';
+            const gridId = reviewType === 'product' ? 'grid-productos' : 'grid-locales';
+            const grid = document.getElementById(gridId);
             if (!grid) return;
 
             // Determinar tipo según rating
@@ -986,7 +988,8 @@
             const fechaDisplay = hoy.toLocaleDateString('es-CR'); // dd/mm/yyyy
 
             // Comentario
-            const comentario = data.message && data.message.trim() ? data.message : 'Sin comentario.';
+            const comentario = data.comment && data.comment.trim() ? data.comment : 'Sin comentario.';
+            const producto = reviewType === 'product' ? data.product_name || 'Producto' : '';
 
             // ID único temporal para la card (para evitar colisiones)
             const tempId = 'realtime-' + Date.now();
@@ -1020,13 +1023,19 @@
                 <div class="review-stars">${estrellas}</div>
 
                 <div class="review-comment">${comentario}</div>
+                ${producto ? `<div class="review-product-label" style="margin-top:10px;color:#6b7280;font-size:13px;">Producto: ${producto}</div>` : ''}
 
                 <div class="review-action-area">
                     <button class="reply-btn respond-toggle-btn" type="button"
                             onclick="toggleReplyBox(this)">
                         Responder
                     </button>
-                    <div class="reply-box hidden respond-form" style="display:none;">
+                    <form action="/resenas/${data.review_entry_id}/responder"
+                          method="POST"
+                          class="reply-box hidden respond-form"
+                          style="display:none;">
+                        <input type="hidden" name="_token" value="${document.querySelector('meta[name=csrf-token]')?.content || ''}">
+                        <input type="hidden" name="review_type" value="${reviewType}">
                         <div class="textarea-wrap">
                             <span class="char-counter" id="counter-${tempId}">0/1000</span>
                             <textarea name="response"
@@ -1042,7 +1051,7 @@
                             <button class="reply-btn" type="button"
                                     onclick="cancelNewResponse(this)">Cancelar</button>
                         </div>
-                    </div>
+                    </form>
                 </div>
             `;
 
@@ -1050,11 +1059,11 @@
             grid.prepend(card);
 
             // Si había mensaje de "sin reseñas", ocultarlo
-            const emptyState = document.querySelector('#tab-locales .reviews-empty-state');
+            const emptyState = document.querySelector(`#tab-${reviewType === 'product' ? 'productos' : 'locales'} .reviews-empty-state`);
             if (emptyState) emptyState.style.display = 'none';
 
-            // Actualizar contador de reseñas este mes en las stats
-            const statMes = document.querySelector('#tab-locales .review-stat-text');
+            const statsPrefix = reviewType === 'product' ? '#tab-productos' : '#tab-locales';
+            const statMes = document.querySelector(`${statsPrefix} .review-stat-text`);
             if (statMes && statMes.textContent.includes('Este mes:')) {
                 const match = statMes.textContent.match(/Este mes: (\d+)/);
                 if (match) {
@@ -1062,8 +1071,7 @@
                 }
             }
 
-            // Actualizar total de reseñas
-            const statTotal = document.querySelector('#tab-locales .review-stat-value');
+            const statTotal = document.querySelector(`${statsPrefix} .review-stat-value`);
             if (statTotal) {
                 const current = parseInt(statTotal.textContent) || 0;
                 statTotal.textContent = current + 1;
@@ -1220,9 +1228,13 @@
     }
 
     function confirmSaveResponse(btn) {
-        const form     = btn.closest('form');
+        const form = btn.closest('form');
+        if (!form) {
+            console.error('No se encontró el formulario de respuesta.');
+            return;
+        }
         const textarea = form.querySelector('textarea');
-        if (!textarea.value.trim()) {
+        if (!textarea || !textarea.value.trim()) {
             window.swToast && window.swToast.fire({ icon: 'warning', title: 'Por favor escribe una respuesta.' });
             return;
         }
@@ -1236,14 +1248,23 @@
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#915016',
                 cancelButtonColor: '#6b7280',
-            }).then(result => { if (result.isConfirmed) form.submit(); });
+            }).then(result => {
+                if (result.isConfirmed) {
+                    if (typeof form.requestSubmit === 'function') form.requestSubmit();
+                    else form.submit();
+                }
+            });
         });
     }
 
     function confirmSaveEdit(btn) {
-        const form     = btn.closest('form');
+        const form = btn.closest('form');
+        if (!form) {
+            console.error('No se encontró el formulario de edición de respuesta.');
+            return;
+        }
         const textarea = form.querySelector('textarea');
-        if (!textarea.value.trim()) {
+        if (!textarea || !textarea.value.trim()) {
             window.swToast && window.swToast.fire({ icon: 'warning', title: 'Por favor escribe una respuesta.' });
             return;
         }
@@ -1257,7 +1278,12 @@
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#915016',
                 cancelButtonColor: '#6b7280',
-            }).then(result => { if (result.isConfirmed) form.submit(); });
+            }).then(result => {
+                if (result.isConfirmed) {
+                    if (typeof form.requestSubmit === 'function') form.requestSubmit();
+                    else form.submit();
+                }
+            });
         });
     }
 

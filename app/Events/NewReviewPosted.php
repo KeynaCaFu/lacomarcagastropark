@@ -14,25 +14,31 @@ class NewReviewPosted implements ShouldBroadcastNow
 
     public int    $localId;
     public int    $reviewId;
+    public int    $reviewEntryId;
+    public string $reviewType;
     public string $clientName;
     public string $productName;
     public int    $rating;
-    public string $comment;      // ← AGREGADO: el comentario real del cliente
+    public string $comment;
 
     public function __construct(
         int    $localId,
         int    $reviewId,
+        int    $reviewEntryId,
+        string $reviewType,
         string $clientName,
         string $productName,
         int    $rating,
-        string $comment = ''    // ← AGREGADO
+        string $comment = ''
     ) {
-        $this->localId     = $localId;
-        $this->reviewId    = $reviewId;
-        $this->clientName  = $clientName;
-        $this->productName = $productName;
-        $this->rating      = $rating;
-        $this->comment     = $comment;  // ← AGREGADO
+        $this->localId       = $localId;
+        $this->reviewId      = $reviewId;
+        $this->reviewEntryId = $reviewEntryId;
+        $this->reviewType    = $reviewType;
+        $this->clientName    = $clientName;
+        $this->productName   = $productName;
+        $this->rating        = $rating;
+        $this->comment       = $comment;
     }
 
     public function broadcastOn(): Channel
@@ -43,12 +49,15 @@ class NewReviewPosted implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
-            'local_id'     => $this->localId,
-            'review_id'    => $this->reviewId,
-            'client_name'  => $this->clientName,
-            'product_name' => $this->productName,
-            'rating'       => $this->rating,
-            'message'      => $this->comment,   // ← ahora envía el comentario real
+            'local_id'        => $this->localId,
+            'review_id'       => $this->reviewId,
+            'review_entry_id' => $this->reviewEntryId,
+            'review_type'     => $this->reviewType,
+            'client_name'     => $this->clientName,
+            'product_name'    => $this->productName,
+            'rating'          => $this->rating,
+            'comment'         => $this->comment,
+            'message'         => $this->comment,
         ];
     }
 }

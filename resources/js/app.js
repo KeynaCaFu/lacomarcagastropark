@@ -560,6 +560,12 @@ function showNotifToast(message, section) {
     const label = NOTIF_LABELS[section] || section;
     console.log('[UserNotif] showNotifToast:', message, '| sección:', section);
 
+    if (section === 'resenas') {
+        window.clearNotifDot && window.clearNotifDot('resenas');
+        window.location.href = '/mis-resenas';
+        return;
+    }
+
     // CSS toast centrado en la parte superior — siempre visible, sin depender de SweetAlert
     if (!document.getElementById('comarca-notif-toast-style')) {
         const style = document.createElement('style');
@@ -600,6 +606,7 @@ function showNotifToast(message, section) {
 
     const toast = document.createElement('div');
     toast.className = 'comarca-notif-toast';
+    toast.style.cursor = 'pointer';
     toast.innerHTML = `
         <span class="comarca-notif-toast-icon">&#128276;</span>
         <div>
@@ -607,6 +614,12 @@ function showNotifToast(message, section) {
             <div class="comarca-notif-toast-sub">Ir a: ${label}</div>
         </div>
     `;
+    toast.addEventListener('click', () => {
+        if (section === 'resenas') {
+            window.clearNotifDot && window.clearNotifDot('resenas');
+            window.location.href = '/mis-resenas';
+        }
+    });
     document.body.appendChild(toast);
     setTimeout(() => {
         toast.style.opacity = '0';
@@ -684,8 +697,12 @@ window.initUserNotificationListener = function(userId) {
         ch.listen('.UserNotification', (data) => {
             console.log('[UserNotif] ✓ Evento recibido:', data);
             playNotifSound();
-            showNotifToast(data.message, data.section);
             window.setNotifDot(data.section);
+            if (data.section === 'resenas') {
+                window.location.href = '/mis-resenas';
+                return;
+            }
+            showNotifToast(data.message, data.section);
         });
 
         // Capturar errores de autenticación del canal privado

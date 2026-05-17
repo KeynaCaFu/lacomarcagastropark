@@ -599,12 +599,14 @@ public function storeLocalReview(Request $request, $localId)
         ]);
         // Disparar notificación al gerente en tiempo real
         broadcast(new NewReviewPosted(
-          localId:     (int) $localId,
-             reviewId:    $review->review_id,
-             clientName:  Auth::user()->full_name ?? Auth::user()->name ?? 'Cliente',
-             productName: 'el local',
-             rating:      $request->rating,
-             comment:     $request->comment  
+            localId:       (int) $localId,
+            reviewId:      $review->review_id,
+            reviewEntryId: $localReview->local_review_id,
+            reviewType:    'local',
+            clientName:    Auth::user()->full_name ?? Auth::user()->name ?? 'Cliente',
+            productName:   'el local',
+            rating:        $request->rating,
+            comment:       $request->comment
         ))->toOthers();
 
         // Devolver la nueva reseña completa para renderizarla sin recargar
@@ -655,14 +657,28 @@ public function storeProductReview(Request $request, $productId)
         'comment' => 'required|string|min:10|max:500',
     ]);
 
-    $haComprado = Order::where('status', 'Delivered')
-        ->whereHas('user', function ($q) use ($userId) {
-            $q->where('tbuser_order.user_id', $userId);
-        })
-        ->whereHas('items', function ($q) use ($productId) {
-            $q->where('product_id', $productId);
-        })
-        ->exists();
+    $localId = $request->input('local_id');
+
+    // Obtener pedidos del usuario desde la tabla pivot
+    $orderIds = \Illuminate\Support\Facades\DB::table('tbuser_order')
+        ->where('user_id', $userId)
+        ->pluck('order_id')
+        ->toArray();
+
+    $haComprado = false;
+    if (!empty($orderIds)) {
+        $query = Order::whereIn('order_id', $orderIds)
+            ->where('status', Order::STATUS_DELIVERED)
+            ->whereHas('items', function ($q) use ($productId) {
+                $q->where('product_id', $productId);
+            });
+
+        if ($localId) {
+            $query->where('local_id', (int) $localId);
+        }
+
+        $haComprado = $query->exists();
+    }
 
     if (!$haComprado) {
         return response()->json([
@@ -690,12 +706,14 @@ $localDelProducto = $product?->locals()->first();
 
 if ($localDelProducto) {
     broadcast(new NewReviewPosted(
-        localId:     (int) $localDelProducto->local_id,
-        reviewId:    $review->review_id,
-        clientName:  Auth::user()->full_name ?? Auth::user()->name ?? 'Cliente',
-        productName: $product->name,
-        rating:      $request->rating,
-        comment:     $request->comment
+        localId:       (int) $localDelProducto->local_id,
+        reviewId:      $review->review_id,
+        reviewEntryId: $productReview->product_review_id,
+        reviewType:    'product',
+        clientName:    Auth::user()->full_name ?? Auth::user()->name ?? 'Cliente',
+        productName:   $product->name,
+        rating:        $request->rating,
+        comment:       $request->comment
     ));
 }
     $user = Auth::user();

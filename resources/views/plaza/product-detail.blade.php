@@ -82,7 +82,7 @@
                                         <i class="fas fa-history text-muted"></i> Ver mis pedidos
                                         <span id="notifDot_pedidos" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:6px;vertical-align:middle;"></span>
                                     </a>
-                                    <a href="{{ route('reviews.index') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('resenas')">
+                                    <a href="{{ route('client.reviews') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('resenas')">
                                         <i class="fas fa-star text-muted"></i> Mis reseñas
                                         <span id="notifDot_resenas" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:6px;vertical-align:middle;"></span>
                                     </a>
@@ -361,6 +361,11 @@
                            @mouseleave="starHover = 0"
                            @click="newReview.rating = s"
                            :style="{ color: (s <= newReview.rating || s <= starHover) ? '#e58a3a' : '#5a4636', fontSize:'24px', cursor:'pointer' }"></i>
+                    </div>
+
+                    <div v-if="attemptedSubmit && newReview.rating === 0"
+                         style="color:#e74c3c; font-size:13px; margin-bottom:12px;">
+                        Debes marcar las estrellas para comentar.
                     </div>
 
                     <textarea
@@ -719,6 +724,7 @@
                 newReview: { rating: 0, comment: '' },
                 starHover: 0,
                 isSendingReview: false,
+                attemptedSubmit: false,
                 starLabels: ['Muy malo', 'Malo', 'Regular', 'Bueno', '¡Excelente!'],
                 product: {!! json_encode([
                     'product_id' => $product->product_id,
@@ -1395,6 +1401,7 @@
             closeReviewModal() {
                 this.showReviewModal = false;
                 document.body.classList.remove('modal-open');
+                this.attemptedSubmit = false;
             },
 
             async checkPuedeResenar() {
@@ -1404,7 +1411,7 @@
                 }
 
                 try {
-                    const res = await fetch(`/plaza/producto/${this.product.product_id}/puede-resenar`, {
+                    const res = await fetch(`/plaza/producto/${this.product.product_id}/puede-resenar?local_id=${this.local.local_id}`, {
                         headers: {
                             'Accept': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
@@ -1425,6 +1432,8 @@
 
             async submitProductReview() {
                 if (this.isSendingReview) return;
+
+                this.attemptedSubmit = true;
 
                 if (this.newReview.rating === 0) {
                     window.showToast({
@@ -1455,7 +1464,8 @@
                         },
                         body: JSON.stringify({
                             rating: this.newReview.rating,
-                            comment: this.newReview.comment.trim()
+                            comment: this.newReview.comment.trim(),
+                            local_id: this.local.local_id
                         })
                     });
 
