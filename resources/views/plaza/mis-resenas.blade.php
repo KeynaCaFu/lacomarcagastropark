@@ -647,6 +647,7 @@
                     v-for="(r, i) in resenasLocalesPaginadas"
                     :key="r.local_review_id"
                     class="review-card"
+                    :data-review-id="r.review_id"
                 >
                     <div class="card-accent"></div>
                     <div class="card-body">
@@ -717,6 +718,7 @@
                     v-for="(r, i) in resenasProductosPaginadas"
                     :key="r.product_review_id"
                     class="review-card"
+                    :data-review-id="r.review_id"
                 >
                     <div class="card-accent"></div>
                     <div class="card-body">
@@ -821,6 +823,7 @@
                 resenasLocales: {!! json_encode($resenasLocales->map(function($lr) {
                     return [
                         'local_review_id' => $lr->local_review_id,
+                        'review_id'       => $lr->review_id,
                         'local_id'        => $lr->local_id,
                         'local_name'      => $lr->local->name ?? 'Local',
                         'rating'          => $lr->review->rating ?? 0,
@@ -833,6 +836,7 @@
                 resenasProductos: {!! json_encode($resenasProductos->map(function($pr) {
                     return [
                         'product_review_id' => $pr->product_review_id,
+                        'review_id'         => $pr->review_id,
                         'product_id'        => $pr->product_id,
                         'product_name'      => $pr->product->name ?? 'Producto',
                         'local_name'        => optional($pr->product->locals->first())->name ?? '',

@@ -240,6 +240,8 @@
                     <div
                         v-for="(r, i) in reviews"
                         :key="i"
+                        :data-review-id="r.review_id"
+                        :data-product-review-id="r.product_review_id"
                         style="
                             background: linear-gradient(180deg, rgba(28,20,16,0.98) 0%, rgba(18,13,10,0.98) 100%);
                             border: 1px solid rgba(229,138,58,0.18);
@@ -364,8 +366,8 @@
                     </div>
 
                     <div v-if="attemptedSubmit && newReview.rating === 0"
-                         style="color:#e74c3c; font-size:13px; margin-bottom:12px;">
-                        Debes marcar las estrellas para comentar.
+                         style="color:#e74c3c; font-size:13px; margin-top:6px; margin-bottom:8px;">
+                        ⚠ Debes seleccionar una calificación de estrellas.
                     </div>
 
                     <textarea
@@ -374,16 +376,25 @@
                         rows="4"
                         placeholder="Describe tu experiencia con este producto..."
                         style="width:100%; box-sizing:border-box; background:#0f0d0b; color:#fff; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; resize:vertical;"></textarea>
-                        {{-- AGREGAR ESTO --}}
-<div v-if="newReview.comment.trim().length > 0 && newReview.comment.trim().length < 10"
-     style="color:#e74c3c; font-size:13px; margin-top:6px;">
-    El comentario debe tener al menos 10 caracteres.
-</div>
+                    <div v-if="newReview.comment.trim().length > 0 && newReview.comment.trim().length < 10"
+                         style="color:#e74c3c; font-size:13px; margin-top:6px;">
+                        El comentario debe tener al menos 10 caracteres.
+                    </div>
 
                     <button
                         @click="submitProductReview"
                         :disabled="isSendingReview || newReview.rating === 0 || newReview.comment.trim().length < 10"
-                        style="margin-top:14px; background:#e58a3a; color:#fff; border:none; border-radius:12px; padding:12px 18px; font-weight:700; cursor:pointer;">
+                        :style="{
+                            marginTop: '14px',
+                            background: (newReview.rating === 0 || newReview.comment.trim().length < 10) ? '#666' : '#e58a3a',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '12px',
+                            padding: '12px 18px',
+                            fontWeight: '700',
+                            cursor: (newReview.rating === 0 || newReview.comment.trim().length < 10) ? 'not-allowed' : 'pointer',
+                            opacity: (newReview.rating === 0 || newReview.comment.trim().length < 10) ? '0.6' : '1'
+                        }">
                         <span v-if="isSendingReview">Guardando...</span>
                         <span v-else>Publicar reseña</span>
                     </button>
@@ -1436,10 +1447,6 @@
                 this.attemptedSubmit = true;
 
                 if (this.newReview.rating === 0) {
-                    window.showToast({
-                        icon: 'warning',
-                        title: 'Selecciona una calificación'
-                    });
                     return;
                 }
 

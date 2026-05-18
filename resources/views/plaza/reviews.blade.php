@@ -71,7 +71,7 @@
                                 $iniciales .= strtoupper(substr($p, 0, 1));
                             }
                         @endphp
-                        <div class="lrc-slide">
+                        <div class="lrc-slide" data-review-id="{{ $item->review->review_id }}">
                             
     <div class="local-review-card" style="position:relative;">
     @auth
@@ -246,8 +246,17 @@ async function enviarResena() {
                 window.showNotification({ icon: 'success', title: '¡Reseña publicada!', timer: 4000 });
             }
         } else {
-            errEl.textContent = data.error || 'No se pudo guardar la reseña.';
+            const msg = data.error || 'No se pudo guardar la reseña.';
+            errEl.textContent = msg;
             errEl.style.display = 'block';
+            if (window.showNotification) {
+                window.showNotification({
+                    icon: 'warning',
+                    title: 'No puedes reseñar',
+                    message: msg,
+                    timer: 6000
+                });
+            }
         }
     } catch (e) {
         errEl.textContent = 'Error de conexión. Intenta de nuevo.';
@@ -289,6 +298,7 @@ function agregarResenaAlCarrusel(r) {
     const trackEl = document.getElementById('lrcTrack');
     const slide = document.createElement('div');
     slide.className = 'lrc-slide';
+    slide.dataset.reviewId = r.review_id || r.local_review_id;
     slide.innerHTML = `
         <div class="local-review-card" style="position:relative;">
             <button onclick="eliminarResenaLocal(${r.local_review_id}, ${r.local_id}, this)"

@@ -556,17 +556,7 @@ function playNotifSound() {
     } catch(e) {}
 }
 
-function showNotifToast(message, section) {
-    const label = NOTIF_LABELS[section] || section;
-    console.log('[UserNotif] showNotifToast:', message, '| sección:', section);
-
-    if (section === 'resenas') {
-        window.clearNotifDot && window.clearNotifDot('resenas');
-        window.location.href = '/mis-resenas';
-        return;
-    }
-
-    // CSS toast centrado en la parte superior — siempre visible, sin depender de SweetAlert
+function showNotifToast(message) {
     if (!document.getElementById('comarca-notif-toast-style')) {
         const style = document.createElement('style');
         style.id = 'comarca-notif-toast-style';
@@ -576,24 +566,14 @@ function showNotifToast(message, section) {
                 to   { transform: translateX(-50%) translateY(0);     opacity: 1; }
             }
             .comarca-notif-toast {
-                position: fixed;
-                top: 18px;
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 2147483647;
-                background: #1a1410;
-                border: 2px solid #D4773A;
-                border-radius: 12px;
-                padding: 14px 20px;
-                color: #F5F0E8;
-                font-family: 'DM Sans', 'Segoe UI', sans-serif;
-                font-size: 0.88rem;
-                max-width: 380px;
-                min-width: 260px;
+                position: fixed; top: 18px; left: 50%;
+                transform: translateX(-50%); z-index: 2147483647;
+                background: #1a1410; border: 2px solid #D4773A;
+                border-radius: 12px; padding: 14px 20px; color: #F5F0E8;
+                font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+                max-width: 380px; min-width: 260px;
                 box-shadow: 0 8px 32px rgba(0,0,0,0.7);
-                display: flex;
-                align-items: flex-start;
-                gap: 12px;
+                display: flex; align-items: flex-start; gap: 12px;
                 animation: comarca-drop-in 0.3s ease;
                 transition: opacity 0.35s ease;
             }
@@ -606,20 +586,12 @@ function showNotifToast(message, section) {
 
     const toast = document.createElement('div');
     toast.className = 'comarca-notif-toast';
-    toast.style.cursor = 'pointer';
     toast.innerHTML = `
         <span class="comarca-notif-toast-icon">&#128276;</span>
         <div>
             <div class="comarca-notif-toast-title">${message}</div>
-            <div class="comarca-notif-toast-sub">Ir a: ${label}</div>
         </div>
     `;
-    toast.addEventListener('click', () => {
-        if (section === 'resenas') {
-            window.clearNotifDot && window.clearNotifDot('resenas');
-            window.location.href = '/mis-resenas';
-        }
-    });
     document.body.appendChild(toast);
     setTimeout(() => {
         toast.style.opacity = '0';
@@ -695,14 +667,18 @@ window.initUserNotificationListener = function(userId) {
         const ch = window.Echo.private(`App.Models.User.${userId}`);
 
         ch.listen('.UserNotification', (data) => {
-            console.log('[UserNotif] ✓ Evento recibido:', data);
+            console.log('[UserNotif] DATA COMPLETA:', JSON.stringify(data));
             playNotifSound();
-            window.setNotifDot(data.section);
-            if (data.section === 'resenas') {
-                window.location.href = '/mis-resenas';
+
+            if (data.section === 'resenas' && data.review_id && data.response_text) {
+                const actualizado = intentarActualizarRespuesta(data);
+                window.setNotifDot('resenas');
+                showNotifToast(data.message || '¡Tu reseña recibió una respuesta!');
                 return;
             }
-            showNotifToast(data.message, data.section);
+
+            window.setNotifDot(data.section);
+            showNotifToast(data.message);
         });
 
         // Capturar errores de autenticación del canal privado
@@ -733,3 +709,97 @@ window.initUserNotificationListener = function(userId) {
         return false;
     }
 };
+
+/**
+ * Intenta actualizar la respuesta del gerente en el DOM actual.
+ * Retorna true si encontró y actualizó al menos una tarjeta.
+ */
+function intentarActualizarRespuesta(data) {
+    const { review_id, review_type, response_text, local_name } = data;
+    if (!review_id || !response_text) return false;
+
+    let actualizado = false;
+
+    const bloqueHTML = `
+        <div class="review-response-rt" style="
+            margin-top:12px;
+            padding:11px 14px;
+            border-left:3px solid #D4773A;
+            border-radius:0 10px 10px 0;
+            background:rgba(212,119,58,0.07);">
+            <div style="font-size:10px;color:#D4773A;font-weight:700;
+                        text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">
+                <i class="fas fa-reply"></i> Respuesta de ${local_name || 'el local'}
+            </div>
+            <p style="margin:0;font-size:13px;color:#8A7D69;line-height:1.6;">
+                ${response_text}
+            </p>
+        </div>`;
+
+    // ── 1. Vista detalle del producto ──────────────────────────────────────
+    document.querySelectorAll('[data-product-review-id]').forEach(card => {
+        if (String(card.dataset.productReviewId) === String(review_id) ||
+            String(card.dataset.reviewId) === String(review_id)) {
+            if (!card.querySelector('.review-response-rt')) {
+                card.insertAdjacentHTML('beforeend', bloqueHTML);
+            }
+            actualizado = true;
+        }
+    });
+
+    if (!actualizado && review_type === 'product') {
+        document.querySelectorAll('#product-detail-app .reviews-list > div').forEach(card => {
+            if (!card.querySelector('.review-response-rt')) {
+                card.insertAdjacentHTML('beforeend', bloqueHTML);
+                actualizado = true;
+            }
+        });
+    }
+
+    // ── 2. Carrusel del local ──────────────────────────────────────────────
+    document.querySelectorAll('.lrc-slide').forEach(slide => {
+        if (String(slide.dataset.reviewId) === String(review_id)) {
+            const card = slide.querySelector('.local-review-card');
+            if (card && !card.querySelector('.review-response-rt')) {
+                card.insertAdjacentHTML('beforeend', bloqueHTML);
+            }
+            actualizado = true;
+        }
+    });
+
+    // ── 3. Mis reseñas ─────────────────────────────────────────────────────
+    document.querySelectorAll('.review-card').forEach(card => {
+        if (String(card.dataset.reviewId) === String(review_id)) {
+            const body = card.querySelector('.card-body');
+            if (body && !body.querySelector('.review-response-rt')) {
+                body.insertAdjacentHTML('beforeend', bloqueHTML);
+            }
+            actualizado = true;
+        }
+    });
+
+    return actualizado;
+}
+
+function inyectarRespuesta(card, responseText, localName) {
+    if (!card) return;
+
+    const existing = card.querySelector('.review-response-rt, .local-review-card__response, .response-block');
+    if (existing) {
+        const textEl = existing.querySelector('.response-text, p');
+        if (textEl) textEl.textContent = responseText;
+        return;
+    }
+
+    const block = document.createElement('div');
+    block.className = 'review-response-rt';
+    block.style.cssText = 'margin-top:12px;padding:11px 14px;border-left:3px solid #D4773A;border-radius:0 10px 10px 0;background:rgba(212,119,58,0.07);';
+    block.innerHTML = `
+        <div style="font-size:10px;color:#D4773A;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">
+            <i class="fas fa-reply"></i> Respuesta de ${localName || 'el local'}
+        </div>
+        <p style="margin:0;font-size:13px;color:#8A7D69;line-height:1.6;">${responseText}</p>
+    `;
+
+    card.appendChild(block);
+}

@@ -310,6 +310,7 @@ class PlazaController extends Controller
 
                 return [
                     'product_review_id' => $productReview->product_review_id,
+                    'review_id'         => $review->review_id,
                     'user_id'           => $productReview->user_id,
                     'reviewer_name'     => $user->full_name ?? $user->name ?? 'Cliente',
                     'rating'            => $review->rating ?? 0,
@@ -623,6 +624,7 @@ public function storeLocalReview(Request $request, $localId)
             'message' => 'Reseña guardada correctamente.',
             'review'  => [
                 'local_review_id' => $localReview->local_review_id,
+                'review_id'       => $review->review_id,
                 'local_id'        => (int) $localId,
                 'nombre'          => $nombre,
                 'iniciales'       => $iniciales ?: 'CL',
