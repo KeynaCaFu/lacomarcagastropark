@@ -2,6 +2,12 @@
 
 @section('title', 'Galería del Local - ' . ($local->name ?? 'La Comarca'))
 
+@push('styles')
+<style>
+    .top-search-bar { display: none !important; }
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid py-4">
     <div class="row">

@@ -3,6 +3,12 @@
 @section('title', 'Editar Local - '. ($local->name ?? 'La comarca'))
 
 @push('styles')
+<style>
+    .top-search-bar { display: none !important; }
+</style>
+@endpush
+
+@push('styles')
     <style>
         /* Sistema de validación inline (field-error) */
         .field-error {
