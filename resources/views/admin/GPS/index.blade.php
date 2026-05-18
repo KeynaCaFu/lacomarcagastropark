@@ -3,6 +3,12 @@
 @section('title', 'Perímetro de Seguridad - La Comarca')
 
 @push('styles')
+<style>
+    .top-search-bar { display: none !important; }
+</style>
+@endpush
+
+@push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
     .perimeter-container {
