@@ -30,8 +30,11 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
+        // Aceptar tanto 'buscar' como 'q' para compatibilidad con top-search-bar
+        $searchQuery = $request->input('q') ?? $request->input('buscar');
+        
         $filters = [
-            'search' => $request->input('buscar'),
+            'search' => $searchQuery,
             'status' => $this->mapStatusToEnglish($request->input('estado')),
             'category' => $request->input('categoria')
         ];
@@ -57,6 +60,11 @@ class ProductController extends Controller
             $products = $this->productData->all($filters);
             $totals = $this->productData->countTotals();
             $categories = $this->productData->getAllCategories();
+        }
+
+        // Si es una solicitud AJAX, devolver solo la tabla
+        if ($request->expectsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return view('products.table', compact('products'));
         }
 
         return view('products.index', compact('products', 'totals', 'categories'));

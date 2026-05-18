@@ -3,6 +3,12 @@
 @section('title', 'Galería - ' . $product->name)
 
 @push('styles')
+<style>
+    .top-search-bar { display: none !important; }
+</style>
+@endpush
+
+@push('styles')
     <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
 @endpush
 
