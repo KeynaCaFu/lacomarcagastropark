@@ -1117,67 +1117,77 @@
             
             // Buscador en la barra superior
             const searchInput = document.getElementById('topSearchInput');
-            const clearBtn = document.getElementById('clearSearchBtn');
             const searchBtn = document.getElementById('searchBtn');
+            const clearBtn = document.getElementById('clearSearchBtn');
             
-            if (searchInput) {
+            if (searchInput && searchBtn && clearBtn) {
                 // Mostrar/ocultar botón X según si hay texto
                 searchInput.addEventListener('input', () => {
-                    clearBtn.style.display = searchInput.value.trim() ? 'inline-block' : 'none';
+                    clearBtn.style.display = searchInput.value.trim() ? 'flex' : 'none';
                 });
                 
                 // Limpiar búsqueda
-                if (clearBtn) {
-                    clearBtn.addEventListener('click', () => {
-                        searchInput.value = '';
-                        clearBtn.style.display = 'none';
-                        searchInput.focus();
-                        
-                        // Limpiar filtro según la ruta actual
-                        const currentRoute = window.location.pathname;
-                        if (currentRoute.includes('proveedores')) {
-                            loadSuppliersAjax('/proveedores');
-                        } else if (currentRoute.includes('eventos')) {
-                            // Recargar eventos sin filtro de búsqueda (AJAX)
-                            loadEventsAjax('/eventos');
-                        } else if (currentRoute.includes('usuarios')) {
-                            // Recargar usuarios sin filtro
-                            window.location.href = '/usuarios';
-                        } else if (currentRoute.includes('productos')) {
-                            // Recargar productos sin filtro
-                            window.location.href = '/productos';
-                        }
-                    });
-                }
-                
-                // Buscar al presionar Enter
+                clearBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    searchInput.value = '';
+                    clearBtn.style.display = 'none';
+                    searchInput.focus();
+                    
+                    // Limpiar filtro según la ruta actual
+                    const currentRoute = window.location.pathname;
+                    if (currentRoute.includes('proveedores')) {
+                        loadSuppliersAjax('/proveedores');
+                    } else if (currentRoute.includes('eventos')) {
+                        // Recargar eventos sin filtro de búsqueda (AJAX)
+                        loadEventsAjax('/eventos');
+                    } else if (currentRoute.includes('usuarios')) {
+                        // Recargar usuarios sin filtro (AJAX)
+                        loadUsersAjax('/usuarios');
+                    } else if (currentRoute.includes('productos')) {
+                        // Recargar productos sin filtro (AJAX)
+                        loadProductsAjax('/productos');
+                    } else if (currentRoute.includes('locales')) {
+                        // Recargar locales sin filtro (AJAX)
+                        loadLocalesAjax('/locales');
+                    }
+                });
+
+                // Ejecutar búsqueda al hacer clic en el botón de lupa
+                searchBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    performSearch();
+                });
+
+                // Permitir búsqueda al presionar "Enter" en el input
                 searchInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
+                        e.preventDefault();
                         performSearch();
                     }
                 });
-                
-                // Buscar al hacer click en el botón
-                if (searchBtn) {
-                    searchBtn.addEventListener('click', performSearch);
-                }
-                
+
                 // Función para realizar la búsqueda
                 function performSearch() {
                     const query = searchInput.value.trim();
-                    if (query) {
-                        const currentRoute = window.location.pathname;
-                        if (currentRoute.includes('proveedores')) {
-                            // AJAX para proveedores sin refrescar la página
-                            loadSuppliersAjax(`/proveedores?buscar=${encodeURIComponent(query)}`);
-                        } else if (currentRoute.includes('eventos')) {
-                            // AJAX para eventos sin refrescar la página
-                            loadEventsAjax(`/eventos?q=${encodeURIComponent(query)}`);
-                        } else if (currentRoute.includes('usuarios')) {
-                            window.location.href = `/usuarios?q=${encodeURIComponent(query)}`;
-                        } else if (currentRoute.includes('productos')) {
-                            window.location.href = `/productos?q=${encodeURIComponent(query)}`;
-                        }
+                    if (!query) return; // No buscar si está vacío
+                    
+                    const currentRoute = window.location.pathname;
+                    if (currentRoute.includes('proveedores')) {
+                        // AJAX para proveedores sin refrescar la página
+                        loadSuppliersAjax(`/proveedores?buscar=${encodeURIComponent(query)}`);
+                    } else if (currentRoute.includes('eventos')) {
+                        // AJAX para eventos sin refrescar la página
+                        loadEventsAjax(`/eventos?q=${encodeURIComponent(query)}`);
+                    } else if (currentRoute.includes('usuarios')) {
+                        // AJAX para usuarios sin refrescar la página
+                        loadUsersAjax(`/usuarios?q=${encodeURIComponent(query)}`);
+                    } else if (currentRoute.includes('productos')) {
+                        // AJAX para productos sin refrescar la página
+                        loadProductsAjax(`/productos?q=${encodeURIComponent(query)}`);
+                    } else if (currentRoute.includes('locales')) {
+                        // AJAX para locales sin refrescar la página
+                        loadLocalesAjax(`/locales?q=${encodeURIComponent(query)}`);
                     }
                 }
 
@@ -1251,6 +1261,124 @@
                         }
                         if (window.swAlert) {
                             swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al buscar eventos' });
+                        }
+                    });
+                }
+
+                // Función AJAX para cargar usuarios sin refrescar
+                function loadUsersAjax(url) {
+                    const usersTableContainer = document.getElementById('usersTableContainer');
+                    if (usersTableContainer) {
+                        usersTableContainer.style.opacity = '0.6';
+                        usersTableContainer.style.pointerEvents = 'none';
+                    }
+                    
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html',
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        if (usersTableContainer) {
+                            usersTableContainer.innerHTML = html;
+                            usersTableContainer.style.opacity = '1';
+                            usersTableContainer.style.pointerEvents = 'auto';
+                            
+                            // Re-bindear funcionalidades en la nueva tabla
+                            if (typeof bindPaginationLinks === 'function') bindPaginationLinks();
+                            if (typeof bindStatusTogglers === 'function') bindStatusTogglers();
+                            if (typeof bindDeleteConfirmations === 'function') bindDeleteConfirmations();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (usersTableContainer) {
+                            usersTableContainer.style.opacity = '1';
+                            usersTableContainer.style.pointerEvents = 'auto';
+                        }
+                        if (window.swAlert) {
+                            swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al buscar usuarios' });
+                        }
+                    });
+                }
+
+                // Función AJAX para cargar productos sin refrescar
+                function loadProductsAjax(url) {
+                    const productsTableContainer = document.querySelector('.products-table-wrapper');
+                    if (productsTableContainer) {
+                        productsTableContainer.style.opacity = '0.6';
+                        productsTableContainer.style.pointerEvents = 'none';
+                    }
+                    
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html',
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        if (productsTableContainer) {
+                            productsTableContainer.innerHTML = html;
+                            productsTableContainer.style.opacity = '1';
+                            productsTableContainer.style.pointerEvents = 'auto';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (productsTableContainer) {
+                            productsTableContainer.style.opacity = '1';
+                            productsTableContainer.style.pointerEvents = 'auto';
+                        }
+                        if (window.swAlert) {
+                            swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al buscar productos' });
+                        }
+                    });
+                }
+
+                // Función AJAX para cargar locales sin refrescar
+                function loadLocalesAjax(url) {
+                    const localesGridContainer = document.getElementById('localesGridContainer');
+                    if (localesGridContainer) {
+                        localesGridContainer.style.opacity = '0.6';
+                        localesGridContainer.style.pointerEvents = 'none';
+                    }
+                    
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html',
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        if (localesGridContainer) {
+                            localesGridContainer.innerHTML = html;
+                            localesGridContainer.style.opacity = '1';
+                            localesGridContainer.style.pointerEvents = 'auto';
+                            
+                            // Re-bindear funcionalidades en el nuevo contenido
+                            if (typeof reattachEventListeners === 'function') {
+                                reattachEventListeners();
+                            }
+                            if (typeof rebindAllEditEvents === 'function') {
+                                rebindAllEditEvents();
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (localesGridContainer) {
+                            localesGridContainer.style.opacity = '1';
+                            localesGridContainer.style.pointerEvents = 'auto';
+                        }
+                        if (window.swAlert) {
+                            swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al buscar locales' });
                         }
                     });
                 }

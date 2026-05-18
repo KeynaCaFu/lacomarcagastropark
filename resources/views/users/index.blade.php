@@ -936,8 +936,8 @@
         perPageFilter.addEventListener('change', () => loadUsers(1));
 
         clearBtn.addEventListener('click', () => {
-            // Limpiar todos los filtros y recargar con URL limpia
-            window.location.href = "{{ route('users.index') }}";
+            // Limpiar todos los filtros y recargar con URL limpia (AJAX)
+            loadUsers(1);
         });
 
         // Manejo de envío de formulario de creación de usuario
