@@ -628,8 +628,10 @@
     window.currentUsersPage = 1;
 
     function loadUsers(page = 1) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const q = urlParams.get('q') || '';
+        // Leer búsqueda desde el top-search-bar
+        const topSearchInput = document.getElementById('topSearchInput');
+        const q = topSearchInput ? topSearchInput.value : '';
+        
         const role = document.getElementById('roleFilter').value;
         const status = document.getElementById('statusFilter').value;
         const per_page = document.getElementById('perPageFilter').value;
@@ -1189,6 +1191,14 @@
         if (helpButtonTop) {
             helpButtonTop.addEventListener('click', function() {
                 openHelpModal();
+            });
+        }
+
+        // Búsqueda en tiempo real desde top-search-bar
+        const topSearchInput = document.getElementById('topSearchInput');
+        if (topSearchInput) {
+            topSearchInput.addEventListener('input', () => {
+                loadUsers(1); // Recarga con búsqueda en tiempo real
             });
         }
     });

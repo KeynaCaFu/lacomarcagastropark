@@ -656,6 +656,31 @@ function reattachEventListeners() {
 document.addEventListener('DOMContentLoaded', function() {
     rebindEditButtons();
     reattachEventListeners();
+
+    // Búsqueda en tiempo real desde top-search-bar
+    const topSearchInput = document.getElementById('topSearchInput');
+    if (topSearchInput) {
+        topSearchInput.addEventListener('input', () => {
+            const searchQuery = topSearchInput.value || '';
+            const params = new URLSearchParams();
+            if (searchQuery) params.append('q', searchQuery);
+            
+            fetch(`{{ route('locales.index') }}?${params.toString()}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const container = document.getElementById('localesGridContainer');
+                if (container) {
+                    container.innerHTML = html;
+                    reattachEventListeners();
+                    rebindEditButtons();
+                    rebindDeleteButtons();
+                }
+            })
+            .catch(error => console.error('Error en búsqueda:', error));
+        });
+    }
     
     const successMsg = @json(session('success'));
     if (successMsg) {
