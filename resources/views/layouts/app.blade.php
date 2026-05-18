@@ -1307,7 +1307,7 @@
 
                 // Función AJAX para cargar productos sin refrescar
                 function loadProductsAjax(url) {
-                    const productsTableContainer = document.querySelector('.products-table-wrapper');
+                    const productsTableContainer = document.getElementById('productsTableContainer');
                     if (productsTableContainer) {
                         productsTableContainer.style.opacity = '0.6';
                         productsTableContainer.style.pointerEvents = 'none';
