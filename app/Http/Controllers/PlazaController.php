@@ -82,9 +82,13 @@ class PlazaController extends Controller
                 ->with(['productReviews.review' => function ($query) {
                     $query->select('review_id', 'rating');
                 }])
-                ->inRandomOrder()
-                ->limit(2)
-                ->get();
+                ->get()
+                // Ordenar por rating promedio (descendente) y obtener los 3 mejores
+                ->sortByDesc(function ($product) {
+                    return $product->average_rating;
+                })
+                ->take(3)
+                ->values();
             $productosAleatorios = $productosAleatorios->merge($productosLocal);
         }
 
@@ -161,7 +165,12 @@ class PlazaController extends Controller
                     $query->select('review_id', 'rating');
                 }
             ])
-            ->get();
+            ->get()
+            // Ordenar por rating (promedio) descendente para que el mejor sea el destacado
+            ->sortByDesc(function ($product) {
+                return $product->average_rating;
+            })
+            ->values();
 
         // IDs de productos actualmente inactivos (para pre-inicializar disabledProductIds en Vue)
         $productosInactivosIds = $productos
