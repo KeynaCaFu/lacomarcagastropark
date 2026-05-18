@@ -4,6 +4,9 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/reports.css') }}">
+<style>
+    .top-search-bar { display: none !important; }
+</style>
 @endpush
 
 <div class="rp-container">

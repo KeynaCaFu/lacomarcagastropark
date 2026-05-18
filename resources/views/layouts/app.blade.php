@@ -1150,6 +1150,30 @@
                     } else if (currentRoute.includes('locales')) {
                         // Recargar locales sin filtro (AJAX)
                         loadLocalesAjax('/locales');
+                    } else if (currentRoute.includes('history') || currentRoute.includes('ordenes')) {
+                        // Limpiar filtro en historial de órdenes
+                        if (typeof applyFilters === 'function') {
+                            applyFilters('');
+                        }
+                    } else if (currentRoute.includes('reviews')) {
+                        // Limpiar búsqueda en reseñas
+                        if (typeof applySearchFromTopBar === 'function') {
+                            applySearchFromTopBar();
+                        }
+                    } else if (currentRoute.includes('order-history')) {
+                        // Limpiar búsqueda en historial de órdenes
+                        const ohSearch = document.getElementById('ohSearch');
+                        if (ohSearch) {
+                            ohSearch.value = '';
+                            if (typeof performOhSearch === 'function') {
+                                performOhSearch();
+                            }
+                        }
+                    } else if (currentRoute.includes('reports') && currentRoute.includes('products')) {
+                        // Limpiar búsqueda de productos en reportes
+                        if (typeof filterProductsByName === 'function') {
+                            filterProductsByName();
+                        }
                     }
                 });
 
@@ -1188,6 +1212,26 @@
                     } else if (currentRoute.includes('locales')) {
                         // AJAX para locales sin refrescar la página
                         loadLocalesAjax(`/locales?q=${encodeURIComponent(query)}`);
+                    } else if (currentRoute.includes('history') || currentRoute.includes('ordenes')) {
+                        // Filtrado client-side para historial de órdenes
+                        if (typeof applyFiltersFromTopBar === 'function') {
+                            applyFiltersFromTopBar();
+                        }
+                    } else if (currentRoute.includes('reviews')) {
+                        // Filtrado client-side para reseñas
+                        if (typeof applySearchFromTopBar === 'function') {
+                            applySearchFromTopBar();
+                        }
+                    } else if (currentRoute.includes('order-history')) {
+                        // Búsqueda en historial de órdenes
+                        if (typeof performOhSearch === 'function') {
+                            performOhSearch();
+                        }
+                    } else if (currentRoute.includes('reports') && currentRoute.includes('products')) {
+                        // Búsqueda de productos en reportes
+                        if (typeof filterProductsByName === 'function') {
+                            filterProductsByName();
+                        }
                     }
                 }
 
