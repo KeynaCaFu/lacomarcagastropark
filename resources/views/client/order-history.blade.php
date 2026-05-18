@@ -313,15 +313,9 @@
 
                                 <!-- FOOTER -->
                                 <div class="order-footer">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                        <div>
-                                            @if($order->additional_notes)
-                                                <small style="color: var(--muted);">
-                                                    <i class="fas fa-sticky-note"></i> {{ $order->additional_notes }}
-                                                </small>
-                                            @endif
-                                        </div>
-                                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 50px;">
+                                        
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0;">
                                         <button class="reorder-btn" @click.prevent="reorderOrder({{ $order->order_id }})">
                                             <i class="fas fa-redo"></i> Reordenar
                                         </button>
