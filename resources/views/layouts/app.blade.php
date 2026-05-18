@@ -1174,6 +1174,11 @@
                         if (typeof filterProductsByName === 'function') {
                             filterProductsByName();
                         }
+                    } else if (currentRoute.includes('schedule')) {
+                        // Limpiar búsqueda de días en horarios
+                        if (typeof filterSchedulesByDay === 'function') {
+                            filterSchedulesByDay();
+                        }
                     }
                 });
 
@@ -1231,6 +1236,11 @@
                         // Búsqueda de productos en reportes
                         if (typeof filterProductsByName === 'function') {
                             filterProductsByName();
+                        }
+                    } else if (currentRoute.includes('schedule')) {
+                        // Búsqueda de días en horarios
+                        if (typeof filterSchedulesByDay === 'function') {
+                            filterSchedulesByDay();
                         }
                     }
                 }
