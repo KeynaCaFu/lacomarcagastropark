@@ -196,6 +196,14 @@
             loadFilteredProducts();
         });
 
+        // Escuchar búsqueda en tiempo real desde top-search-bar
+        const topSearchInput = document.getElementById('topSearchInput');
+        if (topSearchInput) {
+            topSearchInput.addEventListener('input', () => {
+                loadFilteredProducts();
+            });
+        }
+
         updateClearButton();
 
         // Mover botón de ayuda al header
