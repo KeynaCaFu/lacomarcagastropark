@@ -350,6 +350,37 @@ html, body {
 .local-info p { color: rgba(245,240,232,0.72); font-size: 0.82rem; line-height: 1.55; margin-bottom: 5px; }
 .local-info p i { color: var(--primary); margin-right: 6px; }
 
+/* ═══ ADD TO CART BUTTON ═══ */
+.btn-add-to-cart {
+    width: 100%;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #D4773A, #B8601F);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background 0.25s, transform 0.18s, box-shadow 0.25s;
+    box-shadow: 0 8px 24px rgba(212, 119, 58, 0.35);
+    letter-spacing: 0.03em;
+}
+.btn-add-to-cart:hover {
+    background: linear-gradient(135deg, #E0883F, #C4681F);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(212, 119, 58, 0.5);
+}
+.btn-add-to-cart:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 16px rgba(212, 119, 58, 0.3);
+}
+.btn-add-to-cart i { font-size: 1.1rem; }
+
 /* ═══ REVIEWS ═══ */
 .reviews-section {
     margin-top: 48px;

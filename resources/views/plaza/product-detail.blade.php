@@ -211,6 +211,12 @@
                         <p class="description-text">@{{ product.description }}</p>
                     </section>
 
+                    <!-- Add to Cart -->
+                    <button @click="openAddToCartModal(product)" class="btn-add-to-cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        Agregar al Carrito
+                    </button>
+
                     <!-- Local Info -->
                     <section class="local-section">
                         <div class="local-card-body">
@@ -745,6 +751,7 @@
                     'photo_url' => $product->photo_url,
                     'price' => $product->price,
                     'average_rating' => $product->average_rating,
+                    'local_id' => $local->local_id,
                 ]) !!},
                 local: {!! json_encode([
                     'local_id' => $local->local_id,
@@ -804,7 +811,7 @@
                 return this.gallery[this.currentImageIndex]?.image_url;
             },
             totalDrawerQty() {
-                return this.drawerCart.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
+                return this.drawerCart.length;
             },
             totalDrawerPrice() {
                 return this.drawerCart.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0);
