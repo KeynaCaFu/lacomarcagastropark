@@ -7,6 +7,8 @@ _Qué se arregla o cambia y por qué_
 | Antes | Después |
 |-------|---------|
 | (captura) | (captura) |
+| (captura) | (captura) |
+| (captura) | (captura) |
 
 ### Cómo probar
 1. Ir a...
