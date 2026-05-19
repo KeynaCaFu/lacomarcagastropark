@@ -27,6 +27,7 @@ html, body {
 
 .product-detail-page {
     padding: 20px 0 40px;
+    overflow-x: hidden;
 }
 
 /* ═══ CONTAINER ═══ */
@@ -62,6 +63,8 @@ html, body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    min-width: 0;
+    width: 100%;
 }
 
 .gallery-main {
@@ -73,6 +76,7 @@ html, body {
     overflow: hidden;
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
     width: 100%;
+    min-width: 0;
     cursor: pointer;
 }
 
@@ -82,8 +86,9 @@ html, body {
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     object-position: center;
+    background: var(--card);
     display: block;
 }
 
@@ -364,15 +369,22 @@ html, body {
     color: var(--muted);
 }
 
-/* ═══ RESPONSIVE – TABLET ═══ */
+/* ═══ RESPONSIVE – TABLET (grid colapsa a 1 col en ≤700px) ═══ */
 @media (max-width: 768px) {
     .product-detail-page { padding: 14px 0 28px; }
     .container { padding: 0 14px; }
+
+    .gallery-main {
+        aspect-ratio: unset;
+        height: clamp(260px, 48vh, 420px);
+    }
 
     .gallery-nav-btn { width: 38px; height: 38px; font-size: 0.88rem; }
     .gallery-nav-prev { left: 9px; }
     .gallery-nav-next { right: 9px; }
 
+    .gallery-thumbnails-wrapper { overflow: hidden; }
+    .gallery-thumbnails { min-height: 60px; }
     .thumb { width: 56px; height: 56px; }
 
     .product-title { font-size: 1.75rem; }
@@ -384,12 +396,18 @@ html, body {
     .product-detail-page { padding: 10px 0 20px; }
     .container { padding: 0 12px; }
 
+    .gallery-main {
+        aspect-ratio: unset;
+        height: clamp(240px, 48vh, 320px);
+    }
+
     .gallery-nav-btn { width: 34px; height: 34px; font-size: 0.82rem; }
     .gallery-nav-prev { left: 7px; }
     .gallery-nav-next { right: 7px; }
 
-    .gallery-thumbnails-wrapper { padding: 7px; }
-    .thumb { width: 50px; height: 50px; }
+    .gallery-thumbnails-wrapper { padding: 7px; overflow: hidden; }
+    .gallery-thumbnails { min-height: 54px; gap: 6px; }
+    .thumb { width: 46px; height: 46px; }
 
     .product-title { font-size: 1.5rem; }
     .price { font-size: 1.75rem; }
