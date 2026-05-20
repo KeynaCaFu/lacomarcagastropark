@@ -454,7 +454,7 @@
     .login-wrapper {
         position: relative;
         width: 100%;
-        height: 650px;
+        height: 700px;
         background: #fff;
         border-radius: 20px;
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
@@ -469,7 +469,7 @@
         position: absolute;
         width: 50%;
         height: 100%;
-        padding: 40px 35px;
+        padding: 30px 32px;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -486,6 +486,10 @@
         left: 0;
         background: #0C0C0E;
         transform: translateX(-100%);
+        overflow-y: auto;
+        justify-content: flex-start;
+        padding-top: 20px;
+        padding-bottom: 20px;
     }
 
     .recovery-panel {
@@ -607,6 +611,16 @@
         transform: translateX(100%);
     }
 
+    /* ===== COMPACTAR REGISTRO (desktop) ===== */
+    .register-panel .register-header { margin-bottom: 6px; }
+    .register-panel .login-title { margin: 6px 0 10px; font-size: 24px; }
+    .register-panel .form-group { margin-bottom: 7px; }
+    .register-panel .btn-register { margin-bottom: 7px; }
+    .register-panel .divider-social { margin: 7px 0; }
+    .register-panel .google-container { margin: 6px 0; }
+    .register-panel .responsive-footer { padding-top: 6px; }
+    .register-panel .login-logoRegister { margin-top: 0 !important; }
+
     /* ===== HEADERS ===== */
     .login-header,
     .register-header,
@@ -617,7 +631,7 @@
 
     .login-logo,
     .recovery-logo {
-        max-width: 171px;
+        max-width: 200px;
         height: auto;
         margin: 0;
         margin-top: -2px;
@@ -744,7 +758,7 @@
         width: 100%;
         padding: 14px 44px 14px 16px;
         border: 1px solid #ddd;
-        border-radius: 8px;
+        border-radius: 10px;
         font-size: 15px;
         font-family: inherit;
         transition: border-color 0.3s;
@@ -911,7 +925,7 @@
         padding: 12px;
         margin-bottom: 12px;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
@@ -1019,7 +1033,7 @@
         padding: 12px 16px;
         background: #d4b59e;
         border: 1px solid #d07d25;
-        border-radius: 8px;
+        border-radius: 10px;
         color: #0a0b0c;
         font-size: 15px;
         font-weight: 511;
@@ -1199,35 +1213,126 @@
         animation: slideInFromLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
-    /* Fondo anaranjado durante la transición en responsivo */
-    @media (max-width: 900px) {
-        .login-wrapper.transitioning {
-            background: linear-gradient(135deg, #e18018, #915016);
+    /* Overlay naranja — cortina deslizante en móvil */
+    #mobileTransitionOverlay {
+        display: none;
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #e18018, #915016);
+        z-index: 20;
+        transform: translateX(100%);
+        border-radius: 16px;
+        pointer-events: none;
+    }
+    @media (max-width: 640px) {
+        #mobileTransitionOverlay {
+            display: block;
         }
     }
 
     /* ===== RESPONSIVE ===== */
+
+    /* Desktop grande */
     @media (max-width: 1200px) {
+        .login-wrapper { height: 700px; }
+        .login-panel, .register-panel { padding: 20px 28px; }
+    }
+
+    /* Tablet portrait: 641px – 900px → mantiene dos paneles, más compacto */
+    @media (max-width: 900px) {
+        .login-container {
+            padding: 20px 16px;
+        }
+
         .login-wrapper {
-            height: 650px;
+            height: auto;
+            min-height: 560px;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+            overflow: hidden;
         }
 
         .login-panel,
-        .register-panel {
-            padding: 40px 30px;
+        .register-panel,
+        .recovery-panel {
+            padding: 18px 20px;
         }
+
+        .login-logo,
+        .recovery-logo {
+            max-width: 127px !important;
+            margin-top: 0 !important;
+        }
+        .login-logoRegister {
+            max-width: 100px !important;
+            margin-top: 0 !important;
+        }
+
+        .login-header,
+        .register-header,
+        .recovery-header {
+            margin-bottom: 8px;
+        }
+
+        .login-title {
+            font-size: 20px;
+            margin: 6px 0 10px;
+        }
+
+        .register-panel .login-title { margin-top: 0; }
+
+        .form-group { margin-bottom: 8px; }
+
+        .form-group input {
+            padding: 10px 38px 10px 12px;
+            font-size: 14px;
+        }
+
+        .input-icon i { font-size: 14px; right: 12px; }
+
+        .toggle-btn { font-size: 14px; }
+
+        .form-checkbox { margin-bottom: 10px; }
+        .form-checkbox label { font-size: 12px; }
+
+        .btn-login, .btn-register, .btn-recovery {
+            padding: 10px;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .divider-social { margin: 7px 0; }
+        .divider-social span { font-size: 12px; }
+        .google-container { margin: 7px 0; }
+        .btn-google { padding: 9px 12px; font-size: 13px; gap: 8px; }
+        .google-logo { width: 16px; height: 16px; }
+        .btn-google span { font-size: 13px; }
+        .forgot-password { font-size: 12px; margin-top: 6px; }
+        .overlay-title { font-size: 22px; }
+        .overlay-text { font-size: 14px; margin-bottom: 16px; }
+        .overlay-btn { padding: 10px 24px; font-size: 13px; }
+        .form-error { font-size: 11px; }
     }
 
-    @media (max-width: 900px) {
+    /* Móvil: < 641px → panel único en tarjeta centrada */
+    @media (max-width: 640px) {
         .login-container {
             width: 100%;
-            max-width: 100%;
+            max-width: 440px;
+            margin: 0 auto;
+            padding: 16px 12px;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .login-wrapper {
-            height: 650px;
-            border-radius: 0;
-            box-shadow: none;
+            width: 100%;
+            height: auto;
+            min-height: unset;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
             display: block;
             overflow: hidden;
             background: #0C0C0E;
@@ -1238,283 +1343,85 @@
         .recovery-panel {
             width: 100%;
             position: relative;
-            padding: 40px 30px;
-            min-height: auto;
+            padding: 24px 20px 20px;
+            min-height: 540px;
+            height: auto;
             transform: none;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            display: block;
+            transition: opacity 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+            border-radius: 16px;
         }
 
-        .auth-overlay {
-            display: none;
-        }
+        .auth-overlay { display: none; }
 
-        .login-panel {
-            display: block;
-        }
+        .login-panel { display: block; }
+        .register-panel { display: none; }
+        .recovery-panel { display: none; }
 
-        .register-panel {
-            display: none;
-        }
+        .login-container.show-register .login-panel { display: none; }
+        .login-container.show-register .register-panel { display: block; }
+        .login-container.show-recovery .login-panel { display: none; }
+        .login-container.show-recovery .recovery-panel { display: block; }
 
-        .recovery-panel {
-            display: none;
-        }
+        .responsive-footer { display: block; padding-top: 6px; padding-bottom: 4px; }
 
-        .login-container.show-register .login-panel {
-            display: none;
-        }
+        .login-header, .register-header, .recovery-header { margin-bottom: 6px; }
 
-        .login-container.show-register .register-panel {
-            display: block;
+        .login-logo, .recovery-logo {
+            max-width: 120px !important;
+            margin-top: 0 !important;
         }
-
-        .login-container.show-recovery .login-panel {
-            display: none;
-        }
-
-        .login-container.show-recovery .recovery-panel {
-            display: block;
-        }
-
-        .responsive-footer {
-            display: block;
-        }
-
-        .login-header,
-        .register-header,
-        .recovery-header {
-            margin-bottom: 20px;
-        }
-
-        .login-logo,
-        .login-logoRegister,
-        .recovery-logo {
-            max-width: 140px;
+        .login-logoRegister {
+            max-width: 90px !important;
             margin-top: 0 !important;
         }
 
         .login-title {
-            font-size: 24px;
-            margin-top: 10px !important;
+            font-size: 19px;
+            margin-top: 6px !important;
+            margin-bottom: 10px !important;
         }
+
+        .form-group { margin-bottom: 8px; }
 
         .form-group input {
-            padding: 12px 40px 12px 14px;
-            font-size: 16px;
-        }
-
-        .btn-login,
-        .btn-register,
-        .btn-recovery {
-            padding: 10px;
-            font-size: 15px;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .login-container {
-            padding: 15px;
-        }
-
-        .login-wrapper {
-            border-radius: 15px;
-            height: 650px;
-        }
-
-        .login-panel,
-        .register-panel {
-            padding: 35px 20px;
-            min-height: auto;
-            max-height: none;
-            justify-content: flex-start;
-            padding-top: 30px;
-        }
-
-        .login-header,
-        .register-header {
-            margin-bottom: 15px;
-        }
-
-        .login-logo,
-        .login-logoRegister {
-            max-width: 120px;
-        }
-
-        .login-title {
-            font-size: 22px;
-            margin: 15px 0 3px;
-        }
-
-        .form-group {
-            margin-bottom: 10px;
-        }
-
-        .form-group input {
-            padding: 11px 38px 11px 12px;
-            font-size: 16px;
-            border-radius: 6px;
-        }
-
-        .input-icon i {
-            right: 12px;
+            padding: 10px 38px 10px 12px;
             font-size: 15px;
         }
 
-        .form-checkbox {
-            margin-bottom: 15px;
-        }
+        .input-icon i { right: 12px; font-size: 14px; }
 
-        .form-checkbox label {
-            font-size: 12px;
-        }
+        .form-checkbox { margin-bottom: 10px; }
+        .form-checkbox label { font-size: 12px; }
 
-        .btn-login,
-        .btn-register {
+        .btn-login, .btn-register, .btn-recovery {
             padding: 10px;
             font-size: 14px;
-            margin-bottom: 10px;
-        }
-
-        .divider-social {
-            margin: 12px 0;
-            gap: 8px;
-        }
-
-        .divider-social span {
-            font-size: 12px;
-        }
-
-        .google-container {
-            margin: 12px 0;
-        }
-
-        .btn-google {
-            padding: 11px 14px;
-            font-size: 14px;
-            gap: 8px;
-        }
-
-        .google-logo {
-            width: 18px;
-            height: 18px;
-        }
-
-        .forgot-password {
-            font-size: 12px;
-            margin-top: 10px;
-        }
-    }
-
-    @media (max-width: 600px) {
-        .login-container {
-            padding: 10px;
-        }
-
-        .login-wrapper {
-            height: 620px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .login-panel,
-        .register-panel {
-            padding: 25px 18px;
-            min-height: auto;
-        }
-
-        .login-header,
-        .register-header {
-            margin-bottom: 12px;
-        }
-
-        .login-logo,
-        .login-logoRegister {
-            max-width: 100px;
-            margin: 0;
-        }
-
-        .login-title {
-            font-size: 20px;
-            margin: 12px 0 0;
-        }
-
-        .form-group {
-            margin-bottom: 9px;
-        }
-
-        .form-group input {
-            padding: 10px 36px 10px 11px;
-            font-size: 15px;
-        }
-
-        .input-icon i {
-            right: 10px;
-            font-size: 14px;
-        }
-
-        .form-checkbox {
-            margin-bottom: 12px;
-        }
-
-        .form-checkbox input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-        }
-
-        .form-checkbox label {
-            font-size: 11px;
-        }
-
-        .btn-login,
-        .btn-register,
-        .btn-recovery {
-            padding: 9px;
-            font-size: 13px;
             margin-bottom: 8px;
         }
 
-        .divider-social {
-            margin: 10px 0;
-            gap: 6px;
-        }
+        .divider-social { margin: 7px 0; }
+        .divider-social span { font-size: 12px; }
+        .google-container { margin: 7px 0; }
+        .btn-google { padding: 9px 12px; font-size: 13px; gap: 8px; }
+        .google-logo { width: 16px; height: 16px; }
+        .btn-google span { font-size: 13px; }
+        .forgot-password { font-size: 12px; margin-top: 6px; }
+        .form-error { font-size: 11px; }
+        .password-recovery-options { margin: 8px 0; }
+    }
 
-        .divider-social span {
-            font-size: 11px;
-        }
-
-        .google-container {
-            margin: 10px 0;
-        }
-
-        .btn-google {
-            padding: 10px 12px;
-            font-size: 13px;
-            gap: 8px;
-        }
-
-        .google-logo {
-            width: 16px;
-            height: 16px;
-        }
-
-        .btn-google span {
-            font-size: 13px;
-        }
-
-        .forgot-password {
-            font-size: 11px;
-            margin-top: 8px;
-        }
-
-        .toggle-btn {
-            right: 40px;
-            font-size: 14px;
-        }
-
-        .form-error {
-            font-size: 11px;
-        }
+    @media (max-width: 360px) {
+        .login-container { padding: 12px 8px; }
+        .login-panel, .register-panel, .recovery-panel { padding: 20px 16px 16px; }
+        .login-logo, .login-logoRegister { max-width: 80px; }
+        .login-title { font-size: 17px; }
+        .form-group { margin-bottom: 7px; }
+        .form-group input { padding: 9px 34px 9px 10px; font-size: 14px; }
+        .btn-login, .btn-register, .btn-recovery { padding: 9px; font-size: 13px; }
     }
 
     @media (max-width: 480px) {
@@ -1592,29 +1499,55 @@ document.addEventListener('DOMContentLoaded', function () {
     const togglePasswordBtn = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
 
-    const isResponsive = () => window.innerWidth <= 900;
+    const isResponsive = () => window.innerWidth <= 640;
+
+    // Overlay naranja — cortina deslizante
+    const mobileOverlay = document.createElement('div');
+    mobileOverlay.id = 'mobileTransitionOverlay';
+    loginWrapper.appendChild(mobileOverlay);
+
+    const SLIDE_MS = 480;
+    const EASE     = `cubic-bezier(0.4, 0, 0.2, 1)`;
+
+    function mobileSwitchPanel(switchFn) {
+        const ov = mobileOverlay;
+
+        // Posicionar fuera a la derecha sin transición
+        ov.style.transition = 'none';
+        ov.style.transform  = 'translateX(100%)';
+        ov.style.pointerEvents = 'all';
+        void ov.offsetWidth; // reflow
+
+        // Fase 1: cortina entra desde la derecha
+        ov.style.transition = `transform ${SLIDE_MS}ms ${EASE}`;
+        ov.style.transform  = 'translateX(0)';
+
+        setTimeout(() => {
+            // Fase 2: cambio de panel bajo la cortina naranja
+            switchFn();
+
+            // Fase 3: cortina sale hacia la izquierda
+            ov.style.transition = `transform ${SLIDE_MS}ms ${EASE}`;
+            ov.style.transform  = 'translateX(-100%)';
+
+            setTimeout(() => {
+                // Resetear al estado inicial (fuera a la derecha, listo para el próximo uso)
+                ov.style.transition    = 'none';
+                ov.style.transform     = 'translateX(100%)';
+                ov.style.pointerEvents = 'none';
+            }, SLIDE_MS + 10);
+        }, SLIDE_MS);
+    }
 
     // Función para cambiar a registro
     const switchToRegister = () => {
-        // Remover clase de recuperación primero
-        authContainer.classList.remove('show-recovery');
-        
         if (isResponsive()) {
-            loginWrapper.classList.add('transitioning');
-            loginPanel.classList.add('slide-out-left');
-            loginPanel.classList.remove('slide-in-right');
-            
-            setTimeout(() => {
+            mobileSwitchPanel(() => {
+                authContainer.classList.remove('show-recovery');
                 authContainer.classList.add('show-register');
-                registerPanel.classList.add('slide-in-left');
-                registerPanel.classList.remove('slide-out-right');
-                loginPanel.classList.remove('slide-out-left');
-            }, 400);
-            
-            setTimeout(() => {
-                loginWrapper.classList.remove('transitioning');
-            }, 800);
+            });
         } else {
+            authContainer.classList.remove('show-recovery');
             authContainer.classList.add('show-register');
         }
         window.scrollTo(0, 0);
@@ -1623,52 +1556,24 @@ document.addEventListener('DOMContentLoaded', function () {
     // Función para cambiar a login
     const switchToLogin = () => {
         if (isResponsive()) {
-            loginWrapper.classList.add('transitioning');
-            registerPanel.classList.add('slide-out-right');
-            registerPanel.classList.remove('slide-in-left');
-            recoveryPanel.classList.add('slide-out-right');
-            recoveryPanel.classList.remove('slide-in-left');
-            
-            setTimeout(() => {
-                authContainer.classList.remove('show-register');
-                authContainer.classList.remove('show-recovery');
-                loginPanel.classList.add('slide-in-right');
-                loginPanel.classList.remove('slide-out-left');
-                registerPanel.classList.remove('slide-out-right');
-                recoveryPanel.classList.remove('slide-out-right');
-            }, 400);
-            
-            setTimeout(() => {
-                loginWrapper.classList.remove('transitioning');
-            }, 800);
+            mobileSwitchPanel(() => {
+                authContainer.classList.remove('show-register', 'show-recovery');
+            });
         } else {
-            authContainer.classList.remove('show-register');
-            authContainer.classList.remove('show-recovery');
+            authContainer.classList.remove('show-register', 'show-recovery');
         }
         window.scrollTo(0, 0);
     };
 
     // Función para cambiar a recuperación
     const switchToRecovery = () => {
-        // Remover clase de registro primero
-        authContainer.classList.remove('show-register');
-        
         if (isResponsive()) {
-            loginWrapper.classList.add('transitioning');
-            loginPanel.classList.add('slide-out-left');
-            loginPanel.classList.remove('slide-in-right');
-            
-            setTimeout(() => {
+            mobileSwitchPanel(() => {
+                authContainer.classList.remove('show-register');
                 authContainer.classList.add('show-recovery');
-                recoveryPanel.classList.add('slide-in-left');
-                recoveryPanel.classList.remove('slide-out-right');
-                loginPanel.classList.remove('slide-out-left');
-            }, 400);
-            
-            setTimeout(() => {
-                loginWrapper.classList.remove('transitioning');
-            }, 800);
+            });
         } else {
+            authContainer.classList.remove('show-register');
             authContainer.classList.add('show-recovery');
         }
         window.scrollTo(0, 0);
