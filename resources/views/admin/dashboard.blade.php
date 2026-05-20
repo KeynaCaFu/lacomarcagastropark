@@ -8,6 +8,7 @@
 
 @push('styles')
     <style>
+        .top-search-bar { display: none !important; }
         .dash-container { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.08); padding: 12px; margin-top: 30px; }
         .stats-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:10px; margin-bottom: 12px; }
         .stat-card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:12px; display:flex; align-items:center; gap:8px; }

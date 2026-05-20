@@ -3,6 +3,12 @@
 @section('title', 'Órdenes')
 
 @push('styles')
+<style>
+    .top-search-bar { display: none !important; }
+</style>
+@endpush
+
+@push('styles')
     <link href="{{ asset('css/order.css') }}" rel="stylesheet">
     <style>
         /* Scrollbar personalizado para la lista de órdenes */

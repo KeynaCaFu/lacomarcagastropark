@@ -464,6 +464,40 @@
       initFilters();
     }
 
+    // Búsqueda en tiempo real desde top-search-bar
+    document.addEventListener('DOMContentLoaded', function() {
+      const topSearchInput = document.getElementById('topSearchInput');
+      if (topSearchInput) {
+        topSearchInput.addEventListener('input', () => {
+          // Buscar eventos con el query del top-search-bar
+          const searchQuery = topSearchInput.value || '';
+          const params = new URLSearchParams();
+          if (searchQuery) params.append('q', searchQuery);
+          const filterEstado = document.getElementById('filterEstado');
+          if (filterEstado && filterEstado.value) {
+            params.append('estado', filterEstado.value);
+          }
+          const filterFecha = document.getElementById('filterFecha');
+          if (filterFecha && filterFecha.dataset.value) {
+            params.append('fecha', filterFecha.dataset.value);
+          }
+          
+          fetch(`{{ route('eventos.index') }}?${params.toString()}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+          })
+          .then(response => response.text())
+          .then(html => {
+            const container = document.getElementById('eventsContainer');
+            if (container) {
+              container.innerHTML = html;
+              reattachEventListeners();
+            }
+          })
+          .catch(error => console.error('Error en búsqueda:', error));
+        });
+      }
+    });
+
     // Hook the "Nuevo Evento" button to the shared EventoModals API
     document.getElementById('btnOpenCreate')?.addEventListener('click', () => {
       if(typeof openCreateModal === 'function') openCreateModal();

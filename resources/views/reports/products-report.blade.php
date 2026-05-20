@@ -509,9 +509,38 @@
         container.innerHTML = html;
     }
 
+    // Integración con top-search-bar para filtrar productos
+    function filterProductsByName() {
+        const searchTerm = document.getElementById('topSearchInput')?.value.toLowerCase().trim() || '';
+        
+        // Filtrar tabla Top 10 Productos Más Vendidos
+        const topProductsTable = document.querySelector('#top-items-container table tbody');
+        if (topProductsTable) {
+            topProductsTable.querySelectorAll('tr').forEach(row => {
+                const productName = row.textContent.toLowerCase();
+                row.style.display = (!searchTerm || productName.includes(searchTerm)) ? '' : 'none';
+            });
+        }
+        
+        // Filtrar tabla Detalle de Ventas
+        const itemsTable = document.querySelector('#items-table-container table tbody');
+        if (itemsTable) {
+            itemsTable.querySelectorAll('tr').forEach(row => {
+                const productName = row.textContent.toLowerCase();
+                row.style.display = (!searchTerm || productName.includes(searchTerm)) ? '' : 'none';
+            });
+        }
+    }
+
     // Load data on page load if product is selected
     document.addEventListener('DOMContentLoaded', () => {
         loadProductData();
+        
+        // Conectar con top-search-bar
+        const topSearchInput = document.getElementById('topSearchInput');
+        if (topSearchInput) {
+            topSearchInput.addEventListener('input', filterProductsByName);
+        }
     });
 </script>
 

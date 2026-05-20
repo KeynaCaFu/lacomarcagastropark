@@ -324,11 +324,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Barra de búsqueda superior ────────────────────────────────────────
     if (isSuppliersPage && topSearchInput) {
+        // Búsqueda en tiempo real mientras escribes
         topSearchInput.addEventListener('input', function () {
             if (clearSearchBtn) {
                 clearSearchBtn.style.display = this.value.trim() ? 'inline-block' : 'none';
             }
             updateClearButton();
+            loadFilteredSuppliers();
         });
 
         topSearchInput.addEventListener('keydown', function (e) {

@@ -121,6 +121,7 @@
 
 @push('styles')
 <style>
+    .top-search-bar { display: none !important; }
     .dash-container { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.08); padding: 8px; margin-top: 20px; }
     .stats-grid-main { display:grid; grid-template-columns: repeat(2, 1fr); gap:6px; margin-bottom: 4px; }
     .stat-card-main { background:#fff; border:2px solid #e5e7eb; border-radius:10px; padding:10px; display:flex; align-items:center; gap:8px; }

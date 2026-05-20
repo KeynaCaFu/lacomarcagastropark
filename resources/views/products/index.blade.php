@@ -151,29 +151,33 @@
         const loadFilteredProducts = async () => {
             const categoria = document.getElementById('categoria').value;
             const estado = document.getElementById('estado').value;
+            const search = document.getElementById('topSearchInput')?.value || '';
             
             try {
                 const params = new URLSearchParams();
                 if (categoria) params.append('categoria', categoria);
                 if (estado) params.append('estado', estado);
+                if (search) params.append('q', search);
                 
-                const response = await fetch(`{{ route('products.index') }}?${params.toString()}`, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
+                const url = `{{ route('products.index') }}?${params.toString()}`;
                 
-                if (response.ok) {
-                    const html = await response.text();
-                    // Extraer solo la tabla del HTML
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    // Buscar el contenedor en la respuesta, o usar el cuerpo si es una vista parcial
-                    const newTable = doc.querySelector('#productsTableContainer') || doc.body;
+                // Usar loadProductsAjax si está disponible (search desde top-search-bar)
+                if (typeof loadProductsAjax === 'function') {
+                    loadProductsAjax(url);
+                } else {
+                    // Fallback para búsqueda local
+                    const response = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
                     
-                    const container = document.getElementById('productsTableContainer');
-                    if (container && newTable) {
-                        container.innerHTML = newTable.innerHTML;
+                    if (response.ok) {
+                        const html = await response.text();
+                        const container = document.getElementById('productsTableContainer');
+                        if (container) {
+                            container.innerHTML = html;
+                        }
                     }
                 }
             } catch (error) {
@@ -191,6 +195,14 @@
             updateClearButton();
             loadFilteredProducts();
         });
+
+        // Escuchar búsqueda en tiempo real desde top-search-bar
+        const topSearchInput = document.getElementById('topSearchInput');
+        if (topSearchInput) {
+            topSearchInput.addEventListener('input', () => {
+                loadFilteredProducts();
+            });
+        }
 
         updateClearButton();
 
@@ -376,6 +388,23 @@
             });
         }
         @endif
+
+        // Escuchar cambios desde el top-search-bar para mantener filtros sincronizados
+        const searchInput = document.getElementById('topSearchInput');
+        if (searchInput && window.location.pathname.includes('productos')) {
+            // Si hay búsqueda previa en el input, cargar con esos resultados
+            const observer = new MutationObserver(() => {
+                // Se llama cada vez que cambia el input (detectado a través de lógica de layout.blade.php)
+            });
+            
+            // Escuchar cuando el usuario ingresa búsqueda desde top-search-bar
+            // Nota: El layout.blade.php ya llama a loadProductsAjax() cuando se busca, 
+            // pero esto es un fallback para mantener los filtros de categoría/estado sincronizados
+            const topSearchHandler = () => {
+                // No hacer nada aquí porque layout.blade.php ya maneja la búsqueda
+                // Solo asegurar que los filtros locales se mantengan sincronizados
+            };
+        }
     });
 
     // Abrir modal de ayuda

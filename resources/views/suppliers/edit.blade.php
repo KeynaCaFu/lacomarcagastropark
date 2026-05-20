@@ -3,6 +3,12 @@
 @section('title', 'Editar Proveedor')
 
 @push('styles')
+<style>
+    .top-search-bar { display: none !important; }
+</style>
+@endpush
+
+@push('styles')
     <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
     <style>
         /* Sistema de validación inline (field-error) */

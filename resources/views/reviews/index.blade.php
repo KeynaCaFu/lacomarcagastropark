@@ -529,6 +529,12 @@
             overlay.addEventListener('click', closeReviewModal);
         }
 
+        // Top search bar integration for reviews
+        const topSearchInput = document.getElementById('topSearchInput');
+        if (topSearchInput) {
+            topSearchInput.addEventListener('input', applySearchFromTopBar);
+        }
+
         // Cerrar modal con tecla Escape
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
@@ -939,6 +945,7 @@
 
         const fecha  = document.getElementById(prefix + '-filter-fecha')?.value  || '';
         const rating = document.getElementById(prefix + '-filter-rating')?.value || '';
+        const search = document.getElementById('topSearchInput')?.value || '';
 
         const grid = document.getElementById(gridId);
         if (!grid) return;
@@ -948,10 +955,12 @@
         grid.querySelectorAll('.review-card').forEach(card => {
             const cardFecha  = card.getAttribute('data-modal-fecha-raw') || '';
             const cardRating = card.getAttribute('data-modal-rating')    || '';
+            const cardNombre = card.getAttribute('data-modal-nombre')?.toLowerCase() || '';
 
             let show = true;
             if (fecha  && cardFecha  !== fecha)  show = false;
             if (rating && cardRating !== rating) show = false;
+            if (search && !cardNombre.includes(search.toLowerCase())) show = false;
 
             card.style.display = show ? '' : 'none';
             if (show) visible++;
@@ -959,6 +968,11 @@
 
         const noRes = document.getElementById(noResId);
         if (noRes) noRes.classList.toggle('hidden', visible > 0);
+    }
+
+    function applySearchFromTopBar() {
+        applyFilters('local');
+        applyFilters('product');
     }
 
     function clearFilters(type) {

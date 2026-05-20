@@ -2,6 +2,12 @@
 
 @section('title', 'Mi Local - ' . ($local->name ?? 'La comarca'))
 
+@push('styles')
+<style>
+    .top-search-bar { display: none !important; }
+</style>
+@endpush
+
 @section('content')
 
 <div class="container-fluid py-4">

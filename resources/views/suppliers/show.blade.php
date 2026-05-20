@@ -3,6 +3,12 @@
 @section('title', 'Detalles del Proveedor')
 
 @push('styles')
+<style>
+    .top-search-bar { display: none !important; }
+</style>
+@endpush
+
+@push('styles')
     <link href="{{ asset('css/modals.css') }}" rel="stylesheet">
     <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
 

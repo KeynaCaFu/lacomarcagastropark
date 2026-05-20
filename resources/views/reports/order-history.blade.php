@@ -287,12 +287,23 @@
 let ohPending = { action: null, orderId: null };
 
 // Búsqueda en tabla (página actual)
-document.getElementById('ohSearch').addEventListener('input', function() {
-    const term = this.value.toLowerCase().trim();
+document.getElementById('ohSearch').addEventListener('input', performOhSearch);
+
+// Integración con top-search-bar
+const topSearchInput = document.getElementById('topSearchInput');
+if (topSearchInput) {
+    topSearchInput.addEventListener('input', function() {
+        document.getElementById('ohSearch').value = this.value;
+        performOhSearch();
+    });
+}
+
+function performOhSearch() {
+    const term = document.getElementById('ohSearch').value.toLowerCase().trim();
     document.querySelectorAll('#ohTableBody tr').forEach(row => {
         row.style.display = (!term || row.dataset.search.includes(term)) ? '' : 'none';
     });
-});
+}
 
 // Paginación AJAX — reemplaza solo #oh-table-wrapper
 document.addEventListener('click', function(e) {
