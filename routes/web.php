@@ -238,6 +238,7 @@ Route::prefix('resenas')->name('reviews.')->group(function () {
         // Vistas
         Route::get('/pedidos', [\App\Http\Controllers\ReportController::class, 'index'])->name('orders');
         Route::get('/productos', [\App\Http\Controllers\ReportController::class, 'products'])->name('products');
+        Route::get('/historial', [\App\Http\Controllers\ReportController::class, 'orderHistory'])->name('order-history');
         
         // APIs
         Route::get('/api/pedidos', [\App\Http\Controllers\ReportController::class, 'getData'])->name('orders.data');

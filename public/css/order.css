@@ -25,9 +25,9 @@
 
 .order-stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 12px;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
 }
 
 .order-stat-card {
@@ -206,14 +206,17 @@
     background: white;
     border-radius: 12px;
     border: 1px solid var(--border-gray);
-    margin-top: 34px;
+    margin-top: 20px;
     overflow: hidden;
-    margin-right: 62px;
-    margin-left: 50px;
 }
 
 .orders-tabs-header {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 8px 12px;
     border-bottom: 2px solid var(--border-gray);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -266,9 +269,9 @@
 /* Layout principal de órdenes */
 .orders-main-layout {
     display: grid;
-    grid-template-columns: 1fr 1.5fr;
+    grid-template-columns: minmax(280px, 380px) 1fr;
     gap: 0;
-    min-height: 600px;
+    min-height: 520px;
 }
 
 /* Lista de órdenes centrada */
@@ -277,7 +280,6 @@
     display: flex;
     flex-direction: column;
     background: var(--light-gray);
-    margin-right: 119px;
 }
 
 .orders-list-search {
@@ -380,14 +382,14 @@
 
 /* Panel de detalles grande */
 .order-details-panel-large {
-    background: white;
-    overflow-y: auto;
-    padding: 0px;
-    margin-right: 85px;
-    margin-left: -41px;
-    border: 1px solid var(--primary-orange);
-    border-radius: 11px;
-    margin-top: 11px;
+  background: white;
+  overflow-y: auto;
+  padding: 0;
+  margin: 22px;
+  border: 1px solid var(--primary-orange);
+  border-radius: 11px;
+  margin-right: 36px;
+  margin-left: 39px;
 }
 
 .order-details-wrapper {
@@ -1116,19 +1118,67 @@
    RESPONSIVE
    ============================================================================ */
 
+/* Tablet grande y escritorio mediano */
+@media (max-width: 1280px) {
+    .orders-main-layout {
+        grid-template-columns: minmax(260px, 340px) 1fr;
+    }
+}
+
+/* Tablet apaisada */
+@media (max-width: 1100px) {
+    .orders-dashboard {
+        padding: 16px;
+    }
+
+    .order-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .order-stat-card {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .order-stat-icon {
+        font-size: 26px;
+    }
+
+    .order-stat-number {
+        font-size: 22px;
+    }
+
+    .orders-main-layout {
+        grid-template-columns: minmax(240px, 300px) 1fr;
+        min-height: 480px;
+    }
+}
+
+/* Tablet vertical (768px - 1024px) */
 @media (max-width: 1024px) {
     .orders-main-layout {
         grid-template-columns: 1fr;
+        min-height: unset;
     }
 
     .orders-list-container {
         border-right: none;
         border-bottom: 1px solid var(--border-gray);
-        max-height: 300px;
+    }
+
+    .orders-grid-list {
+        max-height: 320px !important;
+    }
+
+    .order-details-panel-large {
+        margin: 10px;
+        min-height: 300px;
     }
 
     .order-info-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
     }
 
     .form-row {
@@ -1141,8 +1191,30 @@
 }
 
 @media (max-width: 768px) {
+    .orders-dashboard {
+        padding: 12px;
+    }
+
     .order-stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 8px;
+    }
+
+    .order-stat-card {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .order-stat-icon {
+        font-size: 22px;
+    }
+
+    .order-stat-number {
+        font-size: 18px;
+    }
+
+    .order-stat-label {
+        font-size: 10px;
     }
 
     .order-detail-header {
@@ -1170,18 +1242,14 @@
         flex-direction: column;
     }
 
-    .order-status-tabs {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
+    .order-status-tabs,
     .orders-tabs-header {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
 
     .order-tab {
-        padding: 12px 14px;
+        padding: 10px 12px;
         font-size: 12px;
     }
 
@@ -1191,14 +1259,22 @@
         font-size: 10px;
     }
 
-    .orders-main-layout {
-        min-height: 400px;
+    .orders-grid-list {
+        max-height: 260px !important;
+    }
+
+    .order-info-grid {
+        grid-template-columns: 1fr;
     }
 }
 
 @media (max-width: 480px) {
     .orders-dashboard {
-        padding: 12px;
+        padding: 10px;
+    }
+
+    .order-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .order-detail-body {
@@ -1214,7 +1290,7 @@
         font-size: 12px;
     }
 
-    .order-info-grid {
-        grid-template-columns: 1fr;
+    .btn-history-responsive span {
+        display: none;
     }
 }
