@@ -279,29 +279,38 @@ Route::middleware(['auth', 'verified'])->group(function () {
      // Validar si el cliente puede reseñar el producto
 Route::get('/plaza/producto/{productId}/puede-resenar', function ($productId) {
     $userId = Auth::id();
+    $localId = request()->query('local_id');
 
     if (!$userId) {
         return response()->json(['puede' => false, 'ya_reseno' => false]);
     }
 
-    $tienePedido = Order::where('status', 'Delivered')
-        ->whereIn('order_id', function ($query) use ($userId) {
-            $query->select('order_id')
-                ->from('tbuser_order')
-                ->where('user_id', $userId);
-        })
+    // Obtener los pedidos del usuario desde la tabla pivot
+    $orderIds = \Illuminate\Support\Facades\DB::table('tbuser_order')
+        ->where('user_id', $userId)
+        ->pluck('order_id')
+        ->toArray();
+
+    if (empty($orderIds)) {
+        return response()->json(['puede' => false, 'ya_reseno' => false]);
+    }
+
+    $query = Order::whereIn('order_id', $orderIds)
+        ->where('status', Order::STATUS_DELIVERED)
         ->whereHas('items', function ($q) use ($productId) {
             $q->where('product_id', $productId);
-        })
-        ->exists();
+        });
 
-    $yaReseno = \App\Models\ProductReview::where('product_id', $productId)
-        ->where('user_id', $userId)
-        ->exists();
+    if ($localId) {
+        $query->where('local_id', (int) $localId);
+    }
 
+    $tienePedido = $query->exists();
+
+    // Permitimos múltiples reseñas; no bloqueamos por ya_reseno
     return response()->json([
         'puede' => $tienePedido,
-        'ya_reseno' => $yaReseno
+        'ya_reseno' => false
     ]);
 })->middleware('auth')->name('plaza.product.can-review');
 // Guardar reseña del producto
@@ -336,6 +345,7 @@ Route::prefix('plaza')->name('plaza.')->middleware(['preserve.admin.session', 'v
     Route::get('api/productos', [\App\Http\Controllers\PlazaController::class, 'getProductosByCategory'])->name('get.productos');
     Route::get('api/schedules', [\App\Http\Controllers\PlazaController::class, 'getAllSchedules'])->name('api.schedules');
     Route::get('{id}/data', [\App\Http\Controllers\PlazaController::class, 'getLocalData'])->name('local.data')->where('id', '[0-9]+');
+    Route::get('{id}/resenas-html', [\App\Http\Controllers\PlazaController::class, 'getResenasHtml'])->name('local.resenas-html')->where('id', '[0-9]+'); // 
     Route::get('{id}', [\App\Http\Controllers\PlazaController::class, 'show'])->name('show')->where('id', '[0-9]+');
     Route::get('{local_id}/producto/{product_id}', [\App\Http\Controllers\PlazaController::class, 'showProduct'])->name('product.detail')->where(['local_id' => '[0-9]+', 'product_id' => '[0-9]+']);
     

@@ -105,17 +105,31 @@ class ReviewController extends Controller
 }
 
         $authorUserId = null;
+        $reviewEntityId = null;
         if ($request->review_type === 'local') {
-            $authorUserId = LocalReview::where('local_review_id', $id)->value('user_id');
+            $localReview = LocalReview::where('local_review_id', $id)->first();
+            $authorUserId = $localReview?->user_id;
+            $reviewEntityId = $localReview?->review_id;
         } else {
-            $authorUserId = ProductReview::where('product_review_id', $id)->value('user_id');
+            $productReview = ProductReview::where('product_review_id', $id)->first();
+            $authorUserId = $productReview?->user_id;
+            $reviewEntityId = $productReview?->review_id;
         }
         if ($authorUserId) {
             broadcast(new UserNotification(
-                (int) $authorUserId,
-                'review_reply',
-                '¡Tu reseña recibió una respuesta del local!',
-                'resenas'
+                userId:  (int) $authorUserId,
+                type:    'review_reply',
+                message: '¡Tu reseña recibió una respuesta!',
+                section: 'resenas',
+                icon:    'star',
+                extra: [
+                    'review_id'        => $reviewEntityId ? (int) $reviewEntityId : (int) $id,
+                    'review_type'      => $request->review_type,
+                    'response_text'    => $request->response,
+                    'local_name'       => $local->name,
+                    'local_review_id'  => $request->review_type === 'local' ? (int) $id : null,
+                    'product_review_id'=> $request->review_type === 'product' ? (int) $id : null,
+                ]
             ));
         }
 
