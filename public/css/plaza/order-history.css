@@ -304,7 +304,7 @@ main {
 }
 
 .order-card-content {
-    padding: 28px;
+    padding: 28px 28px 24px 28px;
     animation: slideDown 0.3s ease;
 }
 
@@ -339,7 +339,7 @@ main {
 }
 
 .order-items {
-    margin-bottom: 20px;
+    margin-bottom: 48px;
 }
 
 .items-label {
@@ -419,8 +419,10 @@ main {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 20px;
+    padding-top: 40px;
+    padding-bottom: 12px;
     border-top: 1px solid var(--border);
+    margin-top: 24px;
 }
 
 .reorder-btn {
