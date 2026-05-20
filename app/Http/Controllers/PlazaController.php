@@ -82,9 +82,13 @@ class PlazaController extends Controller
                 ->with(['productReviews.review' => function ($query) {
                     $query->select('review_id', 'rating');
                 }])
-                ->inRandomOrder()
-                ->limit(2)
-                ->get();
+                ->get()
+                // Ordenar por rating promedio (descendente) y obtener los 3 mejores
+                ->sortByDesc(function ($product) {
+                    return $product->average_rating;
+                })
+                ->take(3)
+                ->values();
             $productosAleatorios = $productosAleatorios->merge($productosLocal);
         }
 
@@ -161,7 +165,12 @@ class PlazaController extends Controller
                     $query->select('review_id', 'rating');
                 }
             ])
-            ->get();
+            ->get()
+            // Ordenar por rating (promedio) descendente para que el mejor sea el destacado
+            ->sortByDesc(function ($product) {
+                return $product->average_rating;
+            })
+            ->values();
 
         // IDs de productos actualmente inactivos (para pre-inicializar disabledProductIds en Vue)
         $productosInactivosIds = $productos
@@ -290,14 +299,38 @@ class PlazaController extends Controller
         $product = Product::where('product_id', $product_id)
             ->where('status', 'Available')
             ->with([
-                'gallery',
+                'gallery' => function ($query) {
+                    $query->orderBy('product_gallery_id', 'asc');
+                },
                 'productReviews.review' => function ($query) {
                     $query->select('review_id', 'rating', 'comment', 'date', 'created_at');
                 }
             ])
             ->firstOrFail();
 
-        $gallery = $product->gallery ?? collect();
+        // Enriquecer galería con toda la información de la BD (mantener TODAS las fotos)
+        $gallery = ($product->gallery ?? collect())->map(function ($galleryItem) use ($product) {
+            return [
+                'product_gallery_id' => $galleryItem->product_gallery_id,
+                'product_id'         => $galleryItem->product_id,
+                'image_url'          => $galleryItem->image_url,
+                'created_at'         => $galleryItem->created_at,
+                'updated_at'         => $galleryItem->updated_at,
+            ];
+        })->values();
+
+        // SIEMPRE incluir la foto principal al inicio, seguida de las fotos de la galería
+        if ($product->photo) {
+            $mainPhoto = collect([
+                [
+                    'product_gallery_id' => 0,
+                    'product_id'         => $product->product_id,
+                    'image_url'          => $product->photo_url,
+                    'is_main'            => true,
+                ]
+            ]);
+            $gallery = $mainPhoto->concat($gallery);
+        }
 
         $reviews = ProductReview::where('product_id', $product_id)
             ->with(['review', 'user'])

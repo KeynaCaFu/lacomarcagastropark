@@ -44,7 +44,6 @@
                 <a href="{{ route('plaza.index') }}" class="btn-back">
                     <i class="fas fa-chevron-left"></i> Atrás
                 </a>
-                <span class="header-label">Menú</span>
                 <div class="flex-row">
                     <!-- Calendar Button (visible to all) -->
                     <button @click="openEventsDrawer" class="cart-btn" :style="{ borderColor: showEventsDrawer ? 'var(--primary)' : 'var(--border-light)' }">
@@ -243,9 +242,6 @@
                                 <p class="featured-label"><i class="fas fa-crown"></i> &nbsp;Destacado</p>
                             @endif
                             <h3 class="p-card-name">{{ $producto->name }}</h3>
-                            @if($i === 0 && $producto->description)
-                                <p class="featured-desc">{{ $producto->description }}</p>
-                            @endif
                             <div class="p-card-stars">
                                 @php
                                     $rating = round($producto->average_rating ?? 0);
