@@ -69,30 +69,26 @@
             background-color: #dcfce7;
             color: #166534;
         }
-        .order-card-quick-action {
-            padding: 0 16px 24px;
-        }
-        .cancel-order-btn-link {
+        .cancel-order-btn-inline {
             background: linear-gradient(135deg, #d4773a 0%, #c06830 100%);
             color: #fff;
             border: none;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 0.85rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            text-decoration: none;
+            gap: 5px;
+            white-space: nowrap;
+            line-height: 1.4;
         }
-        .cancel-order-btn-link:hover {
+        .cancel-order-btn-inline:hover {
             background: linear-gradient(135deg, #c06830 0%, #a85a28 100%);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(212, 119, 58, 0.35);
+            box-shadow: 0 3px 8px rgba(212, 119, 58, 0.4);
         }
         .order-items {
             margin-bottom: 48px !important;
@@ -244,21 +240,19 @@
                                         <i class="fas fa-{{ $order->status == 'Delivered' ? 'check-circle' : ($order->status == 'Cancelled' ? 'times-circle' : ($order->status == 'Ready' ? 'check' : 'clock')) }}"></i>
                                         {{ $order->status == 'Delivered' ? 'Entregado' : ($order->status == 'Preparing' ? 'En Preparación' : ($order->status == 'Ready' ? 'Listo' : ($order->status == 'Pending' ? 'Pendiente' : $order->status))) }}
                                     </div>
+                                    @if($order->status === 'Pending')
+                                    <button class="cancel-order-btn-inline"
+                                            v-show="(realtimeOrderStatuses[{{ $order->order_id }}] || '{{ $order->status }}') === 'Pending'"
+                                            @click.stop="confirmCancellationRequest({{ $order->order_id }}, '{{ $order->order_number }}')">
+                                        Cancelar y Editar
+                                    </button>
+                                    @endif
                                 </div>
                                 <div class="order-card-header-right">
                                     <div class="order-quick-total">₡{{ number_format($order->total_amount, 2, '.', ',') }}</div>
                                     <i class="fas fa-chevron-down"></i>
                                 </div>
                             </div>
-
-                            <!-- CANCELAR - SIEMPRE VISIBLE (solo Pending) -->
-                            @if($order->status === 'Pending')
-                            <div class="order-card-quick-action">
-                                <button class="cancel-order-btn-link" @click="confirmCancellationRequest({{ $order->order_id }}, '{{ $order->order_number }}')">
-                                    <i class="fas fa-times-circle"></i> Cancelar y Editar
-                                </button>
-                            </div>
-                            @endif
 
                             <!-- ACCORDION CONTENT (COLLAPSIBLE) -->
                             <div class="order-card-content" style="display: none;">
