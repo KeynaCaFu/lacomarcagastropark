@@ -169,6 +169,7 @@
                         >
                         <i class="fa-solid fa-user"></i>
                     </div>
+                    <span class="form-error" id="full_name_error" style="display:none;"></span>
                     @error('full_name')
                         <span class="form-error">{{ $message }}</span>
                     @enderror
@@ -188,6 +189,7 @@
                         >
                         <i class="fa-solid fa-envelope"></i>
                     </div>
+                    <span class="form-error" id="reg_email_error" style="display:none;">Ingresa un correo válido (ej: nombre@dominio.com)</span>
                     @error('email')
                         <span class="form-error">{{ $message }}</span>
                     @enderror
@@ -200,12 +202,15 @@
                             id="phone"
                             type="text"
                             name="phone"
-                            placeholder="Teléfono (opcional)"
+                            placeholder="0000-0000 (opcional)"
                             value="{{ old('phone') }}"
                             autocomplete="tel"
+                            maxlength="9"
+                            inputmode="numeric"
                         >
                         <i class="fa-solid fa-phone"></i>
                     </div>
+                    <span class="form-error" id="phone_error" style="display:none;"></span>
                     @error('phone')
                         <span class="form-error">{{ $message }}</span>
                     @enderror
@@ -213,17 +218,23 @@
 
                 <div class="form-group">
                     <label for="reg_password" class="sr-only">Contraseña</label>
-                    <div class="input-icon">
-                        <input
-                            id="reg_password"
-                            type="password"
-                            name="password"
-                            placeholder="Contraseña"
-                            required
-                            autocomplete="new-password"
-                        >
-                        <i class="fa-solid fa-lock"></i>
+                    <div class="password-group">
+                        <div class="input-icon">
+                            <input
+                                id="reg_password"
+                                type="password"
+                                name="password"
+                                placeholder="Contraseña"
+                                required
+                                autocomplete="new-password"
+                            >
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <button type="button" id="toggleRegPassword" class="toggle-btn">
+                            <i class="fa-solid fa-eye-slash"></i>
+                        </button>
                     </div>
+                    <span class="form-error" id="reg_password_error" style="display:none;"></span>
                     @error('password')
                         <span class="form-error">{{ $message }}</span>
                     @enderror
@@ -231,17 +242,23 @@
 
                 <div class="form-group">
                     <label for="password_confirmation" class="sr-only">Confirmar contraseña</label>
-                    <div class="input-icon">
-                        <input
-                            id="password_confirmation"
-                            type="password"
-                            name="password_confirmation"
-                            placeholder="Confirmar contraseña"
-                            required
-                            autocomplete="new-password"
-                        >
-                        <i class="fa-solid fa-lock"></i>
+                    <div class="password-group">
+                        <div class="input-icon">
+                            <input
+                                id="password_confirmation"
+                                type="password"
+                                name="password_confirmation"
+                                placeholder="Confirmar contraseña"
+                                required
+                                autocomplete="new-password"
+                            >
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <button type="button" id="toggleRegPasswordConfirm" class="toggle-btn">
+                            <i class="fa-solid fa-eye-slash"></i>
+                        </button>
                     </div>
+                    <span class="form-error" id="password_confirm_error" style="display:none;"></span>
                 </div>
 
                 <button type="submit" class="btn-register">Registrarme</button>
@@ -1658,7 +1675,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // Mostrar registro si viene de la ruta /register o hay error
-    const shouldShowRegister = {{ (old('is_register') || (isset($auth_mode) && $auth_mode === 'register')) ? 'true' : 'false' }};
+    const shouldShowRegister = {{ old('is_register') || isset($auth_mode) && $auth_mode === 'register' ? 'true' : 'false' }};
     if (shouldShowRegister) {
         authContainer.classList.add('show-register');
     }
@@ -1712,15 +1729,142 @@ document.addEventListener('DOMContentLoaded', function () {
         switchLoginFromRecoveryResponsiveBtn.addEventListener('click', switchToLogin);
     }
 
-    // Toggle contraseña
+    // Toggle contraseña (login)
     if (togglePasswordBtn && passwordInput) {
         togglePasswordBtn.addEventListener('click', () => {
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
-            
             const icon = togglePasswordBtn.querySelector('i');
             icon.classList.toggle('fa-eye');
             icon.classList.toggle('fa-eye-slash');
+        });
+    }
+
+    // Toggle contraseña (registro)
+    const toggleRegPasswordBtn = document.getElementById('toggleRegPassword');
+    const regPasswordInput = document.getElementById('reg_password');
+    if (toggleRegPasswordBtn && regPasswordInput) {
+        toggleRegPasswordBtn.addEventListener('click', () => {
+            const type = regPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            regPasswordInput.setAttribute('type', type);
+            const icon = toggleRegPasswordBtn.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+    }
+
+    // Toggle confirmar contraseña (registro)
+    const toggleRegPasswordConfirmBtn = document.getElementById('toggleRegPasswordConfirm');
+    const regPasswordConfirmInput = document.getElementById('password_confirmation');
+    if (toggleRegPasswordConfirmBtn && regPasswordConfirmInput) {
+        toggleRegPasswordConfirmBtn.addEventListener('click', () => {
+            const type = regPasswordConfirmInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            regPasswordConfirmInput.setAttribute('type', type);
+            const icon = toggleRegPasswordConfirmBtn.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+    }
+
+    // ── VALIDACIÓN EN TIEMPO REAL: FORMULARIO DE REGISTRO ──
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    const phoneRegex = /^\d{4}-\d{4}$/;
+
+    function setFieldState(input, errorEl, message) {
+        if (message) {
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            input.style.borderColor = '#ff6b6b';
+            input.style.boxShadow = '0 0 0 3px rgba(255,107,107,0.2)';
+        } else {
+            errorEl.style.display = 'none';
+            input.style.borderColor = '#4caf50';
+            input.style.boxShadow = '0 0 0 3px rgba(76,175,80,0.15)';
+        }
+    }
+
+    function clearFieldState(input, errorEl) {
+        errorEl.style.display = 'none';
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+    }
+
+    function makeField(id, errorId, validate) {
+        const input = document.getElementById(id);
+        const errorEl = document.getElementById(errorId);
+        if (!input || !errorEl) return null;
+        let touched = false;
+        const run = () => {
+            if (!touched) return true;
+            const msg = validate(input.value);
+            msg ? setFieldState(input, errorEl, msg) : setFieldState(input, errorEl, null);
+            return !msg;
+        };
+        input.addEventListener('blur', () => { touched = true; run(); });
+        input.addEventListener('input', run);
+        return { input, run, touch: () => { touched = true; run(); }, isValid: () => !validate(input.value) };
+    }
+
+    const fields = {
+        name: makeField('full_name', 'full_name_error', v => {
+            if (!v.trim()) return 'El nombre es requerido.';
+            if (v.trim().length < 3) return 'Debe tener al menos 3 caracteres.';
+            return null;
+        }),
+        email: makeField('reg_email', 'reg_email_error', v => {
+            if (!v.trim()) return 'El correo es requerido.';
+            if (!emailRegex.test(v.trim())) return 'Ingresa un correo válido (ej: nombre@dominio.com).';
+            return null;
+        }),
+        phone: makeField('phone', 'phone_error', v => {
+            if (!v) return null; // opcional
+            if (!phoneRegex.test(v)) return 'El formato debe ser 0000-0000.';
+            return null;
+        }),
+        password: makeField('reg_password', 'reg_password_error', v => {
+            if (!v) return 'La contraseña es requerida.';
+            if (v.length < 8) return 'Debe tener al menos 8 caracteres.';
+            return null;
+        }),
+        confirm: makeField('password_confirmation', 'password_confirm_error', v => {
+            const pw = document.getElementById('reg_password');
+            if (!v) return 'Confirma tu contraseña.';
+            if (pw && v !== pw.value) return 'Las contraseñas no coinciden.';
+            return null;
+        }),
+    };
+
+    // Re-validar confirmar cuando cambia la contraseña principal
+    const regPwInput = document.getElementById('reg_password');
+    if (regPwInput && fields.confirm) {
+        regPwInput.addEventListener('input', () => fields.confirm.run && fields.confirm.run());
+    }
+
+    // Formateo automático teléfono: solo números, formato 0000-0000
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function () {
+            let digits = this.value.replace(/\D/g, '').slice(0, 8);
+            this.value = digits.length > 4 ? digits.slice(0, 4) + '-' + digits.slice(4) : digits;
+        });
+        phoneInput.addEventListener('keydown', function (e) {
+            const allowed = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'];
+            if (allowed.includes(e.key) || (e.ctrlKey && ['a','c','v','x'].includes(e.key.toLowerCase()))) return;
+            if (!/^\d$/.test(e.key)) e.preventDefault();
+        });
+    }
+
+    // Bloquear submit si hay errores
+    const registerForm = document.querySelector('#registerPanel form');
+    if (registerForm) {
+        registerForm.addEventListener('submit', function (e) {
+            let valid = true;
+            Object.values(fields).forEach(f => { if (f && !f.isValid()) { f.touch(); valid = false; } });
+            if (!valid) {
+                e.preventDefault();
+                const firstError = registerForm.querySelector('input[style*="ff6b6b"]');
+                if (firstError) firstError.focus();
+            }
         });
     }
 
