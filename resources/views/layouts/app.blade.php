@@ -564,7 +564,8 @@
                                             <i class="fas fa-home"></i> Dashboard
                                         </a>
                                         <a href="{{ route('local.index') }}" class="mobile-nav-item {{ request()->routeIs('local*') ? 'active' : '' }}">
-                                            <i class="fas fa-store"></i> Mi Local   
+                                            <i class="fas fa-store"></i> Mi Local
+                                        </a>
                                         <a href="{{ route('products.index') }}" class="mobile-nav-item {{ request()->routeIs('products*') ? 'active' : '' }}">
                                             <i class="fas fa-box"></i> Productos
                                         </a>
