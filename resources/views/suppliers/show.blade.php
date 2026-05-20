@@ -3,6 +3,12 @@
 @section('title', 'Detalles del Proveedor')
 
 @push('styles')
+<style>
+    .top-search-bar { display: none !important; }
+</style>
+@endpush
+
+@push('styles')
     <link href="{{ asset('css/modals.css') }}" rel="stylesheet">
     <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
 
@@ -82,8 +88,8 @@
 
         .supplier-info-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(240px, 1fr));
-            gap: 22px 32px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px 24px;
         }
 
         .supplier-info-item .label {
@@ -200,9 +206,60 @@
             font-weight: 700;
         }
 
+        @media (max-width: 1024px) {
+            .supplier-detail-page {
+                padding: 0 4px;
+            }
+
+            .supplier-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            /* Botones del header de galería en tablet: en línea con flex-wrap */
+            .supplier-card-header form {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
         @media (max-width: 768px) {
+            .supplier-title {
+                font-size: 22px;
+            }
+
             .supplier-info-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .supplier-card-body {
+                padding: 14px;
+            }
+
+            .supplier-gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 12px;
+            }
+
+            .supplier-gallery-item img,
+            .supplier-pdf-box {
+                height: 140px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .supplier-title {
+                font-size: 18px;
+            }
+
+            .supplier-card-body {
+                padding: 12px;
+            }
+
+            .supplier-gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
             }
         }
     </style>

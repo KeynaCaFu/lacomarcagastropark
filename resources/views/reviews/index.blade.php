@@ -1,388 +1,7 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/reviews.css') }}?v={{ time() }}">
-<style>
-    /* Override: response box naranja */
-    .review-response-box--orange {
-        border-left-color: #e18018 !important;
-        background: #fff8f0 !important;
-    }
-    .review-response-box--orange .review-response-title {
-        color: #e18018 !important;
-    }
-
-    /* Header de respuesta con título + iconos alineados */
-    .review-response-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 6px;
-    }
-
-    /* Iconos editar / eliminar */
-    .response-icon-actions {
-        display: flex;
-        gap: 6px;
-        align-items: center;
-    }
-
-    .response-icon-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
-        border: 1.5px solid;
-        background: #fff;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        transition: all 0.2s ease;
-    }
-
-    .response-icon-edit {
-        border-color: #9ca3af;
-        color: #374151;
-    }
-    .response-icon-edit:hover {
-        background: #f3f4f6;
-        border-color: #6b7280;
-    }
-
-    .response-icon-delete {
-        border-color: #9f0505;
-        color: #9f0505;
-    }
-    .response-icon-delete:hover {
-        background: #fee2e2;
-        border-color: #d81b1b;
-        color: #d81b1b;
-    }
-
-    .char-counter {
-        position: absolute;
-        top: 8px;
-        right: 10px;
-        font-size: 11px;
-        color: #9ca3af;
-        pointer-events: none;
-        background: rgba(255,255,255,0.85);
-        padding: 1px 4px;
-        border-radius: 4px;
-        z-index: 2;
-        font-weight: 500;
-    }
-    .char-counter.warn {
-        color: #e18018;
-    }
-    .char-counter.limit {
-        color: #dc2626;
-    }
-    .textarea-wrap {
-        position: relative;
-    }
-    .textarea-wrap textarea {
-        padding-top: 28px !important;
-    }
-
-    /* ── FILTROS COLAPSABLES ── */
-    .reviews-filters-toggle {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 9px 16px;
-        border: 1.5px solid #d1d5db;
-        border-radius: 8px;
-        background: #fff;
-        font-size: 14px;
-        font-weight: 600;
-        color: #374151;
-        cursor: pointer;
-        transition: background 0.2s, border-color 0.2s;
-        margin-bottom: 16px;
-    }
-    .reviews-filters-toggle:hover {
-        background: #f9fafb;
-        border-color: #9ca3af;
-    }
-    .reviews-filters-toggle i.chevron {
-        font-size: 11px;
-        transition: transform 0.2s ease;
-    }
-    .reviews-filters-toggle.open i.chevron {
-        transform: rotate(180deg);
-    }
-
-    .reviews-filters-bar {
-        display: flex;
-        align-items: flex-end;
-        gap: 14px;
-        flex-wrap: wrap;
-        margin-bottom: 22px;
-        padding: 16px 18px;
-        background: #f9fafb;
-        border: 1.5px solid #e5e7eb;
-        border-radius: 10px;
-    }
-
-    .filter-group {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-    }
-
-    .filter-group label {
-        font-size: 11px;
-        font-weight: 700;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .filter-group select,
-    .filter-group input[type="date"] {
-        height: 36px;
-        padding: 0 10px;
-        border: 1.5px solid #d1d5db;
-        border-radius: 8px;
-        font-size: 13px;
-        color: #374151;
-        background: #fff;
-        cursor: pointer;
-        outline: none;
-        transition: border-color 0.2s;
-        min-width: 140px;
-    }
-
-    .filter-group select:focus,
-    .filter-group input[type="date"]:focus {
-        border-color: #915016;
-    }
-
-    .filter-clear-btn {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        height: 36px;
-        padding: 0 18px;
-        border: 1.5px solid #d1d5db;
-        border-radius: 8px;
-        background: #fff;
-        font-size: 13px;
-        font-weight: 500;
-        color: #374151;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-        align-self: flex-end;
-    }
-    .filter-clear-btn:hover {
-        background: #f3f4f6;
-        border-color: #9ca3af;
-    }
-    .filter-clear-btn i {
-        font-size: 13px;
-        color: #6b7280;
-    }
-    .reviews-pagination {
-    display: flex;
-    justify-content: center;
-    margin-top: 24px;
-}
-.reviews-pagination nav {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-}
-</style>
-<style>
-    /* MODAL */
-    .review-modal {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 1000;
-        opacity: 1;
-        transition: opacity 0.3s ease;
-    }
-
-    .review-modal.hidden {
-        display: none;
-        opacity: 0;
-    }
-
-    .review-modal-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        cursor: pointer;
-    }
-
-    .review-modal-content {
-        position: relative;
-        background: white;
-        border-radius: 16px;
-        padding: 32px;
-        max-width: 600px;
-        width: 90%;
-        max-height: 80vh;
-        overflow-y: auto;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    }
-
-    .review-modal-close {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        width: 40px;
-        height: 40px;
-        border: none;
-        background: transparent;
-        font-size: 32px;
-        color: #9ca3af;
-        cursor: pointer;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: color 0.2s ease;
-    }
-
-    .review-modal-close:hover {
-        color: #374151;
-    }
-
-    .review-modal-header {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 24px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    .review-modal-avatar {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #915016, #c67c3f);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 18px;
-        flex-shrink: 0;
-    }
-
-    .review-modal-info {
-        flex: 1;
-    }
-
-    .review-modal-name {
-        font-size: 18px;
-        font-weight: 700;
-        color: #181818;
-        margin-bottom: 4px;
-    }
-
-    .review-modal-fecha {
-        font-size: 14px;
-        color: #9ca3af;
-    }
-
-    .review-modal-badge {
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .review-modal-badge.positive {
-        background: #dcfce7;
-        color: #166534;
-    }
-
-    .review-modal-badge.neutral {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .review-modal-badge.negative {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-
-    .review-modal-body {
-        margin-top: 16px;
-    }
-
-    .review-modal-producto {
-        background: #f9fafb;
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 16px;
-        font-size: 14px;
-        color: #374151;
-    }
-
-    .review-modal-calificacion-title {
-        font-size: 14px;
-        font-weight: 700;
-        color: #3c3c3c;
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .review-modal-comentario-title {
-        font-size: 14px;
-        font-weight: 700;
-        color: #3c3c3c;
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-top: 16px;
-    }
-
-    .review-modal-rating {
-        display: flex;
-        gap: 4px;
-        margin-bottom: 16px;
-    }
-
-    .review-modal-rating .star {
-        font-size: 20px;
-        color: #d1d5db;
-    }
-
-    .review-modal-rating .star.filled {
-        color: #fbbf24;
-    }
-
-    .review-modal-comentario {
-        font-size: 16px;
-        line-height: 1.6;
-        color: #374151;
-        margin-bottom: 16px;
-        background: #f9fafb;
-        padding: 16px;
-        border-radius: 8px;
-    }
-
-    .review-modal-respuesta {
-        margin-top: 16px;
-    }
-</style>
 @endpush
 
 @section('title', 'Reseñas')
@@ -910,6 +529,12 @@
             overlay.addEventListener('click', closeReviewModal);
         }
 
+        // Top search bar integration for reviews
+        const topSearchInput = document.getElementById('topSearchInput');
+        if (topSearchInput) {
+            topSearchInput.addEventListener('input', applySearchFromTopBar);
+        }
+
         // Cerrar modal con tecla Escape
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
@@ -937,6 +562,157 @@
             });
         });
         @endif
+
+        // Escuchar nuevas reseñas en tiempo real
+        function esperarEcho() {
+            if (!window.Echo) {
+                setTimeout(esperarEcho, 300);
+                return;
+            }
+            
+            const localId = {{ auth()->user()->locals()->first()?->local_id ?? 'null' }};
+            if (!localId) return;
+
+            window.Echo.channel(`local.${localId}`)
+                .listen('NewReviewPosted', (data) => {
+                    console.log('✓ Nueva reseña recibida en panel:', data);
+                    agregarReseñaAlGrid(data);
+                });
+        }
+
+        {{-- 
+    REEMPLAZAR SOLO la función agregarReseñaAlGrid en el archivo resenas/index.blade.php
+    Busque: function agregarReseñaAlGrid(data) {
+    y reemplace todo el bloque hasta el último } de esa función
+--}}
+
+        function agregarReseñaAlGrid(data) {
+            const reviewType = data.review_type || 'local';
+            const gridId = reviewType === 'product' ? 'grid-productos' : 'grid-locales';
+            const grid = document.getElementById(gridId);
+            if (!grid) return;
+
+            // Determinar tipo según rating
+            let tipoTexto, tipoClase;
+            if (data.rating >= 4)      { tipoTexto = 'Positiva'; tipoClase = 'positive'; }
+            else if (data.rating == 3) { tipoTexto = 'Neutra';   tipoClase = 'neutral';  }
+            else                       { tipoTexto = 'Negativa'; tipoClase = 'negative'; }
+
+            // Estrellas
+            const estrellas = Array.from({length: 5}, (_, i) =>
+                `<span class="star ${i < data.rating ? 'filled' : ''}">★</span>`
+            ).join('');
+
+            // Iniciales del nombre
+            const nombre   = data.client_name || 'Cliente';
+            const iniciales = nombre.split(' ').slice(0, 2).map(p => p[0]?.toUpperCase() || '').join('') || 'CL';
+
+            // Fecha formateada
+            const hoy = new Date();
+            const fechaRaw = hoy.toISOString().split('T')[0]; // yyyy-mm-dd
+            const fechaDisplay = hoy.toLocaleDateString('es-CR'); // dd/mm/yyyy
+
+            // Comentario
+            const comentario = data.comment && data.comment.trim() ? data.comment : 'Sin comentario.';
+            const producto = reviewType === 'product' ? data.product_name || 'Producto' : '';
+
+            // ID único temporal para la card (para evitar colisiones)
+            const tempId = 'realtime-' + Date.now();
+
+            const card = document.createElement('div');
+            card.className = 'review-card review-card-clickable';
+            card.setAttribute('data-modal-nombre',     nombre);
+            card.setAttribute('data-modal-iniciales',  iniciales);
+            card.setAttribute('data-modal-fecha',      fechaDisplay);
+            card.setAttribute('data-modal-fecha-raw',  fechaRaw);
+            card.setAttribute('data-modal-rating',     data.rating);
+            card.setAttribute('data-modal-comentario', comentario);
+            card.setAttribute('data-modal-tipo-texto', tipoTexto);
+            card.setAttribute('data-modal-tipo-clase', tipoClase);
+            card.setAttribute('data-modal-respuesta',  '');
+            card.setAttribute('data-modal-producto',   '');
+            card.setAttribute('onclick', 'openReviewModal(this, event)');
+
+            card.innerHTML = `
+                <div class="review-card-header">
+                    <div class="review-user-box">
+                        <div class="review-avatar">${iniciales}</div>
+                        <div>
+                            <div class="review-user-name">${nombre}</div>
+                            <div class="review-date">${fechaDisplay}</div>
+                        </div>
+                    </div>
+                    <span class="review-badge ${tipoClase}">${tipoTexto}</span>
+                </div>
+
+                <div class="review-stars">${estrellas}</div>
+
+                <div class="review-comment">${comentario}</div>
+                ${producto ? `<div class="review-product-label" style="margin-top:10px;color:#6b7280;font-size:13px;">Producto: ${producto}</div>` : ''}
+
+                <div class="review-action-area">
+                    <button class="reply-btn respond-toggle-btn" type="button"
+                            onclick="toggleReplyBox(this)">
+                        Responder
+                    </button>
+                    <form action="/resenas/${data.review_entry_id}/responder"
+                          method="POST"
+                          class="reply-box hidden respond-form"
+                          style="display:none;">
+                        <input type="hidden" name="_token" value="${document.querySelector('meta[name=csrf-token]')?.content || ''}">
+                        <input type="hidden" name="review_type" value="${reviewType}">
+                        <div class="textarea-wrap">
+                            <span class="char-counter" id="counter-${tempId}">0/1000</span>
+                            <textarea name="response"
+                                      placeholder="Escribir respuesta..."
+                                      required
+                                      maxlength="1000"
+                                      data-counter="counter-${tempId}"
+                                      oninput="updateCounter(this, 'counter-${tempId}')"></textarea>
+                        </div>
+                        <div class="reply-actions">
+                            <button class="reply-save-btn" type="button"
+                                    onclick="confirmSaveResponse(this)">Guardar respuesta</button>
+                            <button class="reply-btn" type="button"
+                                    onclick="cancelNewResponse(this)">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+            // Insertar al inicio del grid
+            grid.prepend(card);
+
+            // Si había mensaje de "sin reseñas", ocultarlo
+            const emptyState = document.querySelector(`#tab-${reviewType === 'product' ? 'productos' : 'locales'} .reviews-empty-state`);
+            if (emptyState) emptyState.style.display = 'none';
+
+            const statsPrefix = reviewType === 'product' ? '#tab-productos' : '#tab-locales';
+            const statMes = document.querySelector(`${statsPrefix} .review-stat-text`);
+            if (statMes && statMes.textContent.includes('Este mes:')) {
+                const match = statMes.textContent.match(/Este mes: (\d+)/);
+                if (match) {
+                    statMes.textContent = `Este mes: ${parseInt(match[1]) + 1}`;
+                }
+            }
+
+            const statTotal = document.querySelector(`${statsPrefix} .review-stat-value`);
+            if (statTotal) {
+                const current = parseInt(statTotal.textContent) || 0;
+                statTotal.textContent = current + 1;
+            }
+
+            // Animación suave de entrada
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(-10px)';
+            card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            requestAnimationFrame(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            });
+        }
+
+        esperarEcho();
     });
 
     function waitForSwal(cb) {
@@ -1077,9 +853,13 @@
     }
 
     function confirmSaveResponse(btn) {
-        const form     = btn.closest('form');
+        const form = btn.closest('form');
+        if (!form) {
+            console.error('No se encontró el formulario de respuesta.');
+            return;
+        }
         const textarea = form.querySelector('textarea');
-        if (!textarea.value.trim()) {
+        if (!textarea || !textarea.value.trim()) {
             window.swToast && window.swToast.fire({ icon: 'warning', title: 'Por favor escribe una respuesta.' });
             return;
         }
@@ -1093,14 +873,23 @@
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#915016',
                 cancelButtonColor: '#6b7280',
-            }).then(result => { if (result.isConfirmed) form.submit(); });
+            }).then(result => {
+                if (result.isConfirmed) {
+                    if (typeof form.requestSubmit === 'function') form.requestSubmit();
+                    else form.submit();
+                }
+            });
         });
     }
 
     function confirmSaveEdit(btn) {
-        const form     = btn.closest('form');
+        const form = btn.closest('form');
+        if (!form) {
+            console.error('No se encontró el formulario de edición de respuesta.');
+            return;
+        }
         const textarea = form.querySelector('textarea');
-        if (!textarea.value.trim()) {
+        if (!textarea || !textarea.value.trim()) {
             window.swToast && window.swToast.fire({ icon: 'warning', title: 'Por favor escribe una respuesta.' });
             return;
         }
@@ -1114,7 +903,12 @@
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#915016',
                 cancelButtonColor: '#6b7280',
-            }).then(result => { if (result.isConfirmed) form.submit(); });
+            }).then(result => {
+                if (result.isConfirmed) {
+                    if (typeof form.requestSubmit === 'function') form.requestSubmit();
+                    else form.submit();
+                }
+            });
         });
     }
 
@@ -1151,6 +945,7 @@
 
         const fecha  = document.getElementById(prefix + '-filter-fecha')?.value  || '';
         const rating = document.getElementById(prefix + '-filter-rating')?.value || '';
+        const search = document.getElementById('topSearchInput')?.value || '';
 
         const grid = document.getElementById(gridId);
         if (!grid) return;
@@ -1160,10 +955,12 @@
         grid.querySelectorAll('.review-card').forEach(card => {
             const cardFecha  = card.getAttribute('data-modal-fecha-raw') || '';
             const cardRating = card.getAttribute('data-modal-rating')    || '';
+            const cardNombre = card.getAttribute('data-modal-nombre')?.toLowerCase() || '';
 
             let show = true;
             if (fecha  && cardFecha  !== fecha)  show = false;
             if (rating && cardRating !== rating) show = false;
+            if (search && !cardNombre.includes(search.toLowerCase())) show = false;
 
             card.style.display = show ? '' : 'none';
             if (show) visible++;
@@ -1171,6 +968,11 @@
 
         const noRes = document.getElementById(noResId);
         if (noRes) noRes.classList.toggle('hidden', visible > 0);
+    }
+
+    function applySearchFromTopBar() {
+        applyFilters('local');
+        applyFilters('product');
     }
 
     function clearFilters(type) {

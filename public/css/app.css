@@ -27,6 +27,17 @@ body {
     flex-direction: row;
 }
 
+ /* Ocultar scrollbar naranja en esta vista */
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar,
+    #mainContent::-webkit-scrollbar {
+        display: none;
+    }
+    html, body, #mainContent {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
 .products-container {
     background: white;
     border-radius: 12px;

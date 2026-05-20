@@ -300,24 +300,39 @@
                 padding: 12px;
                 border-radius: 8px;
             }
-            
+
             .header-left h1 {
                 font-size: 22px;
             }
-            
+
             .stats-summary {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 10px;
             }
-            
+
             .locales-grid {
                 grid-template-columns: 1fr;
                 gap: 12px;
             }
-            
+
             .local-card-header {
                 height: 120px;
             }
+        }
+
+        /* Validación inline modales de locales */
+        .field-error {
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .field-error i { font-size: 11px; }
+        input.input-error, select.input-error {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 2px rgba(220,38,38,0.12) !important;
         }
     </style>
 @endpush
@@ -360,101 +375,9 @@
         </div>
         
         <!-- Locales Grid -->
-        @if($locales->count() > 0)
-            <div class="locales-grid">
-                @foreach($locales as $local)
-                    <div class="local-card">
-                        <!-- Card Header with Image -->
-                        <div class="local-card-header">
-                            @if($local->image_logo)
-                                <img src="{{ asset($local->image_logo) }}" alt="{{ $local->name }}">
-                            @else
-                                <div class="local-card-header-placeholder">
-                                    <i class="fas fa-store"></i>
-                                </div>
-                            @endif
-                        </div>
-                        
-                        <!-- Card Body -->
-                        <div class="local-card-body">
-                            <div class="local-card-head">
-                                <h3 class="local-card-name" title="{{ $local->name }}">{{ $local->name }}</h3>
-                                <div class="local-actions">
-                                    <button type="button"
-                                            class="icon-action-btn edit btn-edit-local"
-                                            data-id="{{ $local->local_id }}"
-                                            data-name="{{ $local->name }}"
-                                            data-manager-id="{{ optional($local->users->first())->user_id }}"
-                                            data-update-url="{{ route('locales.update', $local->local_id) }}"
-                                            title="Editar local">
-                                        <i class="fas fa-pen-to-square"></i>
-                                    </button>
-                                    <form id="del-local-{{ $local->local_id }}" method="POST" action="{{ route('locales.destroy', $local->local_id) }}" style="display:inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" class="icon-action-btn delete btn-delete" data-id="{{ $local->local_id }}" data-name="{{ $local->name }}" title="Eliminar local">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                            
-                            <!-- Status Badge -->
-                            <div class="local-card-status status-toggler {{ $local->status === 'Active' ? 'status-active' : 'status-inactive' }}" 
-                                 data-local-id="{{ $local->local_id }}"
-                                 data-current-status="{{ $local->status }}"
-                                 data-status-label="{{ $local->status === 'Active' ? 'Activo' : 'Inactivo' }}"
-                                 title="Haz clic para cambiar el estado">
-                                <i class="fas fa-{{ $local->status === 'Active' ? 'check-circle' : 'times-circle' }}"></i>
-                                <span>{{ $local->status === 'Active' ? 'Activo' : 'Inactivo' }}</span>
-                            </div>
-                            
-                            @if($local->description)
-                                <p class="local-card-description">{{ $local->description }}</p>
-                            @endif
-                            
-                            @if($local->contact)
-                                <p class="local-card-contact">
-                                    <i class="fas fa-phone" style="color: #e18018;"></i>
-                                    {{ $local->contact }}
-                                </p>
-                            @endif
-                            
-                            <!-- Managers Section -->
-                            @if($local->users->count() > 0)
-                                <div class="local-card-managers">
-                                    <div class="managers-label">
-                                        <i class="fas fa-users" style="color: #e18018; margin-right: 6px;"></i>
-                                        Gerentes
-                                    </div>
-                                    <div>
-                                        @foreach($local->users as $manager)
-                                            <span class="manager-badge">{{ $manager->full_name }}</span>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @else
-                                <div class="local-card-managers">
-                                    <div class="managers-label">
-                                        <i class="fas fa-users" style="color: #d1d5db; margin-right: 6px;"></i>
-                                    </div>
-                                    <div style="color: #d1d5db; font-size: 12px;">
-                                        Sin gerentes asignados
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        @else
-            <!-- Empty State -->
-            <div class="no-locales">
-                <i class="fas fa-inbox"></i>
-                <h4>No hay locales registrados</h4>
-                <p style="margin: 0;">Aún no hay locales en el sistema. Los locales aparecerán aquí cuando sean creados.</p>
-            </div>
-        @endif
+        <div id="localesGridContainer">
+            @include('admin.locales.grid', ['locales' => $locales])
+        </div>
     </div>
 </div>
 
@@ -476,13 +399,45 @@ document.getElementById('modalCrearLocal').addEventListener('click', function(e)
     if (e.target === this) this.style.display = 'none';
 });
 
+// Helpers de validación para modales de locales
+function localShowError(fieldId, msg) {
+    const field = document.getElementById(fieldId);
+    const errDiv = document.getElementById(fieldId + 'Error');
+    if (field && errDiv) {
+        field.classList.add('input-error');
+        errDiv.style.display = 'flex';
+        const span = errDiv.querySelector('span');
+        if (span) span.textContent = msg;
+    }
+}
+function localClearError(fieldId) {
+    const field = document.getElementById(fieldId);
+    const errDiv = document.getElementById(fieldId + 'Error');
+    if (field && errDiv) {
+        field.classList.remove('input-error');
+        errDiv.style.display = 'none';
+    }
+}
+
 // Confirmar antes de crear local
 (function(){
-    const formCrearLocal = document.querySelector('#modalCrearLocal form');
+    const formCrearLocal = document.getElementById('formCrearLocal');
     if (formCrearLocal && !formCrearLocal.dataset._createBound) {
         formCrearLocal.dataset._createBound = 'true';
         formCrearLocal.addEventListener('submit', async function(e) {
             e.preventDefault();
+
+            ['create_local_name','create_manager_id'].forEach(localClearError);
+
+            let isValid = true;
+            const nameVal    = (document.getElementById('create_local_name')  || {}).value || '';
+            const managerVal = (document.getElementById('create_manager_id') || {}).value || '';
+
+            if (!nameVal.trim()) { localShowError('create_local_name', 'El nombre del local es obligatorio'); isValid = false; }
+            if (!managerVal)     { localShowError('create_manager_id', 'Debe seleccionar un gerente'); isValid = false; }
+
+            if (!isValid) return;
+
             if (window.swConfirm) {
                 const res = await swConfirm({
                     title: 'Crear local',
@@ -495,27 +450,43 @@ document.getElementById('modalCrearLocal').addEventListener('click', function(e)
             }
             this.submit();
         });
+
+        // Limpiar errores en tiempo real
+        document.getElementById('create_local_name')  && document.getElementById('create_local_name').addEventListener('input', function(){ if(this.value.trim()) localClearError('create_local_name'); });
+        document.getElementById('create_manager_id') && document.getElementById('create_manager_id').addEventListener('change', function(){ if(this.value) localClearError('create_manager_id'); });
     }
 })();
 
 // ===== MODAL EDITAR LOCAL =====
 const modalEditarLocal = document.getElementById('modalEditarLocal');
 const formEditarLocal = document.getElementById('formEditarLocal');
-const inputEditName = document.getElementById('edit_local_name');
-const inputEditManager = document.getElementById('edit_manager_id');
 
-document.querySelectorAll('.btn-edit-local').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const localName = btn.dataset.name || '';
-        const managerId = btn.dataset.managerId || '';
-        const updateUrl = btn.dataset.updateUrl || '#';
+// Función para bindear eventos de edición (se llama después de AJAX también)
+function rebindEditButtons() {
+    document.querySelectorAll('.btn-edit-local').forEach(btn => {
+        if (btn.dataset._editBound === 'true') return; // Evitar múltiples bindings
+        btn.dataset._editBound = 'true';
+        
+        btn.addEventListener('click', function() {
+            const localName = btn.dataset.name || '';
+            const managerId = btn.dataset.managerId || '';
+            const updateUrl = btn.dataset.updateUrl || '#';
 
-        formEditarLocal.action = updateUrl;
-        inputEditName.value = localName;
-        inputEditManager.value = managerId;
-        modalEditarLocal.style.display = 'flex';
+            const inputEditName = document.getElementById('edit_local_name');
+            const inputEditManager = document.getElementById('edit_manager_id');
+            
+            formEditarLocal.action = updateUrl;
+            inputEditName.value = localName;
+            inputEditManager.value = managerId;
+            modalEditarLocal.style.display = 'flex';
+        });
     });
-});
+}
+
+// Función para re-bindear todos los eventos después de AJAX
+function rebindAllEditEvents() {
+    rebindEditButtons();
+}
 
 document.getElementById('btnCloseEditLocal').addEventListener('click', function(){
     modalEditarLocal.style.display = 'none';
@@ -530,14 +501,23 @@ modalEditarLocal.addEventListener('click', function(e){
 // Confirmar antes de guardar cambios del local
 formEditarLocal.addEventListener('submit', async function(e) {
     e.preventDefault();
-    if (window.Swal) {
-        const res = await Swal.fire({
+
+    ['edit_local_name','edit_manager_id'].forEach(localClearError);
+
+    let isValid = true;
+    const nameVal    = (document.getElementById('edit_local_name')  || {}).value || '';
+    const managerVal = (document.getElementById('edit_manager_id') || {}).value || '';
+
+    if (!nameVal.trim()) { localShowError('edit_local_name', 'El nombre del local es obligatorio'); isValid = false; }
+    if (!managerVal)     { localShowError('edit_manager_id', 'Debe seleccionar un gerente'); isValid = false; }
+
+    if (!isValid) return;
+
+    if (window.swConfirm) {
+        const res = await swConfirm({
             title: 'Editar local',
             text: '¿Desea guardar los cambios de este local?',
             icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#16a34a',
-            cancelButtonColor: '#6b7280',
             confirmButtonText: 'Sí, actualizar',
             cancelButtonText: 'Cancelar'
         });
@@ -547,7 +527,7 @@ formEditarLocal.addEventListener('submit', async function(e) {
 });
 
 // ===== MANEJADOR DE ELIMINAR LOCAL =====
-(function(){
+function rebindDeleteButtons() {
     document.querySelectorAll('.btn-delete[data-id]').forEach(btn => {
         if (btn.dataset._undoBound === 'true') return;
         btn.dataset._undoBound = 'true';
@@ -566,10 +546,13 @@ formEditarLocal.addEventListener('submit', async function(e) {
             }
         });
     });
-})();
+}
 
 // ===== MANEJADOR DE CAMBIO DE ESTADO =====
 function reattachEventListeners() {
+    rebindEditButtons();
+    rebindDeleteButtons();
+    
     document.querySelectorAll('.status-toggler').forEach(badge => {
         if (badge.dataset._statusBound === 'true') return;
         badge.dataset._statusBound = 'true';
@@ -671,7 +654,33 @@ function reattachEventListeners() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    rebindEditButtons();
     reattachEventListeners();
+
+    // Búsqueda en tiempo real desde top-search-bar
+    const topSearchInput = document.getElementById('topSearchInput');
+    if (topSearchInput) {
+        topSearchInput.addEventListener('input', () => {
+            const searchQuery = topSearchInput.value || '';
+            const params = new URLSearchParams();
+            if (searchQuery) params.append('q', searchQuery);
+            
+            fetch(`{{ route('locales.index') }}?${params.toString()}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const container = document.getElementById('localesGridContainer');
+                if (container) {
+                    container.innerHTML = html;
+                    reattachEventListeners();
+                    rebindEditButtons();
+                    rebindDeleteButtons();
+                }
+            })
+            .catch(error => console.error('Error en búsqueda:', error));
+        });
+    }
     
     const successMsg = @json(session('success'));
     if (successMsg) {

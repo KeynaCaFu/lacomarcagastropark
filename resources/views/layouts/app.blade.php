@@ -334,13 +334,22 @@
     </style>
     
     @stack('styles')
+    <style>
+        /* Suprimir transiciones del sidebar durante la carga inicial */
+        html.sidebar-no-transition .drawer,
+        html.sidebar-no-transition .main-content,
+        html.sidebar-no-transition .top-navbar {
+            transition: none !important;
+        }
+    </style>
+    <script>document.documentElement.classList.add('sidebar-no-transition');</script>
 </head>
-<body class="{{ (auth()->check() && !auth()->user()->isAdminGlobal()) ? 'gerente-mode' : '' }}">
+<body class="{{ (auth()->check() && !auth()->user()->isAdminGlobal()) ? 'gerente-mode' : '' }} sidebar-collapsed">
     <!-- Container principal con diseño La Comarca -->
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar (colapsable/ocultable) -->
-            <nav class="sidebar drawer" id="appSidebar">
+            <nav class="sidebar drawer collapsed" id="appSidebar">
                 <div class="sidebar-header">
                     <a href="{{ (auth()->check() && auth()->user()->isAdminGlobal()) ? route('admin.dashboard') : route('dashboard') }}" class="brand text-decoration-none" title="La Comarca">
                         <img src="{{ asset('images/iconoblanco.png') }}" alt="La Comarca" class="brand-logo">
@@ -960,20 +969,43 @@
                 if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
             };
 
-            const applyLayoutByWidth = () => {
+            // Exponer globalmente para que el MutationObserver y otros scripts puedan usarlo
+            window.closeAppSidebar = () => {
                 if (window.innerWidth >= 576) {
-                    // Modo desktop/tablet: sidebar fijo, sin overlay
-                    sidebar.classList.remove('open');
-                    body.classList.remove('sidebar-open');
+                    // Tablet/Desktop: colapsar
+                    sidebar.classList.add('collapsed');
+                    body.classList.add('sidebar-collapsed');
+                    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
                 } else {
-                    // Modo phone: sidebar como drawer cerrado por defecto
+                    // Móvil: cerrar drawer
+                    closeSidebar();
+                }
+            };
+
+            const applyLayoutByWidth = () => {
+                // Siempre cerrado al cargar o al cambiar tamaño
+                sidebar.classList.remove('open');
+                body.classList.remove('sidebar-open');
+                if (window.innerWidth >= 576) {
+                    // Tablet/Desktop: colapsar sidebar
+                    sidebar.classList.add('collapsed');
+                    body.classList.add('sidebar-collapsed');
+                    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+                } else {
+                    // Móvil: quitar clases de escritorio, el drawer ya queda cerrado
                     sidebar.classList.remove('collapsed');
                     body.classList.remove('sidebar-collapsed');
+                    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
                 }
             };
 
             applyLayoutByWidth();
             window.addEventListener('resize', applyLayoutByWidth);
+
+            // Re-habilitar transiciones después de que el layout inicial esté listo
+            requestAnimationFrame(() => {
+                document.documentElement.classList.remove('sidebar-no-transition');
+            });
 
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', (e) => {
@@ -990,9 +1022,64 @@
                     closeSidebar();
                 }
             });
+
+            // Tooltips en touch (tablet/móvil) para sidebar colapsado
+            let activeTooltipLink = null;
+            sidebar.addEventListener('touchstart', (e) => {
+                if (!sidebar.classList.contains('collapsed')) return;
+                const link = e.target.closest('.sidebar-menu a[data-tooltip]');
+                if (!link) return;
+
+                if (activeTooltipLink && activeTooltipLink !== link) {
+                    activeTooltipLink.classList.remove('tooltip-visible');
+                }
+                link.classList.add('tooltip-visible');
+                activeTooltipLink = link;
+            }, { passive: true });
+
+            document.addEventListener('touchstart', (e) => {
+                if (!activeTooltipLink) return;
+                if (!e.target.closest('#appSidebar')) {
+                    activeTooltipLink.classList.remove('tooltip-visible');
+                    activeTooltipLink = null;
+                }
+            }, { passive: true });
         });
     </script>
-    
+
+    <script>
+        // Cerrar sidebar automáticamente cuando se abre cualquier modal
+        (function() {
+            function isModalVisible(el) {
+                try {
+                    const s = window.getComputedStyle(el);
+                    return s.position === 'fixed' && parseInt(s.zIndex || '0') >= 1000;
+                } catch (e) { return false; }
+            }
+
+            const mo = new MutationObserver(function(mutations) {
+                for (const mutation of mutations) {
+                    if (mutation.type !== 'attributes') continue;
+                    const el = mutation.target;
+                    const display = el.style.display;
+                    if (!display || display === 'none') continue;
+                    if (isModalVisible(el)) {
+                        window.closeAppSidebar && window.closeAppSidebar();
+                        break;
+                    }
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', function() {
+                mo.observe(document.body, {
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['style']
+                });
+            });
+        })();
+    </script>
+
     <!-- Top Navbar Functionality -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1030,66 +1117,130 @@
             
             // Buscador en la barra superior
             const searchInput = document.getElementById('topSearchInput');
-            const clearBtn = document.getElementById('clearSearchBtn');
             const searchBtn = document.getElementById('searchBtn');
+            const clearBtn = document.getElementById('clearSearchBtn');
             
-            if (searchInput) {
+            if (searchInput && searchBtn && clearBtn) {
                 // Mostrar/ocultar botón X según si hay texto
                 searchInput.addEventListener('input', () => {
-                    clearBtn.style.display = searchInput.value.trim() ? 'inline-block' : 'none';
+                    clearBtn.style.display = searchInput.value.trim() ? 'flex' : 'none';
                 });
                 
                 // Limpiar búsqueda
-                if (clearBtn) {
-                    clearBtn.addEventListener('click', () => {
-                        searchInput.value = '';
-                        clearBtn.style.display = 'none';
-                        searchInput.focus();
-                        
-                        // Limpiar filtro según la ruta actual
-                        const currentRoute = window.location.pathname;
-                        if (currentRoute.includes('proveedores')) {
-                            loadSuppliersAjax('/proveedores');
-                        } else if (currentRoute.includes('eventos')) {
-                            // Recargar eventos sin filtro de búsqueda (AJAX)
-                            loadEventsAjax('/eventos');
-                        } else if (currentRoute.includes('usuarios')) {
-                            // Recargar usuarios sin filtro
-                            window.location.href = '/usuarios';
-                        } else if (currentRoute.includes('productos')) {
-                            // Recargar productos sin filtro
-                            window.location.href = '/productos';
+                clearBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    searchInput.value = '';
+                    clearBtn.style.display = 'none';
+                    searchInput.focus();
+                    
+                    // Limpiar filtro según la ruta actual
+                    const currentRoute = window.location.pathname;
+                    if (currentRoute.includes('proveedores')) {
+                        loadSuppliersAjax('/proveedores');
+                    } else if (currentRoute.includes('eventos')) {
+                        // Recargar eventos sin filtro de búsqueda (AJAX)
+                        loadEventsAjax('/eventos');
+                    } else if (currentRoute.includes('usuarios')) {
+                        // Recargar usuarios sin filtro (AJAX)
+                        loadUsersAjax('/usuarios');
+                    } else if (currentRoute.includes('productos')) {
+                        // Recargar productos sin filtro (AJAX)
+                        loadProductsAjax('/productos');
+                    } else if (currentRoute.includes('locales')) {
+                        // Recargar locales sin filtro (AJAX)
+                        loadLocalesAjax('/locales');
+                    } else if (currentRoute.includes('history') || currentRoute.includes('ordenes')) {
+                        // Limpiar filtro en historial de órdenes
+                        if (typeof applyFilters === 'function') {
+                            applyFilters('');
                         }
-                    });
-                }
-                
-                // Buscar al presionar Enter
+                    } else if (currentRoute.includes('reviews')) {
+                        // Limpiar búsqueda en reseñas
+                        if (typeof applySearchFromTopBar === 'function') {
+                            applySearchFromTopBar();
+                        }
+                    } else if (currentRoute.includes('order-history')) {
+                        // Limpiar búsqueda en historial de órdenes
+                        const ohSearch = document.getElementById('ohSearch');
+                        if (ohSearch) {
+                            ohSearch.value = '';
+                            if (typeof performOhSearch === 'function') {
+                                performOhSearch();
+                            }
+                        }
+                    } else if (currentRoute.includes('reports') && currentRoute.includes('products')) {
+                        // Limpiar búsqueda de productos en reportes
+                        if (typeof filterProductsByName === 'function') {
+                            filterProductsByName();
+                        }
+                    } else if (currentRoute.includes('schedule')) {
+                        // Limpiar búsqueda de días en horarios
+                        if (typeof filterSchedulesByDay === 'function') {
+                            filterSchedulesByDay();
+                        }
+                    }
+                });
+
+                // Ejecutar búsqueda al hacer clic en el botón de lupa
+                searchBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    performSearch();
+                });
+
+                // Permitir búsqueda al presionar "Enter" en el input
                 searchInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
+                        e.preventDefault();
                         performSearch();
                     }
                 });
-                
-                // Buscar al hacer click en el botón
-                if (searchBtn) {
-                    searchBtn.addEventListener('click', performSearch);
-                }
-                
+
                 // Función para realizar la búsqueda
                 function performSearch() {
                     const query = searchInput.value.trim();
-                    if (query) {
-                        const currentRoute = window.location.pathname;
-                        if (currentRoute.includes('proveedores')) {
-                            // AJAX para proveedores sin refrescar la página
-                            loadSuppliersAjax(`/proveedores?buscar=${encodeURIComponent(query)}`);
-                        } else if (currentRoute.includes('eventos')) {
-                            // AJAX para eventos sin refrescar la página
-                            loadEventsAjax(`/eventos?q=${encodeURIComponent(query)}`);
-                        } else if (currentRoute.includes('usuarios')) {
-                            window.location.href = `/usuarios?q=${encodeURIComponent(query)}`;
-                        } else if (currentRoute.includes('productos')) {
-                            window.location.href = `/productos?q=${encodeURIComponent(query)}`;
+                    if (!query) return; // No buscar si está vacío
+                    
+                    const currentRoute = window.location.pathname;
+                    if (currentRoute.includes('proveedores')) {
+                        // AJAX para proveedores sin refrescar la página
+                        loadSuppliersAjax(`/proveedores?buscar=${encodeURIComponent(query)}`);
+                    } else if (currentRoute.includes('eventos')) {
+                        // AJAX para eventos sin refrescar la página
+                        loadEventsAjax(`/eventos?q=${encodeURIComponent(query)}`);
+                    } else if (currentRoute.includes('usuarios')) {
+                        // AJAX para usuarios sin refrescar la página
+                        loadUsersAjax(`/usuarios?q=${encodeURIComponent(query)}`);
+                    } else if (currentRoute.includes('productos')) {
+                        // AJAX para productos sin refrescar la página
+                        loadProductsAjax(`/productos?q=${encodeURIComponent(query)}`);
+                    } else if (currentRoute.includes('locales')) {
+                        // AJAX para locales sin refrescar la página
+                        loadLocalesAjax(`/locales?q=${encodeURIComponent(query)}`);
+                    } else if (currentRoute.includes('history') || currentRoute.includes('ordenes')) {
+                        // Filtrado client-side para historial de órdenes
+                        if (typeof applyFiltersFromTopBar === 'function') {
+                            applyFiltersFromTopBar();
+                        }
+                    } else if (currentRoute.includes('reviews')) {
+                        // Filtrado client-side para reseñas
+                        if (typeof applySearchFromTopBar === 'function') {
+                            applySearchFromTopBar();
+                        }
+                    } else if (currentRoute.includes('order-history')) {
+                        // Búsqueda en historial de órdenes
+                        if (typeof performOhSearch === 'function') {
+                            performOhSearch();
+                        }
+                    } else if (currentRoute.includes('reports') && currentRoute.includes('products')) {
+                        // Búsqueda de productos en reportes
+                        if (typeof filterProductsByName === 'function') {
+                            filterProductsByName();
+                        }
+                    } else if (currentRoute.includes('schedule')) {
+                        // Búsqueda de días en horarios
+                        if (typeof filterSchedulesByDay === 'function') {
+                            filterSchedulesByDay();
                         }
                     }
                 }
@@ -1164,6 +1315,124 @@
                         }
                         if (window.swAlert) {
                             swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al buscar eventos' });
+                        }
+                    });
+                }
+
+                // Función AJAX para cargar usuarios sin refrescar
+                function loadUsersAjax(url) {
+                    const usersTableContainer = document.getElementById('usersTableContainer');
+                    if (usersTableContainer) {
+                        usersTableContainer.style.opacity = '0.6';
+                        usersTableContainer.style.pointerEvents = 'none';
+                    }
+                    
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html',
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        if (usersTableContainer) {
+                            usersTableContainer.innerHTML = html;
+                            usersTableContainer.style.opacity = '1';
+                            usersTableContainer.style.pointerEvents = 'auto';
+                            
+                            // Re-bindear funcionalidades en la nueva tabla
+                            if (typeof bindPaginationLinks === 'function') bindPaginationLinks();
+                            if (typeof bindStatusTogglers === 'function') bindStatusTogglers();
+                            if (typeof bindDeleteConfirmations === 'function') bindDeleteConfirmations();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (usersTableContainer) {
+                            usersTableContainer.style.opacity = '1';
+                            usersTableContainer.style.pointerEvents = 'auto';
+                        }
+                        if (window.swAlert) {
+                            swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al buscar usuarios' });
+                        }
+                    });
+                }
+
+                // Función AJAX para cargar productos sin refrescar
+                function loadProductsAjax(url) {
+                    const productsTableContainer = document.getElementById('productsTableContainer');
+                    if (productsTableContainer) {
+                        productsTableContainer.style.opacity = '0.6';
+                        productsTableContainer.style.pointerEvents = 'none';
+                    }
+                    
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html',
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        if (productsTableContainer) {
+                            productsTableContainer.innerHTML = html;
+                            productsTableContainer.style.opacity = '1';
+                            productsTableContainer.style.pointerEvents = 'auto';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (productsTableContainer) {
+                            productsTableContainer.style.opacity = '1';
+                            productsTableContainer.style.pointerEvents = 'auto';
+                        }
+                        if (window.swAlert) {
+                            swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al buscar productos' });
+                        }
+                    });
+                }
+
+                // Función AJAX para cargar locales sin refrescar
+                function loadLocalesAjax(url) {
+                    const localesGridContainer = document.getElementById('localesGridContainer');
+                    if (localesGridContainer) {
+                        localesGridContainer.style.opacity = '0.6';
+                        localesGridContainer.style.pointerEvents = 'none';
+                    }
+                    
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html',
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        if (localesGridContainer) {
+                            localesGridContainer.innerHTML = html;
+                            localesGridContainer.style.opacity = '1';
+                            localesGridContainer.style.pointerEvents = 'auto';
+                            
+                            // Re-bindear funcionalidades en el nuevo contenido
+                            if (typeof reattachEventListeners === 'function') {
+                                reattachEventListeners();
+                            }
+                            if (typeof rebindAllEditEvents === 'function') {
+                                rebindAllEditEvents();
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (localesGridContainer) {
+                            localesGridContainer.style.opacity = '1';
+                            localesGridContainer.style.pointerEvents = 'auto';
+                        }
+                        if (window.swAlert) {
+                            swAlert({ icon: 'error', title: 'Error', text: 'Hubo un error al buscar locales' });
                         }
                     });
                 }
@@ -1296,12 +1565,17 @@
                     const orders = data.orders || [];
 
                     // Actualizar badge
-                    if (count > 0) {
-                        badge.textContent = count <= 99 ? count : '99+';
-                        badge.style.display = 'flex';
-                    } else {
-                        badge.style.display = 'none';
-                    }
+                    // Actualizar badge sumando órdenes + reseñas no leídas
+const reviewNotifs = JSON.parse(localStorage.getItem('review_notifs') || '[]');
+const reviewsPendientes = reviewNotifs.filter(n => !n.leida).length;
+const total = count + reviewsPendientes;
+
+if (total > 0) {
+    badge.textContent = total <= 99 ? total : '99+';
+    badge.style.display = 'flex';
+} else {
+    badge.style.display = 'none';
+}
 
                     // Actualizar lista
                     if (orders.length > 0) {
@@ -1391,106 +1665,154 @@
     
     @stack('scripts')
 
-
-    @if(auth()->check() && !auth()->user()->isAdminGlobal())
+@if(auth()->check() && !auth()->user()->isAdminGlobal())
 <script>
-document.addEventListener('DOMContentLoaded', function () {
     @php
         $localDelGerente = auth()->user()->locals()->first();
     @endphp
 
-    @if(isset($localDelGerente) && $localDelGerente)
-        const localId = {{ $localDelGerente->local_id }};
-        let reviewsNoLeidas = 0;
-
-        // Esperar a que Echo esté listo
-        function initReviewNotifications() {
-            if (!window.Echo) {
-                setTimeout(initReviewNotifications, 300);
-                return;
-            }
-
-            console.log('⭐ Escuchando reseñas del local:', localId);
-
-            window.Echo.channel(`local.${localId}`)
-                .listen('NewReviewPosted', (data) => {
-                    console.log('✓ Nueva reseña recibida:', data);
-                    agregarReviewNotif(data);
-                });
-        }
-
-        function agregarReviewNotif(data) {
-            // Ocultar el empty state
-            const empty = document.getElementById('reviewsNotifEmpty');
-            if (empty) empty.style.display = 'none';
-
-            // Crear item de notificación
-            const lista = document.getElementById('reviewsNotifList');
-            const estrellas = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating);
-
-            const item = document.createElement('div');
-            item.style.cssText = `
-                padding: 12px 16px;
-                border-bottom: 1px solid #f3f4f6;
-                cursor: pointer;
-                transition: background 0.2s;
-                background: #fffbeb;
-            `;
-            item.innerHTML = `
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="background:#fef3c7; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <i class="fas fa-star" style="color:#e18018; font-size:16px;"></i>
-                    </div>
-                    <div style="flex:1; min-width:0;">
-                        <div style="font-weight:600; font-size:13px; color:#111827;">Nueva reseña de ${data.client_name}</div>
-                        <div style="font-size:12px; color:#6b7280; margin-top:2px;">${data.product_name} — ${estrellas}</div>
-                        <div style="font-size:11px; color:#9ca3af; margin-top:2px;">Ahora</div>
-                    </div>
-                </div>
-            `;
-
-            // CA4 y CA5: Al hacer clic va al detalle
-            item.addEventListener('click', () => {
-                window.location.href = '{{ route("reviews.index") }}';
-            });
-
-            item.addEventListener('mouseover', () => item.style.background = '#fef9ee');
-            item.addEventListener('mouseout',  () => item.style.background = '#fffbeb');
-
-            lista.prepend(item);
-
-            // Actualizar badge de la campana
-            reviewsNoLeidas++;
-            actualizarBadge();
-
-            // Toast visual adicional
-            mostrarToastReview(data);
-        }
-
-        function actualizarBadge() {
-            const badge = document.getElementById('pendingCountBadge');
-            if (!badge) return;
+    // Función global para actualizar badge
+    function actualizarBadge() {
+        const badge = document.getElementById('pendingCountBadge');
+        if (!badge) return;
+        const notifs = JSON.parse(localStorage.getItem('review_notifs') || '[]');
+        const pendientes = notifs.filter(n => !n.leida).length;
+        if (pendientes > 0) {
             badge.style.display = 'flex';
-            const actual = parseInt(badge.textContent) || 0;
-            badge.textContent = actual + 1;
+            badge.textContent = pendientes;
+        } else {
+            badge.style.display = 'none';
         }
+    }
 
-        function mostrarToastReview(data) {
-            if (window.swToast) {
-                window.swToast.fire({
-                    icon: 'info',
-                    title: '⭐ Nueva reseña',
-                    text: `${data.client_name} dejó una reseña en ${data.product_name}`,
-                    timer: 6000,
-                });
+    // Cargar badge al iniciar
+    actualizarBadge();
+
+    @if(isset($localDelGerente) && $localDelGerente)
+        document.addEventListener('DOMContentLoaded', function () {
+            const localId = {{ $localDelGerente->local_id }};
+            // Cargar notificaciones previas del localStorage al abrir la página
+function cargarNotifsGuardadas() {
+    const notifs = JSON.parse(localStorage.getItem('review_notifs') || '[]');
+    const pendientes = notifs.filter(n => !n.leida);
+    
+    if (pendientes.length === 0) return;
+    
+    const empty = document.getElementById('reviewsNotifEmpty');
+    if (empty) empty.style.display = 'none';
+    
+    const lista = document.getElementById('reviewsNotifList');
+    
+    pendientes.forEach(data => {
+        const estrellas = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating);
+        const item = document.createElement('div');
+        item.style.cssText = `
+            padding: 12px 16px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: background 0.2s;
+            background: #fffbeb;
+        `;
+        item.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div style="background:#fef3c7; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fas fa-star" style="color:#e18018; font-size:16px;"></i>
+                </div>
+                <div style="flex:1; min-width:0;">
+                    <div style="font-weight:600; font-size:13px; color:#111827;">Nueva reseña de ${data.client_name}</div>
+                    <div style="font-size:12px; color:#6b7280; margin-top:2px;">${data.product_name} — ${estrellas}</div>
+                    <div style="font-size:11px; color:#9ca3af; margin-top:2px;">Pendiente de revisión</div>
+                </div>
+            </div>
+        `;
+        item.addEventListener('click', () => {
+            const notifs = JSON.parse(localStorage.getItem('review_notifs') || '[]');
+            notifs.forEach(n => n.leida = true);
+            localStorage.setItem('review_notifs', JSON.stringify(notifs));
+            actualizarBadge();
+            window.location.href = '{{ route("reviews.index") }}';
+        });
+        item.addEventListener('mouseover', () => item.style.background = '#fef9ee');
+        item.addEventListener('mouseout',  () => item.style.background = '#fffbeb');
+        lista.appendChild(item);
+    });
+}
+
+cargarNotifsGuardadas();
+            function initReviewNotifications() {
+                if (!window.Echo) {
+                    setTimeout(initReviewNotifications, 300);
+                    return;
+                }
+                console.log('⭐ Escuchando reseñas del local:', localId);
+                window.Echo.channel(`local.${localId}`)
+                    .listen('NewReviewPosted', (data) => {
+                        console.log('✓ Nueva reseña recibida:', data);
+                        agregarReviewNotif(data);
+                    });
             }
-        }
 
-        initReviewNotifications();
+            function agregarReviewNotif(data) {
+                const notifs = JSON.parse(localStorage.getItem('review_notifs') || '[]');
+                notifs.push({ ...data, leida: false });
+                localStorage.setItem('review_notifs', JSON.stringify(notifs));
+
+                const empty = document.getElementById('reviewsNotifEmpty');
+                if (empty) empty.style.display = 'none';
+
+                const lista = document.getElementById('reviewsNotifList');
+                const estrellas = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating);
+
+                const item = document.createElement('div');
+                item.style.cssText = `
+                    padding: 12px 16px;
+                    border-bottom: 1px solid #f3f4f6;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                    background: #fffbeb;
+                `;
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="background:#fef3c7; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <i class="fas fa-star" style="color:#e18018; font-size:16px;"></i>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:600; font-size:13px; color:#111827;">Nueva reseña de ${data.client_name}</div>
+                            <div style="font-size:12px; color:#6b7280; margin-top:2px;">${data.product_name} — ${estrellas}</div>
+                            <div style="font-size:11px; color:#9ca3af; margin-top:2px;">Ahora</div>
+                        </div>
+                    </div>
+                `;
+
+                item.addEventListener('click', () => {
+                    const notifs = JSON.parse(localStorage.getItem('review_notifs') || '[]');
+                    notifs.forEach(n => n.leida = true);
+                    localStorage.setItem('review_notifs', JSON.stringify(notifs));
+                    actualizarBadge();
+                    window.location.href = '{{ route("reviews.index") }}';
+                });
+
+                item.addEventListener('mouseover', () => item.style.background = '#fef9ee');
+                item.addEventListener('mouseout',  () => item.style.background = '#fffbeb');
+
+                lista.prepend(item);
+                actualizarBadge();
+
+                if (window.swToast) {
+                    window.swToast.fire({
+                        icon: 'info',
+                        title: '⭐ Nueva reseña',
+                        text: `${data.client_name} dejó una reseña en ${data.product_name}`,
+                        timer: 6000,
+                    });
+                }
+            }
+
+            initReviewNotifications();
+        });
     @else
-        console.warn('⚠ Gerente sin local asignado, no se inicia listener de reseñas.');
+        console.warn('⚠ Gerente sin local asignado.');
     @endif
-});
 </script>
 @endif
 </body>

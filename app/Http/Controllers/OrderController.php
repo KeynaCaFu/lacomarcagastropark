@@ -336,7 +336,7 @@ class OrderController extends Controller
                 'product_id' => $product->product_id,
                 'name' => $product->name,
                 'photo' => $product->photo_url,
-                'price' => $product->pivot->price ?? 0,
+                'price' => $product->price,
                 'category' => $product->category ?? 'Sin categoría',
             ]);
 
@@ -367,7 +367,7 @@ class OrderController extends Controller
                 'items.*.product_id' => 'required|exists:tbproduct,product_id',
                 'items.*.quantity' => 'required|integer|min:1',
                 'items.*.customization' => 'nullable|string|max:500',
-                'preparation_time' => 'required|integer|min:1',
+                'preparation_time' => 'nullable|integer|min:1',
                 'additional_notes' => 'nullable|string|max:500',
                 'latitude' => 'nullable|numeric',
                 'longitude' => 'nullable|numeric',
@@ -427,7 +427,7 @@ class OrderController extends Controller
                     ], 422);
                 }
 
-                $price = $localProduct->pivot->price ?? 0;
+                $price = $localProduct->price;
                 $totalAmount += $price * $item['quantity'];
                 $quantity += $item['quantity'];
             }
@@ -440,7 +440,7 @@ class OrderController extends Controller
                 'origin' => 'presencial',
                 'quantity' => $quantity,
                 'total_amount' => $totalAmount,
-                'preparation_time' => $validated['preparation_time'],
+                'preparation_time' => $validated['preparation_time'] ?? null,
                 'additional_notes' => $validated['additional_notes'] ?? null,
                 'date' => now()->toDateString(),
                 'time' => now()->format('H:i:s'),

@@ -45,7 +45,7 @@ class Product extends Model
     public function locals()
     {
         return $this->belongsToMany(Local::class, 'tblocal_product', 'product_id', 'local_id')
-            ->withPivot('price', 'is_available')
+            ->withPivot('is_available')
             ->withTimestamps();
     }
 
@@ -233,7 +233,7 @@ class Product extends Model
      */
     public function scopeForPlaza($query)
     {
-        return $query->select('tbproduct.product_id', 'tbproduct.name', 'tbproduct.price', 
+        return $query->select('tbproduct.product_id', 'tbproduct.name', 'tbproduct.precio', 
                              'tbproduct.photo', 'tbproduct.category', 'tbproduct.status',
                              'tbproduct.created_at', 'tbproduct.updated_at')
             ->with([

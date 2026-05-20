@@ -18,8 +18,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-right: 79px;
-            margin-left: 52px;
         }
 
         .history-title {
@@ -75,11 +73,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
-            /* background: white; */
-            padding: 15px 20px;
-            /* border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); */
-            margin-left: 39px;
+            padding: 15px 0;
         }
 
         .tab-btn {
@@ -106,8 +100,6 @@
 
         .history-section {
             margin-bottom: 20px;
-            margin-right: 83px;
-            margin-left: 59px;
         }
 
         .section-title {
@@ -198,11 +190,11 @@
         }
 
         .order-row {
-            padding: 15px 20px;
+            padding: 14px 20px;
             border-bottom: 1px solid #f0f0f0;
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
-            gap: 15px;
+            grid-template-columns: 2fr 1.2fr 0.7fr 1fr 0.6fr auto;
+            gap: 12px;
             align-items: center;
             transition: background 0.2s ease;
         }
@@ -346,11 +338,10 @@
             border-radius: 4px;
             font-size: 12px;
             color: #92400e;
-            margin-bottom: -4px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-left: 46px;
         }
 
         /* Paginación */
@@ -413,40 +404,16 @@
             text-align: center;
         }
 
-        /* TABLET - Large (1024px+) */
+        /* TABLET - Large (1024px - 1399px) */
         @media (min-width: 1024px) and (max-width: 1399px) {
             .history-container {
                 padding: 18px;
             }
 
-            .history-header {
-                padding: 18px;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-
-            .history-title {
-                font-size: 22px;
-            }
-
-            .btn-back {
-                align-self: flex-end;
-            }
-
-            .filter-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
             .order-row {
-                grid-template-columns: 1.5fr 1.2fr 1fr auto;
-                gap: 12px;
+                grid-template-columns: 2fr 1fr 0.6fr 1fr 0.5fr auto;
+                gap: 10px;
                 padding: 12px 15px;
-            }
-
-            .order-col-number {
-                flex-direction: column;
-                gap: 6px;
             }
 
             .order-col-meta {

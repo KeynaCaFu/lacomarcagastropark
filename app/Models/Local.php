@@ -77,7 +77,7 @@ class Local extends Model
     public function products()
     {
         return $this->belongsToMany(Product::class, 'tblocal_product', 'local_id', 'product_id')
-            ->withPivot('price', 'is_available')
+            ->withPivot('is_available')
             ->withTimestamps();
     }
 

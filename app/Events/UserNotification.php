@@ -17,7 +17,8 @@ class UserNotification implements ShouldBroadcastNow
         public string $type,      // 'order_update' | 'review_reply'
         public string $message,
         public string $section,   // 'pedidos' | 'resenas'
-        public string $icon = 'bell'
+        public string $icon = 'bell',
+        public array  $extra = []
     ) {}
 
     public function broadcastOn(): PrivateChannel
@@ -32,11 +33,11 @@ class UserNotification implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
-        return [
+        return array_merge([
             'type'    => $this->type,
             'message' => $this->message,
             'section' => $this->section,
             'icon'    => $this->icon,
-        ];
+        ], $this->extra);
     }
 }

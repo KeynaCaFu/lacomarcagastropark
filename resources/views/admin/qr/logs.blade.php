@@ -2,6 +2,12 @@
 
 @section('title', 'Historial de QR - Gestión de QR de Validación')
 
+@push('styles')
+<style>
+    .top-search-bar { display: none !important; }
+</style>
+@endpush
+
 @section('content')
 <link href="{{ asset('css/QrValidacion.css') }}" rel="stylesheet">
 

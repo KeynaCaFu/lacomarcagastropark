@@ -6,6 +6,12 @@
     <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
 @endpush
 
+@push('styles')
+<style>
+    .top-search-bar { display: none !important; }
+</style>
+@endpush
+
 @section('content')
 <div class="product-page-wrapper">
     @include('products.partials.breadcrumb', ['crumbs' => [

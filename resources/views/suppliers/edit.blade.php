@@ -3,7 +3,33 @@
 @section('title', 'Editar Proveedor')
 
 @push('styles')
+<style>
+    .top-search-bar { display: none !important; }
+</style>
+@endpush
+
+@push('styles')
     <link href="{{ asset('css/productos.css') }}" rel="stylesheet">
+    <style>
+        /* Sistema de validación inline (field-error) */
+        .field-error {
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .field-error i { font-size: 11px; }
+        input.input-error, select.input-error, textarea.input-error {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 2px rgba(220,38,38,0.12) !important;
+        }
+        /* Ocultar alerta global de errores en esta página */
+        .alert-danger {
+            display: none !important;
+        }
+    </style>
 @endpush
 
 @section('global_errors')@endsection
@@ -46,7 +72,7 @@
             </div>
 
             <div class="card-body" style="padding:24px;">
-                <form action="{{ route('suppliers.update', $supplier->supplier_id) }}" method="POST" id="supplierEditForm" enctype="multipart/form-data">
+                <form action="{{ route('suppliers.update', $supplier->supplier_id) }}" method="POST" id="supplierEditForm" enctype="multipart/form-data" novalidate>
                     @csrf
                     @method('PUT')
 
@@ -65,16 +91,18 @@
                                 </label>
 
                                 <input type="text"
-                                       class="form-control @error('nombre') is-invalid @enderror"
+                                       class="form-control @error('nombre') input-error @enderror"
                                        id="nombre"
                                        name="nombre"
                                        value="{{ old('nombre', $supplier->name) }}"
-                                       required
                                        maxlength="255"
                                        placeholder="Nombre del proveedor">
 
+                                <span class="field-error" id="error-nombre" style="display:none;">
+                                    <i class="fas fa-exclamation-circle"></i> <span></span>
+                                </span>
                                 @error('nombre')
-                                    <span class="invalid-feedback">{{ $message }}</span>
+                                    <span class="field-error"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span>
                                 @enderror
                             </div>
 
@@ -94,17 +122,19 @@
                                                 <i class="fas fa-phone"></i>
                                             </span>
                                             <input type="tel"
-                                                   class="form-control @error('telefono') is-invalid @enderror"
+                                                   class="form-control @error('telefono') input-error @enderror"
                                                    id="telefono"
                                                    name="telefono"
                                                    value="{{ old('telefono', isset($supplier) ? $supplier->phone : '') }}"
-                                                   required
                                                    maxlength="9"
-                                                placeholder="8888-8888">
+                                                   placeholder="8888-8888">
                                         </div>
 
+                                        <span class="field-error" id="error-telefono" style="display:none;">
+                                            <i class="fas fa-exclamation-circle"></i> <span></span>
+                                        </span>
                                         @error('telefono')
-                                            <span class="invalid-feedback" style="display:block;">{{ $message }}</span>
+                                            <span class="field-error"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
@@ -123,17 +153,19 @@
                                                 <i class="fas fa-envelope"></i>
                                             </span>
                                             <input type="email"
-                                                   class="form-control @error('email') is-invalid @enderror"
+                                                   class="form-control @error('email') input-error @enderror"
                                                    id="email"
                                                    name="email"
                                                    value="{{ old('email', $supplier->email) }}"
-                                                   required
                                                    maxlength="255"
                                                    placeholder="ej: proveedor@gmail.com">
                                         </div>
 
+                                        <span class="field-error" id="error-email" style="display:none;">
+                                            <i class="fas fa-exclamation-circle"></i> <span></span>
+                                        </span>
                                         @error('email')
-                                            <span class="invalid-feedback" style="display:block;">{{ $message }}</span>
+                                            <span class="field-error"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
@@ -189,7 +221,7 @@
 
                                 <div class="custom-file">
                                     <input type="file"
-                                           class="custom-file-input @error('imagenes') is-invalid @enderror"
+                                           class="custom-file-input @error('imagenes') input-error @enderror"
                                            id="imagenes"
                                            name="imagenes[]"
                                            accept="image/*,.pdf"
@@ -313,63 +345,115 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         const supplierForm = document.getElementById('supplierEditForm');
+        const nombreInput = document.getElementById('nombre');
+        const telefonoInput = document.getElementById('telefono');
+        const emailInput = document.getElementById('email');
 
+        // Helper functions for error display
+        const showError = (fieldId, message) => {
+            const field = document.getElementById(fieldId);
+            const errorSpan = document.getElementById('error-' + fieldId);
+            if (field && errorSpan) {
+                field.classList.add('input-error');
+                errorSpan.style.display = 'flex';
+                errorSpan.querySelector('span').textContent = message;
+            }
+        };
+
+        const clearError = (fieldId) => {
+            const field = document.getElementById(fieldId);
+            const errorSpan = document.getElementById('error-' + fieldId);
+            if (field && errorSpan) {
+                field.classList.remove('input-error');
+                errorSpan.style.display = 'none';
+            }
+        };
+
+        // Real-time validation
+        if (nombreInput) {
+            nombreInput.addEventListener('blur', function () {
+                if (!this.value.trim()) {
+                    showError('nombre', 'El nombre del proveedor es obligatorio');
+                } else {
+                    clearError('nombre');
+                }
+            });
+            nombreInput.addEventListener('input', function () {
+                if (this.value.trim()) {
+                    clearError('nombre');
+                }
+            });
+        }
+
+        if (telefonoInput) {
+            telefonoInput.addEventListener('blur', function () {
+                if (!this.value.trim()) {
+                    showError('telefono', 'El teléfono es obligatorio');
+                } else if (this.value.replace(/\D/g, '').length < 8) {
+                    showError('telefono', 'El teléfono debe tener 8 dígitos');
+                } else {
+                    clearError('telefono');
+                }
+            });
+            telefonoInput.addEventListener('input', function () {
+                if (this.value.trim() && this.value.replace(/\D/g, '').length >= 8) {
+                    clearError('telefono');
+                }
+            });
+        }
+
+        if (emailInput) {
+            emailInput.addEventListener('blur', function () {
+                if (!this.value.trim()) {
+                    showError('email', 'El correo es obligatorio');
+                } else if (!this.value.includes('@gmail.com')) {
+                    showError('email', 'El correo debe ser @gmail.com');
+                } else {
+                    clearError('email');
+                }
+            });
+            emailInput.addEventListener('input', function () {
+                if (this.value.includes('@gmail.com')) {
+                    clearError('email');
+                }
+            });
+        }
+
+        // Form submission
         if (supplierForm) {
             supplierForm.addEventListener('submit', function (e) {
-                const nombreInput = document.getElementById('nombre');
-                const telefonoInput = document.getElementById('telefono');
-                const emailInput = document.getElementById('email');
-
+                let isValid = true;
+                
+                // Validate nombre
                 const nombre = nombreInput ? nombreInput.value.trim() : '';
-                const telefono = telefonoInput ? telefonoInput.value.trim() : '';
-                const email = emailInput ? emailInput.value.trim() : '';
-
                 if (!nombre) {
                     e.preventDefault();
-                    if (window.swAlert) {
-                        swAlert({
-                            icon: 'warning',
-                            title: 'Campo requerido',
-                            text: 'El nombre del proveedor es obligatorio'
-                        });
-                    } else {
-                        alert('El nombre del proveedor es obligatorio');
-                    }
-                    nombreInput?.focus();
-                    return false;
+                    showError('nombre', 'El nombre del proveedor es obligatorio');
+                    isValid = false;
                 }
 
+                // Validate telefono
+                const telefono = telefonoInput ? telefonoInput.value.trim() : '';
                 if (!telefono) {
                     e.preventDefault();
-                    if (window.swAlert) {
-                        swAlert({
-                            icon: 'warning',
-                            title: 'Campo requerido',
-                            text: 'El teléfono es obligatorio'
-                        });
-                    } else {
-                        alert('El teléfono es obligatorio');
-                    }
-                    telefonoInput?.focus();
-                    return false;
+                    showError('telefono', 'El teléfono es obligatorio');
+                    isValid = false;
                 }
 
+                // Validate email
+                const email = emailInput ? emailInput.value.trim() : '';
                 if (!email) {
                     e.preventDefault();
-                    if (window.swAlert) {
-                        swAlert({
-                            icon: 'warning',
-                            title: 'Campo requerido',
-                            text: 'El correo electrónico es obligatorio'
-                        });
-                    } else {
-                        alert('El correo electrónico es obligatorio');
-                    }
-                    emailInput?.focus();
-                    return false;
+                    showError('email', 'El correo es obligatorio');
+                    isValid = false;
+                } else if (!email.includes('@gmail.com')) {
+                    e.preventDefault();
+                    showError('email', 'El correo debe ser @gmail.com');
+                    isValid = false;
                 }
 
-                if (window.swConfirm) {
+                // If validation passes and SweetAlert confirm is available
+                if (isValid && window.swConfirm) {
                     e.preventDefault();
                     swConfirm({
                         title: 'Actualizar proveedor',

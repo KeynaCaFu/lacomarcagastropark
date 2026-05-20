@@ -190,14 +190,34 @@ class LocalController extends Controller
      */
     public function indexAdmin(Request $request)
     {
+        // Obtener query de búsqueda
+        $query = $request->get('q', '');
+        
         // Obtener todos los locales con sus gerentes asociados
-        $locales = Local::with(['users' => function($q){ $q->where('role_id', 2); }])
-            ->orderByDesc('created_at')
-            ->get();
+        $localesQuery = Local::with(['users' => function($q){ $q->where('role_id', 2); }]);
+        
+        // Si hay búsqueda, filtrar por nombre del local o nombre del gerente
+        if ($query) {
+            $localesQuery->where(function($q) use ($query) {
+                $q->where('name', 'like', '%' . $query . '%')
+                  ->orWhere('description', 'like', '%' . $query . '%')
+                  ->orWhereHas('users', function($subQ) use ($query) {
+                      $subQ->where('full_name', 'like', '%' . $query . '%');
+                  });
+            });
+        }
+        
+        $locales = $localesQuery->orderByDesc('created_at')->get();
+        
         // Obtener todos los usuarios con rol Gerente para el modal de creación
         $gerentes = \App\Models\User::where('role_id', 2)
             ->orderBy('full_name')
             ->get(['user_id', 'full_name', 'email']);
+
+        // Si es una solicitud AJAX, devolver solo el grid
+        if ($request->expectsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return view('admin.locales.grid', compact('locales'));
+        }
 
         return view('admin.locales.index', compact('locales', 'gerentes'));
     }

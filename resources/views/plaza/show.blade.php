@@ -44,7 +44,6 @@
                 <a href="{{ route('plaza.index') }}" class="btn-back">
                     <i class="fas fa-chevron-left"></i> Atrás
                 </a>
-                <span class="header-label">Menú</span>
                 <div class="flex-row">
                     <!-- Calendar Button (visible to all) -->
                     <button @click="openEventsDrawer" class="cart-btn" :style="{ borderColor: showEventsDrawer ? 'var(--primary)' : 'var(--border-light)' }">
@@ -243,9 +242,6 @@
                                 <p class="featured-label"><i class="fas fa-crown"></i> &nbsp;Destacado</p>
                             @endif
                             <h3 class="p-card-name">{{ $producto->name }}</h3>
-                            @if($i === 0 && $producto->description)
-                                <p class="featured-desc">{{ $producto->description }}</p>
-                            @endif
                             <div class="p-card-stars">
                                 @php
                                     $rating = round($producto->average_rating ?? 0);
@@ -1480,7 +1476,8 @@
 
                         // Recrear productos en grid (recargar productos)
                         this.recargarProductosLocal(data.productos);
-
+                        // Actualizar reseñas del nuevo local
+                        this.actualizarResenasLocal(this.currentLocalId);
                         // Mostrar toast de éxito
                         showToast({
                             icon: 'success',
@@ -1642,7 +1639,24 @@
                 // Aplicar filtro de categoría después de recargar productos
                 this.aplicarFiltroCategoria();
             },
-
+                async actualizarResenasLocal(localId) {
+    try {
+        const res  = await fetch(`/plaza/${localId}/resenas-html`, {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+        });
+        const data = await res.json();
+       if (data.html) {
+    const seccion = document.getElementById('resenas');
+    if (seccion) seccion.outerHTML = data.html;
+    // Reiniciar carrusel con delay para que el DOM se actualice primero
+    setTimeout(() => {
+        if (typeof window.reiniciarCarrusel === 'function') window.reiniciarCarrusel();
+    }, 100);
+}
+    } catch(e) {
+        console.error('Error al cargar reseñas:', e);
+    }
+},
             aplicarFiltroCategoria() {
                 const grid = document.querySelector('.products-grid');
                 if (!grid) return;

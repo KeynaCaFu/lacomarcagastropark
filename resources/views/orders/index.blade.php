@@ -3,6 +3,12 @@
 @section('title', 'Órdenes')
 
 @push('styles')
+<style>
+    .top-search-bar { display: none !important; }
+</style>
+@endpush
+
+@push('styles')
     <link href="{{ asset('css/order.css') }}" rel="stylesheet">
     <style>
         /* Scrollbar personalizado para la lista de órdenes */
@@ -113,7 +119,7 @@
     <!-- Contenedor de órdenes con Tabs -->
     <div class="orders-container-tabs">
         <!-- Tabs de estados -->
-        <div class="orders-tabs-header" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div class="orders-tabs-header">
             <div style="display: flex; gap: 8px; flex-wrap: wrap; flex: 1; min-width: 0;">
                 @foreach($statuses as $key => $label)
                     <button class="order-tab {{ $loop->first ? 'active' : '' }}" data-status="{{ $key }}">
@@ -1029,7 +1035,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 ${product.photo ? `<img src="${product.photo}" alt="${product.name}">` : '<div style="width: 100%; height: 80px; background: #e5e7eb; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;"><i class="fas fa-image" style="color: #999; font-size: 24px;"></i></div>'}
                 <div class="product-card-name" title="${product.name}">${product.name}</div>
                 <div class="product-card-price">₡${parseFloat(product.price).toFixed(2)}</div>
-                <input type="number" class="product-quantity-input" value="${orderInProgress.items[product.product_id]?.quantity || 1}" min="1" max="99" data-product-id="${product.product_id}" data-product-name="${product.name}" data-product-price="${product.price}">
             `;
 
             card.addEventListener('click', function() {
@@ -1045,19 +1050,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     delete orderInProgress.items[product.product_id];
                 }
                 updateOrderSummary();
-            });
-
-            // Cambiar cantidad
-            const quantityInput = card.querySelector('.product-quantity-input');
-            quantityInput.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-            quantityInput.addEventListener('change', function(e) {
-                const quantity = parseInt(e.target.value) || 1;
-                if (orderInProgress.items[product.product_id]) {
-                    orderInProgress.items[product.product_id].quantity = quantity;
-                    updateOrderSummary();
-                }
             });
 
             container.appendChild(card);
@@ -1119,13 +1111,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (orderInProgress.items[productId]) {
                     orderInProgress.items[productId].quantity = newQuantity;
                 }
-
-                // Actualizar el input del product card si existe
-                document.querySelectorAll('.product-quantity-input').forEach(qtyInput => {
-                    if (qtyInput.dataset.productId == productId) {
-                        qtyInput.value = newQuantity;
-                    }
-                });
 
                 // Recalcular resumen
                 updateOrderSummary();
@@ -1310,10 +1295,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Chevron toggle: abre/cierra el dropdown de clientes
+    document.getElementById('chevronCustomer').addEventListener('click', async function() {
+        const resultsDiv = document.getElementById('customerResults');
+        const isOpen = resultsDiv.style.display === 'block';
+
+        if (isOpen) {
+            resultsDiv.style.display = 'none';
+            this.style.transform = 'rotate(0deg)';
+        } else {
+            if (!customersLoaded) await loadAllCustomers();
+            displayCustomerResults(allCustomers);
+            this.style.transform = 'rotate(180deg)';
+            customerSearch.focus();
+        }
+    });
+
     // Cerrar resultados al hacer clic fuera
     document.addEventListener('click', function(e) {
-        if (!e.target.closest('#customerSearch') && !e.target.closest('#customerResults') && !e.target.closest('#toggleCustomerDropdown')) {
+        if (!e.target.closest('#customerSearch') && !e.target.closest('#customerResults') && !e.target.closest('#toggleCustomerDropdown') && !e.target.closest('#chevronCustomer')) {
             document.getElementById('customerResults').style.display = 'none';
+            const chevron = document.getElementById('chevronCustomer');
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
         }
     });
 
@@ -1327,7 +1330,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const preparationTime = document.getElementById('preparationTime').value;
         const additionalNotes = document.getElementById('additionalNotes').value;
         const userId = document.getElementById('customerId').value;
         const itemsCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -1340,7 +1342,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p><strong>Resumen de la orden:</strong></p>
                     <ul style="list-style: none; padding: 0; font-size: 14px;">
                         <li><i class="fas fa-box" style="margin-right: 8px; color: #e18018;"></i> <strong>${itemsCount}</strong> producto${itemsCount > 1 ? 's' : ''}</li>
-                        <li><i class="fas fa-clock" style="margin-right: 8px; color: #e18018;"></i> Tiempo: <strong>${preparationTime} min</strong></li>
                         ${userId ? `<li><i class="fas fa-user" style="margin-right: 8px; color: #e18018;"></i> Cliente: <strong>Seleccionado</strong></li>` : `<li><i class="fas fa-user" style="margin-right: 8px; color: #999;"></i> Cliente: <em>No asignado</em></li>`}
                     </ul>
                 </div>
@@ -1357,7 +1358,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     quantity: item.quantity,
                     customization: null
                 })),
-                preparation_time: parseInt(preparationTime),
                 additional_notes: additionalNotes
             };
 

@@ -82,9 +82,13 @@ class PlazaController extends Controller
                 ->with(['productReviews.review' => function ($query) {
                     $query->select('review_id', 'rating');
                 }])
-                ->inRandomOrder()
-                ->limit(2)
-                ->get();
+                ->get()
+                // Ordenar por rating promedio (descendente) y obtener los 3 mejores
+                ->sortByDesc(function ($product) {
+                    return $product->average_rating;
+                })
+                ->take(3)
+                ->values();
             $productosAleatorios = $productosAleatorios->merge($productosLocal);
         }
 
@@ -161,7 +165,12 @@ class PlazaController extends Controller
                     $query->select('review_id', 'rating');
                 }
             ])
-            ->get();
+            ->get()
+            // Ordenar por rating (promedio) descendente para que el mejor sea el destacado
+            ->sortByDesc(function ($product) {
+                return $product->average_rating;
+            })
+            ->values();
 
         // IDs de productos actualmente inactivos (para pre-inicializar disabledProductIds en Vue)
         $productosInactivosIds = $productos
@@ -290,14 +299,38 @@ class PlazaController extends Controller
         $product = Product::where('product_id', $product_id)
             ->where('status', 'Available')
             ->with([
-                'gallery',
+                'gallery' => function ($query) {
+                    $query->orderBy('product_gallery_id', 'asc');
+                },
                 'productReviews.review' => function ($query) {
                     $query->select('review_id', 'rating', 'comment', 'date', 'created_at');
                 }
             ])
             ->firstOrFail();
 
-        $gallery = $product->gallery ?? collect();
+        // Enriquecer galería con toda la información de la BD (mantener TODAS las fotos)
+        $gallery = ($product->gallery ?? collect())->map(function ($galleryItem) use ($product) {
+            return [
+                'product_gallery_id' => $galleryItem->product_gallery_id,
+                'product_id'         => $galleryItem->product_id,
+                'image_url'          => $galleryItem->image_url,
+                'created_at'         => $galleryItem->created_at,
+                'updated_at'         => $galleryItem->updated_at,
+            ];
+        })->values();
+
+        // SIEMPRE incluir la foto principal al inicio, seguida de las fotos de la galería
+        if ($product->photo) {
+            $mainPhoto = collect([
+                [
+                    'product_gallery_id' => 0,
+                    'product_id'         => $product->product_id,
+                    'image_url'          => $product->photo_url,
+                    'is_main'            => true,
+                ]
+            ]);
+            $gallery = $mainPhoto->concat($gallery);
+        }
 
         $reviews = ProductReview::where('product_id', $product_id)
             ->with(['review', 'user'])
@@ -310,6 +343,7 @@ class PlazaController extends Controller
 
                 return [
                     'product_review_id' => $productReview->product_review_id,
+                    'review_id'         => $review->review_id,
                     'user_id'           => $productReview->user_id,
                     'reviewer_name'     => $user->full_name ?? $user->name ?? 'Cliente',
                     'rating'            => $review->rating ?? 0,
@@ -599,11 +633,14 @@ public function storeLocalReview(Request $request, $localId)
         ]);
         // Disparar notificación al gerente en tiempo real
         broadcast(new NewReviewPosted(
-          localId:     (int) $localId,
-             reviewId:    $review->review_id,
-             clientName:  Auth::user()->full_name ?? Auth::user()->name ?? 'Cliente',
-             productName: 'el local',
-             rating:      $request->rating
+            localId:       (int) $localId,
+            reviewId:      $review->review_id,
+            reviewEntryId: $localReview->local_review_id,
+            reviewType:    'local',
+            clientName:    Auth::user()->full_name ?? Auth::user()->name ?? 'Cliente',
+            productName:   'el local',
+            rating:        $request->rating,
+            comment:       $request->comment
         ))->toOthers();
 
         // Devolver la nueva reseña completa para renderizarla sin recargar
@@ -620,6 +657,7 @@ public function storeLocalReview(Request $request, $localId)
             'message' => 'Reseña guardada correctamente.',
             'review'  => [
                 'local_review_id' => $localReview->local_review_id,
+                'review_id'       => $review->review_id,
                 'local_id'        => (int) $localId,
                 'nombre'          => $nombre,
                 'iniciales'       => $iniciales ?: 'CL',
@@ -654,14 +692,28 @@ public function storeProductReview(Request $request, $productId)
         'comment' => 'required|string|min:10|max:500',
     ]);
 
-    $haComprado = Order::where('status', 'Delivered')
-        ->whereHas('user', function ($q) use ($userId) {
-            $q->where('tbuser_order.user_id', $userId);
-        })
-        ->whereHas('items', function ($q) use ($productId) {
-            $q->where('product_id', $productId);
-        })
-        ->exists();
+    $localId = $request->input('local_id');
+
+    // Obtener pedidos del usuario desde la tabla pivot
+    $orderIds = \Illuminate\Support\Facades\DB::table('tbuser_order')
+        ->where('user_id', $userId)
+        ->pluck('order_id')
+        ->toArray();
+
+    $haComprado = false;
+    if (!empty($orderIds)) {
+        $query = Order::whereIn('order_id', $orderIds)
+            ->where('status', Order::STATUS_DELIVERED)
+            ->whereHas('items', function ($q) use ($productId) {
+                $q->where('product_id', $productId);
+            });
+
+        if ($localId) {
+            $query->where('local_id', (int) $localId);
+        }
+
+        $haComprado = $query->exists();
+    }
 
     if (!$haComprado) {
         return response()->json([
@@ -670,17 +722,6 @@ public function storeProductReview(Request $request, $productId)
         ], 403);
     }
 
-    // BLOQUEO DE DOBLE RESEÑA
-    $yaExiste = ProductReview::where('product_id', $productId)
-        ->where('user_id', $userId)
-        ->exists();
-
-    if ($yaExiste) {
-        return response()->json([
-            'success' => false,
-            'error' => 'Ya habías publicado una reseña para este producto.'
-        ], 409);
-    }
 
     $review = Review::create([
         'rating' => $request->rating,
@@ -700,11 +741,14 @@ $localDelProducto = $product?->locals()->first();
 
 if ($localDelProducto) {
     broadcast(new NewReviewPosted(
-        localId:     (int) $localDelProducto->local_id,
-        reviewId:    $review->review_id,
-        clientName:  Auth::user()->full_name ?? Auth::user()->name ?? 'Cliente',
-        productName: $product->name,
-        rating:      $request->rating
+        localId:       (int) $localDelProducto->local_id,
+        reviewId:      $review->review_id,
+        reviewEntryId: $productReview->product_review_id,
+        reviewType:    'product',
+        clientName:    Auth::user()->full_name ?? Auth::user()->name ?? 'Cliente',
+        productName:   $product->name,
+        rating:        $request->rating,
+        comment:       $request->comment
     ));
 }
     $user = Auth::user();
@@ -804,6 +848,34 @@ if ($localDelProducto) {
     'resenasProductos' => $resenasProductos,
     'iniciales'        => $iniciales,
 ]);
+}
+
+
+public function getResenasHtml($localId)
+{
+    $local = Local::where('local_id', $localId)->firstOrFail();
+
+    $reviews = LocalReview::with(['review', 'user'])
+        ->where('local_id', $localId)
+        ->whereHas('review')
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    $allRatings = LocalReview::with('review')
+        ->where('local_id', $localId)
+        ->whereHas('review')
+        ->get()
+        ->pluck('review.rating')
+        ->filter();
+
+    $localStats = [
+        'average' => $allRatings->count() ? round($allRatings->avg(), 1) : 0,
+        'total'   => $allRatings->count(),
+    ];
+
+    $html = view('plaza.reviews', compact('local', 'reviews', 'localStats'))->render();
+
+    return response()->json(['html' => $html]);
 }
 
 }

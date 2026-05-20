@@ -1,4 +1,68 @@
 <!-- Detalles de Orden (parcial para AJAX) -->
+<style>
+    /* ---- Responsive del panel de detalles ---- */
+    @media (max-width: 768px) {
+        .order-detail-header {
+            padding: 14px 16px;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .order-detail-body {
+            padding: 14px 16px;
+        }
+
+        /* Grids de info: de 2 columnas a 1 en móvil */
+        .order-detail-body > div[style*="grid-template-columns: repeat(2"] {
+            grid-template-columns: 1fr 1fr !important;
+        }
+
+        /* Tabla de items: scroll horizontal si no cabe */
+        .order-items-table {
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            font-size: 12px;
+        }
+
+        .order-items-table thead th,
+        .order-items-table tbody td {
+            padding: 6px 8px;
+        }
+
+        /* Imagen del producto más pequeña */
+        .order-items-table img {
+            width: 32px !important;
+            height: 32px !important;
+        }
+
+        .order-items-table div[style*="width: 40px"] {
+            width: 32px !important;
+            height: 32px !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .order-detail-header {
+            padding: 12px 14px;
+        }
+
+        .order-detail-body {
+            padding: 12px 14px;
+        }
+
+        /* En móvil pequeño, 1 columna para los grids de info */
+        .order-detail-body > div[style*="grid-template-columns: repeat(2"] {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* Total: texto más pequeño */
+        .order-detail-body > div[style*="border: 2px solid #e18018"] span:last-child {
+            font-size: 16px !important;
+        }
+    }
+</style>
 <div class="order-detail-header">
     <div class="order-detail-title">
         <h2>{{ $order->order_number }}</h2>

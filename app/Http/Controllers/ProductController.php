@@ -30,8 +30,11 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
+        // Aceptar tanto 'buscar' como 'q' para compatibilidad con top-search-bar
+        $searchQuery = $request->input('q') ?? $request->input('buscar');
+        
         $filters = [
-            'search' => $request->input('buscar'),
+            'search' => $searchQuery,
             'status' => $this->mapStatusToEnglish($request->input('estado')),
             'category' => $request->input('categoria')
         ];
@@ -57,6 +60,11 @@ class ProductController extends Controller
             $products = $this->productData->all($filters);
             $totals = $this->productData->countTotals();
             $categories = $this->productData->getAllCategories();
+        }
+
+        // Si es una solicitud AJAX, devolver solo la tabla
+        if ($request->expectsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return view('products.table', compact('products'));
         }
 
         return view('products.index', compact('products', 'totals', 'categories'));
@@ -156,7 +164,7 @@ class ProductController extends Controller
             'etiqueta' => 'nullable|string|max:100',
             'tipo_producto' => 'nullable|string|max:50',
             'precio' => 'required|numeric|min:0',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'foto' => 'required|image|mimes:jpeg,png,jpg,gif|max:4096',
             'estado' => 'required|string|in:Disponible,No disponible'
         ];
 
@@ -167,7 +175,7 @@ class ProductController extends Controller
             'precio.min' => 'El precio no puede ser negativo',
             'foto.image' => 'El archivo debe ser una imagen',
             'foto.mimes' => 'La imagen debe ser JPG, PNG o GIF',
-            'foto.max' => 'La imagen no puede ser mayor a 2MB',
+            'foto.max' => 'La imagen no puede ser mayor a 4MB',
             'estado.in' => 'El estado debe ser Disponible o No disponible'
         ];
 
@@ -240,7 +248,6 @@ class ProductController extends Controller
             DB::table('tblocal_product')->insert([
                 'local_id' => $localId,
                 'product_id' => $product->product_id,
-                'price' => $validated['precio'],
                 'is_available' => 1,
                 'created_at' => now(),
                 'updated_at' => now()
@@ -342,7 +349,7 @@ class ProductController extends Controller
             'etiqueta' => 'nullable|string|max:100',
             'tipo_producto' => 'nullable|string|max:50',
             'precio' => 'required|numeric|min:0',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
             'estado' => 'required|string|in:Disponible,No disponible'
         ];
 
@@ -353,7 +360,7 @@ class ProductController extends Controller
             'precio.min' => 'El precio no puede ser negativo',
             'foto.image' => 'El archivo debe ser una imagen',
             'foto.mimes' => 'La imagen debe ser JPG, PNG o GIF',
-            'foto.max' => 'La imagen no puede ser mayor a 2MB',
+            'foto.max' => 'La imagen no puede ser mayor a 4MB',
             'estado.in' => 'El estado debe ser Disponible o No disponible'
         ];
 
@@ -450,7 +457,6 @@ class ProductController extends Controller
                 ->where('local_id', $localId)
                 ->where('product_id', $id)
                 ->update([
-                    'price' => $validated['precio'],
                     'updated_at' => now()
                 ]);
         }
@@ -538,12 +544,12 @@ class ProductController extends Controller
         }
 
         $validated = $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:4096'
         ], [
             'image.required' => 'Debe seleccionar una imagen',
             'image.image' => 'El archivo debe ser una imagen',
             'image.mimes' => 'La imagen debe ser JPG, PNG o GIF',
-            'image.max' => 'La imagen no puede ser mayor a 2MB'
+            'image.max' => 'La imagen no puede ser mayor a 4MB'
         ]);
 
         try {

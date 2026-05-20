@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.common.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.show.css') }}">
     <link rel="stylesheet" href="{{ asset('css/plaza/plaza.index.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/plaza/product-detail-page.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/plaza/product-detail-page.css') }}?v={{ filemtime(public_path('css/plaza/product-detail-page.css')) }}">
     <script data-cfasync="false" src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script data-cfasync="false" src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js" crossorigin="anonymous"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -41,7 +41,7 @@
     <header class="site-header">
         <div class="container">
             <div class="header-inner">
-                <a href="{{ route('plaza.index') }}" class="btn-back">
+                <a href="{{ route('plaza.show', $local->local_id) }}" class="btn-back">
                     <i class="fas fa-chevron-left"></i> Atrás
                 </a>
                 <span class="header-label">Producto</span>
@@ -82,7 +82,7 @@
                                         <i class="fas fa-history text-muted"></i> Ver mis pedidos
                                         <span id="notifDot_pedidos" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:6px;vertical-align:middle;"></span>
                                     </a>
-                                    <a href="{{ route('reviews.index') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('resenas')">
+                                    <a href="{{ route('client.reviews') }}" class="dropdown-item" onclick="window.clearNotifDot && window.clearNotifDot('resenas')">
                                         <i class="fas fa-star text-muted"></i> Mis reseñas
                                         <span id="notifDot_resenas" style="display:none;width:8px;height:8px;background:#e53e3e;border-radius:50%;margin-left:6px;vertical-align:middle;"></span>
                                     </a>
@@ -108,46 +108,69 @@
     <!-- Main Content -->
     <div class="product-detail-page">
         <div class="container">
-            <!-- Gallery Section -->
-            <section class="gallery-section">
-                <div class="gallery-main">
-                    <img :src="currentImage" :alt="product.name" loading="lazy">
-                    <div class="gallery-counter" v-if="gallery.length > 1">
-                        @{{ currentImageIndex + 1 }} / @{{ gallery.length }}
+            <!-- Main Grid Layout -->
+            <section class="main-grid">
+                <!-- Gallery Section (Left) -->
+                <div class="gallery-wrapper">
+                    <!-- Main Gallery -->
+                    <div class="gallery-section">
+                        <div class="gallery-main"
+                             @mouseenter="carouselPaused = true"
+                             @mouseleave="carouselPaused = false">
+                            <transition name="gallery-fade" mode="out-in">
+                                <img :key="currentImageIndex" :src="currentImage" :alt="product.name" loading="lazy">
+                            </transition>
+                            <div class="gallery-counter" v-if="gallery.length > 1">
+                                @{{ currentImageIndex + 1 }} / @{{ gallery.length }}
+                            </div>
+                            <button
+                                v-if="gallery.length > 1"
+                                @click="prevSlide"
+                                class="gallery-nav-btn gallery-nav-prev"
+                                title="Foto anterior">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button
+                                v-if="gallery.length > 1"
+                                @click="nextSlide"
+                                class="gallery-nav-btn gallery-nav-next"
+                                title="Siguiente foto">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+
+                        <!-- Dots indicator -->
+                        <div class="gallery-dots" v-if="gallery.length > 1">
+                            <button
+                                v-for="(img, idx) in gallery"
+                                :key="`dot-${idx}`"
+                                @click="goToSlide(idx)"
+                                :class="['gallery-dot', { active: currentImageIndex === idx }]"
+                                :title="`Foto ${idx + 1}`"
+                                type="button">
+                            </button>
+                        </div>
+
+                        <!-- Thumbnails -->
+                        <div class="gallery-thumbnails-wrapper" v-if="gallery && gallery.length > 1" :data-total="gallery.length">
+                            <div class="gallery-thumbnails" ref="thumbnailsContainer" role="region" aria-label="Galería de fotos">
+                                <button
+                                    v-for="(image, idx) in gallery"
+                                    :key="`thumb-${idx}`"
+                                    @click="goToSlide(idx)"
+                                    :class="['thumb', { active: currentImageIndex === idx }]"
+                                    :title="`Foto ${idx + 1} de @{{ gallery.length }}`"
+                                    :aria-pressed="currentImageIndex === idx"
+                                    type="button">
+                                    <img :src="image.image_url" :alt="`@{{ product.name }} - Foto ${idx + 1}`" loading="lazy">
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <button 
-                        v-if="currentImageIndex > 0"
-                        @click="currentImageIndex--" 
-                        class="gallery-nav-btn gallery-nav-prev"
-                        title="Foto anterior">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button 
-                        v-if="currentImageIndex < gallery.length - 1"
-                        @click="currentImageIndex++" 
-                        class="gallery-nav-btn gallery-nav-next"
-                        title="Siguiente foto">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
                 </div>
 
-                <!-- Thumbnails -->
-                <div class="gallery-thumbnails" v-if="gallery.length > 1" ref="thumbnailsContainer">
-                    <button 
-                        v-for="(image, idx) in gallery" 
-                        :key="idx"
-                        @click="scrollToThumbnail(idx)"
-                        :class="['thumb', { active: currentImageIndex === idx }]"
-                        :title="`Foto ${idx + 1}`">
-                        <img :src="image.image_url" :alt="`{{ $product->name }} - ${idx + 1}`" loading="lazy">
-                    </button>
-                </div>
-            </section>
-
-            <!-- Product Info - Two Column Layout -->
-            <section class="info-section">
-                <!-- Left Column: Product Details -->
-                <div class="info-left">
+                <!-- Product Info Section (Right) -->
+                <div class="product-info-wrapper">
                     <!-- Meta Badges -->
                     <div class="product-meta">
                         <span class="meta-badge">
@@ -181,27 +204,32 @@
                             <sup>₡</sup>@{{ formatPrice(product.price) }}
                         </div>
                     </div>
-                </div>
 
-                <!-- Right Column: Description & Local Info -->
-                <div class="info-right">
                     <!-- Description -->
                     <section class="description-section" v-if="product.description">
                         <h2 class="section-title">Descripción</h2>
                         <p class="description-text">@{{ product.description }}</p>
                     </section>
 
+                    <!-- Add to Cart -->
+                    <button @click="openAddToCartModal(product)" class="btn-add-to-cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        Agregar al Carrito
+                    </button>
+
                     <!-- Local Info -->
                     <section class="local-section">
-                        <div class="local-logo" v-if="local.image_logo">
-                            <img :src="assetUrl(local.image_logo)" :alt="local.name" loading="lazy">
-                        </div>
-                        <div class="local-info">
-                            <h3>@{{ local.name }}</h3>
-                            <p v-if="local.description">@{{ local.description }}</p>
-                            <p v-if="local.contact">
-                                <i class="fas fa-phone"></i> @{{ local.contact }}
-                            </p>
+                        <div class="local-card-body">
+                            <div class="local-logo-small" v-if="local.image_logo">
+                                <img :src="local.image_logo" :alt="local.name" loading="lazy">
+                            </div>
+                            <div class="local-info">
+                                <h3>@{{ local.name }}</h3>
+                                <p v-if="local.description">@{{ local.description }}</p>
+                                <p v-if="local.contact">
+                                    <i class="fas fa-phone"></i> @{{ local.contact }}
+                                </p>
+                            </div>
                         </div>
                     </section>
                 </div>
@@ -240,6 +268,8 @@
                     <div
                         v-for="(r, i) in reviews"
                         :key="i"
+                        :data-review-id="r.review_id"
+                        :data-product-review-id="r.product_review_id"
                         style="
                             background: linear-gradient(180deg, rgba(28,20,16,0.98) 0%, rgba(18,13,10,0.98) 100%);
                             border: 1px solid rgba(229,138,58,0.18);
@@ -363,17 +393,36 @@
                            :style="{ color: (s <= newReview.rating || s <= starHover) ? '#e58a3a' : '#5a4636', fontSize:'24px', cursor:'pointer' }"></i>
                     </div>
 
+                    <div v-if="attemptedSubmit && newReview.rating === 0"
+                         style="color:#e74c3c; font-size:13px; margin-top:6px; margin-bottom:8px;">
+                        ⚠ Debes seleccionar una calificación de estrellas.
+                    </div>
+
                     <textarea
                         v-model="newReview.comment"
                         maxlength="500"
                         rows="4"
                         placeholder="Describe tu experiencia con este producto..."
                         style="width:100%; box-sizing:border-box; background:#0f0d0b; color:#fff; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; resize:vertical;"></textarea>
+                    <div v-if="newReview.comment.trim().length > 0 && newReview.comment.trim().length < 10"
+                         style="color:#e74c3c; font-size:13px; margin-top:6px;">
+                        El comentario debe tener al menos 10 caracteres.
+                    </div>
 
                     <button
                         @click="submitProductReview"
                         :disabled="isSendingReview || newReview.rating === 0 || newReview.comment.trim().length < 10"
-                        style="margin-top:14px; background:#e58a3a; color:#fff; border:none; border-radius:12px; padding:12px 18px; font-weight:700; cursor:pointer;">
+                        :style="{
+                            marginTop: '14px',
+                            background: (newReview.rating === 0 || newReview.comment.trim().length < 10) ? '#666' : '#e58a3a',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '12px',
+                            padding: '12px 18px',
+                            fontWeight: '700',
+                            cursor: (newReview.rating === 0 || newReview.comment.trim().length < 10) ? 'not-allowed' : 'pointer',
+                            opacity: (newReview.rating === 0 || newReview.comment.trim().length < 10) ? '0.6' : '1'
+                        }">
                         <span v-if="isSendingReview">Guardando...</span>
                         <span v-else>Publicar reseña</span>
                     </button>
@@ -714,6 +763,7 @@
                 newReview: { rating: 0, comment: '' },
                 starHover: 0,
                 isSendingReview: false,
+                attemptedSubmit: false,
                 starLabels: ['Muy malo', 'Malo', 'Regular', 'Bueno', '¡Excelente!'],
                 product: {!! json_encode([
                     'product_id' => $product->product_id,
@@ -723,17 +773,20 @@
                     'photo_url' => $product->photo_url,
                     'price' => $product->price,
                     'average_rating' => $product->average_rating,
+                    'local_id' => $local->local_id,
                 ]) !!},
                 local: {!! json_encode([
                     'local_id' => $local->local_id,
                     'name' => $local->name,
                     'description' => $local->description,
                     'contact' => $local->contact,
-                    'image_logo' => $local->image_logo,
+                    'image_logo' => $local->logo_url,
                 ]) !!},
-                gallery: {!! json_encode($gallery->map(fn($g) => ['image_url' => $g->image_url])->toArray()) !!},
+                gallery: {!! json_encode($gallery->toArray()) !!},
                 reviews: {!! json_encode($reviews->toArray()) !!},
                 currentImageIndex: 0,
+                carouselPaused: false,
+                _carouselTimer: null,
 
                 // Propiedades del carrito
                 isAuthenticated: {{ auth()->check() ? 'true' : 'false' }},
@@ -780,7 +833,7 @@
                 return this.gallery[this.currentImageIndex]?.image_url;
             },
             totalDrawerQty() {
-                return this.drawerCart.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
+                return this.drawerCart.length;
             },
             totalDrawerPrice() {
                 return this.drawerCart.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0);
@@ -810,16 +863,52 @@
                     day: 'numeric'
                 });
             },
-            scrollToThumbnail(index) {
-                this.currentImageIndex = index;
+            // ── CAROUSEL METHODS ──
+            startCarousel() {
+                if (this.gallery.length <= 1) return;
+                this._carouselTimer = setInterval(() => {
+                    if (!this.carouselPaused) {
+                        this.currentImageIndex = (this.currentImageIndex + 1) % this.gallery.length;
+                        this._scrollActiveThumbnail();
+                    }
+                }, 3500);
+            },
+            stopCarousel() {
+                if (this._carouselTimer) {
+                    clearInterval(this._carouselTimer);
+                    this._carouselTimer = null;
+                }
+            },
+            nextSlide() {
+                this.currentImageIndex = (this.currentImageIndex + 1) % this.gallery.length;
+                this._resetCarousel();
+                this._scrollActiveThumbnail();
+            },
+            prevSlide() {
+                this.currentImageIndex = (this.currentImageIndex - 1 + this.gallery.length) % this.gallery.length;
+                this._resetCarousel();
+                this._scrollActiveThumbnail();
+            },
+            goToSlide(idx) {
+                this.currentImageIndex = idx;
+                this._resetCarousel();
+                this._scrollActiveThumbnail();
+            },
+            _resetCarousel() {
+                this.stopCarousel();
+                this.startCarousel();
+            },
+            _scrollActiveThumbnail() {
                 this.$nextTick(() => {
                     const container = this.$refs.thumbnailsContainer;
+                    if (!container) return;
                     const thumbs = container.querySelectorAll('.thumb');
-                    const activeThumb = thumbs[index];
-                    if (activeThumb) {
-                        activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                    }
+                    const active = thumbs[this.currentImageIndex];
+                    if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                 });
+            },
+            scrollToThumbnail(index) {
+                this.goToSlide(index);
             },
 
             // ── CARRITO METHODS ──
@@ -1390,6 +1479,7 @@
             closeReviewModal() {
                 this.showReviewModal = false;
                 document.body.classList.remove('modal-open');
+                this.attemptedSubmit = false;
             },
 
             async checkPuedeResenar() {
@@ -1399,7 +1489,7 @@
                 }
 
                 try {
-                    const res = await fetch(`/plaza/producto/${this.product.product_id}/puede-resenar`, {
+                    const res = await fetch(`/plaza/producto/${this.product.product_id}/puede-resenar?local_id=${this.local.local_id}`, {
                         headers: {
                             'Accept': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
@@ -1407,7 +1497,7 @@
                     });
 
                     const data = await res.json();
-                    this.puedeResenar = data.puede ?? false;
+                    this.puedeResenar = data.puede;
                     this.yaReseno = data.ya_reseno ?? false;
                     if (this.yaReseno) {
                         this.puedeResenar = true;
@@ -1421,11 +1511,9 @@
             async submitProductReview() {
                 if (this.isSendingReview) return;
 
+                this.attemptedSubmit = true;
+
                 if (this.newReview.rating === 0) {
-                    window.showToast({
-                        icon: 'warning',
-                        title: 'Selecciona una calificación'
-                    });
                     return;
                 }
 
@@ -1450,7 +1538,8 @@
                         },
                         body: JSON.stringify({
                             rating: this.newReview.rating,
-                            comment: this.newReview.comment.trim()
+                            comment: this.newReview.comment.trim(),
+                            local_id: this.local.local_id
                         })
                     });
 
@@ -1543,14 +1632,14 @@
             this.checkPuedeResenar();
             console.log('Producto cargado:', this.product.name);
             
-            // Agregar listener de teclado
+            // Listener de teclado (circular)
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowLeft' && this.currentImageIndex > 0) {
-                    this.currentImageIndex--;
-                } else if (e.key === 'ArrowRight' && this.currentImageIndex < this.gallery.length - 1) {
-                    this.currentImageIndex++;
-                }
+                if (e.key === 'ArrowLeft') this.prevSlide();
+                else if (e.key === 'ArrowRight') this.nextSlide();
             });
+
+            // Iniciar carrusel automático
+            this.startCarousel();
             
             // Retardar operaciones que manipulan el DOM para evitar forzar layout
             // Esto permite que los estilos CSS se carguen completamente primero
@@ -1592,6 +1681,15 @@
             setInterval(purgeExpiredEvents, 60000);
         }
     }).mount('#product-detail-app');
+
+    // Debug: Verificar datos
+    setTimeout(() => {
+        const gallery = {!! json_encode($gallery->toArray()) !!};
+        console.log('📸 Galería - Total fotos:', gallery.length);
+        console.log('📸 Galería - Datos completos:', gallery);
+        console.log('🏪 Local:', {!! json_encode(['local_id' => $local->local_id, 'name' => $local->name, 'description' => $local->description, 'contact' => $local->contact, 'image_logo' => $local->image_logo]) !!});
+        console.log('📦 Producto:', {!! json_encode(['product_id' => $product->product_id, 'name' => $product->name, 'description' => $product->description, 'category' => $product->category, 'photo_url' => $product->photo_url, 'price' => $product->price, 'average_rating' => $product->average_rating]) !!});
+    }, 500);
 
     // Listener de eventos publicados en tiempo real
     (function initEvents() {

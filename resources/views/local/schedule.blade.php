@@ -238,7 +238,7 @@
     .schedule-modal {
         position: fixed;
         inset: 0;
-        z-index: 1050;
+        z-index: 3000;
         background: rgba(17, 24, 39, 0.52);
         display: flex;
         align-items: center;
@@ -351,6 +351,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     updateTime();
     setInterval(updateTime, 1000);
+
+    // Integración con top-search-bar para filtrar por día de semana
+    function filterSchedulesByDay() {
+        const searchTerm = document.getElementById('topSearchInput')?.value.toLowerCase().trim() || '';
+        const scheduleCards = document.querySelectorAll('.schedule-card');
+        
+        scheduleCards.forEach(card => {
+            const dayName = card.dataset.day?.toLowerCase() || '';
+            const shouldShow = !searchTerm || dayName.includes(searchTerm);
+            card.style.display = shouldShow ? '' : 'none';
+        });
+    }
+
+    const topSearchInput = document.getElementById('topSearchInput');
+    if (topSearchInput) {
+        topSearchInput.addEventListener('input', filterSchedulesByDay);
+    }
 
     const modal = document.getElementById('scheduleDetailModal');
     const modalDayName = document.getElementById('modalDayName');
