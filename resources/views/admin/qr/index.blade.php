@@ -11,7 +11,7 @@
         <div class="qr-header-content">
             <div class="qr-title-group">
                 <h1 class="qr-title">
-                    <i class="fas fa-qrcode"></i>
+                    <i class="fas fa-qrcode" style="color: #d07c10;"></i>
                     Gestión de QR de Validación
                 </h1>
                 <p class="qr-subtitle">Administra el código QR estático para validación de órdenes en el local</p>

@@ -11,13 +11,10 @@
     .info-panel {
         background: white;
         border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        padding: 1.4rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         border: 1px solid #e9ecef;
-         height: 100%;
-        margin-right: 253px;
-        margin-left: -599px;
-        margin-top: 42px;
+        height: 100%;
     }
     
     .panel-header {
@@ -37,15 +34,12 @@
     }
 
     .map-wrapper {
-         background: white;
+        background: white;
         border-radius: 16px;
         overflow: hidden;
         border: 1px solid #e9ecef;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        height: 99%;
-        margin-right: -1px;
-        margin-left: -240px;
-        margin-top: 42px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        height: 100%;
     }
 
     .map-header {
@@ -97,11 +91,16 @@
     .breadcrumb-item + .breadcrumb-item::before {
         color: #ced4da;
     }
+
+    @media (max-width: 991px) {
+        .info-panel { margin-bottom: 1rem; }
+        #map { height: 350px; }
+    }
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid perimeter-container">
+<div class="perimeter-container px-4 py-4">
     <!-- Breadcrumb -->
     <div class="row mb-4">
         <div class="col-12">
@@ -116,7 +115,7 @@
 
     <div class="row g-4">
         <!-- Columna Izquierda: Formulario -->
-        <div class="col-lg-4">
+        <div class="col-xl-4 col-lg-5 col-12">
             <div class="info-panel">
                 <div class="panel-header">
                     <h3><i class="fas fa-edit text-warning"></i> Editar Configuración</h3>
@@ -157,7 +156,7 @@
                                 </a>
                             </div>
                             <div class="col-6">
-                                <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm" style="border-radius: 10px; font-weight: 700; background: #e18018; border: none;">
+                                <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm" style="border-radius: 10px; font-weight: 700; background: #e18018; border: none; padding: 13px;">
                                     <i class="fas fa-save me-2"></i> Guardar Cambios
                                 </button>
                             </div>
@@ -175,7 +174,7 @@
         </div>
 
         <!-- Columna Derecha: Mapa Interactivo -->
-        <div class="col-lg-8">
+        <div class="col-xl-8 col-lg-7 col-12">
             <div class="map-wrapper">
                 <div class="map-header d-flex justify-content-between align-items-center">
                     <h4 class="mb-0"><i class="fas fa-map-marked-alt me-2 text-warning"></i> Ajuste Visual del Perímetro</h4>

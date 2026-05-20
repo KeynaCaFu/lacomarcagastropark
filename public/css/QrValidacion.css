@@ -4,17 +4,17 @@
 
 .qr-admin-container {
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 1px auto;
     padding: 20px;
+    margin-left: 40px;
 }
 
-.qr-header {
-    background: linear-gradient(135deg, #D47744 0%, #915016 100%);
-    color: white;
+ .qr-header {
+    color: #0a0606;
     border-radius: 12px;
-    padding: 30px 40px;
     margin-bottom: 30px;
-    box-shadow: 0 4px 15px rgba(212, 119, 68, 0.3);
+    margin-left: -2px;
+    margin-top: 18px;
 }
 
 .qr-header-content {
@@ -109,6 +109,7 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
     border: 1px solid #e8e8e8;
     overflow: hidden;
+    margin-left: -34px;
 }
 
 .qr-card-header {
@@ -169,7 +170,7 @@
     padding: 30px;
     background: #f8f9fa;
     border-radius: 10px;
-    min-height: 500px;
+    min-height: 370px;
     display: flex;
     align-items: center;
     justify-content: center;

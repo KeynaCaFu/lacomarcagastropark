@@ -238,7 +238,7 @@
     .schedule-modal {
         position: fixed;
         inset: 0;
-        z-index: 1050;
+        z-index: 3000;
         background: rgba(17, 24, 39, 0.52);
         display: flex;
         align-items: center;

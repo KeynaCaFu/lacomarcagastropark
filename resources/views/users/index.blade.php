@@ -411,6 +411,18 @@
             padding: 6px 12px;
         }
     }
+    .btn-searc{
+    background: rgb(229, 231, 235);
+    color: rgb(55, 65, 81);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 9px;
+    }
 </style>
 
 <div class="users-container">
@@ -461,7 +473,7 @@
             <i class="fas fa-search"></i> Buscar Usuarios
         </button>
 
-        <a href="javascript:void(0);" id="clearBtn" class="btn-action" style="background: #e5e7eb; color: #374151; padding: 10px 20px; display: none;">
+        <a href="javascript:void(0);" id="clearBtn" class="btn-searc">
             <i class="fas fa-redo"></i> Limpiar
         </a>
         </div>
